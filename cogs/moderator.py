@@ -60,11 +60,11 @@ class Admin(commands.Cog):
         msg_num = max(len(deleted_msg) - 1, 0)
 
         if msg_num == 0:
-            resp = "Deleted `0 message` 🙄 "
+            resp = "Deleted `0 message` 😔 "
             # resp = "Deleted `0 message` 🙄  \n (I can't delete messages "\
                       # "older than 2 weeks due to discord limitations)"
         else:
-            resp = "Deleted `{} message{}` 👌 ".format(msg_num,
+            resp = "Deleted `{} message{}` ✨ ".format(msg_num,
                                                          "" if msg_num <\
                                                             2 else "s")
 
