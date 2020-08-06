@@ -12,8 +12,8 @@ class Welcome(commands.Cog):
     @commands.Cog.listener()
     async def on_member_join(self, member):
         server = member.guild
-        welcome_channel = self.bot.get_channel(740051039499059271)
         # TODO: find a way to get channel id if possible
+        welcome_channel = self.bot.get_channel(740051039499059271)
         member_role = discord.utils.get(member.guild.roles, name="Member")
         welcome_msg=[f"It's a Bird, It's a Plane, It's {member.mention}!",
                 f"Welcome {member.mention}! <:PogChamp:740102448047194152>",

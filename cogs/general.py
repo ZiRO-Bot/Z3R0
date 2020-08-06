@@ -28,13 +28,13 @@ class General(commands.Cog):
                 )
         # embed.set_author(name=f"{ctx.guild.name} Information")
         embed.add_field(name="Created on",value=f"{ctx.guild.created_at.date()}")
-        embed.add_field(name="Created by",value=f"{ctx.guild.owner.mention}")
         embed.set_thumbnail(url=ctx.guild.icon_url)
         _emoji=""
         embed.add_field(name="Members",value=f"{ctx.guild.member_count}")
         for emoji in ctx.guild.emojis:
             _emoji+= ", ".join([f"{str(emoji)}"])
         embed.add_field(name="Emojis",value=f"{_emoji}")
+        embed.add_field(name="Owner",value=f"{ctx.guild.owner.mention}")
         await ctx.send(embed=embed)
 
 def setup(bot):

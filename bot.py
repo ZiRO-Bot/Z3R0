@@ -39,7 +39,7 @@ class ziBot(commands.Bot):
         for extension in extensions:
             self.load_extension(extension)
         
-        self.logger.warning(f'Online: {self.user} (ID: {self.user.id})')
+        self.logger.info(f'Online: {self.user} (ID: {self.user.id})')
         print(f'Online: {self.user} (ID: {self.user.id})') 
 
     async def on_message(self, message):
