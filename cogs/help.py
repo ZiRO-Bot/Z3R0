@@ -2,7 +2,7 @@ from discord.ext import commands
 import discord
 import asyncio
 import json
-
+import bot
 class Help(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -10,12 +10,16 @@ class Help(commands.Cog):
     @commands.command(aliases=["commands"])
     async def help(self, ctx):
         """Show this message."""
+        _prefixes_ = bot.get_prefix(self.bot, ctx.message)
+        _prefixes_.pop(0)
+        _prefixes_.pop(0)
+        prefixes = ", ".join(_prefixes_)
         embed = discord.Embed(
                     title = "Help",
-                    description = f"*` Bot prefixes are '>' and '$>' `*",
+                    # description = f"* Bot prefixes are {prefixes} *",
+                    description = f"*` Bot prefixes are {prefixes} `*",
                     colour = discord.Colour.green()
                 )
-
         cmds = list(self.bot.commands)
         for cmd in cmds:
             if cmd.hidden is True:
