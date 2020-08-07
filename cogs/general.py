@@ -7,10 +7,10 @@ class General(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command()
+    @commands.command(aliases=["invite"])
     async def add(self, ctx):
         """Show link to invite ziBot."""
-        oauth_link = "https://discord.com/oauth2/authorize?client_id=740122842988937286&scope=bot"
+        oauth_link = discord.utils.oauth_url(self.bot.user.id, permissions=None, guild=None, redirect_uri=None) 
         await ctx.send(f"To add ziBot to your server, click here: \n {oauth_link}")
     
     @commands.command()
