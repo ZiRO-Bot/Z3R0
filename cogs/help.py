@@ -33,19 +33,29 @@ class Help(commands.Cog):
             embed = discord.Embed(
                     title = "Help",
                     # description = f"* Bot prefixes are {prefixes} *",
-                    description = f"*` Bot prefixes are {prefixes} `*",
+                    description = f"*Bot prefixes are {prefixes}*",
                     colour = discord.Colour.green()
                     )
-            cmds = list(self.bot.commands)
-            for cmd in cmds:
-                if cmd.hidden is True:
+            # cmds = list(self.bot.commands)
+            # for cmd in cmds:
+            #     if cmd.hidden is True:
+            #         continue
+            #     if cmd.help is None:
+            #         _desc="No description."
+            #     else:
+            #         _desc=f"{cmd.help}"
+            #     _cmd = " | ".join([str(cmd),*cmd.aliases])
+            #     embed.add_field(name=f"{_cmd}", value=f"{_desc}", inline=False)
+            # await ctx.send(embed=embed)
+            hidden_cogs = ["Help", "Admin", "Welcome"]
+            for cog in self.bot.cogs:
+                if cog in hidden_cogs:
                     continue
-                if cmd.help is None:
-                    _desc="No description."
-                else:
-                    _desc=f"{cmd.help}"
-                _cmd = " | ".join([str(cmd),*cmd.aliases])
-                embed.add_field(name=f"{_cmd}", value=f"{_desc}", inline=False)
+                cmds = self.bot.get_cog(cog).get_commands()
+                _cmds = ", ".join([c.name for c in cmds])
+                if not _cmds:
+                    _cmds = "No commands"
+                embed.add_field(name=f"{cog}", value=f"` help {cog} for details. ` \n{_cmds}", inline=False)
             await ctx.send(embed=embed)
             return
         if (command := discord.utils.get(self.bot.commands, name=command)):

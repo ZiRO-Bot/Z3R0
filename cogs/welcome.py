@@ -4,7 +4,7 @@ import asyncio
 import logging
 from random import randint
 
-class Welcome(commands.Cog):
+class Welcome(commands.Cog, name="Welcome"):
     # Welcome message + set roles when new member joined
     def __init__(self, bot):
         self.bot = bot
