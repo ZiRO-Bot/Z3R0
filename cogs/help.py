@@ -6,6 +6,17 @@ import json
 import bot
 import logging
 
+def syntax(command):
+    params = []
+    for key, value in command.params.items():
+        if key not in ("self", "ctx"):
+            params.append(f"[{key}]" if "NoneType" in str(value) else f"<{key}>")
+
+    params = " ".join(params)
+
+    return f"` {command} {params} `"
+
+
 class Help(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -14,17 +25,17 @@ class Help(commands.Cog):
     @commands.command(aliases=["commands", "cmds"])
     async def help(self, ctx, command: Optional[str]):
         """Show this message."""
-        _prefixes_ = bot.get_prefix(self.bot, ctx.message)
-        _prefixes_.pop(0)
-        _prefixes_.pop(0)
-        prefixes = ", ".join(_prefixes_)
-        embed = discord.Embed(
+        if command is None:
+            _prefixes_ = bot.get_prefix(self.bot, ctx.message)
+            _prefixes_.pop(0)
+            _prefixes_.pop(0)
+            prefixes = ", ".join(_prefixes_)
+            embed = discord.Embed(
                     title = "Help",
                     # description = f"* Bot prefixes are {prefixes} *",
                     description = f"*` Bot prefixes are {prefixes} `*",
                     colour = discord.Colour.green()
-                )
-        if command is None:
+                    )
             cmds = list(self.bot.commands)
             for cmd in cmds:
                 if cmd.hidden is True:
@@ -37,7 +48,17 @@ class Help(commands.Cog):
                 embed.add_field(name=f"{_cmd}", value=f"{_desc}", inline=False)
             await ctx.send(embed=embed)
             return
-        await ctx.send("help <command> is not available yet")
+        if (command := discord.utils.get(self.bot.commands, name=command)):
+            embed = discord.Embed(
+                    title = f"Help with {command}",
+                    description = f"{syntax(command)}",
+                    colour = discord.Colour.green()
+                    )
+            embed.add_field(name="Command Description", value=command.help)
+            await ctx.send(embed=embed)
+            return
+        await ctx.send(f"That command does not exist!" +
+                " (Note: help command doesn't work with command aliases)")
 
     @commands.command(aliases=['customcommands', 'ccmds'])
     async def listcommands(self, ctx):
