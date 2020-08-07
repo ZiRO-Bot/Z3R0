@@ -1,16 +1,18 @@
 from discord.ext import commands
 import discord
 import asyncio
+import logging
 
 class Admin(commands.Cog):
     def __init__(self, bot):
+        self.logger = logging.getLogger('discord')
         self.bot = bot
 
     @commands.command(aliases=['quit'], hidden=True)
     @commands.has_any_role("Zi")
     async def force_close(self, ctx):
         await ctx.send("Self Destructing!")
-        await ctx.bot.close()
+        await ctx.bot.logout()
     
     @commands.command(hidden=True)
     @commands.has_any_role("Server Moderator","Zi")

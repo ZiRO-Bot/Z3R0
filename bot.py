@@ -23,7 +23,10 @@ def get_prefix(bot, message):
 
 class ziBot(commands.Bot):
     def __init__(self):
-        super().__init__(command_prefix=get_prefix,case_insensitive=True)
+        super().__init__(command_prefix=get_prefix,
+                case_insensitive=True,
+                allowed_mentions=discord.AllowedMentions(
+                    everyone=False, users=True, roles=False))
 
         self.logger = logging.getLogger('discord')
         self.session = aiohttp.ClientSession()
@@ -39,8 +42,7 @@ class ziBot(commands.Bot):
         for extension in extensions:
             self.load_extension(extension)
         
-        self.logger.info(f'Online: {self.user} (ID: {self.user.id})')
-        print(f'Online: {self.user} (ID: {self.user.id})') 
+        self.logger.warning(f'Online: {self.user} (ID: {self.user.id})')
 
     async def on_message(self, message):
         await self.process_commands(message)
@@ -48,8 +50,7 @@ class ziBot(commands.Bot):
             command = message.content.split()[0]
         except IndexError:
             pass
-        self.logger.warning('\nMessage from {message.author}: {message.content} \n on {message.channel}')
-        print('\nMessage from {0.author}: {0.content} \n on {0.channel}'.format(message))
+        self.logger.warning(f' \nMessage from {message.author}: {message.content} \n on {message.channel}')
 
     def run(self):
         super().run(self.config["token"], reconnect=True)
