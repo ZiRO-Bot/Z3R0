@@ -14,7 +14,7 @@ def syntax(command):
 
     params = " ".join(params)
 
-    return f"` {command} {params} `"
+    return f"{command} {params}"
 
 
 class Help(commands.Cog):
@@ -25,6 +25,7 @@ class Help(commands.Cog):
     @commands.command(aliases=["commands", "cmds"])
     async def help(self, ctx, command: Optional[str]):
         """Show this message."""
+        hidden_cogs = ["Help", "Admin", "Welcome"]
         if command is None:
             _prefixes_ = bot.get_prefix(self.bot, ctx.message)
             _prefixes_.pop(0)
@@ -47,7 +48,6 @@ class Help(commands.Cog):
             #     _cmd = " | ".join([str(cmd),*cmd.aliases])
             #     embed.add_field(name=f"{_cmd}", value=f"{_desc}", inline=False)
             # await ctx.send(embed=embed)
-            hidden_cogs = ["Help", "Admin", "Welcome"]
             for cog in self.bot.cogs:
                 if cog in hidden_cogs:
                     continue
@@ -58,10 +58,32 @@ class Help(commands.Cog):
                 embed.add_field(name=f"{cog}", value=f"` help {cog} for details. ` \n{_cmds}", inline=False)
             await ctx.send(embed=embed)
             return
+        if command in self.bot.cogs and command not in hidden_cogs:
+            _prefixes_ = bot.get_prefix(self.bot, ctx.message)
+            _prefixes_.pop(0)
+            _prefixes_.pop(0)
+            prefixes = ", ".join(_prefixes_)
+            embed = discord.Embed(
+                    title = f"Help with {command} commands",
+                    description = f"*Bot prefixes are {prefixes}*",
+                    colour = discord.Colour.green()
+                    )
+            cmds = self.bot.get_cog(command).get_commands()
+            for cmd in cmds:
+                if cmd.hidden is True:
+                    continue
+                if cmd.help is None:
+                    _desc="No description."
+                else:
+                    _desc=f"{cmd.help}"
+                _cmd = " | ".join([str(cmd),*cmd.aliases])
+                embed.add_field(name=f"{_cmd}", value=f"{_desc}", inline=False)
+            await ctx.send(embed=embed)
+            return
         if (command := discord.utils.get(self.bot.commands, name=command)):
             embed = discord.Embed(
                     title = f"Help with {command}",
-                    description = f"{syntax(command)}",
+                    description = f"` {syntax(command)} `",
                     colour = discord.Colour.green()
                     )
             embed.add_field(name="Command Description", value=command.help)
