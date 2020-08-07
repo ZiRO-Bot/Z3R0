@@ -11,7 +11,7 @@ class Help(commands.Cog):
         self.bot = bot
         self.logger = logging.getLogger("discord")
 
-    @commands.command(aliases=["commands"])
+    @commands.command(aliases=["commands", "cmds"])
     async def help(self, ctx, command: Optional[str]):
         """Show this message."""
         _prefixes_ = bot.get_prefix(self.bot, ctx.message)
