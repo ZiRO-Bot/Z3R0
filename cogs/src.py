@@ -112,60 +112,62 @@ async def pendingrun(self, ctx):
     head = {"Accept": "application/json", "User-Agent": "ziBot/0.1"}
     gameID = 'yd4ovvg1' # MCBE's gameid
     gameID2 = 'v1po7r76' # MCBE CE's gameid
-    runsRequest = requests.get(
+    runs = json.loads(requests.get(
             f'https://www.speedrun.com/api/v1/runs?game={gameID}&status=new&max=200&embed=category,players,level&orderby=submitted',
-            headers=head)
-    runs = json.loads(runsRequest.text)
-    runsRequest2 = requests.get(
+            headers=head).text)
+    runs2 = json.loads(requests.get(
             f'https://www.speedrun.com/api/v1/runs?game={gameID2}&status=new&max=200&embed=category,players,level&orderby=submitted',
-            headers=head)
-    runs2 = json.loads(runsRequest2.text)
-
+            headers=head).text)
+    run = {
+            'id': '',
+            'link': '',
+            'categoryName': '',
+            'runner': '',
+            'time': '',
+            'submit_time': '',
+            'leaderboard': ''
+            }
     for game in range(2):
         for i in range(200):
-            leaderboard = ''
-            level = False
             try:
-                for key, value in runs['data'][i].items():
-                    if key == 'id':
-                        run_id = value
-                    if key == 'weblink':
-                        link = value
-                    if key == 'level':
-                        if value['data']:
-                            level = True
-                            categoryName = value['data']['name']
-                    if key == 'category' and not level:
-                        categoryName = value["data"]["name"]
-                    if key == 'players':
-                        if value["data"][0]['rel'] == 'guest':
-                            player = value["data"][0]['name']
-                        else:
-                            player = value["data"][0]["names"]["international"]
-                    if key == 'times':
-                        rta = timedelta(seconds=value['realtime_t'])
-                    if key == 'submitted':
-                        timestamp = dateutil.parser.isoparse(value)
+                leaderboard = ''
+                level = False
+                run_item = runs['data'][i]
+                run['id'] = run_item['id']
+                run['link'] = run_item['weblink']
+                # Cat Name (ILs or Not)
+                if run_item['level']['data']:
+                    level = True
+                    run['categoryName'] = run_item['level']['data']['name']
+                elif not level:
+                    run['categoryName'] = run_item['category']['data']['name']
+                # Runner Name
+                if run_item['players']['data'][0]['rel'] == 'guest':
+                    run['runner'] = run_item['players']['data'][0]['name']
+                else:
+                    run['runner'] = run_item['players']['data'][0]['names']['international']
+                run['time'] = timedelta(seconds=run_item['times']['realtime_t'])
+                run['submit_time'] = dateutil.parser.isoparse(run_item['submitted'])
+                if game == 0:
+                    if level is True:
+                        mcbeil_runs += 1
+                        run['leaderboard'] = 'Individual Level Run'
+                    else:
+                        mcbe_runs += 1
+                        run['leaderboard'] = 'Full Game Run'
+                elif game == 1:
+                    run['leaderboard'] = "Category Extension Run"
+                    mcbece_runs += 1
+                embed = discord.Embed(
+                            title=run['leaderboard'],
+                            url=run['link'],
+                            description=
+                            f"{run['categoryName']} in `{str(run['time']).replace('000','')}` by **{run['runner']}**",
+                            color=16711680 + i * 60,
+                            timestamp=run['submit_time'])
+                await self.bot.get_channel(741199490391736340).send(embed=embed)
             except IndexError:
                 break
-            if game == 0:
-                if level is True:
-                    mcbeil_runs += 1
-                    leaderboard = 'Individual Level Run'
-                else:
-                    mcbe_runs += 1
-                    leaderboard = "Full Game Run"
-            elif game == 1:
-                leaderboard = "Category Extension Run"
-                mcbece_runs += 1
-            embed = discord.Embed(
-                        title=leaderboard,
-                        url=link,
-                        description=
-                        f"{categoryName} in `{str(rta).replace('000','')}` by **{player}**",
-                        color=16711680 + i * 60,
-                        timestamp=timestamp)
-            await self.bot.get_channel(741199490391736340).send(embed=embed)
     runs = runs2
     gameID = gameID2
     total = mcbe_runs + mcbece_runs + mcbeil_runs
