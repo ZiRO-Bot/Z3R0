@@ -154,10 +154,10 @@ async def pendingrun(self, ctx):
                         run['leaderboard'] = 'Individual Level Run'
                     else:
                         mcbe_runs += 1
-                        run['leaderboard'] = 'Full Game Run'
+                        run['leaderboard'] = "Full Game Run"
                 elif game == 1:
-                    run['leaderboard'] = "Category Extension Run"
                     mcbece_runs += 1
+                    run['leaderboard'] = 'Category Extension Run'
                 embed = discord.Embed(
                             title=run['leaderboard'],
                             url=run['link'],
@@ -168,8 +168,8 @@ async def pendingrun(self, ctx):
                 await self.bot.get_channel(741199490391736340).send(embed=embed)
             except IndexError:
                 break
-    runs = runs2
-    gameID = gameID2
+        runs = runs2
+        gameID = gameID2
     total = mcbe_runs + mcbece_runs + mcbeil_runs
     embed_stats = discord.Embed(
                 title='Pending Run Stats',
