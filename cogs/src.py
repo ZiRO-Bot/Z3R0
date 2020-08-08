@@ -7,6 +7,13 @@ import json
 import asyncio
 import dateutil.parser
 
+def pformat(text):
+    text = text.lower()
+    text = text.replace(" ","_")
+    for s in "%()":
+        text = text.replace(s,"")
+    return text
+
 def checklevel(cat):
     status = json.loads(requests.get(f"https://www.speedrun.com/api/v1/leaderboards/yd4ovvg1/category/{cat}").text)
     try:
@@ -32,17 +39,15 @@ async def worldrecord(self, ctx, category: str="", seed_type: str=""):
     game = "mcbe"
 
     # Text formating (e.g. Any% Glitchless -> any_glitchless)
-    seed_type=seed_type
-    cat = category.replace(" ","_")
-    for char in "%()":
-        cat = cat.replace(char,"")
+    seed_type=pformat(seed_type)
+    cat = pformat(category)
 
     # Get seed type
     sTypeVar = json.loads(requests.get(
         f"https://www.speedrun.com/api/v1/variables/5ly7759l",
         headers=head).text)['data']['values']['values']
     for _type in sTypeVar:
-        if sTypeVar[_type]['label'] == seed_type:
+        if pformat(sTypeVar[_type]['label']) == seed_type:
             seed_typeID = _type
     
     # Output formating
@@ -186,7 +191,7 @@ class Src(commands.Cog):
     @commands.command()
     async def wrs(self, ctx, category: str="any", seed_type: str="Set Seed"):
         """Get mcbe world record runs from speedun.com
-        `e.g. >wrs "Any% Glitchless"`"""
+        `e.g. >wrs "Any% Glitchless" "Set Seed"`"""
         async with ctx.typing():
             await worldrecord(self, ctx, category, seed_type)
 
