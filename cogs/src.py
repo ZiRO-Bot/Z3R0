@@ -27,14 +27,23 @@ def realtime(time): # turns XXX.xxx into h m s ms
         m = "{:02d}".format(m)  #if in hours, pad m with 0s
     return ((h>0) * (str(h)+'h ')) + str(m)+'m ' + str(s)+'s ' + ((str(ms)+'ms') * (ms!='000')) #src formatting 
 
-async def worldrecord(self, ctx, category: str="Any"):
+async def worldrecord(self, ctx, category: str="", seed_type: str=""):
     head = {"Accept": "application/json", "User-Agent": "ziBot/0.1"}
     game = "mcbe"
 
-    # Text formating (Any% Glitchless -> any_glitchless)
+    # Text formating (e.g. Any% Glitchless -> any_glitchless)
+    seed_type=seed_type
     cat = category.replace(" ","_")
     for char in "%()":
         cat = cat.replace(char,"")
+
+    # Get seed type
+    sTypeVar = json.loads(requests.get(
+        f"https://www.speedrun.com/api/v1/variables/5ly7759l",
+        headers=head).text)['data']['values']['values']
+    for _type in sTypeVar:
+        if sTypeVar[_type]['label'] == seed_type:
+            seed_typeID = _type
     
     # Output formating
     wrs = {
@@ -47,7 +56,7 @@ async def worldrecord(self, ctx, category: str="Any"):
     platformsVar = json.loads(requests.get(
             f"https://www.speedrun.com/api/v1/variables/38dj2ex8",
             headers=head).text)
-    platforms = platformsVar['data']['values']['choices']
+    platforms = platformsVar['data']['values']['values']
 
     # Check if ILs
     level = checklevel(cat)
@@ -66,7 +75,7 @@ async def worldrecord(self, ctx, category: str="Any"):
     # Grab and Put Category Name to embed title
     wrs['cat']=catName
     embed = discord.Embed(
-            title=f"{wrs['cat']} MCBE World Records",
+            title=f"MCBE {wrs['cat']} {sTypeVar[seed_typeID]['label']} World Records",
             colour=discord.Colour.gold()
             )
 
@@ -74,14 +83,14 @@ async def worldrecord(self, ctx, category: str="Any"):
     for platform in platforms:
         wr = json.loads(requests.get(
             "https://www.speedrun.com/api/v1/leaderboards/"+
-            f"yd4ovvg1/{_type_}/{catURL}?top=1&var-38dj2ex8={platform}",
+            f"yd4ovvg1/{_type_}/{catURL}?top=1&var-5ly7759l={seed_typeID}&var-38dj2ex8={platform}",
             headers=head).text)
         wrData = json.loads(requests.get(
                 "https://www.speedrun.com/api/v1/runs/"+
                 f"{wr['data']['runs'][0]['run']['id']}"+
                 "?embed=players,level,platform",
                 headers=head).text)['data']
-        wrs['platform']=platforms[platform]
+        wrs['platform']=platforms[platform]['label']
         if wrData['players']["data"][0]['rel'] == 'guest':
             wrs['runner']=wrData['players']['data'][0]['names']
         else:
@@ -175,11 +184,11 @@ class Src(commands.Cog):
             await pendingrun(self, ctx)
     
     @commands.command()
-    async def wrs(self, ctx, category: str="any"):
+    async def wrs(self, ctx, category: str="any", seed_type: str="Set Seed"):
         """Get mcbe world record runs from speedun.com
         `e.g. >wrs "Any% Glitchless"`"""
         async with ctx.typing():
-            await worldrecord(self, ctx, category)
+            await worldrecord(self, ctx, category, seed_type)
 
 def setup(bot):
     bot.add_cog(Src(bot))
