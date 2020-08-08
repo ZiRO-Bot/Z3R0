@@ -8,10 +8,12 @@ import asyncio
 import dateutil.parser
 
 def checklevel(cat):
-    if json.loads(requests.get(f"https://www.speedrun.com/api/v1/categories/{cat}").text)['status'] == '404':
-        # IDK WHY THE FUCK 404 IS STRING BUT SURE PYTHON -_-
-        return True
-    return False
+    status = json.loads(requests.get(f"https://www.speedrun.com/api/v1/leaderboards/yd4ovvg1/category/{cat}").text)
+    try:
+        if status['status'] == 404:
+            return True
+    except KeyError:
+        return False
 
 async def worldrecord(self, ctx, category: str="Any"):
     head = {"Accept": "application/json", "User-Agent": "ziBot/0.1"}
@@ -30,31 +32,26 @@ async def worldrecord(self, ctx, category: str="Any"):
     platforms = platformsVar['data']['values']['choices']
 
     level = checklevel(cat)
-    if not level:
-        catName = json.loads(requests.get(
-            f"https://www.speedrun.com/api/v1/leaderboards/yd4ovvg1/category/{cat}?embed=category",
-            headers=head).text)['data']['category']['data']['name']
+    if level is True:
+        _type_ = 'level'
+        catURL = f'{cat}/9kv7jy8k'
     else:
-        catName = "Any% " + json.loads(requests.get(
-            f"https://www.speedrun.com/api/v1/leaderboards/yd4ovvg1/level/{cat}/9kv7jy8k?embed=level",
-            headers=head).text)['data']['level']['data']['name']
-    
+        _type_ = 'category'
+        catURL = cat
+    catName = json.loads(requests.get(
+        f"https://www.speedrun.com/api/v1/leaderboards/yd4ovvg1/{_type_}/{catURL}?embed={_type_}",
+        headers=head).text)['data'][f'{_type_}']['data']['name']
+
     wrs['cat']=catName
     embed = discord.Embed(
             title=f"{wrs['cat']} MCBE World Records",
             colour=discord.Colour.gold()
             )
     for platform in platforms:
-        if not level:
-            wr = json.loads(requests.get(
-                "https://www.speedrun.com/api/v1/leaderboards/"+
-                f"{game}/category/{cat}?top=1&var-38dj2ex8={platform}",
-                headers=head).text)
-        else:
-            wr = json.loads(requests.get(
-                "https://www.speedrun.com/api/v1/leaderboards/"+
-                f"{game}/level/{cat}/9kv7jy8k?top=1&var-38dj2ex8={platform}",
-                headers=head).text)
+        wr = json.loads(requests.get(
+            "https://www.speedrun.com/api/v1/leaderboards/"+
+            f"yd4ovvg1/{_type_}/{catURL}?top=1&var-38dj2ex8={platform}",
+            headers=head).text)
         wrData = json.loads(requests.get(
                 "https://www.speedrun.com/api/v1/runs/"+
                 f"{wr['data']['runs'][0]['run']['id']}"+
