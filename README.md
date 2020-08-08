@@ -19,3 +19,6 @@ py -3 -m pip install -U discord.py
 
 ### Usage
 Launch the bot with ```python3 zibot.py```
+
+### Information
+src.py only designed to grab MCBE runs.

@@ -15,10 +15,28 @@ def checklevel(cat):
     except KeyError:
         return False
 
+# Time formatting from speedrunbot
+def realtime(time): # turns XXX.xxx into h m s ms
+    ms = int(time*1000)
+    s,ms = divmod(ms,1000)
+    m,s = divmod(s,60)
+    h,m = divmod(m,60)  # separates time into h m s ms
+    ms = "{:03d}".format(ms)
+    s = "{:02d}".format(s)  #pads ms and s with0s
+    if h>0:
+        m = "{:02d}".format(m)  #if in hours, pad m with 0s
+    return ((h>0) * (str(h)+'h ')) + str(m)+'m ' + str(s)+'s ' + ((str(ms)+'ms') * (ms!='000')) #src formatting 
+
 async def worldrecord(self, ctx, category: str="Any"):
     head = {"Accept": "application/json", "User-Agent": "ziBot/0.1"}
     game = "mcbe"
-    cat = category
+
+    # Text formating (Any% Glitchless -> any_glitchless)
+    cat = category.replace(" ","_")
+    for char in "%()":
+        cat = cat.replace(char,"")
+    
+    # Output formating
     wrs = {
             'cat': '',
             'platform': '',
@@ -45,11 +63,14 @@ async def worldrecord(self, ctx, category: str="Any"):
     if level is True:
         catName += " Any%"
 
+    # Grab and Put Category Name to embed title
     wrs['cat']=catName
     embed = discord.Embed(
             title=f"{wrs['cat']} MCBE World Records",
             colour=discord.Colour.gold()
             )
+
+    # Get WRs from each platforms (PC, Mobile, Console) then send to chat
     for platform in platforms:
         wr = json.loads(requests.get(
             "https://www.speedrun.com/api/v1/leaderboards/"+
@@ -66,7 +87,7 @@ async def worldrecord(self, ctx, category: str="Any"):
         else:
             wrs['runner']=wrData['players']["data"][0]["names"]["international"]
         wrs['link']=wrData['weblink']
-        wrs['time']=timedelta(seconds=wrData['times']['realtime_t'])
+        wrs['time']=realtime(wrData['times']['realtime_t'])
         embed.add_field(name=f"{wrs['platform']}",value=f"{wrs['runner']} ({wrs['time']})",inline=False)
     await ctx.send(embed=embed)
 
@@ -141,6 +162,7 @@ async def pendingrun(self, ctx):
                 color=16711680 + i * 60)
     await self.bot.get_channel(741199490391736340).send(embed=embed_stats)
 
+# Cog commands
 class Src(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -154,8 +176,8 @@ class Src(commands.Cog):
     
     @commands.command()
     async def wrs(self, ctx, category: str="any"):
-        """Get world record runs from speedun.com
-        `NOTE: type the category without '%' (e.g. >wrs Any_Glitchless)`"""
+        """Get mcbe world record runs from speedun.com
+        `e.g. >wrs "Any% Glitchless"`"""
         async with ctx.typing():
             await worldrecord(self, ctx, category)
 
