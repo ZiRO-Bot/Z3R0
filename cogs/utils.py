@@ -17,7 +17,7 @@ class Utils(commands.Cog):
             msg = "None"
         else:
             msg = message.content
-        embed.add_field(name="Message", value=f"{msg}")
+        embed.add_field(name="Message", value=f"{msg}", inline=False)
         await purgatory_ch.send(embed=embed)
 
     @commands.command()

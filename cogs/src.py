@@ -31,6 +31,7 @@ async def worldrecord(self, ctx, category: str="Any"):
             headers=head).text)
     platforms = platformsVar['data']['values']['choices']
 
+    # Check if ILs
     level = checklevel(cat)
     if level is True:
         _type_ = 'level'
@@ -41,6 +42,8 @@ async def worldrecord(self, ctx, category: str="Any"):
     catName = json.loads(requests.get(
         f"https://www.speedrun.com/api/v1/leaderboards/yd4ovvg1/{_type_}/{catURL}?embed={_type_}",
         headers=head).text)['data'][f'{_type_}']['data']['name']
+    if level is True:
+        catName += " Any%"
 
     wrs['cat']=catName
     embed = discord.Embed(
@@ -152,7 +155,7 @@ class Src(commands.Cog):
     @commands.command()
     async def wrs(self, ctx, category: str="any"):
         """Get world record runs from speedun.com
-        `NOTE: type the category without '%' (e.g. >wrs Any)`"""
+        `NOTE: type the category without '%' (e.g. >wrs Any_Glitchless)`"""
         async with ctx.typing():
             await worldrecord(self, ctx, category)
 
