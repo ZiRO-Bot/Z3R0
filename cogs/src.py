@@ -58,6 +58,8 @@ async def worldrecord(self, ctx, category: str="", seed_type: str=""):
             'link': '',
             'time': ''
             }
+
+    # Get platforms name
     platformsVar = json.loads(requests.get(
             f"https://www.speedrun.com/api/v1/variables/38dj2ex8",
             headers=head).text)
@@ -110,13 +112,12 @@ async def pendingrun(self, ctx):
     mcbeil_runs = 0
     mcbece_runs = 0
     head = {"Accept": "application/json", "User-Agent": "ziBot/0.1"}
-    gameID = 'yd4ovvg1' # MCBE's gameid
-    gameID2 = 'v1po7r76' # MCBE CE's gameid
+    gameID = ['yd4ovvg1', 'v1po7r76'] #[MCBE, MCBECE Game ID]
     runs = json.loads(requests.get(
-            f'https://www.speedrun.com/api/v1/runs?game={gameID}&status=new&max=200&embed=category,players,level&orderby=submitted',
+            f'https://www.speedrun.com/api/v1/runs?game={gameID[0]}&status=new&max=200&embed=category,players,level&orderby=submitted',
             headers=head).text)
     runs2 = json.loads(requests.get(
-            f'https://www.speedrun.com/api/v1/runs?game={gameID2}&status=new&max=200&embed=category,players,level&orderby=submitted',
+            f'https://www.speedrun.com/api/v1/runs?game={gameID[1]}&status=new&max=200&embed=category,players,level&orderby=submitted',
             headers=head).text)
     run = {
             'id': '',
@@ -169,7 +170,6 @@ async def pendingrun(self, ctx):
             except IndexError:
                 break
         runs = runs2
-        gameID = gameID2
     total = mcbe_runs + mcbece_runs + mcbeil_runs
     embed_stats = discord.Embed(
                 title='Pending Run Stats',

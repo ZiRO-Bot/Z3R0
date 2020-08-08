@@ -25,7 +25,7 @@ class Help(commands.Cog):
     @commands.command(aliases=["commands", "cmds"])
     async def help(self, ctx, command: Optional[str]):
         """Show this message."""
-        hidden_cogs = ["Help", "Admin", "Welcome"]
+        hidden_cogs = ["Admin", "Welcome"]
         if command is None:
             _prefixes_ = bot.get_prefix(self.bot, ctx.message)
             _prefixes_.pop(0)
