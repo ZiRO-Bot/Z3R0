@@ -190,7 +190,7 @@ class Src(commands.Cog):
             await self.bot.get_channel(741199490391736340).purge(limit=500)
             await pendingrun(self, ctx)
     
-    @commands.command()
+    @commands.command(aliases=["worldrecords"])
     async def wrs(self, ctx, category: str="any", seed_type: str="Set Seed"):
         """Get mcbe world record runs from speedun.com
         `e.g. >wrs "Any% Glitchless" "Set Seed"`"""
