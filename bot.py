@@ -1,11 +1,15 @@
 from discord.ext import commands
+import os
 import discord
 import json
 import aiohttp
 import logging
 
+shard = os.getenv('SHARD') or 0
+shard_count = os.getenv('SHARD_COUNT') or 1
+
 extensions = [
-	"cogs.welcome", "cogs.help", "cogs.moderator", "cogs.general", "cogs.utils" 
+	"cogs.welcome", "cogs.help", "cogs.moderator", "cogs.general", "cogs.utils", "cogs.src"
 ]
 
 def get_prefix(bot, message):
@@ -26,7 +30,8 @@ class ziBot(commands.Bot):
         super().__init__(command_prefix=get_prefix,
                 case_insensitive=True,
                 allowed_mentions=discord.AllowedMentions(
-                    everyone=False, users=True, roles=False))
+                    everyone=False, users=True, roles=False),
+                shard_id=int(shard), shard_count=int(shard_count))
 
         self.logger = logging.getLogger('discord')
         self.session = aiohttp.ClientSession()

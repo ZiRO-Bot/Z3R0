@@ -1,4 +1,5 @@
 from discord.ext import commands, tasks
+from formatting import pformat, realtime
 from discord.utils import get
 from datetime import timedelta
 import discord
@@ -7,13 +8,6 @@ import json
 import asyncio
 import dateutil.parser
 
-def pformat(text):
-    text = text.lower()
-    text = text.replace(" ","_")
-    for s in "%()":
-        text = text.replace(s,"")
-    return text
-
 def checklevel(cat):
     status = json.loads(requests.get(f"https://www.speedrun.com/api/v1/leaderboards/yd4ovvg1/category/{cat}").text)
     try:
@@ -21,18 +15,6 @@ def checklevel(cat):
             return True
     except KeyError:
         return False
-
-# Time formatting from speedrunbot
-def realtime(time): # turns XXX.xxx into h m s ms
-    ms = int(time*1000)
-    s,ms = divmod(ms,1000)
-    m,s = divmod(s,60)
-    h,m = divmod(m,60)  # separates time into h m s ms
-    ms = "{:03d}".format(ms)
-    s = "{:02d}".format(s)  #pads ms and s with0s
-    if h>0:
-        m = "{:02d}".format(m)  #if in hours, pad m with 0s
-    return ((h>0) * (str(h)+'h ')) + str(m)+'m ' + str(s)+'s ' + ((str(ms)+'ms') * (ms!='000')) #src formatting 
 
 async def worldrecord(self, ctx, category: str="", seed_type: str=""):
     head = {"Accept": "application/json", "User-Agent": "ziBot/0.1"}
