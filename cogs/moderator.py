@@ -1,4 +1,5 @@
 from discord.ext import commands
+from discord.errors import Forbidden
 import discord
 import asyncio
 import logging
@@ -134,7 +135,23 @@ class Admin(commands.Cog):
         if min_ban > 0:
             await asyncio.sleep(min_ban * 60)
             await ctx.guild.unban(member, reason="timed out")
-        # TODO: Make unban command?
     
+    @commands.command(hidden=True)
+    @commands.has_any_role("Server Moderator","Zi")
+    async def unban(self, ctx, member):
+        for s in "<!@>":
+            member = member.replace(s,"")
+        member = await self.bot.fetch_user(int(member))
+        if member is None:
+            await ctx.send("Please specify the member you want to unban.")
+            return
+        try:
+            await member.send(f'You have been unbanned from {ctx.guild.name}!')
+        except Forbidden:
+            self.logger.error("discord.errors.Forbidden: Can't send DM to member")
+            pass
+        await ctx.guild.unban(member)
+        await ctx.send(f'{member.mention} has been unbanned by {ctx.author.mention}!')
+        
 def setup(bot):
     bot.add_cog(Admin(bot))
