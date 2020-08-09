@@ -103,12 +103,6 @@ async def pendingrun(self, ctx):
     mcbece_runs = 0
     head = {"Accept": "application/json", "User-Agent": "ziBot/0.1"}
     gameID = ['yd4ovvg1', 'v1po7r76'] #[MCBE, MCBECE Game ID]
-    runs = json.loads(requests.get(
-            f'https://www.speedrun.com/api/v1/runs?game={gameID[0]}&status=new&max=200&embed=category,players,level&orderby=submitted',
-            headers=head).text)
-    runs2 = json.loads(requests.get(
-            f'https://www.speedrun.com/api/v1/runs?game={gameID[1]}&status=new&max=200&embed=category,players,level&orderby=submitted',
-            headers=head).text)
     run = {
             'id': '',
             'link': '',
@@ -119,6 +113,9 @@ async def pendingrun(self, ctx):
             'leaderboard': ''
             }
     for game in range(2):
+        async with session.get('https://www.speedrun.com/api/v1/runs?game=' + 
+                f'{gameID[game]}&status=new&max=200&embed=category,players,level&orderby=submitted') as url:
+            runs = json.loads(await url.text())
         for i in range(200):
             try:
                 leaderboard = ''
@@ -159,7 +156,6 @@ async def pendingrun(self, ctx):
                 await self.bot.get_channel(741199490391736340).send(embed=embed)
             except IndexError:
                 break
-        runs = runs2
     total = mcbe_runs + mcbece_runs + mcbeil_runs
     embed_stats = discord.Embed(
                 title='Pending Run Stats',
