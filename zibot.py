@@ -1,22 +1,9 @@
-import os
 import asyncio
 import json
 import logging
 import discord
 
-from bot import ziBot, get_prefix
-
-shard = os.getenv('SHARD') or 0
-shard_count = os.getenv('SHARD_COUNT') or 1
-
-def check_jsons():
-    try:
-        f = open('config.json', 'r')
-    except FileNotFoundError:
-        token = input('Enter your bot\'s token: ')
-        with open('config.json', 'w+') as f:
-            json.dump({"token": token}, f, indent=4)
-
+from bot import ziBot, get_prefix, shard, shard_count
 
 def setup_logging():
     FORMAT = '%(asctime)s - [%(levelname)s]: %(message)s'
@@ -45,12 +32,9 @@ def init_bot():
                 allowed_mentions=discord.AllowedMentions(
                     everyone=False, users=True, roles=False),
                 shard_id=int(shard), shard_count=int(shard_count))
-    with open('config.json', 'r') as f:
-        data=json.load(f)
     bot.remove_command('help')
     bot.run()
 
 if __name__ == "__main__":
-    check_jsons()
     setup_logging()
     init_bot()
