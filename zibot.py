@@ -1,8 +1,13 @@
+import os
 import asyncio
 import json
 import logging
+import discord
 
-from bot import ziBot
+from bot import ziBot, get_prefix
+
+shard = os.getenv('SHARD') or 0
+shard_count = os.getenv('SHARD_COUNT') or 1
 
 def check_jsons():
     try:
@@ -35,7 +40,11 @@ def setup_logging():
     logger.addHandler(console_handler)
 
 def init_bot():
-    bot = ziBot()
+    bot = ziBot(command_prefix=get_prefix,
+                case_insensitive=True,
+                allowed_mentions=discord.AllowedMentions(
+                    everyone=False, users=True, roles=False),
+                shard_id=int(shard), shard_count=int(shard_count))
     with open('config.json', 'r') as f:
         data=json.load(f)
     bot.remove_command('help')
