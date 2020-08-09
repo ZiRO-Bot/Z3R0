@@ -28,14 +28,15 @@ async def worldrecord(self, ctx, category: str="", seed_type: str=""):
     cat = pformat(category)
 
     # Get seed type
+    seed_typeID = None
     async with session.get(f"https://www.speedrun.com/api/v1/variables/5ly7759l") as url:
         sTypeVar = json.loads(await url.text())['data']['values']['values']
         for _type in sTypeVar:
             if pformat(sTypeVar[_type]['label']) == seed_type:
                 seed_typeID = _type
-            else:
-                await ctx.send("Seed type not found, please try again")
-                return 
+    if not seed_typeID:
+        await ctx.send("Seed type not found, please try again")
+        return 
 
     # Output formating
     wrs = {
