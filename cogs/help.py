@@ -55,7 +55,7 @@ class Help(commands.Cog):
                 _cmds = ", ".join([c.name for c in cmds])
                 if not _cmds:
                     _cmds = "No commands"
-                embed.add_field(name=f"{cog}", value=f"` help {cog} for details. ` \n{_cmds}", inline=False)
+                embed.add_field(name=f"{cog}", value=f"` {ctx.prefix}help {cog} for details. ` \n{_cmds}", inline=False)
             await ctx.send(embed=embed)
             return
         if command in self.bot.cogs and command not in hidden_cogs:
@@ -83,7 +83,7 @@ class Help(commands.Cog):
         if (command := discord.utils.get(self.bot.commands, name=command)):
             embed = discord.Embed(
                     title = f"Help with {command}",
-                    description = f"` {syntax(command)} `",
+                    description = f"` {ctx.prefix}{syntax(command)} `",
                     colour = discord.Colour.green()
                     )
             embed.add_field(name="Command Description", value=command.help)

@@ -46,6 +46,9 @@ class ziBot(commands.Bot):
             self.config = json.load(f)
             config = self.config
 
+        with open('custom_commands.json', 'r') as cc:
+            self.custom_commands = json.load(cc)
+
     async def on_ready(self): 
         activity=discord.Activity(name="some test",type=discord.ActivityType.watching)
         await self.change_presence(activity=activity)
@@ -57,10 +60,19 @@ class ziBot(commands.Bot):
 
     async def on_message(self, message):
         await self.process_commands(message)
+
         try:
             command = message.content.split()[0]
         except IndexError:
             pass
+        
+        try:
+            if command in self.custom_commands:
+                await message.channel.send(self.custom_commands[command])
+                return
+        except:
+            return
+        
         self.logger.warning(f' \nMessage from {message.author}: {message.content} \n on {message.channel}')
 
     def run(self):
