@@ -28,13 +28,15 @@ async def worldrecord(self, ctx, category: str="", seed_type: str=""):
     cat = pformat(category)
 
     # Get seed type
-    sTypeVar = json.loads(requests.get(
-        f"https://www.speedrun.com/api/v1/variables/5ly7759l",
-        headers=head).text)['data']['values']['values']
-    for _type in sTypeVar:
-        if pformat(sTypeVar[_type]['label']) == seed_type:
-            seed_typeID = _type
-    
+    async with session.get(f"https://www.speedrun.com/api/v1/variables/5ly7759l") as url:
+        sTypeVar = json.loads(await url.text())['data']['values']['values']
+        for _type in sTypeVar:
+            if pformat(sTypeVar[_type]['label']) == seed_type:
+                seed_typeID = _type
+            else:
+                await ctx.send("Seed type not found, please try again")
+                return 
+
     # Output formating
     wrs = {
             'cat': '',
@@ -60,7 +62,10 @@ async def worldrecord(self, ctx, category: str="", seed_type: str=""):
         catURL = cat
     async with session.get("https://www.speedrun.com/api/v1/leaderboards/yd4ovvg1/" + 
             f"{_type_}/{catURL}?embed={_type_}") as url:
-        catName = json.loads(await url.text())['data'][f'{_type_}']['data']['name']
+        try:
+            catName = json.loads(await url.text())['data'][f'{_type_}']['data']['name']
+        except KeyError:
+            await ctx.send("Category not found, please try again.")
         if level is True:
             catName += " Any%"
 
