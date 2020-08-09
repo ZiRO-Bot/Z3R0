@@ -48,6 +48,9 @@ class ziBot(commands.Bot):
 
         with open('custom_commands.json', 'r') as cc:
             self.custom_commands = json.load(cc)
+        
+        # Remove help command (for custom help command)
+        self.remove_command('help')
 
     async def on_ready(self): 
         activity=discord.Activity(name="some test",type=discord.ActivityType.watching)

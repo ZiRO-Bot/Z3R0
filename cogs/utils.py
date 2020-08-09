@@ -20,6 +20,28 @@ class Utils(commands.Cog):
         embed.add_field(name="Message", value=f"{msg}", inline=False)
         await purgatory_ch.send(embed=embed)
 
+    @commands.Cog.listener()
+    async def on_message_edit(self, before, after):
+        if before.content == after.content:
+            return
+        message = before
+        purgatory_ch = self.bot.get_channel(741431840958578811)
+        embed = discord.Embed(title = "Edited Message",
+                colour = discord.Colour.red())
+        embed.add_field(name="User", value=f"{message.author.mention}")
+        embed.add_field(name="Channel", value=f"{message.channel.mention}")
+        if not message.content:
+            b_msg = "None"
+        else:
+            b_msg = message.content
+        if not after.content:
+            a_msg = "None"
+        else:
+            a_msg = after.content
+        embed.add_field(name="Before", value=f"{b_msg}", inline=False)
+        embed.add_field(name="After", value=f"{a_msg}", inline=False)
+        await purgatory_ch.send(embed=embed)
+
     @commands.command()
     async def ping(self, ctx):
         """Tell the ping of the bot to the discord servers"""

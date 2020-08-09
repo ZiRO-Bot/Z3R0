@@ -32,7 +32,6 @@ def init_bot():
                 allowed_mentions=discord.AllowedMentions(
                     everyone=False, users=True, roles=False),
                 shard_id=int(shard), shard_count=int(shard_count))
-    bot.remove_command('help')
     bot.run()
 
 if __name__ == "__main__":
