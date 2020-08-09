@@ -2,11 +2,14 @@ from discord.ext import commands, tasks
 from formatting import pformat, realtime
 from discord.utils import get
 from datetime import timedelta
+import aiohttp
 import discord
 import requests
 import json
 import asyncio
 import dateutil.parser
+
+session = aiohttp.ClientSession()
 
 def checklevel(cat):
     status = json.loads(requests.get(f"https://www.speedrun.com/api/v1/leaderboards/yd4ovvg1/category/{cat}").text)
@@ -55,11 +58,11 @@ async def worldrecord(self, ctx, category: str="", seed_type: str=""):
     else:
         _type_ = 'category'
         catURL = cat
-    catName = json.loads(requests.get(
-        f"https://www.speedrun.com/api/v1/leaderboards/yd4ovvg1/{_type_}/{catURL}?embed={_type_}",
-        headers=head).text)['data'][f'{_type_}']['data']['name']
-    if level is True:
-        catName += " Any%"
+    async with session.get("https://www.speedrun.com/api/v1/leaderboards/yd4ovvg1/" + 
+            f"{_type_}/{catURL}?embed={_type_}") as url:
+        catName = json.loads(await url.text())['data'][f'{_type_}']['data']['name']
+        if level is True:
+            catName += " Any%"
 
     # Grab and Put Category Name to embed title
     wrs['cat']=catName
@@ -70,15 +73,14 @@ async def worldrecord(self, ctx, category: str="", seed_type: str=""):
 
     # Get WRs from each platforms (PC, Mobile, Console) then send to chat
     for platform in platforms:
-        wr = json.loads(requests.get(
-            "https://www.speedrun.com/api/v1/leaderboards/"+
-            f"yd4ovvg1/{_type_}/{catURL}?top=1&var-5ly7759l={seed_typeID}&var-38dj2ex8={platform}",
-            headers=head).text)
-        wrData = json.loads(requests.get(
-                "https://www.speedrun.com/api/v1/runs/"+
+        async with session.get("https://www.speedrun.com/api/v1/leaderboards/yd4ovvg1/" + 
+                f"{_type_}/{catURL}?top=1" + 
+                f"&var-5ly7759l={seed_typeID}&var-38dj2ex8={platform}") as url:
+            wr = json.loads(await url.text())
+            async with session.get("https://www.speedrun.com/api/v1/runs/"+
                 f"{wr['data']['runs'][0]['run']['id']}"+
-                "?embed=players,level,platform",
-                headers=head).text)['data']
+                "?embed=players,level,platform") as url:
+                wrData = json.loads(await url.text())['data']
         wrs['platform']=platforms[platform]['label']
         if wrData['players']["data"][0]['rel'] == 'guest':
             wrs['runner']=wrData['players']['data'][0]['names']
