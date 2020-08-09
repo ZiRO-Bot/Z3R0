@@ -149,7 +149,6 @@ class Admin(commands.Cog):
             await member.send(f'You have been unbanned from {ctx.guild.name}!')
         except Forbidden:
             self.logger.error("discord.errors.Forbidden: Can't send DM to member")
-            pass
         await ctx.guild.unban(member)
         await ctx.send(f'{member.mention} has been unbanned by {ctx.author.mention}!')
         
