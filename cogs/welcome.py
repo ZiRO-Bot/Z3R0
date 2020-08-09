@@ -17,7 +17,8 @@ class Welcome(commands.Cog, name="Welcome"):
         member_role = discord.utils.get(member.guild.roles, name="Member")
         welcome_msg=[f"It's a Bird, It's a Plane, It's {member.mention}!",
                 f"Welcome {member.mention}! <:PogChamp:740102448047194152>",
-                f"Good to see you, {member.mention}."]
+                f"Good to see you, {member.mention}.",
+                f"A wild {member.mention} appeared!"]
         await member.add_roles(member_role)
         await welcome_channel.send(f"{welcome_msg[randint(0, len(welcome_msg) - 1)]}")
 
