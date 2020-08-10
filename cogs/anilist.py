@@ -2,18 +2,20 @@ from typing import Optional
 from discord.ext import commands
 import discord
 import asyncio
+import aiohttp
 import re
 import requests
 import json
 
+session = aiohttp.ClientSession()
+
 async def query(query: Optional[str], variables: Optional[str]):
-    req = requests.post("https://graphql.anilist.co", json={'query': query, 'variables': variables}).text
-    try:
-        if (json.loads(req)['errors']):
-            print("Error")
-            return None
-    except KeyError:
-        return json.loads(req)
+    async with session.post("https://graphql.anilist.co", json={'query': query, 'variables': variables}) as req:
+        try:
+            if (json.loads(await req.text())['errors']):
+                return None
+        except KeyError:
+            return json.loads(await req.text())
 
 async def find_id(url):
     # if input is ID, just return it
@@ -38,6 +40,9 @@ async def find_id(url):
     if not match:
         return None
     q = await query("query($malId: Int){Media(idMal:$malId){id}}", {'malId': match.group(1)})
+    if q is None:
+        print("Error")
+        return
     return q['data']['Media']['id']
 
 async def getinfo(self, ctx, other):
