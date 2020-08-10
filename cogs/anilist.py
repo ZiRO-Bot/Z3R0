@@ -42,9 +42,11 @@ async def find_id(url):
 
 async def getinfo(self, ctx, other):
     mediaId = await find_id(other)
-    a = await query("query($mediaId: Int){Media(id:$mediaId){id, title {romaji, english}," +
-            " episodes, status, startDate {year, month, day}," + 
-            " endDate {year, month, day}, genres, coverImage {large}, description}}", {'mediaId' : mediaId})
+    a = await query("query($mediaId: Int){Media(id:$mediaId)" +
+            "{id, title {romaji, english}, episodes, status," +
+            " startDate {year, month, day}, endDate {year, month, day}," +
+            " genres, coverImage {large}, description, averageScore, studios{nodes{name}} } }",
+            {'mediaId' : mediaId})
     if a is None:
         return
     a = a['data']
@@ -57,12 +59,17 @@ async def getinfo(self, ctx, other):
     engTitle = a['Media']['title']['english']
     if engTitle is None:
         engTitle = "No english title."
+    studios = []
+    for studio in a['Media']['studios']['nodes']:
+        studios.append(studio['name']) 
+    studio = ", ".join(studios)
     embed = discord.Embed(
             title = f"{a['Media']['title']['romaji']} - AniList",
             url = f"https://anilist.co/anime/{a['Media']['id']}",
-            description = f"**{engTitle}**\n{desc}"
+            description = f"**{engTitle}**\n{desc}\n\n**Studios**: {studio}"
             )
     embed.set_thumbnail(url=a['Media']['coverImage']['large'])
+    embed.add_field(name="Average Score",value=f"{a['Media']['averageScore']}/100",)
     embed.add_field(name="Status",value=f"{a['Media']['status']}")
     embed.add_field(name="Episodes",value=f"{a['Media']['episodes']}")
     genres = ", ".join(a['Media']['genres'])
