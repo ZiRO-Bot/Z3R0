@@ -13,13 +13,13 @@ extensions = [
 	"cogs.welcome", "cogs.help", "cogs.moderator", "cogs.general", "cogs.utils", "cogs.src"
 ]
 
-def check_jsons():
-    try:
-        f = open('config.json', 'r')
-    except FileNotFoundError:
-        token = input('Enter your bot\'s token: ')
-        with open('config.json', 'w+') as f:
-            json.dump({"token": token}, f, indent=4)
+# def check_jsons():
+#     try:
+#         f = open('config.json', 'r')
+#     except FileNotFoundError:
+#         token = input('Enter your bot\'s token: ')
+#         with open('config.json', 'w+') as f:
+#             json.dump({"token": token}, f, indent=4)
 
 def get_prefix(bot, message):
 	"""A callable Prefix for our bot. This could be edited to allow per server prefixes."""
@@ -41,11 +41,11 @@ class ziBot(commands.Bot):
         self.logger = logging.getLogger('discord')
         self.session = aiohttp.ClientSession()
         
-        check_jsons()
+        # check_jsons()
 
-        with open('config.json', 'r') as f:
-            self.config = json.load(f)
-            config = self.config
+        # with open('config.json', 'r') as f:
+        #     self.config = json.load(f)
+        #     config = self.config
 
         with open('custom_commands.json', 'r') as cc:
             self.custom_commands = json.load(cc)
@@ -80,4 +80,4 @@ class ziBot(commands.Bot):
         self.logger.warning(f' \nMessage from {message.author}: {message.content} \n on {message.channel}')
 
     def run(self):
-        super().run(self.config["token"], reconnect=True)
+        super().run(os.getenv('TOKEN'), reconnect=True)
