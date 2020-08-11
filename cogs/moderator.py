@@ -28,6 +28,7 @@ class Admin(commands.Cog):
             await ctx.send(f"{ext} is not loaded!")
         except commands.ExtensionFailed:
             await ctx.send(f"{ext} failed to unload!")
+            self.bot.logger.exception(f'Failed to reload extension {ext}:')
 
     @commands.command(hidden=True)
     @commands.has_any_role("Server Moderator","Zi")
@@ -42,6 +43,7 @@ class Admin(commands.Cog):
             await ctx.send(f"{ext} is not loaded!")
         except commands.ExtensionFailed:
             await ctx.send(f"{ext} failed to reload!")
+            self.bot.logger.exception(f'Failed to reload extension {ext}:')
 
     @commands.command(hidden=True)
     @commands.has_any_role("Server Moderator","Zi")
@@ -54,6 +56,7 @@ class Admin(commands.Cog):
             await ctx.send(f"{ext} doesn't exist!")
         except commands.ExtensionFailed:
             await ctx.send(f"{ext} failed to load!")
+            self.bot.logger.exception(f'Failed to reload extension {ext}:')
 
     @commands.command(aliases=['cc'], hidden=True)
     @commands.has_any_role("Server Moderator","Zi")
