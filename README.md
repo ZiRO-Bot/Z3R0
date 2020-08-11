@@ -4,6 +4,9 @@
 
 Just a fork of mcbeDiscordBot but rewritten a bit. Some code are translated mee6's old deprecated code that works on the new version of [discord.py](https://github.com/Rapptz/discord.py)
 
+### About Branch
+Heroku Deploy branch is branch that used to host a bot via Heroku
+
 ### Dependencies
 - [discord.py](https://github.com/Rapptz/discord.py)
 - asyncio
