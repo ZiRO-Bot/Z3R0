@@ -1,11 +1,12 @@
-from typing import Optional
-from discord.ext import commands
 import discord
 import asyncio
 import aiohttp
 import re
 import requests
 import json
+
+from typing import Optional
+from discord.ext import commands
 
 session = aiohttp.ClientSession()
 

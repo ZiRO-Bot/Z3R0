@@ -1,8 +1,9 @@
-from discord.ext import commands
-from discord.errors import Forbidden
 import discord
 import asyncio
 import logging
+
+from discord.ext import commands
+from discord.errors import Forbidden
 
 class Admin(commands.Cog):
     def __init__(self, bot):
@@ -27,7 +28,7 @@ class Admin(commands.Cog):
         except commands.ExtensionNotLoaded:
             await ctx.send(f"{ext} is not loaded!")
         except commands.ExtensionFailed:
-            await ctx.send(f"{ext} failed to unload!")
+            await ctx.send(f"{ext} failed to unload! Check the log for details.")
             self.bot.logger.exception(f'Failed to reload extension {ext}:')
 
     @commands.command(hidden=True)
@@ -42,7 +43,7 @@ class Admin(commands.Cog):
         except commands.ExtensionNotLoaded:
             await ctx.send(f"{ext} is not loaded!")
         except commands.ExtensionFailed:
-            await ctx.send(f"{ext} failed to reload!")
+            await ctx.send(f"{ext} failed to reload! Check the log for details.")
             self.bot.logger.exception(f'Failed to reload extension {ext}:')
 
     @commands.command(hidden=True)
@@ -55,7 +56,7 @@ class Admin(commands.Cog):
         except commands.ExtensionNotFound:
             await ctx.send(f"{ext} doesn't exist!")
         except commands.ExtensionFailed:
-            await ctx.send(f"{ext} failed to load!")
+            await ctx.send(f"{ext} failed to load! Check the log for details.")
             self.bot.logger.exception(f'Failed to reload extension {ext}:')
 
     @commands.command(aliases=['cc'], hidden=True)

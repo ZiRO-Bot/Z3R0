@@ -1,9 +1,10 @@
-from discord.ext import commands
 import os
 import discord
 import json
 import aiohttp
 import logging
+
+from discord.ext import commands
 
 shard = os.getenv('SHARD') or 0
 shard_count = os.getenv('SHARD_COUNT') or 1
