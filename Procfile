@@ -1,1 +1,1 @@
-worker: python zibot.py
+worker: python3 zibot.py
