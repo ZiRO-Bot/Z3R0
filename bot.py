@@ -6,6 +6,7 @@ import logging
 
 from discord.ext import commands
 
+token = os.getenv('TOKEN') or None
 shard = os.getenv('SHARD') or 0
 shard_count = os.getenv('SHARD_COUNT') or 1
 
@@ -80,4 +81,4 @@ class ziBot(commands.Bot):
         self.logger.warning(f' \nMessage from {message.author}: {message.content} \n on {message.channel}')
 
     def run(self):
-        super().run(os.getenv('TOKEN'), reconnect=True)
+        super().run(token, reconnect=True)
