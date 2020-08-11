@@ -9,7 +9,9 @@ import json
 
 session = aiohttp.ClientSession()
 
-async def query(query: Optional[str], variables: Optional[str]):
+async def query(query: str, variables: Optional[str]):
+    if not query:
+        return None
     async with session.post("https://graphql.anilist.co", json={'query': query, 'variables': variables}) as req:
         try:
             if (json.loads(await req.text())['errors']):
@@ -71,7 +73,8 @@ async def getinfo(self, ctx, other):
     embed = discord.Embed(
             title = f"{a['Media']['title']['romaji']} - AniList",
             url = f"https://anilist.co/anime/{a['Media']['id']}",
-            description = f"**{engTitle}**\n{desc}\n\n**Studios**: {studio}"
+            description = f"**{engTitle}**\n{desc}\n\n**Studios**: {studio}",
+            colour = discord.Colour(0x02A9FF)
             )
     embed.set_thumbnail(url=a['Media']['coverImage']['large'])
     embed.add_field(name="Average Score",value=f"{a['Media']['averageScore']}/100",)
@@ -82,19 +85,51 @@ async def getinfo(self, ctx, other):
     await ctx.send(embed=embed)
     return
 
+async def search_ani(self, ctx, anime, _type_):
+    if not _type_:
+        q = await query("query($name:String){Media(search:$name,type:ANIME){id," +
+            "title {romaji,english}, coverImage {large}, status, episodes, averageScore  } }",
+            {'name': anime})
+    else: 
+        _type_ = str(_type_.upper())
+        q = await query("query($name:String,$atype:MediaFormat){Media(search:$name,type:ANIME,format:$atype){id," +
+            "title {romaji,english}, coverImage {large}, status, episodes, averageScore  } }",
+            {'name': anime,'atype': _type_})
+    try:
+        q = q['data']
+    except TypeError:
+        if not type:
+            await ctx.send(f"{anime} not found")
+            return
+        await ctx.send(f"{anime} with format {_type_} not found")
+        return
+    
+    embed = discord.Embed(
+            title = f"AniList Search - {q['Media']['title']['romaji']} (ID. {q['Media']['id']})",
+            url = f"https://anilist.co/anime/{q['Media']['id']}",
+            description = f"**{q['Media']['title']['english']}**",
+            colour = discord.Colour(0x02A9FF)
+            )
+    embed.set_thumbnail(url=q['Media']['coverImage']['large'])
+    embed.add_field(name="Average Score",value=f"{q['Media']['averageScore']}/100",)
+    embed.add_field(name="Episodes",value=f"{q['Media']['episodes']}")
+    embed.add_field(name="Status",value=f"{q['Media']['status']}")
+    await ctx.send(embed=embed)
+
 class AniList(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
     @commands.command()
-    async def anime(self, ctx, instruction: str="help", other: str=None):
+    async def anime(self, ctx, instruction: str="help", other: str=None, _format_: str=None):
+        """**Instruction**: `help`\n**Other**: MyAnimeList or AniList URL/ID\n**Format**: Movie, TV, OVA, etc [Optional]"""
         if instruction == "help":
             embed = discord.Embed(
                     title = f"Help with anime",
-                    description = f"` {ctx.prefix}anime <instruction> <other> `",
+                    description = f"` {ctx.prefix}anime <instruction> <other> <_format_>`",
                     colour = discord.Colour.green()
                     )
-            embed.add_field(name="Command Description", value="**Instruction**: `help`\n**Other**: MyAnimeList or AniList URL/ID")
+            embed.add_field(name="Command Description", value=f"{ctx.command.help}")
             await ctx.send(embed=embed)
             return
         if instruction == "info":
@@ -102,6 +137,13 @@ class AniList(commands.Cog):
                 return
             async with ctx.typing():
                 await getinfo(self, ctx, other)
+            return
+        if instruction == "search":
+            if not other:
+                return
+            async with ctx.typing():
+                await search_ani(self, ctx, other, _format_)
+            return
 
 def setup(bot):
     bot.add_cog(AniList(bot))
