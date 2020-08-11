@@ -3,7 +3,7 @@ import json
 import logging
 import discord
 
-from bot import ziBot, get_prefix, shard, shard_count
+from bot import ziBot, get_prefix, shard, shard_count, token
 
 def setup_logging():
     FORMAT = '%(asctime)s - [%(levelname)s]: %(message)s'
@@ -27,6 +27,12 @@ def setup_logging():
     logger.addHandler(console_handler)
 
 def init_bot():
+    logger = logging.getLogger('discord')
+    
+    if token is None:
+        logger.error("No token found, please add environment variable \"TOKEN\"!")
+        return
+
     bot = ziBot(command_prefix=get_prefix,
                 case_insensitive=True,
                 allowed_mentions=discord.AllowedMentions(
