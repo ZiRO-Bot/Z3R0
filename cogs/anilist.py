@@ -53,7 +53,7 @@ async def getinfo(self, ctx, other):
     a = await query("query($mediaId: Int){Media(id:$mediaId)" +
             "{id, title {romaji, english}, episodes, status," +
             " startDate {year, month, day}, endDate {year, month, day}," +
-            " genres, coverImage {large}, description, averageScore, studios{nodes{name}} } }",
+            " genres, coverImage {large}, description, averageScore, studios{nodes{name}}, seasonYear } }",
             {'mediaId' : mediaId})
     if a is None:
         return
@@ -74,7 +74,7 @@ async def getinfo(self, ctx, other):
     embed = discord.Embed(
             title = f"{a['Media']['title']['romaji']} - AniList",
             url = f"https://anilist.co/anime/{a['Media']['id']}",
-            description = f"**{engTitle}**\n{desc}\n\n**Studios**: {studio}",
+            description = f"**{engTitle} ({a['Media']['seasonYear']})**\n{desc}\n\n**Studios**: {studio}",
             colour = discord.Colour(0x02A9FF)
             )
     embed.set_thumbnail(url=a['Media']['coverImage']['large'])
@@ -89,12 +89,12 @@ async def getinfo(self, ctx, other):
 async def search_ani(self, ctx, anime, _type_):
     if not _type_:
         q = await query("query($name:String){Media(search:$name,type:ANIME){id," +
-            "title {romaji,english}, coverImage {large}, status, episodes, averageScore  } }",
+            "title {romaji,english}, coverImage {large}, status, episodes, averageScore, seasonYear  } }",
             {'name': anime})
     else: 
         _type_ = str(_type_.upper())
         q = await query("query($name:String,$atype:MediaFormat){Media(search:$name,type:ANIME,format:$atype){id," +
-            "title {romaji,english}, coverImage {large}, status, episodes, averageScore  } }",
+            "title {romaji,english}, coverImage {large}, status, episodes, averageScore, seasonYear  } }",
             {'name': anime,'atype': _type_})
     try:
         q = q['data']
@@ -108,7 +108,7 @@ async def search_ani(self, ctx, anime, _type_):
     embed = discord.Embed(
             title = f"AniList Search - {q['Media']['title']['romaji']} (ID. {q['Media']['id']})",
             url = f"https://anilist.co/anime/{q['Media']['id']}",
-            description = f"**{q['Media']['title']['english']}**",
+            description = f"**{q['Media']['title']['english']} ({q['Media']['seasonYear']})**",
             colour = discord.Colour(0x02A9FF)
             )
     embed.set_thumbnail(url=q['Media']['coverImage']['large'])
