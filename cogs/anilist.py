@@ -20,14 +20,13 @@ async def query(query: str, variables: Optional[str]):
         except KeyError:
             return json.loads(await req.text())
 
-async def find_id(url):
+async def find_id(self, ctx, url, _type_: None):
     # if input is ID, just return it
-    try:
-        _id_ = int(url)
-        if _id_:
-            return _id_
-    except ValueError:
-        pass
+    if isinstance(url, int):
+        return int(_id_)
+    if isinstance (url, str):
+        _id_ = await search_ani(self, ctx, url, _type_)
+        return str(_id_['Media']['id'])
 
     # regex for AniList and MyAnimeList
     regexAL = r"/anilist\.co\/anime\/(.\d*)/"
@@ -48,8 +47,8 @@ async def find_id(url):
         return
     return q['data']['Media']['id']
 
-async def getinfo(self, ctx, other):
-    mediaId = await find_id(other)
+async def getinfo(self, ctx, other, _format_: str=None):
+    mediaId = await find_id(self, ctx, other, _format_)
     a = await query("query($mediaId: Int){Media(id:$mediaId)" +
             "{id, title {romaji, english}, episodes, status," +
             " startDate {year, month, day}, endDate {year, month, day}," +
@@ -97,7 +96,7 @@ async def search_ani(self, ctx, anime, _type_):
             "title {romaji,english}, coverImage {large}, status, episodes, averageScore, seasonYear  } }",
             {'name': anime,'atype': _type_})
     try:
-        q = q['data']
+        return q['data']
     except TypeError:
         if not type:
             await ctx.send(f"{anime} not found")
@@ -105,17 +104,6 @@ async def search_ani(self, ctx, anime, _type_):
         await ctx.send(f"{anime} with format {_type_} not found")
         return
     
-    embed = discord.Embed(
-            title = f"AniList Search - {q['Media']['title']['romaji']} (ID. {q['Media']['id']})",
-            url = f"https://anilist.co/anime/{q['Media']['id']}",
-            description = f"**{q['Media']['title']['english']} ({q['Media']['seasonYear']})**",
-            colour = discord.Colour(0x02A9FF)
-            )
-    embed.set_thumbnail(url=q['Media']['coverImage']['large'])
-    embed.add_field(name="Average Score",value=f"{q['Media']['averageScore']}/100",)
-    embed.add_field(name="Episodes",value=f"{q['Media']['episodes']}")
-    embed.add_field(name="Status",value=f"{q['Media']['status']}")
-    await ctx.send(embed=embed)
 
 class AniList(commands.Cog):
     def __init__(self, bot):
@@ -137,13 +125,25 @@ class AniList(commands.Cog):
             if not other:
                 return
             async with ctx.typing():
-                await getinfo(self, ctx, other)
+                await getinfo(self, ctx, other, _format_)
             return
-        if instruction == "search":
+        if instruction == "search" or instruction == "find":
             if not other:
                 return
             async with ctx.typing():
-                await search_ani(self, ctx, other, _format_)
+                q = await search_ani(self, ctx, other, _format_)
+                embed = discord.Embed(
+                        title = f"AniList Search - {q['Media']['title']['romaji']} (ID. {q['Media']['id']})",
+                        url = f"https://anilist.co/anime/{q['Media']['id']}",
+                        description = f"**{q['Media']['title']['english']} ({q['Media']['seasonYear']})**",
+                        colour = discord.Colour(0x02A9FF)
+                        )
+                embed.set_thumbnail(url=q['Media']['coverImage']['large'])
+                embed.add_field(name="Average Score",value=f"{q['Media']['averageScore']}/100",)
+                embed.add_field(name="Episodes",value=f"{q['Media']['episodes']}")
+                embed.add_field(name="Status",value=f"{q['Media']['status']}")
+                await ctx.send(embed=embed)
+                return
             return
 
 def setup(bot):
