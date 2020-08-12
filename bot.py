@@ -11,7 +11,7 @@ shard = os.getenv('SHARD') or 0
 shard_count = os.getenv('SHARD_COUNT') or 1
 
 extensions = [
-	"cogs.welcome", "cogs.help", "cogs.moderator", "cogs.general", "cogs.utils", "cogs.src"
+	"cogs.welcome", "cogs.help", "cogs.moderator", "cogs.general", "cogs.utils", "cogs.mcbe"
 ]
 
 # def check_jsons():

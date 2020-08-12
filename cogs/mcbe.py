@@ -166,23 +166,23 @@ async def pendingrun(self, ctx):
     await self.bot.get_channel(741199490391736340).send(embed=embed_stats)
 
 # Cog commands
-class Src(commands.Cog):
+class MCBE(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
     @commands.command()
     async def pending(self, ctx):
-        """Get pending runs from speedun.com"""
+        """Get MCBE pending runs from speedun.com"""
         async with ctx.typing():
             await self.bot.get_channel(741199490391736340).purge(limit=500)
             await pendingrun(self, ctx)
     
     @commands.command(aliases=["worldrecords"])
     async def wrs(self, ctx, category: str="any", seed_type: str="Set Seed"):
-        """Get mcbe world record runs from speedun.com
+        """Get MCBE world record runs from speedun.com
         `e.g. >wrs "Any% Glitchless" "Set Seed"`"""
         async with ctx.typing():
             await worldrecord(self, ctx, category, seed_type)
 
 def setup(bot):
-    bot.add_cog(Src(bot))
+    bot.add_cog(MCBE(bot))
