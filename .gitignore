@@ -8,3 +8,4 @@ runs_blacklist.json
 discord.log
 leaderboard.png
 main.py
+.env
