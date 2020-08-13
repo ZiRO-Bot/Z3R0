@@ -21,10 +21,11 @@ async def query(query: str, variables: Optional[str]):
             return json.loads(await req.text())
 
 async def find_id(self, ctx, url, _type_: None):
-    # if input is ID, just return it
-    if isinstance(url, int):
-        return int(_id_)
-    if isinstance (url, str):
+    # if input is ID, just return it, else find id via name (string)
+    try:
+        _id_ = int(url)
+        return _id_
+    except ValueError:
         _id_ = await search_ani(self, ctx, url, _type_)
         return str(_id_['Media']['id'])
 
