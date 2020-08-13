@@ -147,7 +147,10 @@ class AniList(commands.Cog):
                 return
             return
         if instruction == "watch":
-            ctx.send("This command is not available yet.")
+            await ctx.send("This command is not available yet.")
+            return
+        await ctx.send(f"There's no command called '{instruction}'!")
+        return
 
 def setup(bot):
     bot.add_cog(AniList(bot))
