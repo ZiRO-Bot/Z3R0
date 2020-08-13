@@ -14,7 +14,7 @@ To install the dependencies, you can use this command:
 python3 -m pip install -r requirements.txt
 
 # Windows
-py -3 -m pip install -U discord.py
+py -3 -m pip install -r requirements.txt
 ```
 
 ### Usage
