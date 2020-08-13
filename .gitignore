@@ -1,6 +1,7 @@
 .vscode/
 __pycache__/
 downloads/
+zibot.egg-info/
 api_keys.json
 config.json
 blacklist.json
@@ -10,3 +11,4 @@ leaderboard.png
 main.py
 .env
 pyproject.toml
+poetry.lock
