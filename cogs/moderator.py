@@ -13,7 +13,7 @@ class Admin(commands.Cog):
     @commands.command(aliases=['quit'], hidden=True)
     @commands.has_any_role("Zi")
     async def force_close(self, ctx):
-        await ctx.send("Self Destructing!")
+        await ctx.send("Shutting down...")
         await ctx.bot.logout()
     
     @commands.command(hidden=True)

@@ -57,7 +57,7 @@ class ziBot(commands.Bot):
         self.remove_command('help')
 
     async def on_ready(self): 
-        activity=discord.Activity(name="some test",type=discord.ActivityType.watching)
+        activity=discord.Activity(name="over your shoulder",type=discord.ActivityType.watching)
         await self.change_presence(activity=activity)
 
         for extension in extensions:
