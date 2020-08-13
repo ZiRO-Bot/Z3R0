@@ -11,6 +11,49 @@ from discord.ext import commands
 
 session = aiohttp.ClientSession()
 
+scheduleQuery = '''
+query($page: Int = 0, $amount: Int = 50, $watched: [Int!]!, $nextDay: Int!) {
+  Page(page: $page, perPage: $amount) {
+    pageInfo {
+      currentPage
+      hasNextPage
+    }
+    airingSchedules(notYetAired: true, mediaId_in: $watched, sort: TIME, airingAt_lesser: $nextDay) {
+      media {
+        id
+        siteUrl
+        format
+        duration
+        episodes
+        title {
+          romaji
+        }
+        coverImage {
+          large
+          color
+        }
+        externalLinks {
+          site
+          url
+        }
+        studios(isMain: true) {
+          edges {
+            isMain
+            node {
+              name
+            }
+          }
+        }
+      }
+      episode
+      airingAt
+      timeUntilAiring
+      id
+    }
+  }
+}
+'''
+
 async def query(query: str, variables: Optional[str]):
     if not query:
         return None
@@ -130,7 +173,9 @@ async def search_ani(self, ctx, anime, _type_):
             return
         await ctx.send(f"{anime} with format {_type_} not found")
         return
-    
+
+async def createAnnoucementEmbed(entry: str=None, date: str=None, upNext: str=None):
+    print("Not usable yet.")
 
 class AniList(commands.Cog):
     def __init__(self, bot):
