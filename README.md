@@ -18,6 +18,8 @@ py -3 -m pip install -U discord.py
 ```
 
 ### Usage
+**You need to put bot's token to your environment variable with key name "TOKEN"! or put in TOKEN = 'YOUR_TOKEN_HERE' to a file called '.env'**
+
 Launch the bot with ```python3 zibot.py```
 
 ### Information
