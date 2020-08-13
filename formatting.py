@@ -17,3 +17,6 @@ def pformat(text):
         text = text.replace(s,"")
     return text
 
+def hformat(text):
+    text = text.replace("_"," ")
+    return text.title()

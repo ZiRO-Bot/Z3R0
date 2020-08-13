@@ -5,6 +5,7 @@ import re
 import requests
 import json
 
+from formatting import hformat
 from typing import Optional
 from discord.ext import commands
 
@@ -58,29 +59,54 @@ async def getinfo(self, ctx, other, _format_: str=None):
     if a is None:
         return
     a = a['data']
+
+    # Description
     desc = a['Media']['description']
     if desc is not None:
         for d in ["</i>","<i>","<br>"]:
             desc = desc.replace(d,"")
     else:
         desc = "No description."
+
+    # English Title
     engTitle = a['Media']['title']['english']
     if engTitle is None:
-        engTitle = "No english title."
+        engTitle = a['Media']['title']['romaji']
+
+    # Studio Name
     studios = []
     for studio in a['Media']['studios']['nodes']:
         studios.append(studio['name']) 
     studio = ", ".join(studios)
+
+    # Year its aired/released
+    seasonYear = a['Media']['seasonYear']
+    if seasonYear is None:
+        seasonYear = "Unknown"
+
+    # Rating
+    rating = a['Media']['averageScore']
+    if rating is None:
+        rating = "0"
+
+    # Episodes
+    eps = a['Media']['episodes']
+    if eps is None:
+        eps = "0"
+    
+    # Status
+    stat = hformat(a['Media']['status'])
+
     embed = discord.Embed(
             title = f"{a['Media']['title']['romaji']} - AniList",
             url = f"https://anilist.co/anime/{a['Media']['id']}",
-            description = f"**{engTitle} ({a['Media']['seasonYear']})**\n{desc}\n\n**Studios**: {studio}",
+            description = f"**{engTitle} ({seasonYear})**\n{desc}\n\n**Studios**: {studio}",
             colour = discord.Colour(0x02A9FF)
             )
     embed.set_thumbnail(url=a['Media']['coverImage']['large'])
-    embed.add_field(name="Average Score",value=f"{a['Media']['averageScore']}/100",)
-    embed.add_field(name="Episodes",value=f"{a['Media']['episodes']}")
-    embed.add_field(name="Status",value=f"{a['Media']['status']}")
+    embed.add_field(name="Average Score",value=f"{rating}/100",)
+    embed.add_field(name="Episodes",value=f"{eps}")
+    embed.add_field(name="Status",value=f"{stat}")
     genres = ", ".join(a['Media']['genres'])
     embed.add_field(name="Genres",value=genres, inline=False)
     await ctx.send(embed=embed)
