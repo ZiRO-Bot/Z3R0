@@ -13,12 +13,14 @@ class Admin(commands.Cog):
     @commands.command(aliases=['quit'], hidden=True)
     @commands.has_any_role("Zi")
     async def force_close(self, ctx):
+        """Shutdown the bot"""
         await ctx.send("Shutting down...")
         await ctx.bot.logout()
     
     @commands.command(hidden=True)
     @commands.has_any_role("Moderator","Zi")
     async def unload(self, ctx, ext):
+        """Unload an extension"""
         await ctx.send(f"Unloading {ext}...")
         try:
             self.bot.unload_extension(f'cogs.{ext}')
@@ -34,6 +36,7 @@ class Admin(commands.Cog):
     @commands.command(hidden=True)
     @commands.has_any_role("Moderator","Zi")
     async def reload(self, ctx, ext: str=None):
+        """Reload an extension"""
         await ctx.send(f"Reloading {ext}...")
         try:
             self.bot.reload_extension(f'cogs.{ext}')
@@ -49,6 +52,7 @@ class Admin(commands.Cog):
     @commands.command(hidden=True)
     @commands.has_any_role("Moderator","Zi")
     async def load(self, ctx, ext):
+        """Load an extension"""
         await ctx.send(f"Loading {ext}...")
         try:
             self.bot.load_extension(f"cogs.{ext}")
@@ -62,6 +66,7 @@ class Admin(commands.Cog):
     @commands.command(aliases=['cc'], hidden=True)
     @commands.has_any_role("Moderator","Zi")
     async def clearchat(self, ctx, numb: int=100):
+        """Clear the chat"""
         deleted_msg = await ctx.message.channel.purge(limit=int(numb)+1, check=None, before=None, after=None, around=None, oldest_first=False, bulk=True)
 
         msg_num = max(len(deleted_msg) - 1, 0)
@@ -80,6 +85,7 @@ class Admin(commands.Cog):
     @commands.command(hidden=True)
     @commands.has_any_role("Moderator","Zi")
     async def mute(self, ctx, member: discord.Member=None, reason: str="No Reason", min_muted: int=0):
+        """Mute a member"""
         if member is None:
             await ctx.send("Please specify the member you want to mute.")
             return
@@ -100,6 +106,7 @@ class Admin(commands.Cog):
     @commands.command(hidden=True)
     @commands.has_any_role("Moderator","Zi")
     async def unmute(self, ctx, member: discord.Member=None):
+        """Unmute a member"""
         if member is None:
             await ctx.send("Please specify the member you want to unmute.")
             return
@@ -113,6 +120,7 @@ class Admin(commands.Cog):
     @commands.command(hidden=True)
     @commands.has_any_role("Moderator","Zi")
     async def kick(self, ctx, member: discord.Member=None, reason: str="No Reason"): 
+        """Kick a member"""
         if member is None:
             await ctx.send("Please specify the member you want to kick.")
             return
@@ -126,6 +134,7 @@ class Admin(commands.Cog):
     @commands.command(hidden=True)
     @commands.has_any_role("Moderator","Zi")
     async def ban(self, ctx, member: discord.Member=None, reason: str="No Reason", min_ban: int=0): 
+        """Ban a member"""
         if member is None:
             await ctx.send("Please specify the member you want to ban.")
             return
@@ -143,6 +152,7 @@ class Admin(commands.Cog):
     @commands.command(hidden=True)
     @commands.has_any_role("Moderator","Zi")
     async def unban(self, ctx, member):
+        """Unban a member"""
         for s in "<!@>":
             member = member.replace(s,"")
         member = await self.bot.fetch_user(int(member))
