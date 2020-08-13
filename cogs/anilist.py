@@ -112,7 +112,7 @@ class AniList(commands.Cog):
 
     @commands.command()
     async def anime(self, ctx, instruction: str="help", other: str=None, _format_: str=None):
-        """**Instruction**: `help`\n**Other**: MyAnimeList or AniList URL/ID\n**Format**: Movie, TV, OVA, etc [Optional]"""
+        """**Instruction**: `help, info, search`\n**Other**: MyAnimeList or AniList URL/ID\n**Format**: Movie, TV, OVA, etc [Optional]"""
         if instruction == "help":
             embed = discord.Embed(
                     title = f"Help with anime",
@@ -146,6 +146,8 @@ class AniList(commands.Cog):
                 await ctx.send(embed=embed)
                 return
             return
+        if instruction == "watch":
+            ctx.send("This command is not available yet.")
 
 def setup(bot):
     bot.add_cog(AniList(bot))
