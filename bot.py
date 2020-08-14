@@ -79,8 +79,6 @@ class ziBot(commands.Bot):
                 return
         except:
             return
-        
-        self.logger.warning(f' \nMessage from {message.author}: {message.content} \n on {message.channel}')
 
     def run(self):
         super().run(token, reconnect=True)

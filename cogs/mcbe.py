@@ -96,6 +96,7 @@ async def worldrecord(self, ctx, category: str="", seed_type: str=""):
         wrs['link']=wrData['weblink']
         wrs['time']=realtime(wrData['times']['realtime_t'])
         embed.add_field(name=f"{wrs['platform']}",value=f"{wrs['runner']} ({wrs['time']})",inline=False)
+    embed.set_thumbnail(url="https://raw.githubusercontent.com/null2264/null2264/master/assets/mcbe.png")
     await ctx.send(embed=embed)
 
 async def pendingrun(self, ctx):
