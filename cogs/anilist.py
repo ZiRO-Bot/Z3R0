@@ -11,6 +11,17 @@ from discord.ext import commands
 
 session = aiohttp.ClientSession()
 
+streamingSites = [
+    "Amazon",
+    "AnimeLab",
+    "Crunchyroll",
+    "Funimation",
+    "Hidive",
+    "Netflix",
+    "Viz",
+    "VRV"
+]
+
 scheduleQuery = '''
 query($page: Int = 0, $amount: Int = 50, $watched: [Int!]!, $nextDay: Int!) {
   Page(page: $page, perPage: $amount) {
@@ -97,11 +108,18 @@ async def getinfo(self, ctx, other, _format_: str=None):
     a = await query("query($mediaId: Int){Media(id:$mediaId)" +
             "{id, title {romaji, english}, episodes, status," +
             " startDate {year, month, day}, endDate {year, month, day}," +
-            " genres, coverImage {large}, description, averageScore, studios{nodes{name}}, seasonYear } }",
+            " genres, coverImage {large}, description, averageScore, studios{nodes{name}}, seasonYear, externalLinks {site, url} } }",
             {'mediaId' : mediaId})
     if a is None:
         return
     a = a['data']
+
+    # Streaming Site
+    sites = []
+    for each in a['Media']['externalLinks']:
+        if str(each['site']) in streamingSites:
+            sites.append(f"[{each['site']}]({each['url']})")
+    sites = " | ".join(sites)
 
     # Description
     desc = a['Media']['description']
@@ -152,6 +170,8 @@ async def getinfo(self, ctx, other, _format_: str=None):
     embed.add_field(name="Status",value=f"{stat}")
     genres = ", ".join(a['Media']['genres'])
     embed.add_field(name="Genres",value=genres, inline=False)
+    if sites:
+        embed.add_field(name="Streaming Sites",value=sites, inline=False)
     await ctx.send(embed=embed)
     return
 
