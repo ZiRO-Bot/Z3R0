@@ -1,6 +1,6 @@
 # ziBot
 
-**Python 3.6 or higher is required!**
+**Python 3.8.x or higher is required!**
 
 Just a fork of mcbeDiscordBot but rewritten a bit. Some code are translated mee6's old deprecated code that works on the new version of [discord.py](https://github.com/Rapptz/discord.py)
 
