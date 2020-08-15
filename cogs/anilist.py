@@ -75,7 +75,8 @@ query($name:String,$aniformat:MediaFormat){
                 english
             },
             id,
-            format
+            format,
+            siteUrl
         }
     } 
 }
@@ -209,7 +210,9 @@ async def search_ani(self, ctx, anime):
         engTitle = each['title']['english']
         if not engTitle:
             engTitle = "No english title."
-        embed.add_field(name=f"[{each['format']}] {each['title']['romaji']} (ID: {each['id']})", value=engTitle, inline=False)
+        embed.add_field(name=f"[{each['format']}] {each['title']['romaji']}",
+        value=f"**ID**: [{each['id']}]({each['siteUrl']})\n{engTitle}",
+        inline=False)
     await ctx.send(embed=embed)
 
 async def find_with_name(self, ctx, anime, _type_):
