@@ -17,6 +17,7 @@ streamingSites = [
     "Crunchyroll",
     "Funimation",
     "Hidive",
+    "Hulu",
     "Netflix",
     "Viz",
     "VRV"
@@ -65,6 +66,21 @@ query($page: Int = 0, $amount: Int = 50, $watched: [Int!]!, $nextDay: Int!) {
 }
 '''
 
+searchAni = '''
+query($name:String,$aniformat:MediaFormat){
+    Page(perPage:5,page:1){
+        media(search:$name,type:ANIME,format:$aniformat){
+            title {
+                romaji, 
+                english
+            },
+            id,
+            format
+        }
+    } 
+}
+'''
+
 async def query(query: str, variables: Optional[str]):
     if not query:
         return None
@@ -81,7 +97,9 @@ async def find_id(self, ctx, url, _type_: None):
         _id_ = int(url)
         return _id_
     except ValueError:
-        _id_ = await search_ani(self, ctx, url, _type_)
+        _id_ = await find_with_name(self, ctx, url, _type_)
+        if not _id_:
+            return
         return str(_id_['Media']['id'])
 
     # regex for AniList and MyAnimeList
@@ -175,7 +193,26 @@ async def getinfo(self, ctx, other, _format_: str=None):
     await ctx.send(embed=embed)
     return
 
-async def search_ani(self, ctx, anime, _type_):
+async def search_ani(self, ctx, anime):
+    q = await query(searchAni, {'name': anime})
+    q = q['data']
+    embed = discord.Embed(title="AniList - Top 5 Search Result",
+                            colour = discord.Colour(0x02A9FF)
+                            )
+    if not q['Page']['media']:
+        embed = discord.Embed(title="AniList - No Result Found",
+                            colour = discord.Colour(0x02A9FF)
+                            )
+        await ctx.send(embed=embed)
+        return
+    for each in q['Page']['media']:
+        engTitle = each['title']['english']
+        if not engTitle:
+            engTitle = "No english title."
+        embed.add_field(name=f"[{each['format']}] {each['title']['romaji']} (ID: {each['id']})", value=engTitle, inline=False)
+    await ctx.send(embed=embed)
+
+async def find_with_name(self, ctx, anime, _type_):
     if not _type_:
         q = await query("query($name:String){Media(search:$name,type:ANIME){id," +
             "title {romaji,english}, coverImage {large}, status, episodes, averageScore, seasonYear  } }",
@@ -188,11 +225,11 @@ async def search_ani(self, ctx, anime, _type_):
     try:
         return q['data']
     except TypeError:
-        if not type:
+        if not _type_:
             await ctx.send(f"{anime} not found")
-            return
+            return None
         await ctx.send(f"{anime} with format {_type_} not found")
-        return
+        return None
 
 async def createAnnoucementEmbed(entry: str=None, date: str=None, upNext: str=None):
     print("Not usable yet.")
@@ -223,18 +260,7 @@ class AniList(commands.Cog):
             if not other:
                 return
             async with ctx.typing():
-                q = await search_ani(self, ctx, other, _format_)
-                embed = discord.Embed(
-                        title = f"AniList Search - {q['Media']['title']['romaji']} (ID. {q['Media']['id']})",
-                        url = f"https://anilist.co/anime/{q['Media']['id']}",
-                        description = f"**{q['Media']['title']['english']} ({q['Media']['seasonYear']})**",
-                        colour = discord.Colour(0x02A9FF)
-                        )
-                embed.set_thumbnail(url=q['Media']['coverImage']['large'])
-                embed.add_field(name="Average Score",value=f"{q['Media']['averageScore']}/100",)
-                embed.add_field(name="Episodes",value=f"{q['Media']['episodes']}")
-                embed.add_field(name="Status",value=f"{q['Media']['status']}")
-                await ctx.send(embed=embed)
+                await search_ani(self, ctx, other)
                 return
             return
         if instruction == "watch":
