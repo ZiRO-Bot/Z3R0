@@ -178,11 +178,13 @@ async def getinfo(self, ctx, other, _format_: str=None):
     stat = hformat(a['Media']['status'])
 
     embed = discord.Embed(
-            title = f"{a['Media']['title']['romaji']} - AniList",
+            title = f"{a['Media']['title']['romaji']}",
             url = f"https://anilist.co/anime/{a['Media']['id']}",
             description = f"**{engTitle} ({seasonYear})**\n{desc}\n\n**Studios**: {studio}",
             colour = discord.Colour(0x02A9FF)
             )
+    embed.set_author(name="AniList",
+                    icon_url="https://gblobscdn.gitbook.com/spaces%2F-LHizcWWtVphqU90YAXO%2Favatar.png")
     embed.set_thumbnail(url=a['Media']['coverImage']['large'])
     embed.add_field(name="Average Score",value=f"{rating}/100",)
     embed.add_field(name="Episodes",value=f"{eps}")
@@ -197,13 +199,17 @@ async def getinfo(self, ctx, other, _format_: str=None):
 async def search_ani(self, ctx, anime):
     q = await query(searchAni, {'name': anime})
     q = q['data']
-    embed = discord.Embed(title="AniList - Top 5 Search Result",
+    embed = discord.Embed(title="Top 5 Search Result",
                             colour = discord.Colour(0x02A9FF)
                             )
+    embed.set_author(name="AniList",
+                    icon_url="https://gblobscdn.gitbook.com/spaces%2F-LHizcWWtVphqU90YAXO%2Favatar.png")
     if not q['Page']['media']:
-        embed = discord.Embed(title="AniList - No Result Found",
+        embed = discord.Embed(title="No Result Found",
                             colour = discord.Colour(0x02A9FF)
                             )
+        embed.set_author(name="AniList",
+                        icon_url="https://gblobscdn.gitbook.com/spaces%2F-LHizcWWtVphqU90YAXO%2Favatar.png")
         await ctx.send(embed=embed)
         return
     for each in q['Page']['media']:
