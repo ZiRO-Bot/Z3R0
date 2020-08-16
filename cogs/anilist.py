@@ -2,14 +2,18 @@ import discord
 import asyncio
 import aiohttp
 import re
-import requests
 import json
+import time
+import threading
+import logging
 
 from formatting import hformat
 from typing import Optional
 from discord.ext import commands
+from utilities.scheduling import setInterval
 
 session = aiohttp.ClientSession()
+logger = logging.getLogger('discord')
 
 streamingSites = [
     "Amazon",
@@ -81,6 +85,10 @@ query($name:String,$aniformat:MediaFormat){
     } 
 }
 '''
+
+def checkforupdate():
+    # TODO: Make an actual checking
+    logger.warning("Checking for new releases....")
 
 async def query(query: str, variables: Optional[str]):
     if not query:
@@ -247,6 +255,11 @@ class AniList(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
+        self.inter = setInterval(60,checkforupdate)
+
+    def cog_unload(self):
+        self.inter.cancel()
+
     @commands.command()
     async def anime(self, ctx, instruction: str="help", other: str=None, _format_: str=None):
         """**Instruction**: `help, info, search`\n**Other**: MyAnimeList or AniList URL/ID\n**Format**: Movie, TV, OVA, etc [Optional]"""
@@ -275,8 +288,12 @@ class AniList(commands.Cog):
         if instruction == "watch":
             await ctx.send("This command is not available yet.")
             return
+        if instruction == "check":
+            checkforupdate()
+            return
         await ctx.send(f"There's no command called '{instruction}'!")
         return
+        
 
 def setup(bot):
     bot.add_cog(AniList(bot))
