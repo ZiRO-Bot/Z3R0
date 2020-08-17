@@ -85,8 +85,9 @@ query($name:String,$aniformat:MediaFormat){
 }
 '''
 
-# Temporary watchlish
-watchlist=[116006]
+# TODO: Make a command to add more anime to watchlist.
+# Temporary watchlist
+watchlist=[110028]
 
 async def getschedule(self, _time_, page):
     q = await query(scheduleQuery, {"page": 1,"amount": 50, "watched": watchlist, "nextDay": _time_})
@@ -103,15 +104,23 @@ async def getschedule(self, _time_, page):
                     if str(site['site']) in streamingSites:
                         sites.append(f"[{site['site']}]({site['url']})")
                 sites = " | ".join(sites)
-
+                _date_ = datetime.datetime.fromtimestamp(e['airingAt'])
                 embed = discord.Embed(title="New Release!",
-                                    description=f"Episode {eps} of {anime} has just aired!")
+                                    url = f"{e['media']['siteUrl']}",
+                                    description=f"Episode {eps} of {anime} has just aired!",
+                                    timestamp=_date_,
+                                    colour = discord.Colour(0x02A9FF))
+                embed.set_author(name="AniList",
+                                icon_url="https://gblobscdn.gitbook.com/spaces%2F-LHizcWWtVphqU90YAXO%2Favatar.png")
+                embed.set_thumbnail(url=e['media']['coverImage']['large'])
                 if sites:
                    embed.add_field(name="Streaming Sites",value=sites, inline=False)
                 else:
                     embed.add_field(name="Streaming Sites",value="No official stream links available")
                 await channel.send(embed=embed)
             await asyncio.sleep(e['timeUntilAiring'])
+            # ---- For testing only
+            #await asyncio.sleep(5)
             await queueSchedule(self)
 
     if q['Page']['pageInfo']['hasNextPage']:
