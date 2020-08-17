@@ -1,11 +1,13 @@
 import discord
 import asyncio
+import logging
 
 from discord.ext import commands
 
 class Utils(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        self.logger = logging.getLogger('discord')
     
     @commands.Cog.listener()
     async def on_message_delete(self, message):
@@ -46,6 +48,7 @@ class Utils(commands.Cog):
     @commands.command()
     async def ping(self, ctx):
         """Tell the ping of the bot to the discord servers"""
+        self.logger.info("Hello world!")
         await ctx.send(f'Pong! {round(self.bot.latency*1000)}ms')
 
 def setup(bot):

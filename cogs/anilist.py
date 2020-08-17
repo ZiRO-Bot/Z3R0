@@ -3,17 +3,16 @@ import asyncio
 import aiohttp
 import re
 import json
+import datetime
 import time
 import threading
 import logging
 
 from formatting import hformat
 from typing import Optional
-from discord.ext import commands
-from utilities.scheduling import setInterval
+from discord.ext import tasks, commands
 
 session = aiohttp.ClientSession()
-logger = logging.getLogger('discord')
 
 streamingSites = [
     "Amazon",
@@ -86,9 +85,38 @@ query($name:String,$aniformat:MediaFormat){
 }
 '''
 
-def checkforupdate():
-    # TODO: Make an actual checking
-    logger.warning("Checking for new releases....")
+# Temporary watchlish
+watchlist=[116006]
+
+async def getschedule(self, _time_, page):
+    q = await query(scheduleQuery, {"page": 1,"amount": 50, "watched": watchlist, "nextDay": _time_})
+    q = q['data']
+    channel = self.bot.get_channel(744528830382735421)
+    if q['Page']['airingSchedules']:
+        for e in q['Page']['airingSchedules']:
+            self.logger.info(f"Scheduling {e['media']['title']['romaji']} episode {e['episode']} (about to air in {str(datetime.timedelta(seconds=e['timeUntilAiring']))})")
+            async def queueSchedule(self):
+                anime = e['media']['title']['romaji']
+                eps = e['episode']
+                sites = []
+                for site in e['media']['externalLinks']:
+                    if str(site['site']) in streamingSites:
+                        sites.append(f"[{site['site']}]({site['url']})")
+                sites = " | ".join(sites)
+
+                embed = discord.Embed(title="New Release!",
+                                    description=f"Episode {eps} of {anime} has just aired!")
+                if sites:
+                   embed.add_field(name="Streaming Sites",value=sites, inline=False)
+                else:
+                    embed.add_field(name="Streaming Sites",value="No official stream links available")
+                await channel.send(embed=embed)
+            await asyncio.sleep(e['timeUntilAiring'])
+            await queueSchedule(self)
+
+    if q['Page']['pageInfo']['hasNextPage']:
+        getschedule(self, int(time.time() + (24 * 60 * 60 * 1000 * 1) / 1000 ), page+1)
+
 
 async def query(query: str, variables: Optional[str]):
     if not query:
@@ -254,11 +282,16 @@ async def createAnnoucementEmbed(entry: str=None, date: str=None, upNext: str=No
 class AniList(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-
-        self.inter = setInterval(60,checkforupdate)
+        self.handle_schedule.start()
+        self.logger = logging.getLogger('discord')
 
     def cog_unload(self):
-        self.inter.cancel()
+        self.handle_schedule.cancel()
+
+    @tasks.loop(hours=24)
+    async def handle_schedule(self):
+        self.logger.warning("Checking for new releases...")
+        await getschedule(self, int(time.time() + (24 * 60 * 60 * 1000 * 1) / 1000 ), 1)
 
     @commands.command()
     async def anime(self, ctx, instruction: str="help", other: str=None, _format_: str=None):
@@ -289,7 +322,7 @@ class AniList(commands.Cog):
             await ctx.send("This command is not available yet.")
             return
         if instruction == "check":
-            checkforupdate()
+            await getschedule(self, int(time.time() + (24 * 60 * 60 * 1000 * 1) / 1000 ), 1)
             return
         await ctx.send(f"There's no command called '{instruction}'!")
         return
