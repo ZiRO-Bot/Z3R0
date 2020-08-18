@@ -188,8 +188,7 @@ async def getschedule(self, _time_, page):
                 sites = " | ".join(sites)
                 _date_ = datetime.datetime.fromtimestamp(e['airingAt'])
                 embed = discord.Embed(title="New Release!",
-                                    url = f"{e['media']['siteUrl']}",
-                                    description=f"Episode {eps} of {anime} ({id}) has just aired!",
+                                    description=f"Episode {eps} of [{anime}]({e['media']['siteUrl']}) ({id}) has just aired!",
                                     timestamp=_date_,
                                     colour = discord.Colour(0x02A9FF))
                 embed.set_author(name="AniList",
@@ -199,7 +198,10 @@ async def getschedule(self, _time_, page):
                    embed.add_field(name="Streaming Sites",value=sites, inline=False)
                 else:
                     embed.add_field(name="Streaming Sites",value="No official stream links available")
-                await channel.send(embed=embed)
+                if id in self.watchlist:
+                    await channel.send(embed=embed)
+                else:
+                    self.logger.warning(f"{anime} ({id}) no longer in the watchlist.")
             await asyncio.sleep(e['timeUntilAiring'])
             # ---- For testing only
             #await asyncio.sleep(5)
