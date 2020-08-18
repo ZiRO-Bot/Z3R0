@@ -114,9 +114,9 @@ async def pendingrun(self, ctx):
             'submit_time': '',
             'leaderboard': ''
             }
-    for game in range(2):
+    for game in gameID:
         async with session.get('https://www.speedrun.com/api/v1/runs?game=' + 
-                f'{gameID[game]}&status=new&max=200&embed=category,players,level&orderby=submitted') as url:
+                f'{game}&status=new&max=200&embed=category,players,level&orderby=submitted') as url:
             runs = json.loads(await url.text())
         for i in range(200):
             try:
