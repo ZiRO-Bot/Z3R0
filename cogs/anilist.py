@@ -260,6 +260,7 @@ async def getinfo(self, ctx, other, _format_: str=None):
             " genres, coverImage {large}, description, averageScore, studios{nodes{name}}, seasonYear, externalLinks {site, url} } }",
             {'mediaId' : mediaId})
     if a is None:
+        await ctx.send(f"Anime with id **{mediaId}** can't be found.")
         return
     a = a['data']
 

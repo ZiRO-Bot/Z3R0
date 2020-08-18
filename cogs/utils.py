@@ -45,7 +45,7 @@ class Utils(commands.Cog):
         embed.add_field(name="After", value=f"{a_msg}", inline=False)
         await purgatory_ch.send(embed=embed)
 
-    @commands.command()
+    @commands.command(aliases=['p'])
     async def ping(self, ctx):
         """Tell the ping of the bot to the discord servers"""
         self.logger.info("Hello world!")
