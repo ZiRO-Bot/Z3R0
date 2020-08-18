@@ -12,4 +12,4 @@ main.py
 .env
 pyproject.toml
 poetry.lock
-data/anime.json
+anime.json
