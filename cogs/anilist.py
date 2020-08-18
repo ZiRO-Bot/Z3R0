@@ -85,12 +85,93 @@ query($name:String,$aniformat:MediaFormat){
 }
 '''
 
+generalQ = '''
+query($mediaId: [Int]){
+    Media(id:$mediaId){
+        id, 
+        title {
+            romaji, 
+            english
+        }, 
+        episodes, 
+        status, 
+        startDate {
+            year, 
+            month, 
+            day
+        }, 
+        endDate {
+            year, 
+            month, 
+            day
+        }, 
+        genres, 
+        coverImage {
+            large
+        }, 
+        description, 
+        averageScore, 
+        studios{nodes{name}}, 
+        seasonYear, 
+        externalLinks {
+            site, 
+            url
+        } 
+    } 
+}
+'''
+
+listQ = '''
+query($page: Int = 0, $amount: Int = 50, $mediaId: [Int!]!) {
+  Page(page: $page, perPage: $amount) {
+    pageInfo {
+      currentPage
+      hasNextPage
+    }
+    media(id_in: $mediaId){
+        id,
+        title {
+            romaji,
+            english
+        },
+        siteUrl,
+        nextAiringEpisode {
+            airingAt,
+            timeUntilAiring
+        }
+    }
+  }
+}
+'''
+
 # TODO: Make a command to add more anime to watchlist.
 # Temporary watchlist
-watchlist=[110028]
+wl=[108489, 111762]
+
+def checkjson():
+    try:
+        f = open('data/anime.json', 'r')
+    except FileNotFoundError:
+        with open('data/anime.json', 'w+') as f:
+            json.dump({"watchlist": []}, f, indent=4)
+
+async def getwatchlist(self, ctx):
+    a = await query(listQ, {'mediaId' : self.watchlist})
+    a = a['data']
+    embed = discord.Embed(title="Anime Watchlist",
+                        colour = discord.Colour(0x02A9FF))
+    embed.set_author(name="AniList",
+                    icon_url="https://gblobscdn.gitbook.com/spaces%2F-LHizcWWtVphqU90YAXO%2Favatar.png")
+    for e in a['Page']['media']:
+        _time_ = e['nextAiringEpisode']['airingAt']
+        _timeTillAired_ = str(datetime.timedelta(seconds=e['nextAiringEpisode']['timeUntilAiring']))
+        embed.add_field(name=f"{e['title']['romaji']} ({e['id']})",
+                        value=f"Next episode airing at **{str(datetime.datetime.fromtimestamp(_time_))}** (**{_timeTillAired_}**)", 
+                        inline=False)
+    await ctx.send(embed=embed)
 
 async def getschedule(self, _time_, page):
-    q = await query(scheduleQuery, {"page": 1,"amount": 50, "watched": watchlist, "nextDay": _time_})
+    q = await query(scheduleQuery, {"page": 1,"amount": 50, "watched": self.watchlist, "nextDay": _time_})
     q = q['data']
     channel = self.bot.get_channel(744528830382735421)
     if q['Page']['airingSchedules']:
@@ -98,6 +179,7 @@ async def getschedule(self, _time_, page):
             self.logger.info(f"Scheduling {e['media']['title']['romaji']} episode {e['episode']} (about to air in {str(datetime.timedelta(seconds=e['timeUntilAiring']))})")
             async def queueSchedule(self):
                 anime = e['media']['title']['romaji']
+                id = e['media']['id']
                 eps = e['episode']
                 sites = []
                 for site in e['media']['externalLinks']:
@@ -107,7 +189,7 @@ async def getschedule(self, _time_, page):
                 _date_ = datetime.datetime.fromtimestamp(e['airingAt'])
                 embed = discord.Embed(title="New Release!",
                                     url = f"{e['media']['siteUrl']}",
-                                    description=f"Episode {eps} of {anime} has just aired!",
+                                    description=f"Episode {eps} of {anime} ({id}) has just aired!",
                                     timestamp=_date_,
                                     colour = discord.Colour(0x02A9FF))
                 embed.set_author(name="AniList",
@@ -137,16 +219,13 @@ async def query(query: str, variables: Optional[str]):
         except KeyError:
             return json.loads(await req.text())
 
-async def find_id(self, ctx, url, _type_: None):
-    # if input is ID, just return it, else find id via name (string)
+async def find_id(self, ctx, url, _type_: str=None):
+    # if input is ID, just return it, else find id via name (string)        
     try:
         _id_ = int(url)
         return _id_
     except ValueError:
-        _id_ = await find_with_name(self, ctx, url, _type_)
-        if not _id_:
-            return
-        return str(_id_['Media']['id'])
+        pass
 
     # regex for AniList and MyAnimeList
     regexAL = r"/anilist\.co\/anime\/(.\d*)/"
@@ -155,17 +234,21 @@ async def find_id(self, ctx, url, _type_: None):
     # if AL link then return the id
     match = re.search(regexAL, url)
     if match:
-        return match.group(1)
+        return int(match.group(1))
     
     # if MAL link get the id, find AL id out of MAL id then return the AL id
     match = re.search(regexMAL, url)
     if not match:
-        return None
+        _id_ = await find_with_name(self, ctx, url, _type_)
+        if not _id_:
+            return
+        return int(_id_['Media']['id'])
+
     q = await query("query($malId: Int){Media(idMal:$malId){id}}", {'malId': match.group(1)})
     if q is None:
         print("Error")
         return
-    return q['data']['Media']['id']
+    return int(q['data']['Media']['id'])
 
 async def getinfo(self, ctx, other, _format_: str=None):
     mediaId = await find_id(self, ctx, other, _format_)
@@ -294,6 +377,14 @@ class AniList(commands.Cog):
         self.handle_schedule.start()
         self.logger = logging.getLogger('discord')
 
+        checkjson()
+
+        with open('data/anime.json') as f:
+            try:
+                self.watchlist = json.load(f)['watchlist']
+            except json.decoder.JSONDecodeError:
+                self.watchlist = []
+
     def cog_unload(self):
         self.handle_schedule.cancel()
 
@@ -328,7 +419,39 @@ class AniList(commands.Cog):
                 return
             return
         if instruction == "watch":
-            await ctx.send("This command is not available yet.")
+            if not other:
+                return
+            _id_ = await find_id(self, ctx, other)
+            q = await query("query($id: Int!) {Media(id: $id){title {romaji}}}", {'id': _id_})
+            q = q['data']
+            title = q['Media']['title']['romaji']
+            if _id_ not in self.watchlist:
+                self.watchlist.append(_id_)
+            else:
+                await ctx.send(f"**{title}** ({_id_}) already in the watchlist!")
+                return
+            with open('data/anime.json', 'w') as f:
+                json.dump({'watchlist': self.watchlist}, f, indent=4)
+            await ctx.send(f"**{title}** ({_id_}) has been added to the watchlist")
+            return
+        if instruction == "unwatch":
+            if not other:
+                return
+            _id_ = await find_id(self, ctx, other)
+            q = await query("query($id: Int!) {Media(id: $id){title {romaji}}}", {'id': _id_})
+            q = q['data']
+            title = q['Media']['title']['romaji']
+            if _id_ in self.watchlist:
+                self.watchlist.remove(_id_)
+            else:
+                await ctx.send(f"**{title}** ({_id_}) is not in the watchlist!")
+                return
+            with open('data/anime.json', 'w') as f:
+                json.dump({'watchlist': self.watchlist}, f, indent=4)
+            await ctx.send(f"**{title}** ({_id_}) has been removed from the watchlist")
+            return
+        if instruction == "watchlist":
+            await getwatchlist(self, ctx)
             return
         if instruction == "check":
             await getschedule(self, int(time.time() + (24 * 60 * 60 * 1000 * 1) / 1000 ), 1)
