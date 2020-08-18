@@ -138,14 +138,14 @@ async def pendingrun(self, ctx):
                     run['runner'] = run_item['players']['data'][0]['names']['international']
                 run['time'] = timedelta(seconds=run_item['times']['realtime_t'])
                 run['submit_time'] = dateutil.parser.isoparse(run_item['submitted'])
-                if game == 0:
+                if game == gameID[0]:
                     if level is True:
                         mcbeil_runs += 1
                         run['leaderboard'] = 'Individual Level Run'
                     else:
                         mcbe_runs += 1
                         run['leaderboard'] = "Full Game Run"
-                elif game == 1:
+                elif game == gameID[1]:
                     mcbece_runs += 1
                     run['leaderboard'] = 'Category Extension Run'
                 embed = discord.Embed(
