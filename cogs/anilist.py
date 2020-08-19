@@ -8,7 +8,7 @@ import time
 import threading
 import logging
 
-from formatting import hformat
+from utilities.formatting import hformat
 from typing import Optional
 from discord.ext import tasks, commands
 
@@ -86,7 +86,7 @@ query($name:String,$aniformat:MediaFormat){
 '''
 
 generalQ = '''
-query($mediaId: [Int]){
+query($mediaId: Int){
     Media(id:$mediaId){
         id, 
         title {
@@ -254,16 +254,16 @@ async def find_id(self, ctx, url, _type_: str=None):
 
 async def getinfo(self, ctx, other, _format_: str=None):
     mediaId = await find_id(self, ctx, other, _format_)
-    a = await query("query($mediaId: Int){Media(id:$mediaId)" +
-            "{id, title {romaji, english}, episodes, status," +
-            " startDate {year, month, day}, endDate {year, month, day}," +
-            " genres, coverImage {large}, description, averageScore, studios{nodes{name}}, seasonYear, externalLinks {site, url} } }",
+    a = await query(generalQ,
             {'mediaId' : mediaId})
     if a is None:
         await ctx.send(f"Anime with id **{mediaId}** can't be found.")
         return
     a = a['data']
+    return a
 
+async def send_info(self, ctx, other, _format_: str=None):
+    a = await getinfo(self, ctx, other, _format_)
     # Streaming Site
     sites = []
     for each in a['Media']['externalLinks']:
@@ -412,7 +412,7 @@ class AniList(commands.Cog):
             if not other:
                 return
             async with ctx.typing():
-                await getinfo(self, ctx, other, _format_)
+                await send_info(self, ctx, other, _format_)
             return
         if instruction == "search" or instruction == "find":
             if not other:
@@ -425,33 +425,62 @@ class AniList(commands.Cog):
             if not other:
                 return
             _id_ = await find_id(self, ctx, other)
-            q = await query("query($id: Int!) {Media(id: $id){title {romaji}}}", {'id': _id_})
-            q = q['data']
+
+            # Get info from API
+            q = await getinfo(self, ctx, other, _format_)
+
             title = q['Media']['title']['romaji']
             if _id_ not in self.watchlist:
                 self.watchlist.append(_id_)
+                with open('data/anime.json', 'w') as f:
+                    json.dump({'watchlist': self.watchlist}, f, indent=4)
+                embed = discord.Embed(
+                    title = "New anime just added!",
+                    description = f"**{title}** ({_id_}) has been added to the watchlist!",
+                    colour = discord.Colour(0x02A9FF)
+                )
             else:
-                await ctx.send(f"**{title}** ({_id_}) already in the watchlist!")
-                return
-            with open('data/anime.json', 'w') as f:
-                json.dump({'watchlist': self.watchlist}, f, indent=4)
-            await ctx.send(f"**{title}** ({_id_}) has been added to the watchlist")
+                embed = discord.Embed(
+                    title = "Failed to add anime!",
+                    description = f"**{title}** ({_id_}) already in the watchlist!",
+                    colour = discord.Colour(0x02A9FF)
+                )
+            embed.set_author(name="AniList",
+                icon_url="https://gblobscdn.gitbook.com/spaces%2F-LHizcWWtVphqU90YAXO%2Favatar.png"
+            )
+            embed.set_thumbnail(url=q['Media']['coverImage']['large'])
+            await ctx.send(embed=embed)
             return
         if instruction == "unwatch":
             if not other:
                 return
             _id_ = await find_id(self, ctx, other)
-            q = await query("query($id: Int!) {Media(id: $id){title {romaji}}}", {'id': _id_})
-            q = q['data']
+
+            # Get info from API
+            q = await getinfo(self, ctx, other, _format_)
+
             title = q['Media']['title']['romaji']
             if _id_ in self.watchlist:
                 self.watchlist.remove(_id_)
+                with open('data/anime.json', 'w') as f:
+                    json.dump({'watchlist': self.watchlist}, f, indent=4)
+                embed = discord.Embed(
+                    title = "An anime just removed!",
+                    description = f"**{title}** ({_id_}) has been removed from the watchlist!",
+                    colour = discord.Colour(0x02A9FF)
+                )
             else:
-                await ctx.send(f"**{title}** ({_id_}) is not in the watchlist!")
-                return
-            with open('data/anime.json', 'w') as f:
-                json.dump({'watchlist': self.watchlist}, f, indent=4)
+                embed = discord.Embed(
+                    title = "Failed to remove anime!",
+                    description = f"**{title}** ({_id_}) is not in the watchlist!",
+                    colour = discord.Colour(0x02A9FF)
+                )
             await ctx.send(f"**{title}** ({_id_}) has been removed from the watchlist")
+            embed.set_author(name="AniList",
+                icon_url="https://gblobscdn.gitbook.com/spaces%2F-LHizcWWtVphqU90YAXO%2Favatar.png"
+            )
+            embed.set_thumbnail(url=q['Media']['coverImage']['large'])
+            await ctx.send(embed=embed)
             return
         if instruction == "watchlist":
             await getwatchlist(self, ctx)

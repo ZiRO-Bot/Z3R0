@@ -6,7 +6,7 @@ import asyncio
 import dateutil.parser
 
 from discord.ext import commands, tasks
-from formatting import pformat, realtime
+from utilities.formatting import pformat, realtime
 from discord.utils import get
 from datetime import timedelta
 
@@ -74,7 +74,7 @@ async def worldrecord(self, ctx, category: str="", seed_type: str=""):
     # Grab and Put Category Name to embed title
     wrs['cat']=catName
     embed = discord.Embed(
-            title=f"MCBE {wrs['cat']} {sTypeVar[seed_typeID]['label']} World Records",
+            title=f"World Records",
             colour=discord.Colour.gold()
             )
 
@@ -93,9 +93,11 @@ async def worldrecord(self, ctx, category: str="", seed_type: str=""):
             wrs['runner']=wrData['players']['data'][0]['names']
         else:
             wrs['runner']=wrData['players']["data"][0]["names"]["international"]
-        wrs['link']=wrData['weblink']
+        wrs['link']=wr['data']['runs'][0]['run']['weblink']
         wrs['time']=realtime(wrData['times']['realtime_t'])
-        embed.add_field(name=f"{wrs['platform']}",value=f"{wrs['runner']} ({wrs['time']})",inline=False)
+        embed.add_field(name=f"{wrs['platform']}",value=f"{wrs['runner']} (**[{wrs['time']}]({wrs['link']})**)",inline=False)
+    embed.set_author(name=f"MCBE - {wrs['cat']} - {sTypeVar[seed_typeID]['label']}",
+                    icon_url="https://www.speedrun.com/themes/Default/1st.png")
     embed.set_thumbnail(url="https://raw.githubusercontent.com/null2264/null2264/master/assets/mcbe.png")
     await ctx.send(embed=embed)
 
