@@ -5,7 +5,7 @@ def realtime(time): # turns XXX.xxx into h m s ms
     m,s = divmod(s,60)
     h,m = divmod(m,60)  # separates time into h m s ms
     ms = "{:03d}".format(ms)
-    s = "{:02d}".format(s)  #pads ms and s withs
+    s = "{:02d}".format(s)  #pads ms and s with 0s
     if h>0:
         m = "{:02d}".format(m)  #if in hours, pad m with 0s
     f = [str((h>0) * (str(h)+'h ')), str(m)+'m', str(s)+'s', (str(ms)+'ms') * (ms!='000')]
