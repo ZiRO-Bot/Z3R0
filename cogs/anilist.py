@@ -397,8 +397,99 @@ class AniList(commands.Cog):
         await getschedule(self, int(time.time() + (24 * 60 * 60 * 1000 * 1) / 1000 ), 1)
 
     @commands.command()
+    async def animeinfo(self, ctx, anime, _format: str=None):
+        """Get information about an anime"""
+        if not anime:
+            await ctx.send("Please specify the anime!")
+        async with ctx.typing():
+            await send_info(self, ctx, anime, _format)
+        return
+    
+    @commands.command(aliases=['animefind'])
+    async def animesearch(self, ctx, anime, _format: str=None):
+        """Find an anime"""
+        if not anime:
+            await ctx.send("Please specify the anime!")
+        async with ctx.typing():
+            await search_ani(self, ctx, anime)
+        return
+
+    @commands.command(aliases=['watch'])
+    async def animewatch(self, ctx, anime, _format: str=None):
+        """Add anime to watchlist"""
+        if not anime:
+            return
+        _id_ = await find_id(self, ctx, anime, _format)
+
+        # Get info from API
+        q = await getinfo(self, ctx, anime, _format)
+
+        title = q['Media']['title']['romaji']
+        if _id_ not in self.watchlist:
+            self.watchlist.append(_id_)
+            with open('data/anime.json', 'w') as f:
+                json.dump({'watchlist': self.watchlist}, f, indent=4)
+            embed = discord.Embed(
+                title = "New anime just added!",
+                description = f"**{title}** ({_id_}) has been added to the watchlist!",
+                colour = discord.Colour(0x02A9FF)
+            )
+        else:
+            embed = discord.Embed(
+                title = "Failed to add anime!",
+                description = f"**{title}** ({_id_}) already in the watchlist!",
+                colour = discord.Colour(0x02A9FF)
+            )
+        embed.set_author(name="AniList",
+            icon_url="https://gblobscdn.gitbook.com/spaces%2F-LHizcWWtVphqU90YAXO%2Favatar.png"
+        )
+        embed.set_thumbnail(url=q['Media']['coverImage']['large'])
+        await ctx.send(embed=embed)
+        return
+
+    @commands.command(aliases=['unwatch'])
+    async def animeunwatch(self, ctx, anime, _format: str=None):
+        """Add anime to watchlist"""
+        if not anime:
+            return
+        _id_ = await find_id(self, ctx, anime)
+
+        # Get info from API
+        q = await getinfo(self, ctx, anime, _format)
+
+        title = q['Media']['title']['romaji']
+        if _id_ in self.watchlist:
+            self.watchlist.remove(_id_)
+            with open('data/anime.json', 'w') as f:
+                json.dump({'watchlist': self.watchlist}, f, indent=4)
+            embed = discord.Embed(
+                title = "An anime just removed!",
+                description = f"**{title}** ({_id_}) has been removed from the watchlist!",
+                colour = discord.Colour(0x02A9FF)
+            )
+        else:
+            embed = discord.Embed(
+                title = "Failed to remove anime!",
+                description = f"**{title}** ({_id_}) is not in the watchlist!",
+                colour = discord.Colour(0x02A9FF)
+            )
+        await ctx.send(f"**{title}** ({_id_}) has been removed from the watchlist")
+        embed.set_author(name="AniList",
+            icon_url="https://gblobscdn.gitbook.com/spaces%2F-LHizcWWtVphqU90YAXO%2Favatar.png"
+        )
+        embed.set_thumbnail(url=q['Media']['coverImage']['large'])
+        await ctx.send(embed=embed)
+        return
+
+    @commands.command(aliases=['animelist','watchlist'])
+    async def animewatchlist(self, ctx):
+        """Get list of anime that added to watchlist"""
+        await getwatchlist(self, ctx)
+        return
+
+    @commands.command()
     async def anime(self, ctx, instruction: str="help", other: str=None, _format_: str=None):
-        """**Instruction**: `help, info, search`\n**Other**: MyAnimeList or AniList URL/ID\n**Format**: Movie, TV, OVA, etc [Optional]"""
+        """DEPRECATED\n**Instruction**: `help, info, search`\n**Other**: MyAnimeList or AniList URL/ID\n**Format**: Movie, TV, OVA, etc [Optional]"""
         if instruction == "help":
             embed = discord.Embed(
                     title = f"Help with anime",
@@ -407,19 +498,23 @@ class AniList(commands.Cog):
                     )
             embed.add_field(name="Command Description", value=f"{ctx.command.help}")
             await ctx.send(embed=embed)
+            await ctx.send("This command is deprecated")
             return
         if instruction == "info":
             if not other:
                 return
             async with ctx.typing():
                 await send_info(self, ctx, other, _format_)
+            await ctx.send("**WARNING:** This command is deprecated and will be removed soon," + 
+                f"please use {ctx.prefix}animeinfo instead")
             return
         if instruction == "search" or instruction == "find":
             if not other:
                 return
             async with ctx.typing():
                 await search_ani(self, ctx, other)
-                return
+            await ctx.send("**WARNING:** This command is deprecated and will be removed soon," + 
+                f"please use {ctx.prefix}animesearch instead")
             return
         if instruction == "watch":
             if not other:
@@ -450,6 +545,8 @@ class AniList(commands.Cog):
             )
             embed.set_thumbnail(url=q['Media']['coverImage']['large'])
             await ctx.send(embed=embed)
+            await ctx.send("**WARNING:** This command is deprecated and will be removed soon," + 
+                f"please use {ctx.prefix}animewatch instead")
             return
         if instruction == "unwatch":
             if not other:
@@ -481,12 +578,13 @@ class AniList(commands.Cog):
             )
             embed.set_thumbnail(url=q['Media']['coverImage']['large'])
             await ctx.send(embed=embed)
+            await ctx.send("**WARNING:** This command is deprecated and will be removed soon," + 
+                f"please use {ctx.prefix}animeunwatch instead")
             return
         if instruction == "watchlist":
             await getwatchlist(self, ctx)
-            return
-        if instruction == "check":
-            await getschedule(self, int(time.time() + (24 * 60 * 60 * 1000 * 1) / 1000 ), 1)
+            await ctx.send("**WARNING:** This command is deprecated and will be removed soon," + 
+                f"please use {ctx.prefix}animewatchlist instead")
             return
         await ctx.send(f"There's no command called '{instruction}'!")
         return
