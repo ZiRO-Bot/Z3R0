@@ -451,7 +451,7 @@ class AniList(commands.Cog):
 
     @commands.command(aliases=['unwatch'])
     async def animeunwatch(self, ctx, anime, _format: str=None):
-        """Add anime to watchlist"""
+        """Remove anime to watchlist"""
         if not anime:
             return
         _id_ = await find_id(self, ctx, anime)
