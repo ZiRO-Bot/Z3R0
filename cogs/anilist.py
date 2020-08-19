@@ -1,16 +1,15 @@
-import discord
-import asyncio
 import aiohttp
-import re
-import json
+import asyncio
 import datetime
-import time
-import threading
+import discord
+import json
 import logging
+import re
+import time
 
-from utilities.formatting import hformat
-from typing import Optional
 from discord.ext import tasks, commands
+from typing import Optional
+from utilities.formatting import hformat
 
 session = aiohttp.ClientSession()
 
@@ -208,13 +207,16 @@ async def getschedule(self, _time_, page):
             await queueSchedule(self)
 
     if q['Page']['pageInfo']['hasNextPage']:
-        getschedule(self, int(time.time() + (24 * 60 * 60 * 1000 * 1) / 1000 ), page+1)
+        getschedule(self, int(time.time() 
+                    + (24 * 60 * 60 * 1000 * 1) / 1000 ), page+1)
 
 
 async def query(query: str, variables: Optional[str]):
     if not query:
         return None
-    async with session.post("https://graphql.anilist.co", json={'query': query, 'variables': variables}) as req:
+    async with session.post("https://graphql.anilist.co", 
+                            json={'query': query, 
+                                  'variables': variables}) as req:
         try:
             if (json.loads(await req.text())['errors']):
                 return None
@@ -315,7 +317,7 @@ async def send_info(self, ctx, other, _format_: str=None):
             colour = discord.Colour(0x02A9FF)
             )
     embed.set_author(name="AniList",
-                    icon_url="https://gblobscdn.gitbook.com/spaces%2F-LHizcWWtVphqU90YAXO%2Favatar.png")
+                     icon_url="https://gblobscdn.gitbook.com/spaces%2F-LHizcWWtVphqU90YAXO%2Favatar.png")
     embed.set_thumbnail(url=a['Media']['coverImage']['large'])
     embed.add_field(name="Average Score",value=f"{rating}/100",)
     embed.add_field(name="Episodes",value=f"{eps}")
@@ -441,7 +443,7 @@ class AniList(commands.Cog):
                 colour = discord.Colour(0x02A9FF)
             )
         embed.set_author(name="AniList",
-            icon_url="https://gblobscdn.gitbook.com/spaces%2F-LHizcWWtVphqU90YAXO%2Favatar.png"
+            icon_url = "https://gblobscdn.gitbook.com/spaces%2F-LHizcWWtVphqU90YAXO%2Favatar.png"
         )
         embed.set_thumbnail(url=q['Media']['coverImage']['large'])
         await ctx.send(embed=embed)
@@ -489,7 +491,7 @@ class AniList(commands.Cog):
 
     @commands.command()
     async def anime(self, ctx, instruction: str="help", other: str=None, _format_: str=None):
-        """DEPRECATED\n**Instruction**: `help, info, search`\n**Other**: MyAnimeList or AniList URL/ID\n**Format**: Movie, TV, OVA, etc [Optional]"""
+        """**DEPRECATED**"""
         if instruction == "help":
             embed = discord.Embed(
                     title = f"Help with anime",

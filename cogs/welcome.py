@@ -1,9 +1,9 @@
-import discord
 import asyncio
+import discord
 import logging
 
-from random import randint
 from discord.ext import commands
+from random import randint
 
 class Welcome(commands.Cog, name="Welcome"):
     # Welcome message + set roles when new member joined

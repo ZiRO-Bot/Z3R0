@@ -1,7 +1,7 @@
 import asyncio
+import discord
 import json
 import logging
-import discord
 
 from bot import ziBot, get_prefix, shard, shard_count, token
 

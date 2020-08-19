@@ -1,11 +1,11 @@
-import discord
 import asyncio
-import json
 import bot
+import discord
+import json
 import logging
 
-from typing import Optional
 from discord.ext import commands
+from typing import Optional
 
 def syntax(command):
     params = []
