@@ -5,10 +5,14 @@ def realtime(time): # turns XXX.xxx into h m s ms
     m,s = divmod(s,60)
     h,m = divmod(m,60)  # separates time into h m s ms
     ms = "{:03d}".format(ms)
-    s = "{:02d}".format(s)  #pads ms and s with0s
+    s = "{:02d}".format(s)  #pads ms and s withs
     if h>0:
         m = "{:02d}".format(m)  #if in hours, pad m with 0s
-    return ((h>0) * (str(h)+'h ')) + str(m)+'m ' + str(s)+'s ' + ((str(ms)+'ms') * (ms!='000')) #src formatting 
+    f = [str((h>0) * (str(h)+'h ')), str(m)+'m', str(s)+'s', (str(ms)+'ms') * (ms!='000')]
+    for e in f:
+        if not e:
+            f.remove(e) #remove item if empty
+    return " ".join(f) #src formatting 0
 
 def pformat(text):
     text = text.lower()

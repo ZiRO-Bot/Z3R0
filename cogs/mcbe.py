@@ -100,70 +100,77 @@ async def worldrecord(self, ctx, category: str="", seed_type: str=""):
     await ctx.send(embed=embed)
 
 async def pendingrun(self, ctx):
-    mcbe_runs = 0
-    mcbeil_runs = 0
-    mcbece_runs = 0
-    head = {"Accept": "application/json", "User-Agent": "ziBot/0.1"}
-    gameID = ['yd4ovvg1', 'v1po7r76'] #[MCBE, MCBECE Game ID]
-    run = {
-            'id': '',
-            'link': '',
-            'categoryName': '',
-            'runner': '',
-            'time': '',
-            'submit_time': '',
-            'leaderboard': ''
-            }
-    for game in gameID:
+    # From mcbeDiscordBot (Steve) by MangoMan
+    def getnames(player):
+        if player['rel'] == 'user':
+            return player['names']['international']
+        else:
+            return player['name']
+
+    # Run Counts
+    mcbe = 0
+    mcbeils = 0
+    mcbece = 0
+
+    head = {"Accept": "application/json", "User-Agent": "ziBot/0.2"}
+    gameIds = ['yd4ovvg1', 'v1po7r76'] #[MCBE, MCBECE Game ID]
+
+    for idx, game in enumerate(gameIds):
         async with session.get('https://www.speedrun.com/api/v1/runs?game=' + 
-                f'{game}&status=new&max=200&embed=category,players,level&orderby=submitted') as url:
+                f'{game}&status=new&max=200&embed=category,players,level&orderby=submitted',
+                headers=head) as url:
             runs = json.loads(await url.text())
-        for i in range(200):
-            try:
-                leaderboard = ''
-                level = False
-                run_item = runs['data'][i]
-                run['id'] = run_item['id']
-                run['link'] = run_item['weblink']
-                # Cat Name (ILs or Not)
-                if run_item['level']['data']:
-                    level = True
-                    run['categoryName'] = run_item['level']['data']['name']
-                elif not level:
-                    run['categoryName'] = run_item['category']['data']['name']
-                # Runner Name
-                if run_item['players']['data'][0]['rel'] == 'guest':
-                    run['runner'] = run_item['players']['data'][0]['name']
-                else:
-                    run['runner'] = run_item['players']['data'][0]['names']['international']
-                run['time'] = timedelta(seconds=run_item['times']['realtime_t'])
-                run['submit_time'] = dateutil.parser.isoparse(run_item['submitted'])
-                if game == gameID[0]:
-                    if level is True:
-                        mcbeil_runs += 1
-                        run['leaderboard'] = 'Individual Level Run'
-                    else:
-                        mcbe_runs += 1
-                        run['leaderboard'] = "Full Game Run"
-                elif game == gameID[1]:
-                    mcbece_runs += 1
-                    run['leaderboard'] = 'Category Extension Run'
-                embed = discord.Embed(
-                            title=run['leaderboard'],
-                            url=run['link'],
-                            description=
-                            f"{run['categoryName']} in `{str(run['time']).replace('000','')}` by **{run['runner']}**",
-                            color=16711680 + i * 60,
-                            timestamp=run['submit_time'])
-                await self.bot.get_channel(741199490391736340).send(embed=embed)
-            except IndexError:
-                break
-    total = mcbe_runs + mcbece_runs + mcbeil_runs
+        for run in runs['data']:
+
+            # Get run's duration and link
+            duration = realtime(run['times']['realtime_t'])
+            runLink = run['weblink']
+
+            # Get runner(s) names (also from MangoMan)
+            if len(run['players']['data']) > 1:
+                runners = [getnames(player) for player in run['players']['data']]
+                runners = ", ".join(runners)
+            else:
+                runners = getnames(run['players']['data'][0])
+
+            # get run's type + get category name
+            if run['level']['data']:
+                cat = run['level']['data']['name']
+                gameType = "Individual Level"
+            else:
+                cat = run['category']['data']['name']
+                gameType = "Full Game Run"
+
+            # if its cat ext overwrite gameType
+            if idx == 1:
+                gameType = "Category Extension"
+            
+            # count runs
+            if gameType == "Full Game Run":
+                mcbe += 1
+            elif gameType == "Individual Level":
+                mcbeils += 1
+            else:
+                mcbece += 1
+
+            submitted = dateutil.parser.isoparse(run['submitted'])
+
+            embed = discord.Embed(
+                        title=gameType,
+                        url=runLink,
+                        description=
+                        f"{cat} in `{duration}` by **{runners}**",
+                        color=16711680 + idx * 60,
+                        timestamp=submitted)
+            await self.bot.get_channel(741199490391736340).send(embed=embed)
+
+    # Pending Run Stats
+    total = mcbe + mcbece + mcbeils
     embed_stats = discord.Embed(
                 title='Pending Run Stats',
                 description=
-                f"Full Game Runs: {mcbe_runs}\nIndividual Level Runs: {mcbeil_runs}\nCategory Extension Runs: {mcbece_runs}\n**Total: {total}**",
-                color=16711680 + i * 60)
+                f"Full Game Runs: {mcbe}\nIndividual Level Runs: {mcbeils}\nCategory Extension Runs: {mcbece}\n**Total: {total}**",
+                color=16711680 + idx * 60)
     await self.bot.get_channel(741199490391736340).send(embed=embed_stats)
 
 # Cog commands

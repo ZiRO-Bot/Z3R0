@@ -127,7 +127,10 @@ class Admin(commands.Cog):
         if self.bot.user == member: # Just why would you want to mute him?
             await ctx.send(f'You\'re not allowed to kick ziBot!')
         else:
-            await member.send(f'You have been kicked from {ctx.guild.name} for {reason}!')
+            try:
+                await member.send(f'You have been kicked from {ctx.guild.name} for {reason}!')
+            except discord.errors.HTTPException:
+                pass
             await ctx.guild.kick(member, reason=reason)
             await ctx.send(f'{member.mention} has been kicked by {ctx.author.mention} for {reason}!')
     
