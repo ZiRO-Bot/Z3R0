@@ -11,7 +11,7 @@ class Utils(commands.Cog):
     
     @commands.Cog.listener()
     async def on_message_delete(self, message):
-        if message.author.id == self.bot.id:
+        if message.author == self.bot.user:
             return
         purgatory_ch = self.bot.get_channel(741431840958578811)
         embed = discord.Embed(title = "Deleted Message",
