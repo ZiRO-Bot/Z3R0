@@ -1,14 +1,13 @@
 import aiohttp
-import discord
-import requests
-import json
 import asyncio
 import dateutil.parser
+import discord
+import json
+import requests
 
 from discord.ext import commands, tasks
-from utilities.formatting import pformat, realtime
 from discord.utils import get
-from datetime import timedelta
+from utilities.formatting import pformat, realtime
 
 session = aiohttp.ClientSession()
 

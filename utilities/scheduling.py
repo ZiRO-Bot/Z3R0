@@ -1,5 +1,5 @@
-import time
 import threading
+import time
 
 class setInterval :
     def __init__(self,interval,action) :

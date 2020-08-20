@@ -1,8 +1,8 @@
-import os
+import aiohttp
 import discord
 import json
-import aiohttp
 import logging
+import os
 
 from discord.ext import commands
 
