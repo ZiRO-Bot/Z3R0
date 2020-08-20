@@ -15,6 +15,13 @@ class Fun(commands.Cog):
         coin_side = ['heads', 'tails']
         await ctx.send(f"{ctx.message.author.mention} {coin_side[randint(0, 1)]}")
 
+    @flip.error
+    async def flip_handler(self, ctx, error):
+        if isinstance(error, commands.CommandOnCooldown):
+            bot_msg = await ctx.send(f"{ctx.message.author.mention}, slowdown bud!")
+            await asyncio.sleep(round(error.retry_after))
+            await bot_msg.delete()
+
 def setup(bot):
     bot.add_cog(Fun(bot))
 
