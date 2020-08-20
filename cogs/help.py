@@ -56,7 +56,7 @@ class Help(commands.Cog):
                     continue
                 cmds = [c.name for c in 
                         list(self.bot.get_cog(cog).get_commands())]
-                width = 4
+                width = 6
                 _cmds = ",\n".join(", ".join(cmds[i:i+width]) 
                                     for i in range(0, len(cmds), width))
                 if not _cmds:
