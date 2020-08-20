@@ -15,6 +15,8 @@ def syntax(command):
                 params.append(f"[{key}]" if "NoneType" in str(value) else f"<{key}>")
 
         params = " ".join(params)
+        if not params:
+            return f"{command}"
         return f"{command} {params}"
     return f"{command} {command.usage}"
 
@@ -52,11 +54,16 @@ class Help(commands.Cog):
             for cog in self.bot.cogs:
                 if cog in hidden_cogs:
                     continue
-                cmds = self.bot.get_cog(cog).get_commands()
-                _cmds = ", ".join([c.name for c in cmds])
+                cmds = [c.name for c in 
+                        list(self.bot.get_cog(cog).get_commands())]
+                width = 4
+                _cmds = ",\n".join(", ".join(cmds[i:i+width]) 
+                                    for i in range(0, len(cmds), width))
                 if not _cmds:
                     _cmds = "No commands"
-                embed.add_field(name=f"{cog}", value=f"` {ctx.prefix}help {cog} for details. ` \n{_cmds}", inline=False)
+                embed.add_field(name=f"{cog}", 
+                                value=f"` {ctx.prefix}help {cog} for details. ` \n\
+                                        {_cmds}", inline=False)
             await ctx.send(embed=embed)
             return
         if command in self.bot.cogs and command not in hidden_cogs:
