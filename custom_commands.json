@@ -1,3 +1,4 @@
 {
-    ">cctest": "Testing custom commands"
+    ">cctest": "Testing custom commands",
+    ">sudo": "No you dont!"
 }
