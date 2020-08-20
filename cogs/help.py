@@ -8,15 +8,15 @@ from discord.ext import commands
 from typing import Optional
 
 def syntax(command):
-    params = []
-    for key, value in command.params.items():
-        if key not in ("self", "ctx"):
-            params.append(f"[{key}]" if "NoneType" in str(value) else f"<{key}>")
+    if not command.usage:
+        params = []
+        for key, value in command.params.items():
+            if key not in ("self", "ctx"):
+                params.append(f"[{key}]" if "NoneType" in str(value) else f"<{key}>")
 
-    params = " ".join(params)
-
-    return f"{command} {params}"
-
+        params = " ".join(params)
+        return f"{command} {params}"
+    return f"{command} {command.usage}"
 
 class Help(commands.Cog):
     def __init__(self, bot):
