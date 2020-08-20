@@ -13,7 +13,7 @@ shard_count = os.getenv('SHARD_COUNT') or 1
 extensions = [
 	"cogs.welcome", "cogs.help", "cogs.moderator", 
     "cogs.general", "cogs.utils", "cogs.mcbe",
-    "cogs.anilist"
+    "cogs.anilist", "cogs.fun"
 ]
 
 # def check_jsons():
