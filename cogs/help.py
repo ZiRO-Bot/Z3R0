@@ -95,7 +95,7 @@ class Help(commands.Cog):
 
     @commands.command(aliases=['customcommands', 'ccmds'])
     async def listcommands(self, ctx):
-        """List all custom commands"""
+        """List all custom commands."""
         embed = discord.Embed(
                     title = "Help",
                     colour = discord.Colour.gold()

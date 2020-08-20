@@ -49,7 +49,7 @@ class Utils(commands.Cog):
 
     @commands.command(aliases=['p'])
     async def ping(self, ctx):
-        """Tell the ping of the bot to the discord servers"""
+        """Tell the ping of the bot to the discord servers."""
         self.logger.info("Hello world!")
         await ctx.send(f'Pong! {round(self.bot.latency*1000)}ms')
 

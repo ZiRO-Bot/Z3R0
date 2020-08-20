@@ -22,7 +22,7 @@ class General(commands.Cog):
 
     @commands.command()
     async def serverinfo(self, ctx):
-        """Show server information"""
+        """Show server information."""
         embed = discord.Embed(
                 title=f"{ctx.guild.name} Information",
                 colour=discord.Colour.orange()

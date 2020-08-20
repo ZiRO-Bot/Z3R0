@@ -12,6 +12,7 @@ class Fun(commands.Cog):
     @commands.command()
     @commands.cooldown(1, 5)
     async def flip(self, ctx):
+        """Flip a coin."""
         coin_side = ['heads', 'tails']
         await ctx.send(f"{ctx.message.author.mention} {coin_side[randint(0, 1)]}")
 
