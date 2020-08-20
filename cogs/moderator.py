@@ -1,4 +1,5 @@
 import asyncio
+import datetime
 import discord
 import git
 import logging
@@ -176,10 +177,16 @@ class Admin(commands.Cog):
     async def pull(self, ctx):
         """Update the bot from github"""
         g = git.cmd.Git(os.getcwd())
+        embed = discord.Embed(
+                title = "Git",
+                colour = discord.Colour.lighter_gray(),
+                timestamp = datetime.datetime.now()
+                )
         try:
-            await ctx.send(f"```bash\n{g.pull()}```")
+            embed.add_field(name="Pulling...", value=f"```bash\n{g.pull()}```")
         except git.exc.GitCommandError as e:
-            await ctx.send(f"```bash\n{e}```")
+            embed.add_field(name="Pulling...", value=f"```bash\n{e}```")
+        await ctx.send(embed=embed)
 
 def setup(bot):
     bot.add_cog(Admin(bot))
