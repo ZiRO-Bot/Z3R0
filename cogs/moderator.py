@@ -1,5 +1,6 @@
 import asyncio
 import discord
+import git
 import logging
 
 from discord.errors import Forbidden
@@ -171,7 +172,7 @@ class Admin(commands.Cog):
     
     @commands.command(hidden=True)
     @commands.has_any_role("Moderator","Zi")
-    async def pull(self, ctx, member):
+    async def pull(self, ctx):
         """Update the bot from github"""
         g = git.cmd.Git(os.getcwd())
         try:
