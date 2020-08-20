@@ -168,6 +168,16 @@ class Admin(commands.Cog):
             self.logger.error("discord.errors.Forbidden: Can't send DM to member")
         await ctx.guild.unban(member)
         await ctx.send(f'{member.mention} has been unbanned by {ctx.author.mention}!')
-        
+    
+    @commands.command(hidden=True)
+    @commands.has_any_role("Moderator","Zi")
+    async def pull(self, ctx, member):
+        """Update the bot from github"""
+        g = git.cmd.Git(os.getcwd())
+        try:
+            await ctx.send(f"Probably pulled.\n```bash\n{g.pull()}```")
+        except git.exc.GitCommandError as e:
+            await ctx.send(f"An error has occured when pulling```bash\n{e}```")
+
 def setup(bot):
     bot.add_cog(Admin(bot))
