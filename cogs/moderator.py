@@ -177,9 +177,9 @@ class Admin(commands.Cog):
         """Update the bot from github"""
         g = git.cmd.Git(os.getcwd())
         try:
-            await ctx.send(f"Probably pulled.\n```bash\n{g.pull()}```")
+            await ctx.send(f"```bash\n{g.pull()}```")
         except git.exc.GitCommandError as e:
-            await ctx.send(f"An error has occured when pulling```bash\n{e}```")
+            await ctx.send(f"```bash\n{e}```")
 
 def setup(bot):
     bot.add_cog(Admin(bot))
