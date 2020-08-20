@@ -2,6 +2,7 @@ import asyncio
 import discord
 import git
 import logging
+import os
 
 from discord.errors import Forbidden
 from discord.ext import commands
