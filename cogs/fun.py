@@ -69,22 +69,29 @@ class Fun(commands.Cog):
     @commands.command()
     async def meme(self, ctx):
         """Get memes from subreddit r/memes."""
-        memes_submissions = reddit.subreddit('memes').hot()
-        post_to_pick = randint(1, 50)
-        for i in range(0, post_to_pick):
-            submission = next(x for x in memes_submissions if not x.stickied)
-        if submission.over_18:
-            return
-        embed = discord.Embed(title=f"r/memes - {submission.title}",
-                              colour=discord.Colour(0xFF4500))
-        embed.set_author(name="Reddit",
-                         icon_url="https://www.redditstatic.com/desktop2x/" 
-                                  + "img/favicon/android-icon-192x192.png")
-        embed.set_image(url=submission.url)
-        embed.add_field(name="Upvotes", value=submission.score)
-        embed.add_field(name="Comments", value=submission.num_comments)
         meme_channel = self.bot.get_channel(746177519786393741)
-        await meme_channel.send(embed=embed)
+        # --- Testing Server
+        # meme_channel = self.bot.get_channel(746200581152178307)
+        if ctx.channel is not meme_channel:
+            async with ctx.typing():
+                await ctx.send(f"Please do this command on {meme_channel.mention}")
+            return
+        async with meme_channel.typing():
+            memes_submissions = reddit.subreddit('memes').hot()
+            post_to_pick = randint(1, 50)
+            for i in range(0, post_to_pick):
+                submission = next(x for x in memes_submissions if not x.stickied)
+            if submission.over_18:
+                return
+            embed = discord.Embed(title=f"r/memes - {submission.title}",
+                                  colour=discord.Colour(0xFF4500))
+            embed.set_author(name="Reddit",
+                             icon_url="https://www.redditstatic.com/desktop2x/" 
+                                      + "img/favicon/android-icon-192x192.png")
+            embed.set_image(url=submission.url)
+            embed.add_field(name="Upvotes", value=submission.score)
+            embed.add_field(name="Comments", value=submission.num_comments)
+            await meme_channel.send(embed=embed)
 
 def setup(bot):
     bot.add_cog(Fun(bot))
