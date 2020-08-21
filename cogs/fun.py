@@ -83,7 +83,7 @@ class Fun(commands.Cog):
         embed.set_image(url=submission.url)
         embed.add_field(name="Upvotes", value=submission.score)
         embed.add_field(name="Comments", value=submission.num_comments)
-        meme_channel = self.bot.get_channel(746200581152178307)
+        meme_channel = self.bot.get_channel(746177519786393741)
         await meme_channel.send(embed=embed)
 
 def setup(bot):
