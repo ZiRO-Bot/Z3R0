@@ -75,7 +75,7 @@ class Fun(commands.Cog):
         if ctx.channel is not meme_channel:
             async with ctx.typing():
                 await ctx.send(f"Please do this command on {meme_channel.mention}")
-            return
+                return
         async with meme_channel.typing():
             memes_submissions = reddit.subreddit('memes').hot()
             post_to_pick = randint(1, 50)
