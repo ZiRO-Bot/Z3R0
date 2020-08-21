@@ -5,8 +5,14 @@ import logging
 import os
 
 from discord.ext import commands
+from dotenv import load_dotenv
 
-token = os.getenv('TOKEN') or None
+try:
+    token = os.environ('TOKEN')
+except:
+    load_dotenv()
+    token = os.getenv('TOKEN')
+
 shard = os.getenv('SHARD') or 0
 shard_count = os.getenv('SHARD_COUNT') or 1
 
