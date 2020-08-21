@@ -166,11 +166,12 @@ async def getwatchlist(self, ctx):
                     icon_url="https://gblobscdn.gitbook.com/spaces%2F-LHizcWWtVphqU90YAXO%2Favatar.png")
     jakarta = timezone('Asia/Jakarta')
     for e in a['Page']['media']:
-        _time_ = e['nextAiringEpisode']['airingAt']
+        _time_ = str(datetime.datetime.fromtimestamp(e['nextAiringEpisode']['airingAt'],
+                     tz=jakarta).strftime('%d %b %Y - %H:%M WIB'))
         _timeTillAired_ = str(datetime.timedelta(seconds=e['nextAiringEpisode']['timeUntilAiring']))
         embed.add_field(name=f"{e['title']['romaji']} ({e['id']})",
                         value=f"Episode {e['nextAiringEpisode']['episode']} will be aired at" 
-                        + f" **{str(datetime.datetime.fromtimestamp(_time_, tz=jakarta))}** (**{_timeTillAired_}**)", 
+                        + f" **{_time_}** (**{_timeTillAired_}**)", 
                         inline=False)
     await ctx.send(embed=embed)
 
