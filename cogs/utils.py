@@ -10,6 +10,52 @@ class Utils(commands.Cog):
         self.logger = logging.getLogger('discord')
     
     @commands.Cog.listener()
+    async def on_raw_reaction_add(self, payload):
+        msg_id = payload.message_id
+        if msg_id == 746645838586970152:
+            guild_id = payload.guild_id
+            guild = discord.utils.find(lambda g: g.id == guild_id, self.bot.guilds)
+            role = None 
+            if payload.emoji.name == "🖥️":
+                role = discord.utils.get(guild.roles, name='Computer Nerd')
+            elif payload.emoji.name == '🇦':
+                role = discord.utils.get(guild.roles, name='Weeb')
+            elif payload.emoji.name == '🇸':
+                role = discord.utils.get(guild.roles, name='Speedrunner')
+            
+            if role:
+                member = discord.utils.find(lambda m: m.id == payload.user_id, guild.members)
+                if member:
+                    await member.add_roles(role)
+                else:
+                    print("Member not found")
+            else:
+                print("Role not found")
+    
+    @commands.Cog.listener()
+    async def on_raw_reaction_remove(self, payload):
+        msg_id = payload.message_id
+        if msg_id == 746645838586970152:
+            guild_id = payload.guild_id
+            guild = discord.utils.find(lambda g: g.id == guild_id, self.bot.guilds)
+            role = None 
+            if payload.emoji.name == "🖥️":
+                role = discord.utils.get(guild.roles, name='Computer Nerd')
+            elif payload.emoji.name == '🇦':
+                role = discord.utils.get(guild.roles, name='Weeb')
+            elif payload.emoji.name == '🇸':
+                role = discord.utils.get(guild.roles, name='Speedrunner')
+            
+            if role:
+                member = discord.utils.find(lambda m: m.id == payload.user_id, guild.members)
+                if member:
+                    await member.remove_roles(role)
+                else:
+                    print("Member not found")
+            else:
+                print("Role not found")
+
+    @commands.Cog.listener()
     async def on_message_delete(self, message):
         if message.author == self.bot.user:
             return
