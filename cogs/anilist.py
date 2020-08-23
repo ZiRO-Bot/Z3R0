@@ -400,7 +400,7 @@ class AniList(commands.Cog):
 
     @tasks.loop(hours=24)
     async def handle_schedule(self):
-        self.logger.warning("Checking for new releases...")
+        self.logger.warning("Checking for new releases on AniList...")
         await getschedule(self, int(time.time() 
                                 + (24 * 60 * 60 * 1000 * 1) / 1000 ), 1)
 
