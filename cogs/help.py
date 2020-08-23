@@ -33,7 +33,11 @@ class CustomHelp(commands.MinimalHelpCommand):
 
     async def send_bot_help(self, mapping):
         destination = self.get_destination()
-        desc = f"*Test*"
+        prefixes = get_prefix()
+        prefixes = ", ".join(f"`{p}`" for p in prefixes)
+        desc = f"Bot prefixes are {prefixes}\n\
+                `[]` = Required\n\
+                `()` = Optional"
         embed = discord.Embed(title="Bot Commands",
                               description=desc,
                               colour=self.COLOUR)
