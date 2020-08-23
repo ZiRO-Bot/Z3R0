@@ -2,12 +2,14 @@ import asyncio
 import datetime
 import discord
 import json
+import logging
 
 from discord.ext import commands
 
 class General(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        self.logger = logging.getLogger('discord')
 
     @commands.command(usage="[language] [code]")
     async def compile(self, ctx, language=None, *, code=None):
@@ -58,8 +60,9 @@ class General(commands.Cog):
                 try:
                     response = json.loads(await r.text())
                     #await ctx.send(f"```json\n{json.dumps(response, indent=4)}```")
-                    print(f"```json\n{json.dumps(response, indent=4)}```")
+                    self.logger.info(f"json\n{json.dumps(response, indent=4)}")
                 except json.decoder.JSONDecodeError:
+                    self.logger.error(f"json\n{r.text}")
                     await ctx.send(f"```json\n{r.text}```")
                 
                 try:
@@ -69,6 +72,7 @@ class General(commands.Cog):
                     embed.add_field(name="Link", value=f"[Permalink]({response['url']})", inline=True)
                     await ctx.send(embed=embed)
                 except KeyError:
+                    self.logger.error(f"json\n{json.dumps(response, indent=4)}")
                     await ctx.send(f"```json\n{json.dumps(response, indent=4)}```")
 
     @commands.command()
