@@ -33,7 +33,22 @@ class CustomHelp(commands.MinimalHelpCommand):
 
     def get_command_signature(self, command):
         return '{0.qualified_name} {0.signature}'.format(command)
+    
+    def command_not_found(self, string):
+        return f'There\'s no command called `{string}`'
+    
+    def subcommand_not_found(self, command, string):
+        if isinstance(command, Group) and len(command.all_commands) > 0:
+            return f'Command `{command.qualified_name}` has no subcommand called `{string}`'
+        return f'Command `{command.qualified_name}` has no subcommands'
 
+    async def send_error_message(self, error):
+        embed = discord.Embed(title="Error!",
+                              description=f"{error}",
+                              colour=discord.Colour(0x2F3136))
+
+        await self.get_destination().send(embed=embed)
+    
     async def send_bot_help(self, mapping):
         destination = self.get_destination()
         embed = discord.Embed(title="Bot Commands",
@@ -97,6 +112,7 @@ class CustomHelp(commands.MinimalHelpCommand):
         embed.add_field(name=self.get_command_signature(command), value=value)
 
         await self.get_destination().send(embed=embed)
+
 
 class Help(commands.Cog):
     def __init__(self, bot):
