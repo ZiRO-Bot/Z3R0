@@ -379,8 +379,7 @@ async def find_with_name(self, ctx, anime, _type_):
         await ctx.send(f"{anime} with format {_type_} not found")
         return None
 
-async def createAnnoucementEmbed(entry: str=None, date: str=None, upNext: str=None):
-    print("Not usable yet.")
+# async def createAnnoucementEmbed(entry: str=None, date: str=None, upNext: str=None):
 
 class AniList(commands.Cog):
     def __init__(self, bot):
@@ -405,7 +404,7 @@ class AniList(commands.Cog):
         await getschedule(self, int(time.time() 
                                 + (24 * 60 * 60 * 1000 * 1) / 1000 ), 1)
 
-    @commands.command()
+    @commands.command(usage="[anime] (format)")
     async def animeinfo(self, ctx, anime, _format: str=None):
         """Get information about an anime."""
         if not anime:
@@ -414,7 +413,7 @@ class AniList(commands.Cog):
             await send_info(self, ctx, anime, _format)
         return
     
-    @commands.command(aliases=['animefind'])
+    @commands.command(aliases=['animefind'], usage="[anime] (format)")
     async def animesearch(self, ctx, anime, _format: str=None):
         """Find an anime."""
         if not anime:
@@ -423,7 +422,7 @@ class AniList(commands.Cog):
             await search_ani(self, ctx, anime)
         return
 
-    @commands.command(aliases=['watch'])
+    @commands.command(aliases=['watch'], usage="[anime] (format)")
     async def animewatch(self, ctx, anime, _format: str=None):
         """Add anime to watchlist."""
         if not anime:
@@ -456,7 +455,7 @@ class AniList(commands.Cog):
         await ctx.send(embed=embed)
         return
 
-    @commands.command(aliases=['unwatch'])
+    @commands.command(aliases=['unwatch'], usage="[anime] (format)")
     async def animeunwatch(self, ctx, anime, _format: str=None):
         """Remove anime to watchlist."""
         if not anime:

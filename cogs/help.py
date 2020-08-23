@@ -24,6 +24,9 @@ def syntax(command):
 class CustomHelp(commands.MinimalHelpCommand):
 
     COLOUR = discord.Colour.blue()
+    prefixes = get_prefix()
+    prefixes = ", ".join(f"`{p}`" for p in prefixes)
+    desc = f"Bot prefixes are {prefixes}"
 
     def get_ending_note(self):
         return 'Use {0}{1} [command] for more info on a command.'.format(self.clean_prefix, self.invoked_with)
@@ -33,13 +36,8 @@ class CustomHelp(commands.MinimalHelpCommand):
 
     async def send_bot_help(self, mapping):
         destination = self.get_destination()
-        prefixes = get_prefix()
-        prefixes = ", ".join(f"`{p}`" for p in prefixes)
-        desc = f"Bot prefixes are {prefixes}\n\
-                `[]` = Required\n\
-                `()` = Optional"
         embed = discord.Embed(title="Bot Commands",
-                              description=desc,
+                              description=self.desc,
                               colour=self.COLOUR)
         for cog, commands in mapping.items():
             name = 'No Category' if cog is None else cog.qualified_name
@@ -53,7 +51,12 @@ class CustomHelp(commands.MinimalHelpCommand):
         await destination.send(embed=embed)
 
     async def send_cog_help(self, cog):
-        embed = discord.Embed(title=f'{cog.qualified_name} Commands', colour=self.COLOUR)
+        embed = discord.Embed(title=f'{cog.qualified_name} Commands',
+                              description=self.desc
+                              + "\n\
+                                 `[]` = Required\n\
+                                 `()` = Optional",
+                              colour=self.COLOUR)
         if cog.description:
             embed.description = cog.description
 
@@ -65,7 +68,12 @@ class CustomHelp(commands.MinimalHelpCommand):
         await self.get_destination().send(embed=embed)
 
     async def send_group_help(self, group):
-        embed = discord.Embed(title=group.qualified_name, colour=self.COLOUR)
+        embed = discord.Embed(title=group.qualified_name, 
+                              description=self.desc
+                              + "\n\
+                                 `[]` = Required\n\
+                                 `()` = Optional",
+                              colour=self.COLOUR)
         if group.help:
             embed.description = group.help
 
@@ -79,6 +87,10 @@ class CustomHelp(commands.MinimalHelpCommand):
     
     async def send_command_help(self, command):
         embed = discord.Embed(title=f"Help with {command.qualified_name} command",
+                              description=self.desc
+                              + "\n\
+                                 `[]` = Required\n\
+                                 `()` = Optional",
                               colour=self.COLOUR)
         if command.help:
             value = command.help
