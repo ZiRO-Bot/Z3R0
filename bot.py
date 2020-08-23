@@ -29,7 +29,7 @@ def check_jsons():
         with open('data/guild.json', 'w+') as f:
             json.dump({"0": {}}, f, indent=4)
 
-def get_prefix(bot, message):
+def get_prefix():
 	"""A callable Prefix for our bot. This could be edited to allow per server prefixes."""
 
 	prefixes = ['>', '$>', '.']
@@ -40,7 +40,7 @@ def get_prefix(bot, message):
 	#   return '?'
 
 	# If we are in a guild, we allow for the user to mention us or use any of the prefixes in our list.
-	return commands.when_mentioned_or(*prefixes)(bot, message)
+	return prefixes
 
 class ziBot(commands.Bot):
     def __init__(self, *args, **kwargs):
