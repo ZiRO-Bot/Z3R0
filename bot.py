@@ -48,21 +48,14 @@ class ziBot(commands.Bot):
 
         self.logger = logging.getLogger('discord')
         self.session = aiohttp.ClientSession()
-        
-        # check_jsons()
-
-        # with open('config.json', 'r') as f:
-        #     self.config = json.load(f)
-        #     config = self.config
+         
+        check_jsons()
 
         with open('custom_commands.json', 'r') as cc:
             self.custom_commands = json.load(cc)
 
         with open('data/guild.json', 'r') as ch:
             self.channels = json.load(ch)
-        
-        # Remove help command (for custom help command)
-        self.remove_command('help')
 
     async def on_ready(self): 
         activity=discord.Activity(name="over your shoulder",type=discord.ActivityType.watching)
