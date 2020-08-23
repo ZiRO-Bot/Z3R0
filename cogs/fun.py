@@ -70,9 +70,12 @@ class Fun(commands.Cog):
     @commands.command()
     async def meme(self, ctx):
         """Get memes from subreddit r/memes."""
-        meme_channel = self.bot.get_channel(746177519786393741)
-        # --- Testing Server
-        # meme_channel = self.bot.get_channel(746200581152178307)
+        meme_channel = self.bot.get_channel(
+                                            int(self.bot.channels[
+                                                str(ctx.message.guild.id)][
+                                                    "meme_ch"]
+                                               )
+                                           )
         meme_subreddits = ['memes', 
                            'PewdiepieSubmissions', 
                            'funny']

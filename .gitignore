@@ -2,7 +2,6 @@
 __pycache__/
 downloads/
 zibot.egg-info/
-data/
 api_keys.json
 config.json
 blacklist.json
@@ -13,4 +12,3 @@ main.py
 .env
 pyproject.toml
 poetry.lock
-anime.json

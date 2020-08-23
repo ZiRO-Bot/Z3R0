@@ -22,13 +22,12 @@ extensions = [
     "cogs.anilist", "cogs.fun"
 ]
 
-# def check_jsons():
-#     try:
-#         f = open('config.json', 'r')
-#     except FileNotFoundError:
-#         token = input('Enter your bot\'s token: ')
-#         with open('config.json', 'w+') as f:
-#             json.dump({"token": token}, f, indent=4)
+def check_jsons():
+    try:
+        f = open('data/guild.json', 'r')
+    except FileNotFoundError:
+        with open('data/guild.json', 'w+') as f:
+            json.dump({"0": {}}, f, indent=4)
 
 def get_prefix(bot, message):
 	"""A callable Prefix for our bot. This could be edited to allow per server prefixes."""
@@ -58,6 +57,9 @@ class ziBot(commands.Bot):
 
         with open('custom_commands.json', 'r') as cc:
             self.custom_commands = json.load(cc)
+
+        with open('data/guild.json', 'r') as ch:
+            self.channels = json.load(ch)
         
         # Remove help command (for custom help command)
         self.remove_command('help')

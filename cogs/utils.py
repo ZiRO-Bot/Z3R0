@@ -59,7 +59,12 @@ class Utils(commands.Cog):
     async def on_message_delete(self, message):
         if message.author == self.bot.user:
             return
-        purgatory_ch = self.bot.get_channel(741431840958578811)
+        purgatory_ch = self.bot.get_channel(
+                                            int(self.bot.channels[
+                                                str(message.guild.id)][
+                                                    "purge_ch"]
+                                               )
+                                            )
         embed = discord.Embed(title = "Deleted Message",
                 colour = discord.Colour.red())
         embed.add_field(name="User", value=f"{message.author.mention}")
@@ -76,7 +81,12 @@ class Utils(commands.Cog):
         if before.content == after.content:
             return
         message = before
-        purgatory_ch = self.bot.get_channel(741431840958578811)
+        purgatory_ch = self.bot.get_channel(
+                                            int(self.bot.channels[
+                                                str(message.guild.id)][
+                                                    "purge_ch"]
+                                               )
+                                            )
         embed = discord.Embed(title = "Edited Message",
                 colour = discord.Colour.red())
         embed.add_field(name="User", value=f"{message.author.mention}")

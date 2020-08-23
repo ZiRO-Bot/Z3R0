@@ -362,13 +362,13 @@ async def search_ani(self, ctx, anime):
 
 async def find_with_name(self, ctx, anime, _type_):
     if not _type_:
-        q = await query("query($name:String){Media(search:$name,type:ANIME){id," +
-            "title {romaji,english}, coverImage {large}, status, episodes, averageScore, seasonYear  } }",
+        q = await query("query($name:String){Media(search:$name,type:ANIME){id," 
+            + "title {romaji,english}, coverImage {large}, status, episodes, averageScore, seasonYear  } }",
             {'name': anime})
     else: 
         _type_ = str(_type_.upper())
-        q = await query("query($name:String,$atype:MediaFormat){Media(search:$name,type:ANIME,format:$atype){id," +
-            "title {romaji,english}, coverImage {large}, status, episodes, averageScore, seasonYear  } }",
+        q = await query("query($name:String,$atype:MediaFormat){Media(search:$name,type:ANIME,format:$atype){id," 
+            + "title {romaji,english}, coverImage {large}, status, episodes, averageScore, seasonYear  } }",
             {'name': anime,'atype': _type_})
     try:
         return q['data']
@@ -402,7 +402,8 @@ class AniList(commands.Cog):
     @tasks.loop(hours=24)
     async def handle_schedule(self):
         self.logger.warning("Checking for new releases...")
-        await getschedule(self, int(time.time() + (24 * 60 * 60 * 1000 * 1) / 1000 ), 1)
+        await getschedule(self, int(time.time() 
+                                + (24 * 60 * 60 * 1000 * 1) / 1000 ), 1)
 
     @commands.command()
     async def animeinfo(self, ctx, anime, _format: str=None):
