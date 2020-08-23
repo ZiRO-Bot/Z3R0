@@ -1,9 +1,10 @@
-from discord.ext import commands
-import discord
 import asyncio
 import json
-import git
 import os
+
+import discord
+import git
+from discord.ext import commands
 
 
 class Admin(commands.Cog):
@@ -208,8 +209,8 @@ class Admin(commands.Cog):
 				continue
 			try:
 				await member.send(
-				f"You have been banned from {ctx.guild.name} for {ban_minutes} minutes because: ```{reason}```"
-			)
+					f"You have been banned from {ctx.guild.name} for {ban_minutes} minutes because: ```{reason}```"
+				)
 			except discord.Forbidden:
 				pass
 			await ctx.guild.ban(member, reason=reason, delete_message_days=0)
@@ -231,7 +232,7 @@ class Admin(commands.Cog):
 		await ctx.send(file=file)
 
 	@commands.command(hidden=True)
-	@commands.check(is_mod)
+	@commands.check(is_botmaster)
 	async def blacklist(self,
 						ctx,
 						members: commands.Greedy[discord.Member] = None):
@@ -277,9 +278,22 @@ class Admin(commands.Cog):
 
 	@commands.command()
 	@commands.check(is_mod)
-	async def printvar(self, ctx, key):
-		"""Print a config variable, use for testing"""
-		await ctx.send(self.bot.config[str(ctx.message.guild.id)][key])
+	async def printvar(self, ctx, key=None):
+		"""Print config variables, use for testing"""
+		if key == None:
+			for key, value in self.bot.config[str(
+					ctx.message.guild.id)].items():
+				await ctx.send(f'Key: {key} | Value: {value}')
+		else:
+			await ctx.send(self.bot.config[str(ctx.message.guild.id)][key])
+
+	@commands.command(aliases=['rmvar'])
+	@commands.check(is_botmaster)
+	async def delvar(self, ctx, key):
+		"""Deletes a config variable, be careful"""
+		with open('config.json', 'w') as f:
+			await ctx.send(f"Removed {self.bot.config[str(ctx.message.guild.id)].pop(key)}")
+			json.dump(self.bot.config, f, indent=4)
 
 	@commands.command()
 	@commands.check(is_mod)
@@ -312,12 +326,12 @@ class Admin(commands.Cog):
 		for player in self.bot.runs_blacklist["players"]:
 			message += f'{player}, '
 		await ctx.send(f'{message[:-2]}```')
-        
+
 	@commands.command()
 	@commands.check(is_botmaster)
 	async def give_role(self, ctx, role_id):
-		 the_role = ctx.guild.get_role(int(role_id))
-		 await ctx.author.add_roles(the_role)
+		the_role = ctx.guild.get_role(int(role_id))
+		await ctx.author.add_roles(the_role)
 
 
 def setup(bot):

@@ -1,11 +1,15 @@
-from discord.ext import commands
-import discord
 import datetime
-import requests
+import inspect
 import json
-import dateutil.parser
+import os
+import sys
 from random import randint
-import os, sys, inspect
+
+import dateutil.parser
+import discord
+import requests
+from discord.ext import commands
+
 current_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 parent_dir = os.path.dirname(current_dir)
 sys.path.insert(0, parent_dir) 
@@ -500,7 +504,7 @@ class General(commands.Cog):
 		embed.set_image(url=guild.splash_url_as(format="png"))
 		embed.add_field(name="Created on", value=guild.created_at.date(), inline=True)
 		embed.add_field(name="Members", value=guild.member_count, inline=True)
-		embed.add_field(name="Emojis", value=emojiList, inline=True)
+		#embed.add_field(name="Emojis", value=emojiList, inline=True)
 		embed.add_field(name="Owner", value=guild.owner.mention, inline=True)
 		embed.add_field(name="Members who haven't spoken in 7 days:", value=inactiveMembers, inline=True)
 		embed.set_footer(text=f"ID: {guild.id}")
