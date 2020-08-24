@@ -152,7 +152,8 @@ async def pendingRuns(self, ctx):
 
 	for run in pending_runs:
 		# Reject run if video is blacklisted
-		if run.video in self.bot.runs_blacklist["videos"]:
+		if run.video.split('/')[-1].split(
+				'=')[-1] in self.bot.runs_blacklist["videos"]:
 			runs_to_reject.append(
 				[run, 'Detected as spam by our automatic filter.'])
 
@@ -206,7 +207,7 @@ async def pendingRuns(self, ctx):
 	embed_stats = discord.Embed(
 		title='Pending Run Stats',
 		description=
-		f"Full Game Runs: {mcbe_runs}\nIndividual Level Runs: {mcbeil_runs}\nCategory Extension Runs: {mcbece_runs}",
+		f"Full Game Runs: {mcbe_runs}\nIndividual Level Runs: {mcbeil_runs}\nCategory Extension Runs: {mcbece_runs}\nTotal runs: {mcbe_runs+mcbeil_runs+mcbece_runs}",
 		color=0x000000)
 	await self.bot.get_channel(
 		int(self.bot.config[str(ctx.message.guild.id)]["pending_channel"])

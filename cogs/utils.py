@@ -222,9 +222,6 @@ class Utils(commands.Cog):
 	async def on_message(self, message):
 		if not message.guild:
 			return
-		if message.channel.id != int(self.bot.config[str(
-				message.guild.id)]["fair_channel"]):
-			return
 		if message.author.bot:
 			return
 		badWords = ["fair", "ⓕⓐⓘⓡ"]
@@ -307,6 +304,11 @@ class Utils(commands.Cog):
 				'Oceanlight',
 				self.bot.get_user(615658069132836865),
 				datetime.date(2020, 4, 9)
+			],
+			[
+				'Shadowfi',
+				self.bot.get_user(586664256217415681),
+				datetime.date(2020, 11, 14)
 			]
 		]
 
