@@ -84,18 +84,40 @@ class General(commands.Cog):
         git_link = "https://github.com/null2264/ziBot"
         await ctx.send(f"ziBot's source code: \n {git_link}")
 
-    @commands.command()
+    @commands.command(aliases=['si'])
     async def serverinfo(self, ctx):
         """Show server information."""
         embed = discord.Embed(
-                title=f"{ctx.guild.name} Information",
-                colour=discord.Colour.orange()
+                title=f"About {ctx.guild.name}",
+                colour=discord.Colour(0xFFFFF0)
                 )
-        # embed.set_author(name=f"{ctx.guild.name} Information")
+        roles = [x.mention for x in ctx.guild.roles]
+        ignored_role = ["<@&645074407244562444>", "<@&745481731133669476>"]
+        for i in ignored_role:
+            try:
+                roles.remove(i)
+            except ValueError:
+                print("Role not found, skipped")
+        width = 2
+        
+        boosters = [x.mention for x in ctx.guild.premium_subscribers]
+
+        embed.add_field(name="Owner",value=f"{ctx.guild.owner.mention}",inline=False)
         embed.add_field(name="Created on",value=f"{ctx.guild.created_at.date()}")
+        embed.add_field(name="Region",value=f"``{ctx.guild.region}``")
         embed.set_thumbnail(url=ctx.guild.icon_url)
+        embed.add_field(name="Verification Level",
+                        value=f"{ctx.guild.verification_level}".title())
         embed.add_field(name="Members",value=f"{ctx.guild.member_count}")
-        embed.add_field(name="Owner",value=f"{ctx.guild.owner.mention}")
+        embed.add_field(name=f"Boosters ({len(boosters)})",
+                        value=",\n".join(", ".join(boosters[i:i+width]) 
+                                    for i in range(0, len(boosters), width)) 
+                                    if boosters 
+                                    else 'No booster.')
+        embed.add_field(name=f"Roles ({len(roles)})",
+                        value=",\n".join(", ".join(roles[i:i+width]) 
+                                    for i in range(0, len(roles), width)))
+        embed.set_footer(text=f"ID: {ctx.guild.id}")
         await ctx.send(embed=embed)
 
 def setup(bot):
