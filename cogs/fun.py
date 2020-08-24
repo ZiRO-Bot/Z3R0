@@ -130,7 +130,7 @@ class Fun(commands.Cog):
         bot_choice = rps[randint(0, len(rps)-1)]
 
         await ctx.send(f"You chose ***{choice.capitalize()}***,"
-                        + f" I chose ***{bot_choice.capitalize()}***")
+                        + f" I chose ***{bot_choice.capitalize()}***.")
         if bot_choice == choice:
             await ctx.send("It's a Tie!")
         elif bot_choice == rps[0]:
