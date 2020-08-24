@@ -56,7 +56,7 @@ class Fun(commands.Cog):
     async def roll(self, ctx, arg1: Optional[str] = 1, arg2: Optional[int] = None):
         """Roll the dice.\n\
            **Example**\n\
-           ``>roll 2``\n``>roll d12 2``"""
+           ``>roll 2``\n``>roll d12 4``"""
         dice = []
         if arg1.startswith('d'):
             dice_size = int(arg1.split('d')[1])
@@ -122,6 +122,43 @@ class Fun(commands.Cog):
                 await meme_channel.send(submission.url)
                 return
             await meme_channel.send(embed=embed)
+
+    @commands.command(usage="(choice)")
+    async def rps(self, ctx, choice):
+        """Rock Paper Scissors with the bot."""
+        rps = ["rock", "paper", "scissors"]
+        bot_choice = rps[randint(0, len(rps)-1)]
+
+        await ctx.send(f"You chose ***{choice.capitalize()}***,"
+                        + f" I chose ***{bot_choice.capitalize()}***")
+        if bot_choice == choice:
+            await ctx.send("It's a Tie!")
+        elif bot_choice == rps[0]:
+            def f(x):
+                return {
+                        'paper': 'Paper wins!',
+                        'scissors': 'Rock wins!'
+                       }.get(x, 'Rock wins!')
+            result = f(choice)
+        elif bot_choice == rps[1]:
+            def f(x):
+                return {
+                        'rock': 'Paper wins!',
+                        'scissors': 'Scissors wins!'
+                       }.get(x, 'Paper wins!')
+            result = f(choice)
+        elif bot_choice == rps[2]:
+            def f(x):
+                return {
+                        'paper': 'Scissors wins!',
+                        'rock': 'Rock wins!'
+                       }.get(x, 'Scissors wins!')
+            result = f(choice)
+        else:
+            return
+        if choice == "noob":
+            result = ("Noob wins!")
+        await ctx.send(result)
 
 def setup(bot):
     bot.add_cog(Fun(bot))
