@@ -186,10 +186,13 @@ class MCBE(commands.Cog):
             await self.bot.get_channel(741199490391736340).purge(limit=500)
             await pendingrun(self, ctx)
     
-    @commands.command(aliases=["worldrecords"], usage="[category] [seed type]")
+    @commands.command(aliases=["worldrecords"],
+                      usage="[category] [seed type]",
+                      brief="Get MCBE world records")
     async def wrs(self, ctx, category: str="any", seed_type: str="Set Seed"):
-        """Get MCBE world record runs from speedun.com.
-        `e.g. >wrs "Any% Glitchless" "Set Seed"`"""
+        """Get MCBE world record runs from speedun.com.\n\
+           **Example**\n\
+           `>wrs "Any% Glitchless" "Set Seed"`"""
         async with ctx.typing():
             await worldrecord(self, ctx, category, seed_type)
 

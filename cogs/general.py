@@ -11,9 +11,12 @@ class General(commands.Cog):
         self.bot = bot
         self.logger = logging.getLogger('discord')
 
-    @commands.command(usage="[language] [code]")
+    @commands.command(usage="(language) (code)",
+                      brief="Compile code")
     async def compile(self, ctx, language=None, *, code=None):
-        """Compile code from a variety of programming languages, powered by <https://wandbox.org/>"""
+        """Compile code from a variety of programming languages, powered by <https://wandbox.org/>\n\
+           **Example**
+           ``>compile python print('Hello World')``"""
         
         compilers = {
                 "bash": "bash",

@@ -7,6 +7,7 @@ import re
 
 from discord.ext import commands
 from random import randint
+from typing import Optional
 from dotenv import load_dotenv
 
 try:
@@ -49,13 +50,24 @@ class Fun(commands.Cog):
             await asyncio.sleep(round(error.retry_after))
             await bot_msg.delete()
 
-    @commands.command(usage="[number of dice]")
+    @commands.command(usage="[dice size] [number of dice]",
+                      brief="Roll the dice.")
     @commands.cooldown(1, 5)
-    async def roll(self, ctx, number: int=1):
-        """Roll the dice."""
+    async def roll(self, ctx, arg1: Optional[str] = 1, arg2: Optional[int] = None):
+        """Roll the dice.\n\
+           **Example**\n\
+           ``>roll 2``\n``>roll d12 2``"""
         dice = []
-        for i in range(number):
-            dice.append(int(randint(1,6)))
+        if arg1.startswith('d'):
+            dice_size = int(arg1.split('d')[1])
+            dice_number = arg2
+            if not dice_number:
+                dice_number = 1
+        else:
+            dice_size = 6
+            dice_number = int(arg1)
+        for i in range(dice_number):
+            dice.append(int(randint(1,dice_size)))
         dice = ", ".join(str(i) for i in dice)
         await ctx.send(f"{ctx.message.author.mention} just rolled {dice}!")
 

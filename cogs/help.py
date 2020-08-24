@@ -64,7 +64,11 @@ class CustomHelp(commands.MinimalHelpCommand):
 
         filtered = await self.filter_commands(cog.get_commands(), sort=True)
         for command in filtered:
-            embed.add_field(name=self.get_command_signature(command), value=command.short_doc or '...', inline=False)
+            if command.brief:
+                value = command.brief
+            else:
+                value = command.short_doc
+            embed.add_field(name=self.get_command_signature(command), value=value or '...', inline=False)
 
         embed.set_footer(text=self.get_ending_note())
         await self.get_destination().send(embed=embed)
@@ -82,7 +86,11 @@ class CustomHelp(commands.MinimalHelpCommand):
         if isinstance(group, commands.Group):
             filtered = await self.filter_commands(group.commands, sort=True)
             for command in filtered:
-                embed.add_field(name=self.get_command_signature(command), value=command.short_doc or '...', inline=False)
+                if command.brief:
+                    value = command.brief
+                else:
+                    value = command.short_doc
+                embed.add_field(name=self.get_command_signature(command), value=value or '...', inline=False)
 
         embed.set_footer(text=self.get_ending_note())
         await self.get_destination().send(embed=embed)
