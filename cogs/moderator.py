@@ -62,7 +62,8 @@ class Admin(commands.Cog):
             reloaded = "\n".join(reloaded)
             embed = discord.Embed(
                                   title="Reloading all cogs...",
-                                  description=f"{reloaded}"
+                                  description=f"{reloaded}",
+                                  colour=discord.Colour(0x2F3136)
                                  )
             embed.set_footer(text=f"{len(exts)} cogs has been reloaded" 
                                    + f", with {error} errors")
