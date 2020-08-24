@@ -123,9 +123,13 @@ class Fun(commands.Cog):
                 return
             await meme_channel.send(embed=embed)
 
-    @commands.command(usage="(choice)")
+    @commands.command(usage="(choice)",
+                      brief="Rock Paper Scissors with the bot.")
+    @commands.cooldown(1, 5)
     async def rps(self, ctx, choice):
-        """Rock Paper Scissors with the bot."""
+        """Rock Paper Scissors with the bot.\n\
+           **Example**
+           ``>rps rock``"""
         rps = ["rock", "paper", "scissors"]
         bot_choice = rps[randint(0, len(rps)-1)]
 
