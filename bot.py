@@ -16,18 +16,23 @@ except:
 shard = os.getenv('SHARD') or 0
 shard_count = os.getenv('SHARD_COUNT') or 1
 
-extensions = [
-	"cogs.welcome", "cogs.help", "cogs.moderator", 
-    "cogs.general", "cogs.utils", "cogs.mcbe",
-    "cogs.anilist", "cogs.fun"
-]
-
 def check_jsons():
     try:
         f = open('data/guild.json', 'r')
     except FileNotFoundError:
         with open('data/guild.json', 'w+') as f:
             json.dump({"0": {}}, f, indent=4)
+
+def get_cogs():
+    """callable extensions"""
+    extensions = [
+	              "cogs.welcome", "cogs.help", "cogs.moderator",
+                  "cogs.general", "cogs.utils", "cogs.mcbe",
+                  "cogs.anilist", "cogs.fun"
+                 ]
+    return extensions
+
+extensions = get_cogs() 
 
 def get_prefix():
 	"""A callable Prefix for our bot. This could be edited to allow per server prefixes."""

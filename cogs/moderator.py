@@ -5,6 +5,7 @@ import git
 import logging
 import os
 
+from bot import get_cogs
 from discord.errors import Forbidden
 from discord.ext import commands
 
@@ -40,6 +41,33 @@ class Admin(commands.Cog):
     @commands.has_any_role("Moderator","Zi")
     async def reload(self, ctx, ext: str=None):
         """Reload an extension."""
+        if not ext:
+            exts = get_cogs()
+            reloaded = []
+            error = 0
+            for ext in exts:
+                try:
+                    self.bot.reload_extension(f'{ext}')
+                    reloaded.append(f'<:check_mark:747274119426605116>| {ext}')
+                except commands.ExtensionNotFound:
+                    reloaded.append(f'<:check_mark:747271588474388522>| {ext}')
+                    error += 1
+                except commands.ExtensionNotLoaded:
+                    reloaded.append(f'<:cross_mark:747274119275479042>| {ext}')
+                    error += 1
+                except commands.ExtensionFailed:
+                    self.bot.logger.exception(f'Failed to reload extension {ext}:')
+                    reloaded.append(f'<:cross_mark:747274119275479042>| {ext}')
+                    error += 1
+            reloaded = "\n".join(reloaded)
+            embed = discord.Embed(
+                                  title="Reloading all cogs...",
+                                  description=f"{reloaded}"
+                                 )
+            embed.set_footer(text=f"{len(exts)} cogs has been reloaded" 
+                                   + f", with {error} errors")
+            await ctx.send(embed=embed)
+            return
         await ctx.send(f"Reloading {ext}...")
         try:
             self.bot.reload_extension(f'cogs.{ext}')
