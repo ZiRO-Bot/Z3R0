@@ -3,6 +3,7 @@ import discord
 import json
 import logging
 import os
+import time
 
 from discord.ext import commands
 from dotenv import load_dotenv
@@ -34,6 +35,8 @@ def get_cogs():
 
 extensions = get_cogs() 
 
+start_time = time.time()
+
 def get_prefix():
 	"""A callable Prefix for our bot. This could be edited to allow per server prefixes."""
 
@@ -53,7 +56,7 @@ class ziBot(commands.Bot):
 
         self.logger = logging.getLogger('discord')
         self.session = aiohttp.ClientSession()
-         
+
         check_jsons()
 
         with open('custom_commands.json', 'r') as cc:

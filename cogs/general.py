@@ -128,6 +128,19 @@ class General(commands.Cog):
         embed.set_footer(text=f"ID: {ctx.guild.id}")
         await ctx.send(embed=embed)
 
+    @commands.command()
+    async def info(self, ctx):
+        embed = discord.Embed(
+                title="About ziBot",
+                description="ziBot is an open source bot, \n\
+                             a fork of mcbeDiscordBot",
+                colour=discord.Colour(0xFFFFF0)
+                )
+        embed.set_thumbnail(url=self.bot.user.avatar_url)
+        embed.add_field(name="Author", value="ZiRO2264#4572")
+        embed.add_field(name="Links", value="[Github](https://github.com/null2264/ziBot)")
+        await ctx.send(embed=embed)
+
 def setup(bot):
     bot.add_cog(General(bot))
 
