@@ -403,9 +403,13 @@ class AniList(commands.Cog):
         self.logger.warning("Checking for new releases on AniList...")
         await getschedule(self, int(time.time() 
                                 + (24 * 60 * 60 * 1000 * 1) / 1000 ), 1)
-
-    @commands.command(usage="[anime] (format)")
-    async def animeinfo(self, ctx, anime, _format: str=None):
+    
+    @commands.group(brief="Get information about anime from AniList")
+    async def anime(self, ctx):
+        """Get information about anime from AniList"""
+    
+    @anime.command(usage="(anime) [format]")
+    async def info(self, ctx, anime, _format: str=None):
         """Get information about an anime."""
         if not anime:
             await ctx.send("Please specify the anime!")
@@ -413,17 +417,17 @@ class AniList(commands.Cog):
             await send_info(self, ctx, anime, _format)
         return
     
-    @commands.command(aliases=['animefind'], usage="(anime) [format]")
-    async def animesearch(self, ctx, anime, _format: str=None):
+    @anime.command(aliases=['find'], usage="(anime) [format]")
+    async def search(self, ctx, anime, _format: str=None):
         """Find an anime."""
         if not anime:
             await ctx.send("Please specify the anime!")
         async with ctx.typing():
             await search_ani(self, ctx, anime)
         return
-
-    @commands.command(aliases=['watch'], usage="(anime) [format]")
-    async def animewatch(self, ctx, anime, _format: str=None):
+    
+    @anime.command(usage="(anime) [format]")
+    async def watch(self, ctx, anime, _format: str=None):
         """Add anime to watchlist."""
         if not anime:
             return
@@ -454,9 +458,9 @@ class AniList(commands.Cog):
         embed.set_thumbnail(url=q['Media']['coverImage']['large'])
         await ctx.send(embed=embed)
         return
-
-    @commands.command(aliases=['unwatch'], usage="(anime) [format]")
-    async def animeunwatch(self, ctx, anime, _format: str=None):
+    
+    @anime.command(usage="(anime) [format]")
+    async def unwatch(self, ctx, anime, _format: str=None):
         """Remove anime to watchlist."""
         if not anime:
             return
@@ -488,9 +492,9 @@ class AniList(commands.Cog):
         embed.set_thumbnail(url=q['Media']['coverImage']['large'])
         await ctx.send(embed=embed)
         return
-
-    @commands.command(aliases=['animelist','watchlist'])
-    async def animewatchlist(self, ctx):
+    
+    @anime.command(aliases=['wl', 'list'])
+    async def watchlist(self, ctx):
         """Get list of anime that added to watchlist."""
         await getwatchlist(self, ctx)
         return

@@ -81,7 +81,9 @@ class CustomHelp(commands.MinimalHelpCommand):
                                  `[]` = Optional",
                               colour=self.COLOUR)
         if group.help:
-            embed.description = group.help
+            embed.description = group.help + "\n\
+                                 `()` = Required\n\
+                                 `[]` = Optional"
 
         if isinstance(group, commands.Group):
             filtered = await self.filter_commands(group.commands, sort=True)
