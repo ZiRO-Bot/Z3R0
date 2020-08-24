@@ -13,7 +13,7 @@ class Welcome(commands.Cog, name="Welcome"):
     @commands.Cog.listener()
     async def on_member_join(self, member):
         welcome_msg=[f"It's a Bird, It's a Plane, It's {member.mention}!",
-                f"Welcome {member.mention}! <:PogChamp:740102448047194152>",
+                f"Welcome {member.mention}! <:PogChamp:747027389485154354>",
                 f"Good to see you, {member.mention}.",
                 f"A wild {member.mention} appeared!"]
         
