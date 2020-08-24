@@ -109,14 +109,22 @@ class General(commands.Cog):
         embed.add_field(name="Verification Level",
                         value=f"{ctx.guild.verification_level}".title())
         embed.add_field(name="Members",value=f"{ctx.guild.member_count}")
-        embed.add_field(name=f"Boosters ({len(boosters)})",
-                        value=",\n".join(", ".join(boosters[i:i+width]) 
+        if len(boosters) < 5:
+            embed.add_field(name=f"Boosters ({len(boosters)})",
+                            value=",\n".join(", ".join(boosters[i:i+width]) 
                                     for i in range(0, len(boosters), width)) 
                                     if boosters 
                                     else 'No booster.')
-        embed.add_field(name=f"Roles ({len(roles)})",
-                        value=",\n".join(", ".join(roles[i:i+width]) 
+        else:
+            embed.add_field(name=f"Boosters ({len(boosters)})",
+                            value=len(boosters))
+        if len(roles) < 10:
+            embed.add_field(name=f"Roles ({len(roles)})",
+                            value=",\n".join(", ".join(roles[i:i+width]) 
                                     for i in range(0, len(roles), width)))
+        else:
+            embed.add_field(name=f"Roles",
+                            value=len(roles))
         embed.set_footer(text=f"ID: {ctx.guild.id}")
         await ctx.send(embed=embed)
 
