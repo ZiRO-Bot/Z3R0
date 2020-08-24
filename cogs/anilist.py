@@ -413,7 +413,7 @@ class AniList(commands.Cog):
             await send_info(self, ctx, anime, _format)
         return
     
-    @commands.command(aliases=['animefind'], usage="[anime] (format)")
+    @commands.command(aliases=['animefind'], usage="(anime) [format]")
     async def animesearch(self, ctx, anime, _format: str=None):
         """Find an anime."""
         if not anime:
@@ -422,7 +422,7 @@ class AniList(commands.Cog):
             await search_ani(self, ctx, anime)
         return
 
-    @commands.command(aliases=['watch'], usage="[anime] (format)")
+    @commands.command(aliases=['watch'], usage="(anime) [format]")
     async def animewatch(self, ctx, anime, _format: str=None):
         """Add anime to watchlist."""
         if not anime:
@@ -455,7 +455,7 @@ class AniList(commands.Cog):
         await ctx.send(embed=embed)
         return
 
-    @commands.command(aliases=['unwatch'], usage="[anime] (format)")
+    @commands.command(aliases=['unwatch'], usage="(anime) [format]")
     async def animeunwatch(self, ctx, anime, _format: str=None):
         """Remove anime to watchlist."""
         if not anime:

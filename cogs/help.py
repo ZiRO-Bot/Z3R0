@@ -8,21 +8,8 @@ from bot import get_prefix
 from discord.ext import commands
 from typing import Optional
 
-def syntax(command):
-    if not command.usage:
-        params = []
-        for key, value in command.params.items():
-            if key not in ("self", "ctx"):
-                params.append(f"[{key}]" if "NoneType" in str(value) else f"<{key}>")
-
-        params = " ".join(params)
-        if not params:
-            return f"{command}"
-        return f"{command} {params}"
-    return f"{command} {command.usage}"
-
 class CustomHelp(commands.MinimalHelpCommand):
-
+    usage = "(command)"
     COLOUR = discord.Colour.blue()
     prefixes = get_prefix()
     prefixes = ", ".join(f"`{p}`" for p in prefixes)
@@ -69,8 +56,8 @@ class CustomHelp(commands.MinimalHelpCommand):
         embed = discord.Embed(title=f'{cog.qualified_name} Commands',
                               description=self.desc
                               + "\n\
-                                 `[]` = Required\n\
-                                 `()` = Optional",
+                                 `()` = Required\n\
+                                 `[]` = Optional",
                               colour=self.COLOUR)
         if cog.description:
             embed.description = cog.description
@@ -86,8 +73,8 @@ class CustomHelp(commands.MinimalHelpCommand):
         embed = discord.Embed(title=group.qualified_name, 
                               description=self.desc
                               + "\n\
-                                 `[]` = Required\n\
-                                 `()` = Optional",
+                                 `()` = Required\n\
+                                 `[]` = Optional",
                               colour=self.COLOUR)
         if group.help:
             embed.description = group.help
@@ -104,8 +91,8 @@ class CustomHelp(commands.MinimalHelpCommand):
         embed = discord.Embed(title=f"Help with {command.qualified_name} command",
                               description=self.desc
                               + "\n\
-                                 `[]` = Required\n\
-                                 `()` = Optional",
+                                 `()` = Required\n\
+                                 `[]` = Optional",
                               colour=self.COLOUR)
         if command.help:
             value = command.help

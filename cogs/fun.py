@@ -49,7 +49,7 @@ class Fun(commands.Cog):
             await asyncio.sleep(round(error.retry_after))
             await bot_msg.delete()
 
-    @commands.command(usage="(number of dice)")
+    @commands.command(usage="[number of dice]")
     @commands.cooldown(1, 5)
     async def roll(self, ctx, number: int=1):
         """Roll the dice."""
