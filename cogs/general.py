@@ -3,8 +3,10 @@ import datetime
 import discord
 import json
 import logging
+import re
 
 from discord.ext import commands
+from pytz import timezone
 
 class General(commands.Cog):
     def __init__(self, bot):
@@ -83,6 +85,63 @@ class General(commands.Cog):
         """Show link to ziBot's source code."""
         git_link = "https://github.com/null2264/ziBot"
         await ctx.send(f"ziBot's source code: \n {git_link}")
+
+    @commands.command(aliases=['ui'], usage="[member]")
+    async def userinfo(self, ctx, *, user: discord.Member=None):
+        if not user:
+            user = ctx.message.author
+        def stat(x):
+            return {
+                'offline': '<:status_offline:747799247243575469>',
+                'idle': '<:status_idle:747799258316668948>',
+                'dnd': '<:status_dnd:747799292592259204>',
+                'online': '<:status_online:747799234828435587>',
+                'streaming': '<:status_streaming:747799228054765599>'
+                }.get(str(x), "None")
+        def badge(x):
+            return {
+                "UserFlags.hypesquad_balance" : "<:balance:747802468586356736>",
+                "UserFlags.hypesquad_brilliance" : "<:brilliance:747802490241810443>",
+                "UserFlags.hypesquad_bravery" : "<:bravery:747802479533490238>",
+                "UserFlags.bug_hunter" : "<:bughunter:747802510663745628>",
+                "UserFlags.booster" : "<:booster:747802502677659668>",
+                "UserFlags.hypesquad" : "<:hypesquad:747802519085776917>",
+                "UserFlags.partner" : "<:partner:747802528594526218>",
+                "UserFlags.owner" : "<:owner:747802537402564758>",
+                "UserFlags.staff" : "<:stafftools:747802548391379064>",
+                "UserFlags.early_supporter" : "<:earlysupport:747802555689730150>",
+                "UserFlags.verified" : "<:verified:747802457798869084>",
+                "UserFlags.verified_bot" : "<:verified:747802457798869084>"
+                }.get(x, "🚫")
+        badges = []
+        for x in list(user.public_flags.all()):
+            x = str(x)
+            print(x)
+            badges.append(badge(x))
+        roles = [x.mention for x in user.roles]
+        ignored_role = ["<@&645074407244562444>", "<@&745481731133669476>"]
+        for i in ignored_role:
+            try:
+                roles.remove(i)
+            except ValueError:
+                print("Role not found, skipped")
+        jakarta = timezone('Asia/Jakarta')
+
+        embed = discord.Embed(description=f"{stat(user.status)}({user.status})", 
+                              colour=user.colour,
+                              timestamp=ctx.message.created_at)
+        embed.set_author(name=f"{user.name}#{user.discriminator}", icon_url=user.avatar_url)
+        embed.set_thumbnail(url=user.avatar_url)
+        embed.add_field(name="Guild name", value=user.display_name)
+        embed.add_field(name="Badges",value=" ".join(badges) if badges else "No badge.")
+        embed.add_field(name="Created on", value=user.created_at.replace(
+            tzinfo=timezone('UTC')).astimezone(jakarta).strftime("%a, %#d %B %Y, %H:%M WIB"), inline=False)
+        embed.add_field(name="Joined on", value=user.joined_at.replace(
+            tzinfo=timezone('UTC')).astimezone(jakarta).strftime("%a, %#d %B %Y, %H:%M WIB"), inline=False)
+        embed.add_field(name=f"Roles ({len(roles)})",
+                        value=", ".join(roles))
+        embed.set_footer(text=f"ID: {user.id}")
+        await ctx.send(embed=embed)
 
     @commands.command(aliases=['si'])
     async def serverinfo(self, ctx):
