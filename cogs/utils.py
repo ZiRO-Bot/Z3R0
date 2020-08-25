@@ -1,5 +1,6 @@
 import asyncio
 import bot
+import datetime
 import discord
 import logging
 import time
@@ -125,7 +126,18 @@ class Utils(commands.Cog):
         if lang in abbv:
             lang=abbv[lang]
         translation = await translator.translate(" ".join(txt), dest=lang)
-        await ctx.send(translation.text)
+        # remove spaces from <@![ID]>
+        translated = str(translation.text).replace("<@! ", "<@!")
+        translated = str(translated).replace("<@ ", "<@")
+        translated = str(translated).replace("<# ", "<#")
+        embed = discord.Embed(timestamp=ctx.message.created_at)
+        embed.set_author(name="Google Translate",
+                         icon_url="https://translate.google.com/favicon.ico")
+        embed.add_field(name=f"Source [{translation.src}]", 
+                        value=translation.origin, inline=False)
+        embed.add_field(name=f"Translated [{translation.dest}]", 
+                        value=translated, inline=False)
+        await ctx.send(embed=embed)
 
     @commands.command(aliases=['up'])
     async def uptime(self, ctx):
