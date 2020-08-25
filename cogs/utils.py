@@ -114,7 +114,7 @@ class Utils(commands.Cog):
         """Tell the ping of the bot to the discord servers."""
         await ctx.send(f'Pong! {round(self.bot.latency*1000)}ms')
     
-    @commands.group(aliases=['trans'], brief="Translate a text.", usage="(language) (text)")
+    @commands.command(aliases=['trans'], brief="Translate a text.", usage="(language) (text)")
     async def translate(self, ctx, lang, *txt):
         """Translate a text.\n\
            **Example**
