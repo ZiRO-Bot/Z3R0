@@ -4,8 +4,11 @@ import discord
 import logging
 import time
 
+from aiogoogletrans import Translator
 from discord.ext import commands
 from utilities.formatting import realtime
+
+translator = Translator()
 
 class Utils(commands.Cog):
     def __init__(self, bot):
@@ -111,6 +114,19 @@ class Utils(commands.Cog):
         """Tell the ping of the bot to the discord servers."""
         await ctx.send(f'Pong! {round(self.bot.latency*1000)}ms')
     
+    @commands.group(aliases=['trans'], brief="Translate a text.", usage="(language) (text)")
+    async def translate(self, ctx, lang, *txt):
+        """Translate a text.\n\
+           **Example**
+           ``>translate ja Hello World``"""
+        if not txt:
+            await ctx.send('You need to specify the text you want to translate!')
+        abbv = {"jp": "ja"} 
+        if lang in abbv:
+            lang=abbv[lang]
+        translation = await translator.translate(" ".join(txt), dest=lang)
+        await ctx.send(translation.text)
+
     @commands.command(aliases=['up'])
     async def uptime(self, ctx):
         """Tell the ping of the bot to the discord servers."""
