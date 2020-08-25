@@ -98,7 +98,7 @@ class General(commands.Cog):
                 roles.remove(i)
             except ValueError:
                 print("Role not found, skipped")
-        width = 2
+        width = 3
         
         boosters = [x.mention for x in ctx.guild.premium_subscribers]
 
@@ -108,6 +108,12 @@ class General(commands.Cog):
         embed.set_thumbnail(url=ctx.guild.icon_url)
         embed.add_field(name="Verification Level",
                         value=f"{ctx.guild.verification_level}".title())
+        embed.add_field(name="Channels",value="<:categories:747750884577902653>"
+                                              + f" {len(ctx.guild.categories)}\n"
+                                              + "<:text_channel:747744994101690408>"
+                                              + f" {len(ctx.guild.text_channels)}\n"
+                                              + "<:voice_channel:747745006697185333>"
+                                              + f" {len(ctx.guild.voice_channels)}")
         embed.add_field(name="Members",value=f"{ctx.guild.member_count}")
         if len(boosters) < 5:
             embed.add_field(name=f"Boosters ({len(boosters)})",
@@ -118,13 +124,8 @@ class General(commands.Cog):
         else:
             embed.add_field(name=f"Boosters ({len(boosters)})",
                             value=len(boosters))
-        if len(roles) < 10:
-            embed.add_field(name=f"Roles ({len(roles)})",
-                            value=",\n".join(", ".join(roles[i:i+width]) 
-                                    for i in range(0, len(roles), width)))
-        else:
-            embed.add_field(name=f"Roles",
-                            value=len(roles))
+        embed.add_field(name=f"Roles ({len(roles)})",
+                        value=", ".join(roles))
         embed.set_footer(text=f"ID: {ctx.guild.id}")
         await ctx.send(embed=embed)
 

@@ -9,7 +9,6 @@ from discord.ext import commands
 from typing import Optional
 
 class CustomHelp(commands.MinimalHelpCommand):
-    usage = "(command)"
     COLOUR = discord.Colour.blue()
     prefixes = get_prefix()
     prefixes = ", ".join(f"`{p}`" for p in prefixes)
