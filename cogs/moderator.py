@@ -4,10 +4,12 @@ import discord
 import git
 import logging
 import os
+import time
 
 from bot import get_cogs
 from discord.errors import Forbidden
 from discord.ext import commands
+from utilities.formatting import realtime
 
 class Admin(commands.Cog):
     def __init__(self, bot):
@@ -42,6 +44,7 @@ class Admin(commands.Cog):
     async def reload(self, ctx, ext: str=None):
         """Reload an extension."""
         if not ext:
+            reload_start=time.time()
             exts = get_cogs()
             reloaded = []
             error = 0
@@ -66,7 +69,8 @@ class Admin(commands.Cog):
                                   colour=discord.Colour(0x2F3136)
                                  )
             embed.set_footer(text=f"{len(exts)} cogs has been reloaded" 
-                                   + f", with {error} errors")
+                                   + f", with {error} errors \n"
+                                   + f"in {realtime(time.time() - reload_start)}")
             await ctx.send(embed=embed)
             return
         await ctx.send(f"Reloading {ext}...")
