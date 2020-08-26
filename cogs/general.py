@@ -150,8 +150,9 @@ class General(commands.Cog):
         """Show server information."""
         embed = discord.Embed(
                 title=f"About {ctx.guild.name}",
-                colour=discord.Colour(0xFFFFF0)
-                )
+                colour=discord.Colour(0xFFFFF0),
+                timestamp=ctx.message.created_at)
+
         roles = [x.mention for x in ctx.guild.roles]
         ignored_role = ["<@&645074407244562444>", "<@&745481731133669476>"]
         for i in ignored_role:
@@ -194,8 +195,8 @@ class General(commands.Cog):
     async def botinfo(self, ctx):
         embed = discord.Embed(
                 title="About ziBot",
-                colour=discord.Colour(0xFFFFF0)
-                )
+                colour=discord.Colour(0xFFFFF0),
+                timestamp=ctx.message.created_at)
         embed.set_thumbnail(url=self.bot.user.avatar_url)
         embed.add_field(name="Author", value="ZiRO2264#4572")
         embed.add_field(name="Python", value=f"[{platform.python_version()}](https://www.python.org)")
