@@ -25,57 +25,13 @@ def hformat(text):
     text = text.replace("_"," ")
     return text.title()
 
-def barpercent(percentage):
-    if percentage >= 100:
-        bar = "—————————————————————————⬤"
-    elif percentage >= 96:
-        bar = "————————————————————————⬤—"
-    elif percentage >= 92:
-        bar = "———————————————————————⬤——"
-    elif percentage >= 88:
-        bar = "——————————————————————⬤———"
-    elif percentage >= 84:
-        bar = "—————————————————————⬤————"
-    elif percentage >= 80:
-        bar = "————————————————————⬤—————"
-    elif percentage >= 76:
-        bar = "———————————————————⬤——————"
-    elif percentage >= 72:
-        bar = "——————————————————⬤———————"
-    elif percentage >= 68:
-        bar = "—————————————————⬤————————"
-    elif percentage >= 64:
-        bar = "————————————————⬤—————————"
-    elif percentage >= 60:
-        bar = "———————————————⬤——————————"
-    elif percentage >= 56:
-        bar = "——————————————⬤———————————"
-    elif percentage >= 52:
-        bar = "—————————————⬤————————————"
-    elif percentage >= 48:
-        bar = "————————————⬤—————————————"
-    elif percentage >= 44:
-        bar = "———————————⬤——————————————"
-    elif percentage >= 40:
-        bar = "——————————⬤———————————————"
-    elif percentage >= 36:
-        bar = "—————————⬤————————————————"
-    elif percentage >= 32:
-        bar = "————————⬤—————————————————"
-    elif percentage >= 28:
-        bar = "———————⬤——————————————————"
-    elif percentage >= 24:
-        bar = "——————⬤———————————————————"
-    elif percentage >= 20:
-        bar = "—————⬤————————————————————"
-    elif percentage >= 16:
-        bar = "————⬤—————————————————————"
-    elif percentage >= 12:
-        bar = "———⬤——————————————————————"
-    elif percentage >= 8:
-        bar = "——⬤———————————————————————"
-    elif percentage >= 4:
-        bar = "—⬤————————————————————————"
-    else:
-        bar = "⬤—————————————————————————"
+# Stolen from neo bot by nickofolas 
+def bar_make(value, gap, *, length=10, point=False, fill='█', empty=' '):
+    bar = ''
+    scaled_value = (value / gap) * length
+    for i in range(1, (length + 1)):
+        check = ((i == round(scaled_value)) if point else (i <= scaled_value))
+        bar += (fill if check else empty)
+    if point and (bar.count(fill) == 0):
+        bar = fill + bar[1:]
     return bar
