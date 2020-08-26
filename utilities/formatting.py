@@ -8,7 +8,7 @@ def realtime(time): # turns XXX.xxx into h m s ms
     s = "{:02d}".format(s)  #pads ms and s with 0s
     if h>0:
         m = "{:02d}".format(m)  #if in hours, pad m with 0s
-    f = [str((h>0) * (str(h)+'h ')), str(m)+'m', str(s)+'s', (str(ms)+'ms') * (ms!='000')]
+    f = [str((h>0) * (str(h)+'h')), str(m)+'m', str(s)+'s', (str(ms)+'ms') * (ms!='000')]
     for e in f:
         if not e:
             f.remove(e) #remove item if empty
