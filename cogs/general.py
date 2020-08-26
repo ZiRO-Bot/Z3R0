@@ -118,7 +118,6 @@ class General(commands.Cog):
         badges = []
         for x in list(user.public_flags.all()):
             x = str(x)
-            print(x)
             badges.append(badge(x))
         roles = [x.mention for x in user.roles]
         ignored_role = ["<@&645074407244562444>", "<@&745481731133669476>"]
@@ -126,7 +125,7 @@ class General(commands.Cog):
             try:
                 roles.remove(i)
             except ValueError:
-                print("Role not found, skipped")
+                self.logger.info("Role not found, skipped")
         jakarta = timezone('Asia/Jakarta')
 
         embed = discord.Embed(description=f"{stat(user.status)}({user.status})", 
