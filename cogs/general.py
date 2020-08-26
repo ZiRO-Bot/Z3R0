@@ -227,14 +227,14 @@ class General(commands.Cog):
     
     @commands.command(aliases=['spi','spot','spotify'], usage="[member]")
     async def spotifyinfo(self, ctx, *, user: discord.Member=None):
+        now = datetime.datetime.utcnow()
         if not user:
             user = ctx.message.author 
         if not isinstance(user.activity, discord.Spotify):
             await ctx.send(f"That user is not listening to Spotify!")
             return
         spotify = user.activity
-        start = spotify.start
-        duration, current = spotify.duration, datetime.datetime.utcnow() - start
+        duration, current = spotify.duration, now - spotify.start
         position = f"{current.seconds//60:02}:{current.seconds%60:02} / {duration.seconds//60:02}:{duration.seconds%60:02}"
         percentage = int(round(float(f"{current/duration:.2%}".replace("%",""))))
         bar = barpercent(percentage)
