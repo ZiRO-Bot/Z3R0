@@ -3,6 +3,7 @@ import datetime
 import discord
 import json
 import logging
+import platform
 import re
 
 from discord.ext import commands
@@ -188,17 +189,23 @@ class General(commands.Cog):
         embed.set_footer(text=f"ID: {ctx.guild.id}")
         await ctx.send(embed=embed)
 
-    @commands.command()
-    async def info(self, ctx):
+    @commands.command(aliases=['bi', 'about'])
+    async def botinfo(self, ctx):
         embed = discord.Embed(
                 title="About ziBot",
-                description="ziBot is an open source bot, \n\
-                             a fork of mcbeDiscordBot",
                 colour=discord.Colour(0xFFFFF0)
                 )
         embed.set_thumbnail(url=self.bot.user.avatar_url)
         embed.add_field(name="Author", value="ZiRO2264#4572")
-        embed.add_field(name="Links", value="[Github](https://github.com/null2264/ziBot)")
+        embed.add_field(name="Python", value=f"[{platform.python_version()}](https://www.python.org)")
+        embed.add_field(name="discord.py", value=f"[{discord.__version__}](https://github.com/Rapptz/discord.py)")
+        embed.add_field(name="Repository", value="[Github](https://github.com/null2264/ziBot)")
+        embed.add_field(name="About", 
+                        value="**ziBot** is an open source bot, "
+                              + "a fork of [mcbeDiscordBot](https://github.com/AnInternetTroll/mcbeDiscordBot) "
+                              + "(Steve the Bot) created by [AnInternetTroll](https://github.com/AnInternetTroll), " 
+                              + "but rewritten a bit.", 
+                        inline=False)
         await ctx.send(embed=embed)
 
 def setup(bot):
