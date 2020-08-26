@@ -113,11 +113,14 @@ class General(commands.Cog):
                 "UserFlags.staff" : "<:stafftools:747802548391379064>",
                 "UserFlags.early_supporter" : "<:earlysupport:747802555689730150>",
                 "UserFlags.verified" : "<:verified:747802457798869084>",
-                "UserFlags.verified_bot" : "<:verified:747802457798869084>"
+                "UserFlags.verified_bot" : "<:verified:747802457798869084>",
+                "UserFlags.verified_bot_developer" : "<:verified_bot_developer:748090768237002792>"
                 }.get(x, "🚫")
         badges = []
         for x in list(user.public_flags.all()):
             x = str(x)
+            if user == ctx.guild.owner:
+                badges.append(badge("UserFlags.owner"))
             badges.append(badge(x))
         roles = [x.mention for x in user.roles]
         ignored_role = ["<@&645074407244562444>", "<@&745481731133669476>"]
@@ -127,21 +130,33 @@ class General(commands.Cog):
             except ValueError:
                 self.logger.info("Role not found, skipped")
         jakarta = timezone('Asia/Jakarta')
+        def activity(x):
+            return {
+                    "playing": "Playing",
+                    "watching": "Watching",
+                    "listening": "Listening to",
+                    "streaming": "Streaming"
+                    }.get(x, "None")
 
-        embed = discord.Embed(description=f"{stat(user.status)}({user.status})", 
+        embed = discord.Embed(description=f"{stat(user.status)}({user.status})\n" 
+                                        + ("<:activity:748091280227041281>"
+                                        + activity(str(user.activity.type).replace("ActivityType.",""))
+                                        + f" **{user.activity.name}**" if user.activity else ""),
                               colour=user.colour,
                               timestamp=ctx.message.created_at)
         embed.set_author(name=f"{user.name}#{user.discriminator}", icon_url=user.avatar_url)
         embed.set_thumbnail(url=user.avatar_url)
+        embed.add_field(name="ID", value=user.id)
         embed.add_field(name="Guild name", value=user.display_name)
         embed.add_field(name="Badges",value=" ".join(badges) if badges else "No badge.")
         embed.add_field(name="Created on", value=user.created_at.replace(
-            tzinfo=timezone('UTC')).astimezone(jakarta).strftime("%a, %#d %B %Y, %H:%M WIB"), inline=False)
+            tzinfo=timezone('UTC')).astimezone(jakarta).strftime("%a, %#d %B %Y, %H:%M WIB"))
         embed.add_field(name="Joined on", value=user.joined_at.replace(
-            tzinfo=timezone('UTC')).astimezone(jakarta).strftime("%a, %#d %B %Y, %H:%M WIB"), inline=False)
+            tzinfo=timezone('UTC')).astimezone(jakarta).strftime("%a, %#d %B %Y, %H:%M WIB"))
         embed.add_field(name=f"Roles ({len(roles)})",
-                        value=", ".join(roles))
-        embed.set_footer(text=f"ID: {user.id}")
+                        value=", ".join(roles),
+                        inline=False)
+        embed.set_footer(text=f"Requested by {ctx.message.author.name}#{ctx.message.author.discriminator}")
         await ctx.send(embed=embed)
 
     @commands.command(aliases=['si'])
