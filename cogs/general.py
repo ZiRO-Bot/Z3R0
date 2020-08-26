@@ -233,7 +233,7 @@ class General(commands.Cog):
             position = f"{current.seconds//60:02}:{current.seconds%60:02} / {duration.seconds//60:02}:{duration.seconds%60:02}"
             percentage = int(round(float(f"{current/duration:.2%}".replace("%",""))))
             bar = bar_make(
-                current.seconds, spotify.duration.seconds, fill='◉', empty='─', point=True, length=26)
+                current.seconds, spotify.duration.seconds, fill='⬤', empty='─', point=True, length=26)
             artists = ", ".join(spotify.artists)
 
             embed = discord.Embed(title=f"{artists} - {spotify.title}",
@@ -241,10 +241,11 @@ class General(commands.Cog):
             embed.set_thumbnail(url=spotify.album_cover_url)
             embed.add_field(name="Album", value=spotify.album)
             embed.add_field(name="Duration",
-                            value=f"{current.seconds//60:02}:{current.seconds%60:02} "
-                                + f"``{bar}`` {duration.seconds//60:02}:"
+                            value=#f"{current.seconds//60:02}:{current.seconds%60:02} "
+                              # + f"``{bar}``"
+                                  f"{duration.seconds//60:02}:"
                                 + f"{duration.seconds%60:02}",
-                            inline=False)
+                            inline=True)
             embed.set_footer(text=f"Requested by {ctx.message.author.name}#{ctx.message.author.discriminator}")
             await ctx.send(embed=embed)
         else:
