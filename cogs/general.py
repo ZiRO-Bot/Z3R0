@@ -238,6 +238,8 @@ class General(commands.Cog):
 
             embed = discord.Embed(title=f"{artists} - {spotify.title}",
                                   colour=spotify.colour)
+            embed.set_author(name="Spotify",
+                             icon_url="https://i.imgur.com/PA3vvdN.png")
             embed.set_thumbnail(url=spotify.album_cover_url)
             embed.add_field(name="Album", value=spotify.album)
             embed.add_field(name="Duration",
