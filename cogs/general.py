@@ -233,7 +233,7 @@ class General(commands.Cog):
             await ctx.send(f"That user is not listening to Spotify!")
             return
         spotify = user.activity
-        duration, current = spotify.duration, datetime.datetime.now() - spotify.start
+        duration, current = spotify.duration, datetime.datetime.utcnow() - spotify.start
         position = f"{current.seconds//60:02}:{current.seconds%60:02} / {duration.seconds//60:02}:{duration.seconds%60:02}"
         percentage = int(round(float(f"{current/duration:.2%}".replace("%",""))))
         bar = barpercent(percentage)
