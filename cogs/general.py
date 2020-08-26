@@ -9,6 +9,7 @@ import subprocess
 
 from discord.ext import commands
 from pytz import timezone
+from utilities.formatting import barpercent
 
 class General(commands.Cog):
     def __init__(self, bot):
@@ -223,6 +224,34 @@ class General(commands.Cog):
                               + "but rewritten a bit.", 
                         inline=False)
         await ctx.send(embed=embed)
+    
+    @commands.command(aliases=['spi','spot','spotify'], usage="[member]")
+    async def spotifyinfo(self, ctx, *, user: discord.Member=None):
+        if not user:
+            user = ctx.message.author 
+        if not isinstance(user.activity, discord.Spotify):
+            await ctx.send(f"That user is not listening to Spotify!")
+            return
+        spotify = user.activity
+        duration, current = spotify.duration, datetime.datetime.utcnow() - spotify.start
+        position = f"{current.seconds//60:02}:{current.seconds%60:02} / {duration.seconds//60:02}:{duration.seconds%60:02}"
+        percentage = int(round(float(f"{current/duration:.2%}".replace("%",""))))
+        bar = barpercent(percentage)
+        artists = []
+        for artist in spotify.artists:
+            artists.append(artist)
+        embed = discord.Embed(title=f"{','.join(artists)} - {spotify.title}",
+                              colour=spotify.colour)
+        embed.set_thumbnail(url=spotify.album_cover_url)
+        embed.add_field(name="Album", value=spotify.album)
+        embed.add_field(name="Duration",
+                        value=f"{current.seconds//60:02}:{current.seconds%60:02} "
+                            + f"``{bar}`` {duration.seconds//60:02}:"
+                            + f"{duration.seconds%60:02}",
+                        inline=False)
+        embed.set_footer(text=f"Requested by {ctx.message.author.name}#{ctx.message.author.discriminator}")
+        await ctx.send(embed=embed)
+
 
 def setup(bot):
     bot.add_cog(General(bot))
