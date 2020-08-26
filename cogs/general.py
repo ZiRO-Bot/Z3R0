@@ -201,7 +201,6 @@ class General(commands.Cog):
         embed.add_field(name="Python", value=f"[{platform.python_version()}](https://www.python.org)")
         embed.add_field(name="discord.py", value=f"[{discord.__version__}](https://github.com/Rapptz/discord.py)")
         embed.add_field(name="Repository", value="[Github](https://github.com/null2264/ziBot)")
-        embed.add_field(name="ziBot Version", value=subprocess.check_output(["git", "describe", "--tags"]).strip())
         embed.add_field(name="About", 
                         value="**ziBot** is an open source bot, "
                               + "a fork of [mcbeDiscordBot](https://github.com/AnInternetTroll/mcbeDiscordBot) "
