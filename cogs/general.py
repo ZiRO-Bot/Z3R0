@@ -229,7 +229,7 @@ class General(commands.Cog):
     async def spotifyinfo(self, ctx, *, user: discord.Member=None):
         user = user or ctx.message.author 
         if spotify := discord.utils.find(lambda a: isinstance(a, discord.Spotify), user.activities):
-            offset = 26
+            offset = 27
             duration, current = spotify.duration, datetime.datetime.utcnow() - spotify.start + datetime.timedelta(seconds=offset)
             percentage = int(round(float(f"{current/duration:.2%}".replace("%",""))))
             bar = bar_make(
