@@ -232,7 +232,7 @@ class General(commands.Cog):
             offset = 27
             duration, current = spotify.duration, datetime.datetime.utcnow() - spotify.start + datetime.timedelta(seconds=offset)
             percentage = int(round(float(f"{current/duration:.2%}".replace("%",""))))
-            bar_length = 5 if user.is_on_mobile() else 25
+            bar_length = 5 if user.is_on_mobile() else 17
             bar = bar_make(
                 current.seconds, spotify.duration.seconds, fill='⬤', empty='─', point=True,
                 length=bar_length)
