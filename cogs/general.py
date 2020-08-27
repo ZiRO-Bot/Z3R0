@@ -232,26 +232,32 @@ class General(commands.Cog):
             offset = 27
             duration, current = spotify.duration, datetime.datetime.utcnow() - spotify.start + datetime.timedelta(seconds=offset)
             percentage = int(round(float(f"{current/duration:.2%}".replace("%",""))))
+            bar_length = 5 if user.is_on_mobile() else 25
             bar = bar_make(
-                current.seconds, spotify.duration.seconds, fill='⬤', empty='─', point=True, length=26)
+                current.seconds, spotify.duration.seconds, fill='⬤', empty='─', point=True,
+                length=bar_length)
             artists = ", ".join(spotify.artists)
 
-            embed = discord.Embed(title=f"{artists} - {spotify.title}",
-                                  colour=spotify.colour)
+            embed = discord.Embed(title=f"{spotify.title}",
+                                  colour=spotify.colour,
+                                  timestamp=ctx.message.created_at)
             embed.set_author(name="Spotify",
                              icon_url="https://i.imgur.com/PA3vvdN.png")
             embed.set_thumbnail(url=spotify.album_cover_url)
+            embed.add_field(name="Artist", value=artists)
             embed.add_field(name="Album", value=spotify.album)
             embed.add_field(name="Duration",
-                            value=f"{current.seconds//60:02}:{current.seconds%60:02} "
-                                + f"``{bar}``"
+                            value=f"{current.seconds//60:02}:{current.seconds%60:02}"
+                                + f" {bar} "
                                 + f"{duration.seconds//60:02}:"
                                 + f"{duration.seconds%60:02}",
                             inline=False)
             embed.set_footer(text=f"Requested by {ctx.message.author.name}#{ctx.message.author.discriminator}")
             await ctx.send(embed=embed)
         else:
-            await ctx.send(f"That user is not listening to Spotify!")
+            embed = discord.Embed(title="Error!",
+                                  description=f"{user.mention} is not listening to Spotify!")
+            await ctx.send(embed=embed)
 
 def setup(bot):
     bot.add_cog(General(bot))
