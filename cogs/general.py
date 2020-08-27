@@ -229,8 +229,8 @@ class General(commands.Cog):
     async def spotifyinfo(self, ctx, *, user: discord.Member=None):
         user = user or ctx.message.author 
         if spotify := discord.utils.find(lambda a: isinstance(a, discord.Spotify), user.activities):
-            duration, current = spotify.duration, datetime.datetime.utcnow() - spotify.start
-            position = f"{current.seconds//60:02}:{current.seconds%60:02} / {duration.seconds//60:02}:{duration.seconds%60:02}"
+            offset = 27
+            duration, current = spotify.duration, datetime.datetime.utcnow() - spotify.start + datetime.timedelta(seconds=offset)
             percentage = int(round(float(f"{current/duration:.2%}".replace("%",""))))
             bar = bar_make(
                 current.seconds, spotify.duration.seconds, fill='⬤', empty='─', point=True, length=26)
@@ -243,9 +243,9 @@ class General(commands.Cog):
             embed.set_thumbnail(url=spotify.album_cover_url)
             embed.add_field(name="Album", value=spotify.album)
             embed.add_field(name="Duration",
-                            value=#f"{current.seconds//60:02}:{current.seconds%60:02} "
-                              # + f"``{bar}``"
-                                  f"{duration.seconds//60:02}:"
+                            value=f"{current.seconds//60:02}:{current.seconds%60:02} "
+                                + f"``{bar}``"
+                                + f"{duration.seconds//60:02}:"
                                 + f"{duration.seconds%60:02}",
                             inline=True)
             embed.set_footer(text=f"Requested by {ctx.message.author.name}#{ctx.message.author.discriminator}")
