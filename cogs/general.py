@@ -229,7 +229,7 @@ class General(commands.Cog):
     async def spotifyinfo(self, ctx, *, user: discord.Member=None):
         user = user or ctx.message.author 
         if spotify := discord.utils.find(lambda a: isinstance(a, discord.Spotify), user.activities):
-            offset = 27
+            offset = 26
             duration, current = spotify.duration, datetime.datetime.utcnow() - spotify.start + datetime.timedelta(seconds=offset)
             percentage = int(round(float(f"{current/duration:.2%}".replace("%",""))))
             bar = bar_make(
@@ -247,7 +247,7 @@ class General(commands.Cog):
                                 + f"``{bar}``"
                                 + f"{duration.seconds//60:02}:"
                                 + f"{duration.seconds%60:02}",
-                            inline=True)
+                            inline=False)
             embed.set_footer(text=f"Requested by {ctx.message.author.name}#{ctx.message.author.discriminator}")
             await ctx.send(embed=embed)
         else:
