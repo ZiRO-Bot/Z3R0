@@ -36,7 +36,7 @@ def init_bot():
     bot = ziBot(command_prefix=get_prefix(),
                 case_insensitive=True,
                 allowed_mentions=discord.AllowedMentions(
-                    everyone=False, users=True, roles=False),
+                    everyone=True, users=True, roles=False),
                 shard_id=int(shard), shard_count=int(shard_count))
     bot.run()
 

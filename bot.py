@@ -29,7 +29,8 @@ def get_cogs():
     extensions = [
 	              "cogs.welcome", "cogs.help", "cogs.moderator",
                   "cogs.general", "cogs.utils", "cogs.mcbe",
-                  "cogs.anilist", "cogs.fun"
+                  #"cogs.anilist", 
+                  "cogs.pingloop", "cogs.fun"
                  ]
     return extensions
 
@@ -40,7 +41,7 @@ start_time = time.time()
 def get_prefix():
 	"""A callable Prefix for our bot. This could be edited to allow per server prefixes."""
 
-	prefixes = ['>', '$>', '.']
+	prefixes = ['Steve', 'steve', '>', '!', '@', '.']
 
 	# Check to see if we are outside of a guild. e.g DM's etc.
 	# if not message.guild:

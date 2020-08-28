@@ -9,6 +9,7 @@ import subprocess
 
 from discord.ext import commands
 from pytz import timezone
+from random import choice, randint
 from utilities.formatting import bar_make
 
 class General(commands.Cog):
@@ -261,6 +262,66 @@ class General(commands.Cog):
                                   description=f"{user.mention} is not listening to Spotify!",
                                   colour=discord.Colour(0x2F3136))
             await ctx.send(embed=embed)
+    
+    @commands.cooldown(1, 25, commands.BucketType.guild)
+    @commands.command()
+    async def findseed(self, ctx):
+        if ctx.message.channel.id != 747999314936070195:
+            await ctx.message.delete()
+            ctx.command.reset_cooldown()
+        
+        rigged = {
+                186713080841895936: 9000
+                }
+        
+        if ctx.author.id in rigged:
+            totalEyes = rigged[ctx.author.id]
+        else:
+            totalEyes = 0
+            for i in range(12):
+                randomness = randint(1,10)
+                if randomness <= 1:
+                    totalEyes += 1
+        await ctx.send(f"{ctx.message.author.mention} -> your seed is a {totalEyes} eye")
+    
+    @commands.cooldown(1, 25, commands.BucketType.guild)
+    @commands.command()
+    async def findsleep(self, ctx):
+        if ctx.message.channel.id != 747999314936070195:
+            await ctx.message.delete()
+            ctx.command.reset_cooldown()
+
+        lessSleepMsg = [
+                "gn, insomniac!",
+                "counting sheep didn't work? try counting chloroform vials!",
+                "try a glass of water", "some decaf coffee might do the trick!"
+               ]
+
+        moreSleepMsg = [
+                "waaakeee uuuppp!", "are they dead or asleep? I can't tell.",
+                "wake up, muffin head", "psst... coffeeee \\:D"
+                ]
+        
+        sleepHrs = randint(0, 24)
+
+        if sleepHrs == 0:
+            await ctx.send(
+                    f"{ctx.author.mention} -> your sleep is 0 hours long - nice try \:D")
+        elif sleepHrs <= 5:
+            if sleepHrs == 1:
+                s = ''
+            else:
+                s = 's'
+            await ctx.send(
+                    f"{ctx.author.mention} -> your sleep is {sleepHrs} hour{s} long - {lessSleepMsg[randint(0, len(lessSleepMsg) - 1)]}")
+        else:
+            await ctx.send(
+                    f"{ctx.author.mention} -> your sleep is {sleepHrs} hour{s} long - {moreSleepMsg[randint(0, len(moreSleepMsg) - 1)]}")
+    
+    @commands.cooldown(1, 25, commands.BucketType.guild)
+    @commands.command()
+    async def someone(self, ctx):
+        await ctx.send(choice(ctx.guild.members).mention)
 
 def setup(bot):
     bot.add_cog(General(bot))
