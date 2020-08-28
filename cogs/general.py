@@ -91,8 +91,7 @@ class General(commands.Cog):
 
     @commands.command(aliases=['ui'], usage="[member]")
     async def userinfo(self, ctx, *, user: discord.Member=None):
-        if not user:
-            user = ctx.message.author
+        user = user or ctx.message.author 
         def stat(x):
             return {
                 'offline': '<:status_offline:747799247243575469>',
@@ -117,20 +116,6 @@ class General(commands.Cog):
                 "UserFlags.verified_bot" : "<:verified:747802457798869084>",
                 "UserFlags.verified_bot_developer" : "<:verified_bot_developer:748090768237002792>"
                 }.get(x, "🚫")
-        badges = []
-        for x in list(user.public_flags.all()):
-            x = str(x)
-            if user == ctx.guild.owner:
-                badges.append(badge("UserFlags.owner"))
-            badges.append(badge(x))
-        roles = [x.mention for x in user.roles]
-        ignored_role = ["<@&645074407244562444>", "<@&745481731133669476>"]
-        for i in ignored_role:
-            try:
-                roles.remove(i)
-            except ValueError:
-                self.logger.info("Role not found, skipped")
-        jakarta = timezone('Asia/Jakarta')
         def activity(x):
             return {
                     "playing": "Playing",
@@ -138,6 +123,23 @@ class General(commands.Cog):
                     "listening": "Listening to",
                     "streaming": "Streaming"
                     }.get(x, "None")
+
+        badges = []
+        for x in list(user.public_flags.all()):
+            x = str(x)
+            if user == ctx.guild.owner:
+                badges.append(badge("UserFlags.owner"))
+            badges.append(badge(x))
+
+        roles = [x.mention for x in user.roles]
+        ignored_role = ["<@&645074407244562444>", "<@&745481731133669476>"]
+        for i in ignored_role:
+            try:
+                roles.remove(i)
+            except ValueError:
+                self.logger.info("Role not found, skipped")
+
+        jakarta = timezone('Asia/Jakarta')
 
         embed = discord.Embed(description=f"{stat(user.status)}({user.status})\n" 
                                         + ("<:activity:748091280227041281>"
@@ -229,7 +231,7 @@ class General(commands.Cog):
     async def spotifyinfo(self, ctx, *, user: discord.Member=None):
         user = user or ctx.message.author 
         if spotify := discord.utils.find(lambda a: isinstance(a, discord.Spotify), user.activities):
-            offset = 27
+            offset = 27 # Sometime it wont line up on some server, this is the only solution i could come up with
             duration, current = spotify.duration, datetime.datetime.utcnow() - spotify.start + datetime.timedelta(seconds=offset)
             percentage = int(round(float(f"{current/duration:.2%}".replace("%",""))))
             bar_length = 5 if user.is_on_mobile() else 17
@@ -256,7 +258,8 @@ class General(commands.Cog):
             await ctx.send(embed=embed)
         else:
             embed = discord.Embed(title="Error!",
-                                  description=f"{user.mention} is not listening to Spotify!")
+                                  description=f"{user.mention} is not listening to Spotify!",
+                                  colour=discord.Colour(0x2F3136))
             await ctx.send(embed=embed)
 
 def setup(bot):
