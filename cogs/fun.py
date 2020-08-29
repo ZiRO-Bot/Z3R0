@@ -163,6 +163,51 @@ class Fun(commands.Cog):
         if choice == "noob":
             result = ("Noob wins!")
         await ctx.send(result)
+    
+    @commands.command()
+    async def findseed(self, ctx):
+        rigged = {
+                186713080841895936: 9000
+                }
+        
+        if ctx.author.id in rigged:
+            totalEyes = rigged[ctx.author.id]
+        else:
+            totalEyes = 0
+            for i in range(12):
+                randomness = randint(1,10)
+                if randomness <= 1:
+                    totalEyes += 1
+        await ctx.send(f"{ctx.message.author.mention} -> your seed is a {totalEyes} eye")
+    
+    @commands.command()
+    async def findsleep(self, ctx):
+        lessSleepMsg = [
+                "gn, insomniac!",
+                "counting sheep didn't work? try counting chloroform vials!",
+                "try a glass of water", "some decaf coffee might do the trick!"
+               ]
+
+        moreSleepMsg = [
+                "waaakeee uuuppp!", "are they dead or asleep? I can't tell.",
+                "wake up, muffin head", "psst... coffeeee \\:D"
+                ]
+        
+        sleepHrs = randint(0, 24)
+
+        if sleepHrs == 0:
+            await ctx.send(
+                    f"{ctx.author.mention} -> your sleep is 0 hours long - nice try \:D")
+        elif sleepHrs <= 5:
+            if sleepHrs == 1:
+                s = ''
+            else:
+                s = 's'
+            await ctx.send(
+                    f"{ctx.author.mention} -> your sleep is {sleepHrs} hour{s} long - {lessSleepMsg[randint(0, len(lessSleepMsg) - 1)]}")
+        else:
+            await ctx.send(
+                    f"{ctx.author.mention} -> your sleep is {sleepHrs} hours long - {moreSleepMsg[randint(0, len(moreSleepMsg) - 1)]}")
 
 def setup(bot):
     bot.add_cog(Fun(bot))

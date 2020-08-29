@@ -123,17 +123,17 @@ class General(commands.Cog):
                     "watching": "Watching",
                     "listening": "Listening to",
                     "streaming": "Streaming"
-                    }.get(x, "None")
+                    }.get(x, "Custom Status -")
 
         badges = []
+        if user == ctx.guild.owner:
+            badges.append(badge("UserFlags.owner"))
         for x in list(user.public_flags.all()):
             x = str(x)
-            if user == ctx.guild.owner:
-                badges.append(badge("UserFlags.owner"))
             badges.append(badge(x))
 
         roles = [x.mention for x in user.roles]
-        ignored_role = ["<@&645074407244562444>", "<@&745481731133669476>"]
+        ignored_role = ["<@&645074407244562444>", "<@&745481731133669476>", "<@&747984453585993808>"]
         for i in ignored_role:
             try:
                 roles.remove(i)
@@ -232,7 +232,7 @@ class General(commands.Cog):
     async def spotifyinfo(self, ctx, *, user: discord.Member=None):
         user = user or ctx.message.author 
         if spotify := discord.utils.find(lambda a: isinstance(a, discord.Spotify), user.activities):
-            offset = 27 # Sometime it wont line up on some server, this is the only solution i could come up with
+            offset = 0 # Sometime it wont line up on some server, this is the only solution i could come up with
             duration, current = spotify.duration, datetime.datetime.utcnow() - spotify.start + datetime.timedelta(seconds=offset)
             percentage = int(round(float(f"{current/duration:.2%}".replace("%",""))))
             bar_length = 5 if user.is_on_mobile() else 17
@@ -262,61 +262,6 @@ class General(commands.Cog):
                                   description=f"{user.mention} is not listening to Spotify!",
                                   colour=discord.Colour(0x2F3136))
             await ctx.send(embed=embed)
-    
-    @commands.cooldown(1, 25, commands.BucketType.guild)
-    @commands.command()
-    async def findseed(self, ctx):
-        if ctx.message.channel.id != 747999314936070195:
-            await ctx.message.delete()
-            ctx.command.reset_cooldown()
-        
-        rigged = {
-                186713080841895936: 9000
-                }
-        
-        if ctx.author.id in rigged:
-            totalEyes = rigged[ctx.author.id]
-        else:
-            totalEyes = 0
-            for i in range(12):
-                randomness = randint(1,10)
-                if randomness <= 1:
-                    totalEyes += 1
-        await ctx.send(f"{ctx.message.author.mention} -> your seed is a {totalEyes} eye")
-    
-    @commands.cooldown(1, 25, commands.BucketType.guild)
-    @commands.command()
-    async def findsleep(self, ctx):
-        if ctx.message.channel.id != 747999314936070195:
-            await ctx.message.delete()
-            ctx.command.reset_cooldown()
-
-        lessSleepMsg = [
-                "gn, insomniac!",
-                "counting sheep didn't work? try counting chloroform vials!",
-                "try a glass of water", "some decaf coffee might do the trick!"
-               ]
-
-        moreSleepMsg = [
-                "waaakeee uuuppp!", "are they dead or asleep? I can't tell.",
-                "wake up, muffin head", "psst... coffeeee \\:D"
-                ]
-        
-        sleepHrs = randint(0, 24)
-
-        if sleepHrs == 0:
-            await ctx.send(
-                    f"{ctx.author.mention} -> your sleep is 0 hours long - nice try \:D")
-        elif sleepHrs <= 5:
-            if sleepHrs == 1:
-                s = ''
-            else:
-                s = 's'
-            await ctx.send(
-                    f"{ctx.author.mention} -> your sleep is {sleepHrs} hour{s} long - {lessSleepMsg[randint(0, len(lessSleepMsg) - 1)]}")
-        else:
-            await ctx.send(
-                    f"{ctx.author.mention} -> your sleep is {sleepHrs} hour{s} long - {moreSleepMsg[randint(0, len(moreSleepMsg) - 1)]}")
     
     @commands.cooldown(1, 25, commands.BucketType.guild)
     @commands.command()
