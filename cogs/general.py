@@ -232,7 +232,7 @@ class General(commands.Cog):
     async def spotifyinfo(self, ctx, *, user: discord.Member=None):
         user = user or ctx.message.author 
         if spotify := discord.utils.find(lambda a: isinstance(a, discord.Spotify), user.activities):
-            offset = 0 # Sometime it wont line up on some server, this is the only solution i could come up with
+            offset = 27 # Sometime it wont line up on some server, this is the only solution i could come up with
             duration, current = spotify.duration, datetime.datetime.utcnow() - spotify.start + datetime.timedelta(seconds=offset)
             percentage = int(round(float(f"{current/duration:.2%}".replace("%",""))))
             bar_length = 5 if user.is_on_mobile() else 17

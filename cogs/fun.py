@@ -82,21 +82,10 @@ class Fun(commands.Cog):
     @commands.command()
     async def meme(self, ctx):
         """Get memes from subreddit r/memes."""
-        meme_channel = self.bot.get_channel(
-                                            int(self.bot.channels[
-                                                str(ctx.message.guild.id)][
-                                                    "meme_ch"]
-                                               )
-                                           )
-        meme_subreddits = ['memes', 
-                           'PewdiepieSubmissions', 
+        meme_channel = ctx
+        meme_subreddits = ['memes',
                            'funny']
         reg_img = r".*/(i)\.redd\.it"
-
-        if ctx.channel is not meme_channel:
-            async with ctx.typing():
-                await ctx.send(f"Please do this command on {meme_channel.mention}")
-                return
         async with meme_channel.typing():
             selected_subreddit = meme_subreddits[randint(0,
                                                  len(meme_subreddits)-1)]
