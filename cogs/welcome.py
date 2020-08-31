@@ -13,7 +13,7 @@ class Welcome(commands.Cog, name="Welcome"):
     @commands.Cog.listener()
     async def on_member_join(self, member):
         welcome_msg=[f"It's a Bird, It's a Plane, It's {member.mention}!",
-                f"Welcome {member.mention}! <:PogChamp:747027389485154354>",
+                f"Welcome {member.mention}! <:redpogchamp:748344669116825710>.",
                 f"Good to see you, {member.mention}.",
                 f"A wild {member.mention} appeared!"]
         
@@ -26,7 +26,7 @@ class Welcome(commands.Cog, name="Welcome"):
                                               )
         member_role = discord.utils.get(member.guild.roles, name="Member")
         await member.add_roles(member_role)
-        await welcome_channel.send(f"{welcome_msg[randint(0, len(welcome_msg) - 1)]}")
+        await welcome_channel.send(f"{welcome_msg[randint(0, len(welcome_msg) - 1)]}.")
 
 def setup(bot):
     bot.add_cog(Welcome(bot))
