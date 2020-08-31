@@ -222,7 +222,7 @@ class Admin(commands.Cog):
         await ctx.send(embed=embed)
 
     @commands.command(aliases=['addcommand', 'newcommand'])
-    @commands.check(is_mod)
+    @commands.has_any_role("Moderator","Zi")
     async def setcommand(self, ctx, command, *, message):
         """Add a new simple command"""
         self.bot.custom_commands[ctx.prefix + command] = message
@@ -235,7 +235,7 @@ class Admin(commands.Cog):
         await ctx.send(embed=embed)
 
     @commands.command(aliases=['deletecommand'])
-    @commands.check(is_mod)
+    @commands.has_any_role("Moderator","Zi")
     async def removecommand(self, ctx, command):
         """Remove a simple command"""
         del self.bot.custom_commands[ctx.prefix + command]
