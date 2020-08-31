@@ -27,7 +27,7 @@ def check_jsons():
 def get_cogs():
     """callable extensions"""
     extensions = [
-	              "cogs.welcome", "cogs.help", "cogs.moderator",
+                  "cogs.welcome", "cogs.help", "cogs.moderator",
                   "cogs.general", "cogs.utils", "cogs.mcbe",
                   "cogs.anilist", "cogs.fun"
                  ]
@@ -59,7 +59,7 @@ class ziBot(commands.Bot):
 
         check_jsons()
 
-        with open('custom_commands.json', 'r') as cc:
+        with open('data/custom_commands.json', 'r') as cc:
             self.custom_commands = json.load(cc)
 
         with open('data/guild.json', 'r') as ch:
