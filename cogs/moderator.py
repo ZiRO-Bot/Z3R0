@@ -229,7 +229,7 @@ class Admin(commands.Cog):
         with open('data/custom_commands.json', 'w') as f:
             json.dump(self.bot.custom_commands, f, indent=4)
         embed = discord.Embed(
-                              title="New command has been added!"
+                              title="New command has been added!",
                               description=f"{ctx.prefix}{command}"
                              )
         await ctx.send(embed=embed)
@@ -242,7 +242,7 @@ class Admin(commands.Cog):
         with open('data/custom_commands.json', 'w') as f:
             json.dump(self.bot.custom_commands, f, indent=4)
         embed = discord.Embed(
-                              title="A command has been removed!"
+                              title="A command has been removed!",
                               description=f"{ctx.prefix}{command}"
                              )
         await ctx.send(embed=embed)
