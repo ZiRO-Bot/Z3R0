@@ -5,6 +5,7 @@ import logging
 import os
 import time
 
+from discord.errors import NotFound
 from discord.ext import commands
 from dotenv import load_dotenv
 
@@ -37,25 +38,21 @@ extensions = get_cogs()
 
 start_time = time.time()
 
-def get_prefix():
-	"""A callable Prefix for our bot. This could be edited to allow per server prefixes."""
+def get_prefix(bot, message):
+    """A callable Prefix for our bot. This could be edited to allow per server prefixes."""
 
-	prefixes = ['>', '$>', '.']
+    with open('data/guild.json', 'r') as f:
+        prefixes = json.load(f)
 
-	# Check to see if we are outside of a guild. e.g DM's etc.
-	# if not message.guild:
-	# Only allow ? to be used in DMs
-	#   return '?'
-
-	# If we are in a guild, we allow for the user to mention us or use any of the prefixes in our list.
-	return prefixes
+    return prefixes[str(message.guild.id)]['prefix']
 
 class ziBot(commands.Bot):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-
+        
         self.logger = logging.getLogger('discord')
         self.session = aiohttp.ClientSession()
+        self.def_prefix = ">"
 
         check_jsons()
 
@@ -64,6 +61,24 @@ class ziBot(commands.Bot):
 
         with open('data/guild.json', 'r') as ch:
             self.channels = json.load(ch)
+    
+    async def on_guild_join(self, guild):
+        with open('data/guild.json', 'r') as f:
+            prefixes = json.load(f)
+
+        prefixes[str(guild.id)]['prefix'] = self.def_prefix
+
+        with open('data/guild.json', 'w') as f:
+            prefixes = json.dump(prefixes, f, indent=4)
+    
+    async def on_guild_remove(self, guild):
+        with open('data/guild.json', 'r') as f:
+            prefixes = json.load(f)
+
+        del prefixes[str(guild.id)]['prefix']
+
+        with open('data/guild.json', 'w') as f:
+            prefixes = json.dump(prefixes, f, indent=4)
 
     async def on_ready(self): 
         activity=discord.Activity(name="over your shoulder",type=discord.ActivityType.watching)
@@ -88,6 +103,6 @@ class ziBot(commands.Bot):
                 return
         except:
             return
-
+        
     def run(self):
         super().run(token, reconnect=True)

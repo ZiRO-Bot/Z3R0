@@ -33,7 +33,7 @@ def init_bot():
         logger.error("No token found, please add environment variable \"TOKEN\"!")
         return
 
-    bot = ziBot(command_prefix=get_prefix(),
+    bot = ziBot(command_prefix=get_prefix,
                 case_insensitive=True,
                 allowed_mentions=discord.AllowedMentions(
                     everyone=False, users=True, roles=False),

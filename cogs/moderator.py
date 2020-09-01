@@ -2,6 +2,7 @@ import asyncio
 import datetime
 import discord
 import git
+import json
 import logging
 import os
 import time
@@ -244,6 +245,22 @@ class Admin(commands.Cog):
         embed = discord.Embed(
                               title="A command has been removed!",
                               description=f"{ctx.prefix}{command}"
+                             )
+        await ctx.send(embed=embed)
+
+    @commands.command(aliases=['setprefix'])
+    @commands.has_any_role("Zi")
+    async def prefix(self, ctx, prefix):
+        """Change bot prefix"""
+        with open('data/guild.json', 'r') as f:
+            prefixes = json.load(f)
+
+        prefixes[str(ctx.message.guild.id)]['prefix'] = prefix
+
+        with open('data/guild.json', 'w') as f:
+            prefixes = json.dump(prefixes, f, indent=4)
+        embed = discord.Embed(
+                              title=f"Prefix has been changed to `{prefix}`"
                              )
         await ctx.send(embed=embed)
 
