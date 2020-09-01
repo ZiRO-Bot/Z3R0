@@ -56,7 +56,7 @@ class ziBot(commands.Bot):
 
         check_jsons()
         
-        self.master = [ 186713080841895936 ]
+        master = [ 186713080841895936 ]
 
         with open('data/custom_commands.json', 'r') as cc:
             self.custom_commands = json.load(cc)
