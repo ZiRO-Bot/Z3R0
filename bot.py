@@ -54,10 +54,10 @@ class ziBot(commands.Bot):
         self.session = aiohttp.ClientSession()
         self.def_prefix = ">"
 
+        self.master = [ 186713080841895936 ]
+
         check_jsons()
         
-        master = [ 186713080841895936 ]
-
         with open('data/custom_commands.json', 'r') as cc:
             self.custom_commands = json.load(cc)
 

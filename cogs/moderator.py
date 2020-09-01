@@ -20,8 +20,8 @@ class Admin(commands.Cog):
     async def is_mod(ctx):
         return ctx.author.guild_permissions.manage_channels
 
-    async def is_botmaster(self):
-        return self.bot.master
+    async def is_botmaster(ctx):
+        return ctx.author.id in ctx.bot.master
 
     @commands.command(aliases=['quit'], hidden=True)
     @commands.check(is_botmaster)
