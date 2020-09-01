@@ -16,16 +16,22 @@ class Admin(commands.Cog):
     def __init__(self, bot):
         self.logger = logging.getLogger('discord')
         self.bot = bot
+    
+    async def is_mod(ctx):
+        return ctx.author.guild_permissions.manage_channels
+
+    async def is_botmaster(self):
+        return self.bot.master
 
     @commands.command(aliases=['quit'], hidden=True)
-    @commands.has_any_role("Zi")
+    @commands.check(is_botmaster)
     async def force_close(self, ctx):
         """Shutdown the bot."""
         await ctx.send("Shutting down...")
         await ctx.bot.logout()
     
     @commands.command(hidden=True)
-    @commands.has_any_role("Moderator","Zi")
+    @commands.check(is_mod)
     async def unload(self, ctx, ext):
         """Unload an extension."""
         await ctx.send(f"Unloading {ext}...")
@@ -41,7 +47,7 @@ class Admin(commands.Cog):
             self.bot.logger.exception(f'Failed to reload extension {ext}:')
 
     @commands.command(hidden=True)
-    @commands.has_any_role("Moderator","Zi")
+    @commands.check(is_mod)
     async def reload(self, ctx, ext: str=None):
         """Reload an extension."""
         if not ext:
@@ -87,7 +93,7 @@ class Admin(commands.Cog):
             self.bot.logger.exception(f'Failed to reload extension {ext}:')
 
     @commands.command(hidden=True)
-    @commands.has_any_role("Moderator","Zi")
+    @commands.check(is_mod)
     async def load(self, ctx, ext):
         """Load an extension."""
         await ctx.send(f"Loading {ext}...")
@@ -101,7 +107,7 @@ class Admin(commands.Cog):
             self.bot.logger.exception(f'Failed to reload extension {ext}:')
 
     @commands.command(aliases=['cc'], hidden=True)
-    @commands.has_any_role("Moderator","Zi")
+    @commands.check(is_mod)
     async def clearchat(self, ctx, numb: int=100):
         """Clear the chat."""
         deleted_msg = await ctx.message.channel.purge(limit=int(numb)+1, check=None, before=None, after=None, around=None, oldest_first=False, bulk=True)
@@ -120,7 +126,7 @@ class Admin(commands.Cog):
         await ctx.send(resp)
     
     @commands.command(hidden=True)
-    @commands.has_any_role("Moderator","Zi")
+    @commands.check(is_mod)
     async def mute(self, ctx, member: discord.Member=None, reason: str="No Reason", min_muted: int=0):
         """Mute a member."""
         if member is None:
@@ -141,7 +147,7 @@ class Admin(commands.Cog):
             await member.remove_roles(muted_role)
 
     @commands.command(hidden=True)
-    @commands.has_any_role("Moderator","Zi")
+    @commands.check(is_mod)
     async def unmute(self, ctx, member: discord.Member=None):
         """Unmute a member."""
         if member is None:
@@ -155,7 +161,7 @@ class Admin(commands.Cog):
             await ctx.send(f'{member.mention} is not muted.')
 
     @commands.command(hidden=True)
-    @commands.has_any_role("Moderator","Zi")
+    @commands.check(is_mod)
     async def kick(self, ctx, member: discord.Member=None, reason: str="No Reason"): 
         """Kick a member."""
         if member is None:
@@ -172,7 +178,7 @@ class Admin(commands.Cog):
             await ctx.send(f'{member.mention} has been kicked by {ctx.author.mention} for {reason}!')
     
     @commands.command(hidden=True)
-    @commands.has_any_role("Moderator","Zi")
+    @commands.check(is_mod)
     async def ban(self, ctx, member: discord.Member=None, reason: str="No Reason", min_ban: int=0): 
         """Ban a member."""
         if member is None:
@@ -190,7 +196,7 @@ class Admin(commands.Cog):
             await ctx.guild.unban(member, reason="timed out")
     
     @commands.command(hidden=True)
-    @commands.has_any_role("Moderator","Zi")
+    @commands.check(is_mod)
     async def unban(self, ctx, member):
         """Unban a member."""
         for s in "<!@>":
@@ -207,7 +213,7 @@ class Admin(commands.Cog):
         await ctx.send(f'{member.mention} has been unbanned by {ctx.author.mention}!')
     
     @commands.command(hidden=True)
-    @commands.has_any_role("Moderator","Zi")
+    @commands.check(is_botmaster)
     async def pull(self, ctx):
         """Update the bot from github."""
         g = git.cmd.Git(os.getcwd())
@@ -223,7 +229,7 @@ class Admin(commands.Cog):
         await ctx.send(embed=embed)
 
     @commands.command(aliases=['addcommand', 'newcommand'])
-    @commands.has_any_role("Moderator","Zi")
+    @commands.check(is_mod)
     async def setcommand(self, ctx, command, *, message):
         """Add a new simple command"""
         self.bot.custom_commands[ctx.prefix + command] = message
@@ -236,7 +242,7 @@ class Admin(commands.Cog):
         await ctx.send(embed=embed)
 
     @commands.command(aliases=['deletecommand'])
-    @commands.has_any_role("Moderator","Zi")
+    @commands.check(is_mod)
     async def removecommand(self, ctx, command):
         """Remove a simple command"""
         del self.bot.custom_commands[ctx.prefix + command]
@@ -249,7 +255,7 @@ class Admin(commands.Cog):
         await ctx.send(embed=embed)
 
     @commands.command(aliases=['setprefix'])
-    @commands.has_any_role("Zi")
+    @commands.check(is_botmaster)
     async def prefix(self, ctx, prefix):
         """Change bot prefix"""
         with open('data/guild.json', 'r') as f:
