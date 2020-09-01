@@ -128,7 +128,7 @@ class Help(commands.Cog):
                     title = "Help",
                     colour = discord.Colour.gold()
                 )
-        with open('custom_commands.json', 'r') as f:
+        with open('data/custom_commands.json', 'r') as f:
             commands = json.load(f)
             ccmds = ", ".join([*commands])
             # await ctx.send(f"```List of custom commands: \n{ccmds}```")

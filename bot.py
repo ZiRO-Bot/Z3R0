@@ -60,7 +60,7 @@ class ziBot(commands.Bot):
 
         check_jsons()
 
-        with open('custom_commands.json', 'r') as cc:
+        with open('data/custom_commands.json', 'r') as cc:
             self.custom_commands = json.load(cc)
 
         with open('data/guild.json', 'r') as ch:

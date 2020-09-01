@@ -21,7 +21,7 @@ class Admin(commands.Cog):
         return ctx.author.guild_permissions.manage_channels
 
     async def is_botmaster(ctx):
-        [ 186713080841895936, 366219142799556620 ]
+        return ctx.author.id in [ 186713080841895936, 366219142799556620 ]
 
     @commands.command(aliases=['quit'], hidden=True)
     @commands.check(is_botmaster)
@@ -233,7 +233,7 @@ class Admin(commands.Cog):
     async def setcommand(self, ctx, command, *, message):
         """Add a new simple command"""
         self.bot.custom_commands[ctx.prefix + command] = message
-        with open('custom_commands.json', 'w') as f:
+        with open('data/custom_commands.json', 'w') as f:
             json.dump(self.bot.custom_commands, f, indent=4)
 
         await ctx.send(f"Set message for command {command}")
@@ -243,7 +243,7 @@ class Admin(commands.Cog):
     async def removecommand(self, ctx, command):
         """Remove a simple command"""
         del self.bot.custom_commands[ctx.prefix + command]
-        with open('custom_commands.json', 'w') as f:
+        with open('data/custom_commands.json', 'w') as f:
             json.dump(self.bot.custom_commands, f, indent=4)
 
         await ctx.send(f"Removed command {command}")
