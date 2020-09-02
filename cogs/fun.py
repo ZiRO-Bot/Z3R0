@@ -83,7 +83,7 @@ class Fun(commands.Cog):
     async def meme(self, ctx):
         """Get memes from subreddit r/memes."""
         meme_channel = self.bot.get_channel(
-                                            int(self.bot.channels[
+                                            int(self.bot.config[
                                                 str(ctx.message.guild.id)][
                                                     "meme_ch"]
                                                )
@@ -168,7 +168,7 @@ class Fun(commands.Cog):
     async def pingme(self, ctx, amount: int=1):
         """Ping yourself for no reason"""
         channel = self.bot.get_channel(
-                                       int(self.bot.channels[
+                                       int(self.bot.config[
                                             str(ctx.message.guild.id)][
                                                 "pingme_ch"]
                                           )

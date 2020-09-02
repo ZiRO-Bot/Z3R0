@@ -19,7 +19,7 @@ class Welcome(commands.Cog, name="Welcome"):
         
         server = member.guild
         welcome_channel = self.bot.get_channel(
-                                               int(self.bot.channels[
+                                               int(self.bot.config[
                                                    str(server.id)][
                                                        "welcome_ch"]
                                                   )
@@ -27,7 +27,7 @@ class Welcome(commands.Cog, name="Welcome"):
         try:
             member_role = discord.utils.get(member.guild.roles, name="Member")
             await member.add_roles(member_role)
-        except NoneType:
+        except AttributeError:
             pass
         await welcome_channel.send(f"{welcome_msg[randint(0, len(welcome_msg) - 1)]}")
 

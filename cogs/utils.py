@@ -67,7 +67,7 @@ class Utils(commands.Cog):
         if message.author == self.bot.user:
             return
         purgatory_ch = self.bot.get_channel(
-                                            int(self.bot.channels[
+                                            int(self.bot.config[
                                                 str(message.guild.id)][
                                                     "purge_ch"]
                                                )
@@ -89,7 +89,7 @@ class Utils(commands.Cog):
             return
         message = before
         purgatory_ch = self.bot.get_channel(
-                                            int(self.bot.channels[
+                                            int(self.bot.config[
                                                 str(message.guild.id)][
                                                     "purge_ch"]
                                                )
