@@ -92,7 +92,7 @@ class CustomHelp(commands.HelpCommand):
                     value = command.brief
                 else:
                     value = command.short_doc
-                embed.add_field(name=self.get_command_signature(command), value=value or '...', inline=False)
+                embed.add_field(name=self.get_command_signature(command), value=value or 'No description.', inline=False)
 
         embed.set_footer(text=self.get_ending_note())
         await self.get_destination().send(embed=embed)
@@ -106,7 +106,7 @@ class CustomHelp(commands.HelpCommand):
                               colour=self.COLOUR)
         if command.help:
             value = command.help
-        embed.add_field(name=self.get_command_signature(command), value=value)
+        embed.add_field(name=self.get_command_signature(command), value=value or "No description.")
 
         await self.get_destination().send(embed=embed)
 

@@ -91,6 +91,7 @@ class General(commands.Cog):
 
     @commands.command(aliases=['ui'], usage="[member]")
     async def userinfo(self, ctx, *, user: discord.Member=None):
+        """Show user information."""
         user = user or ctx.message.author 
         def stat(x):
             return {
@@ -208,8 +209,9 @@ class General(commands.Cog):
         embed.set_footer(text=f"ID: {ctx.guild.id}")
         await ctx.send(embed=embed)
 
-    @commands.command(aliases=['bi', 'about'])
+    @commands.command(aliases=['bi', 'about', 'info'])
     async def botinfo(self, ctx):
+        """Show bot information."""
         embed = discord.Embed(
                 title="About ziBot",
                 colour=discord.Colour(0xFFFFF0),
@@ -229,6 +231,7 @@ class General(commands.Cog):
     
     @commands.command(aliases=['spi','spot','spotify'], usage="[member]")
     async def spotifyinfo(self, ctx, *, user: discord.Member=None):
+        """Show member's spotify information."""
         user = user or ctx.message.author 
         if spotify := discord.utils.find(lambda a: isinstance(a, discord.Spotify), user.activities):
             offset = 27 # Sometime it wont line up on some server, this is the only solution i could come up with
