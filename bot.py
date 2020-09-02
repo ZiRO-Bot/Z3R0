@@ -24,6 +24,18 @@ def check_jsons():
     except FileNotFoundError:
         with open('data/guild.json', 'w+') as f:
             json.dump({"0": {}}, f, indent=4)
+    
+    try:
+        f = open('data/custom_commands.json', 'r')
+    except FileNotFoundError:
+        with open('data/custom_commands.json', 'w+') as f:
+            json.dump({"0": {}}, f, indent=4)
+    
+    try:
+        f = open('data/anime.json', 'r')
+    except FileNotFoundError:
+        with open('data/anime.json', 'w+') as f:
+            json.dump({"0": {}}, f, indent=4)
 
 def get_cogs():
     """callable extensions"""
