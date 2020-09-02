@@ -130,7 +130,7 @@ class Help(commands.Cog):
                 )
         with open('data/custom_commands.json', 'r') as f:
             commands = json.load(f)
-            ccmds = ", ".join([*commands])
+            ccmds = ", ".join([*commands[str(ctx.guild.id)]])
             # await ctx.send(f"```List of custom commands: \n{ccmds}```")
             # output += f'{ccmds}```'
         embed.add_field(name="Custom Commands", value=f"{ccmds}", inline=False)

@@ -73,9 +73,6 @@ class ziBot(commands.Bot):
         with open('data/custom_commands.json', 'r') as cc:
             self.custom_commands = json.load(cc)
 
-        # TODO: Merge this two!
-        with open('data/guild.json', 'r') as ch:
-            self.channels = json.load(ch)
         with open('data/guild.json', 'r') as ch:
             self.config = json.load(ch)
     
@@ -87,7 +84,7 @@ class ziBot(commands.Bot):
         prefixes[str(guild.id)]['prefix'] = self.def_prefix
 
         with open('data/guild.json', 'w') as f:
-            prefixes = json.dump(prefixes, f, indent=4)
+            json.dump(prefixes, f, indent=4)
     
     async def on_guild_remove(self, guild):
         with open('data/guild.json', 'r') as f:
@@ -96,7 +93,7 @@ class ziBot(commands.Bot):
         del prefixes[str(guild.id)]
 
         with open('data/guild.json', 'w') as f:
-            prefixes = json.dump(prefixes, f, indent=4)
+            json.dump(prefixes, f, indent=4)
 
     async def on_ready(self): 
         activity=discord.Activity(name="over your shoulder",type=discord.ActivityType.watching)
@@ -116,8 +113,8 @@ class ziBot(commands.Bot):
             pass
         
         try:
-            if command in self.custom_commands:
-                await message.channel.send(self.custom_commands[command])
+            if command in self.custom_commands[str(message.guild.id)]:
+                await message.channel.send(self.custom_commands[str(message.guild.id)][command])
                 return
         except:
             return
