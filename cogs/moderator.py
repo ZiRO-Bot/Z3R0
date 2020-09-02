@@ -277,6 +277,10 @@ class Admin(commands.Cog):
         with open('data/guild.json', 'w') as f:
             if value[0] == '[' and value[len(value) - 1] == ']':
                 value = list(map(int, value[1:-1].split(',')))
+            try:
+                value = int(value)
+            except ValueError:
+                pass
             self.bot.config[str(ctx.message.guild.id)][key] = value
             json.dump(self.bot.config, f, indent=4)
 
