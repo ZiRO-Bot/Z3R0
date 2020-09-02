@@ -164,6 +164,21 @@ class Fun(commands.Cog):
             result = ("Noob wins!")
         await ctx.send(result)
 
+    @commands.command(usage="[amount of ping]")
+    async def pingme(self, ctx, amount: int=1):
+        """Ping yourself for no reason"""
+        channel = self.bot.get_channel(
+                                       int(self.bot.channels[
+                                            str(ctx.message.guild.id)][
+                                                "pingme_ch"]
+                                          )
+                                      )
+        msg = await ctx.send("Pinging...")
+        for i in range(amount):
+            await asyncio.sleep(3)
+            await channel.send(ctx.author.mention)
+        await msg.delete()
+
 def setup(bot):
     bot.add_cog(Fun(bot))
 
