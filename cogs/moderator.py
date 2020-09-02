@@ -274,7 +274,7 @@ class Admin(commands.Cog):
     @commands.check(is_botmaster)
     async def setvar(self, ctx, key, *, value):
         """Set a config variable, ***use with caution**"""
-        with open('config.json', 'w') as f:
+        with open('data/guild.json', 'w') as f:
             if value[0] == '[' and value[len(value) - 1] == ']':
                 value = list(map(int, value[1:-1].split(',')))
             self.bot.config[str(ctx.message.guild.id)][key] = value
@@ -295,7 +295,7 @@ class Admin(commands.Cog):
     @commands.check(is_botmaster)
     async def delvar(self, ctx, key):
         """Deletes a config variable, be careful"""
-        with open('config.json', 'w') as f:
+        with open('data/guild.json', 'w') as f:
             await ctx.send(
                     f"Removed {self.bot.config[str(ctx.message.guild.id)].pop(key)}"
                     )

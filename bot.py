@@ -73,8 +73,11 @@ class ziBot(commands.Bot):
         with open('data/custom_commands.json', 'r') as cc:
             self.custom_commands = json.load(cc)
 
+        # TODO: Merge this two!
         with open('data/guild.json', 'r') as ch:
             self.channels = json.load(ch)
+        with open('data/guild.json', 'r') as ch:
+            self.config = json.load(ch)
     
     async def on_guild_join(self, guild):
         with open('data/guild.json', 'r') as f:
