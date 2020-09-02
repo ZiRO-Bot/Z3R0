@@ -11,6 +11,83 @@ from discord.ext import commands
 from pytz import timezone
 from utilities.formatting import bar_make
 
+MORSE_CODE_DICT = {
+    "A": ".-",
+    "B": "-...",
+    "C": "-.-.",
+    "D": "-..",
+    "E": ".",
+    "F": "..-.",
+    "G": "--.",
+    "H": "....",
+    "I": "..",
+    "J": ".---",
+    "K": "-.-",
+    "L": ".-..",
+    "M": "--",
+    "N": "-.",
+    "O": "---",
+    "P": ".--.",
+    "Q": "--.-",
+    "R": ".-.",
+    "S": "...",
+    "T": "-",
+    "U": "..-",
+    "V": "...-",
+    "W": ".--",
+    "X": "-..-",
+    "Y": "-.--",
+    "Z": "--..",
+    "1": ".----",
+    "2": "..---",
+    "3": "...--",
+    "4": "....-",
+    "5": ".....",
+    "6": "-....",
+    "7": "--...",
+    "8": "---..",
+    "9": "----.",
+    "0": "-----",
+    ", ": "--..--",
+    ".": ".-.-.-",
+    "?": "..--..",
+    "/": "-..-.",
+    "-": "-....-",
+    "(": "-.--.",
+    ")": "-.--.-",
+}
+
+def encode(msg):
+    morse = ""
+    for letter in msg:
+        if letter != " ":
+            morse += MORSE_CODE_DICT[letter.upper()] + " "
+        else:
+            morse += "/ "
+    return morse
+
+def decode(msg):
+    msg = msg.replace("/ ", " ") + " "
+    temp = ""
+    decoded = ""
+    for code in msg:
+        if code not in [".","-","/"," "] and \
+                code.upper() in list(MORSE_CODE_DICT.keys()):
+            return None
+        if code != " ":
+            i = 0
+            temp += code
+        else:
+            i += 1
+            if i == 2:
+                decoded += " "
+            else:
+                decoded += list(MORSE_CODE_DICT.keys())\
+                        [list(MORSE_CODE_DICT.values()).index(temp)]
+                temp = ""
+
+    return decoded
+
 class General(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -264,6 +341,28 @@ class General(commands.Cog):
                                   description=f"{user.mention} is not listening to Spotify!",
                                   colour=discord.Colour(0x2F3136))
             await ctx.send(embed=embed)
+    
+    @commands.command()
+    async def morse(self, ctx, *msg):
+        """Encode message into morse code"""
+        e = discord.Embed(
+                          title=f"{ctx.author.name}#{ctx.author.discriminator}",
+                          description=encode(" ".join([*msg]))
+                         )
+        await ctx.send(embed=e)
+    
+    @commands.command(aliases=["demorse"])
+    async def unmorse(self, ctx, *, msg):
+        """Decode morse code"""
+        decoded = decode(str(" ".join([*msg])))
+        if decoded is None:
+            await ctx.send(f"{msg} is not a morse code!")
+            return
+        e = discord.Embed(
+                          title=f"{ctx.author.name}#{ctx.author.discriminator}",
+                          description=decoded
+                         )
+        await ctx.send(embed=e)
 
 def setup(bot):
     bot.add_cog(General(bot))
