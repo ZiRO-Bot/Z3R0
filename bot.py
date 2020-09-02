@@ -23,19 +23,19 @@ def check_jsons():
         f = open('data/guild.json', 'r')
     except FileNotFoundError:
         with open('data/guild.json', 'w+') as f:
-            json.dump({"0": {}}, f, indent=4)
+            json.dump({}, f, indent=4)
     
     try:
         f = open('data/custom_commands.json', 'r')
     except FileNotFoundError:
         with open('data/custom_commands.json', 'w+') as f:
-            json.dump({"0": {}}, f, indent=4)
+            json.dump({}, f, indent=4)
     
     try:
         f = open('data/anime.json', 'r')
     except FileNotFoundError:
         with open('data/anime.json', 'w+') as f:
-            json.dump({"0": {}}, f, indent=4)
+            json.dump({"watchlist": []}, f, indent=4)
 
 def get_cogs():
     """callable extensions"""
@@ -80,6 +80,7 @@ class ziBot(commands.Bot):
         with open('data/guild.json', 'r') as f:
             prefixes = json.load(f)
 
+        prefixes[str(guild.id)] = {}
         prefixes[str(guild.id)]['prefix'] = self.def_prefix
 
         with open('data/guild.json', 'w') as f:
@@ -89,7 +90,7 @@ class ziBot(commands.Bot):
         with open('data/guild.json', 'r') as f:
             prefixes = json.load(f)
 
-        del prefixes[str(guild.id)]['prefix']
+        del prefixes[str(guild.id)]
 
         with open('data/guild.json', 'w') as f:
             prefixes = json.dump(prefixes, f, indent=4)
