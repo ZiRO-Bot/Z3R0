@@ -24,8 +24,11 @@ class Welcome(commands.Cog, name="Welcome"):
                                                        "welcome_ch"]
                                                   )
                                               )
-        member_role = discord.utils.get(member.guild.roles, name="Member")
-        await member.add_roles(member_role)
+        try:
+            member_role = discord.utils.get(member.guild.roles, name="Member")
+            await member.add_roles(member_role)
+        except NoneType:
+            pass
         await welcome_channel.send(f"{welcome_msg[randint(0, len(welcome_msg) - 1)]}")
 
 def setup(bot):

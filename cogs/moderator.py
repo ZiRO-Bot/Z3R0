@@ -270,5 +270,36 @@ class Admin(commands.Cog):
                              )
         await ctx.send(embed=embed)
 
+    @commands.command()
+    @commands.check(is_botmaster)
+    async def setvar(self, ctx, key, *, value):
+        """Set a config variable, ***use with caution**"""
+        with open('config.json', 'w') as f:
+            if value[0] == '[' and value[len(value) - 1] == ']':
+                value = list(map(int, value[1:-1].split(',')))
+            self.bot.config[str(ctx.message.guild.id)][key] = value
+            json.dump(self.bot.config, f, indent=4)
+
+    @commands.command()
+    @commands.check(is_mod)
+    async def printvar(self, ctx, key=None):
+        """Print config variables, use for testing"""
+        if key == None:
+            for key, value in self.bot.config[str(
+                    ctx.message.guild.id)].items():
+                await ctx.send(f'Key: {key} | Value: {value}')
+        else:
+            await ctx.send(self.bot.config[str(ctx.message.guild.id)][key])
+
+    @commands.command(aliases=['rmvar'])
+    @commands.check(is_botmaster)
+    async def delvar(self, ctx, key):
+        """Deletes a config variable, be careful"""
+        with open('config.json', 'w') as f:
+            await ctx.send(
+                    f"Removed {self.bot.config[str(ctx.message.guild.id)].pop(key)}"
+                    )
+            json.dump(self.bot.config, f, indent=4)
+
 def setup(bot):
     bot.add_cog(Admin(bot))
