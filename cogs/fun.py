@@ -89,7 +89,6 @@ class Fun(commands.Cog):
                                                )
                                            )
         meme_subreddits = ['memes', 
-                           'PewdiepieSubmissions', 
                            'funny']
         reg_img = r".*/(i)\.redd\.it"
 
