@@ -77,23 +77,17 @@ class ziBot(commands.Bot):
             self.config = json.load(ch)
     
     async def on_guild_join(self, guild):
-        with open('data/guild.json', 'r') as f:
-            prefixes = json.load(f)
-
-        prefixes[str(guild.id)] = {}
-        prefixes[str(guild.id)]['prefix'] = self.def_prefix
-
         with open('data/guild.json', 'w') as f:
-            json.dump(prefixes, f, indent=4)
+            self.config[str(guild.id)] = {}
+            self.config[str(guild.id)]['prefix'] = self.def_prefix
+
+            json.dump(self.config, f, indent=4)
     
     async def on_guild_remove(self, guild):
-        with open('data/guild.json', 'r') as f:
-            prefixes = json.load(f)
-
-        del prefixes[str(guild.id)]
-
         with open('data/guild.json', 'w') as f:
-            json.dump(prefixes, f, indent=4)
+            del self.config[str(guild.id)]
+
+            json.dump(self.config, f, indent=4)
 
     async def on_ready(self): 
         activity=discord.Activity(name="over your shoulder",type=discord.ActivityType.watching)
