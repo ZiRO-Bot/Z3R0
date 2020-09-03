@@ -6,7 +6,7 @@ import praw
 import re
 
 from discord.ext import commands
-from random import randint
+from random import choice, randint
 from typing import Optional
 from dotenv import load_dotenv
 
