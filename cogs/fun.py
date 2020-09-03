@@ -256,7 +256,6 @@ class Fun(commands.Cog):
             await asyncio.sleep(round(error.retry_after))
             await bot_msg.delete()
 
-    @commands.cooldown(1, 25, commands.BucketType.guild)
     @commands.command()
     @commands.check(is_redarmy)
     async def someone(self, ctx):
