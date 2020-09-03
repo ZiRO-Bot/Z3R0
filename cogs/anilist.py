@@ -405,6 +405,9 @@ class AniList(commands.Cog):
     def cog_unload(self):
         self.handle_schedule.cancel()
 
+    async def is_mainserver(ctx):
+        return ctx.guild.id == 645074407244562444
+
     @tasks.loop(hours=24)
     async def handle_schedule(self):
         self.logger.warning("Checking for new releases on AniList...")
@@ -434,6 +437,7 @@ class AniList(commands.Cog):
         return
     
     @anime.command(usage="(anime) [format]")
+    @commands.check(is_mainserver)
     async def watch(self, ctx, anime, _format: str=None):
         """Add anime to watchlist."""
         if not anime:
@@ -467,6 +471,7 @@ class AniList(commands.Cog):
         return
     
     @anime.command(usage="(anime) [format]")
+    @commands.check(is_mainserver)
     async def unwatch(self, ctx, anime, _format: str=None):
         """Remove anime to watchlist."""
         if not anime:
@@ -501,6 +506,7 @@ class AniList(commands.Cog):
         return
     
     @anime.command(aliases=['wl', 'list'])
+    @commands.check(is_mainserver)
     async def watchlist(self, ctx):
         """Get list of anime that added to watchlist."""
         await getwatchlist(self, ctx)
