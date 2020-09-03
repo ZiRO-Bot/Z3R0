@@ -166,13 +166,20 @@ async def getwatchlist(self, ctx):
                     icon_url="https://gblobscdn.gitbook.com/spaces%2F-LHizcWWtVphqU90YAXO%2Favatar.png")
     jakarta = timezone('Asia/Jakarta')
     for e in a['Page']['media']:
-        _time_ = str(datetime.datetime.fromtimestamp(e['nextAiringEpisode']['airingAt'],
-                     tz=jakarta).strftime('%d %b %Y - %H:%M WIB'))
-        _timeTillAired_ = str(datetime.timedelta(seconds=e['nextAiringEpisode']['timeUntilAiring']))
-        embed.add_field(name=f"{e['title']['romaji']} ({e['id']})",
-                        value=f"Episode {e['nextAiringEpisode']['episode']} will be aired at" 
-                        + f" **{_time_}** (**{_timeTillAired_}**)", 
-                        inline=False)
+        if e['nextAiringEpisode']:
+            status="AIRING"
+            _time_ = str(datetime.datetime.fromtimestamp(e['nextAiringEpisode']['airingAt'],
+                         tz=jakarta).strftime('%d %b %Y - %H:%M WIB'))
+            _timeTillAired_ = str(datetime.timedelta(seconds=e['nextAiringEpisode']['timeUntilAiring']))
+            embed.add_field(name=f"{e['title']['romaji']} ({e['id']})",
+                            value=f"Episode {e['nextAiringEpisode']['episode']} will be aired at" 
+                                + f" **{_time_}** (**{_timeTillAired_}**)", 
+                            inline=False)
+        else:
+            status="FINISHED"
+            embed.add_field(name=f"{e['title']['romaji']} ({e['id']})",
+                            value=status or "...",
+                            inline=False)
     await ctx.send(embed=embed)
 
 async def getschedule(self, _time_, page):
