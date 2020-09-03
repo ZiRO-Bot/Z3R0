@@ -258,13 +258,10 @@ class Admin(commands.Cog):
     @commands.check(is_botmaster)
     async def prefix(self, ctx, prefix):
         """Change bot prefix"""
-        with open('data/guild.json', 'r') as f:
-            prefixes = json.load(f)
-
-        prefixes[str(ctx.message.guild.id)]['prefix'] = prefix
 
         with open('data/guild.json', 'w') as f:
-            prefixes = json.dump(prefixes, f, indent=4)
+            self.bot.config[str(ctx.message.guild.id)]['prefix'] = prefix
+            json.dump(self.bot.config, f, indent=4)
         embed = discord.Embed(
                               title=f"Prefix has been changed to `{prefix}`"
                              )
