@@ -26,8 +26,8 @@ class CustomHelp(commands.HelpCommand):
     def get_ending_note(self):
         return 'Use {0}{1} [command] for more info on a command.'.format(self.clean_prefix, self.invoked_with)
 
-    def get_command_signature(self, command):
-        return '{0.qualified_name} {0.signature}'.format(command)
+    def get_command_signature(self, cmd):
+        return f'{self.cmd_and_alias(cmd)} {cmd.signature}'
     
     def command_not_found(self, string):
         return f'There\'s no command called `{string}`'
@@ -36,6 +36,10 @@ class CustomHelp(commands.HelpCommand):
         if isinstance(command, Group) and len(command.all_commands) > 0:
             return f'Command `{command.qualified_name}` has no subcommand called `{string}`'
         return f'Command `{command.qualified_name}` has no subcommands'
+
+    def cmd_and_alias(self, command):
+        cmd = " | ".join([str(command.qualified_name), *command.aliases])
+        return cmd
 
     async def send_error_message(self, error):
         embed = discord.Embed(title="Error!",

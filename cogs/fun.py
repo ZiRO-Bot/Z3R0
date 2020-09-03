@@ -36,6 +36,9 @@ class Fun(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
+    async def is_redarmy(ctx):
+        return ctx.guild.id == 747984453585993808
+
     @commands.command()
     @commands.cooldown(1, 5)
     async def flip(self, ctx):
@@ -252,6 +255,12 @@ class Fun(commands.Cog):
             bot_msg = await ctx.send(f"{ctx.message.author.mention}, slowdown bud!")
             await asyncio.sleep(round(error.retry_after))
             await bot_msg.delete()
+
+    @commands.cooldown(1, 25, commands.BucketType.guild)
+    @commands.command()
+    @commands.check(is_redarmy)
+    async def someone(self, ctx):
+        await ctx.send(choice(ctx.guild.members).mention)
 
 def setup(bot):
     bot.add_cog(Fun(bot))
