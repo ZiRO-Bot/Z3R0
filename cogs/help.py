@@ -12,7 +12,15 @@ class CustomHelp(commands.HelpCommand):
     COLOUR = discord.Colour.blue()
     
     def get_desc(self):
-        desc = f"Bot prefixes is `{self.clean_prefix}`"
+        with open('data/guild.json', 'r') as f:
+            prefixes = json.load(f)[str(self.get_destination().guild.id)]\
+                    ['prefix']
+        if len(prefixes) > 1:
+            s = "are"
+        else:
+            s = "is"
+        prefixes = ", ".join(prefixes)
+        desc = f"Bot prefixes {s} `{prefixes}`"
         return desc
 
     def get_ending_note(self):

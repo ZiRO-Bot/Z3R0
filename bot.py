@@ -79,7 +79,7 @@ class ziBot(commands.Bot):
     async def on_guild_join(self, guild):
         with open('data/guild.json', 'w') as f:
             self.config[str(guild.id)] = {}
-            self.config[str(guild.id)]['prefix'] = self.def_prefix
+            self.config[str(guild.id)]['prefix'] = [self.def_prefix]
 
             json.dump(self.config, f, indent=4)
     
