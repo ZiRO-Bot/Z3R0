@@ -48,9 +48,11 @@ MORSE_CODE_DICT = {
     "8": "---..",
     "9": "----.",
     "0": "-----",
-    ", ": "--..--",
     ".": ".-.-.-",
+    ", ": "--..--",
     "?": "..--..",
+    "'": ".----.",
+    "!": "-.-.--",
     "/": "-..-.",
     "-": "-....-",
     "(": "-.--.",
@@ -352,11 +354,11 @@ class General(commands.Cog):
         await ctx.send(embed=e)
     
     @commands.command(aliases=["demorse"])
-    async def unmorse(self, ctx, *, msg):
+    async def unmorse(self, ctx, *msg):
         """Decode morse code"""
         decoded = decode(str(" ".join([*msg])))
         if decoded is None:
-            await ctx.send(f"{msg} is not a morse code!")
+            await ctx.send(f"{' '.join([*msg])} is not a morse code!")
             return
         e = discord.Embed(
                           title=f"{ctx.author.name}#{ctx.author.discriminator}",
