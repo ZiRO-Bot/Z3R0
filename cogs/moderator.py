@@ -12,6 +12,15 @@ from discord.errors import Forbidden
 from discord.ext import commands
 from utilities.formatting import realtime
 
+ch_types = {
+        "general": "general",
+        "voice": "voice",
+        "welcome": "welcome_ch",
+        "purgatory": "purge_ch",
+        "meme": "meme_ch",
+        "pingme": "pingme_ch"
+        }
+
 class Admin(commands.Cog):
     def __init__(self, bot):
         self.logger = logging.getLogger('discord')
@@ -231,7 +240,7 @@ class Admin(commands.Cog):
     @commands.command(aliases=['addcommand', 'newcommand'])
     @commands.check(is_mod)
     async def setcommand(self, ctx, command, *, message):
-        """Add a new simple command"""
+        """Add a new simple command."""
         self.bot.custom_commands[str(ctx.guild.id)][ctx.prefix + command] = message
         with open('data/custom_commands.json', 'w') as f:
             json.dump(self.bot.custom_commands, f, indent=4)
@@ -244,7 +253,7 @@ class Admin(commands.Cog):
     @commands.command(aliases=['deletecommand'])
     @commands.check(is_mod)
     async def removecommand(self, ctx, command):
-        """Remove a simple command"""
+        """Remove a simple command."""
         del self.bot.custom_commands[str(ctx.guild.id)][ctx.prefix + command]
         with open('data/custom_commands.json', 'w') as f:
             json.dump(self.bot.custom_commands, f, indent=4)
@@ -257,7 +266,7 @@ class Admin(commands.Cog):
     @commands.command(aliases=['setprefix'])
     @commands.check(is_botmaster)
     async def prefix(self, ctx, *, prefix):
-        """Change bot prefix"""
+        """Change bot prefix."""
         prefix = [*prefix]
         prefix.append(" ")
         prefixes = []
@@ -285,7 +294,7 @@ class Admin(commands.Cog):
     @commands.command()
     @commands.check(is_botmaster)
     async def setvar(self, ctx, key, *, value):
-        """Set a config variable, ***use with caution**"""
+        """Set a config variable, ***use with caution!**"""
         with open('data/guild.json', 'w') as f:
             if value[0] == '[' and value[len(value) - 1] == ']':
                 value = list(map(int, value[1:-1].split(',')))
@@ -299,7 +308,7 @@ class Admin(commands.Cog):
     @commands.command()
     @commands.check(is_mod)
     async def printvar(self, ctx, key=None):
-        """Print config variables, use for testing"""
+        """Print config variables, use for testing."""
         if key == None:
             for key, value in self.bot.config[str(
                     ctx.message.guild.id)].items():
@@ -310,12 +319,95 @@ class Admin(commands.Cog):
     @commands.command(aliases=['rmvar'])
     @commands.check(is_botmaster)
     async def delvar(self, ctx, key):
-        """Deletes a config variable, be careful"""
+        """Deletes a config variable, be careful!"""
         with open('data/guild.json', 'w') as f:
             await ctx.send(
                     f"Removed {self.bot.config[str(ctx.message.guild.id)].pop(key)}"
                     )
             json.dump(self.bot.config, f, indent=4)
+
+    @commands.command()
+    @commands.check(is_botmaster)
+    async def leave(self, ctx):
+        """Leave the server."""
+        await ctx.message.guild.leave()
+
+    @commands.group()
+    @commands.check(is_mod)
+    async def channel(self, ctx):
+        """Manage server's channel."""
+        pass
+
+    @channel.command(alias=['type'])
+    async def types(self, ctx):
+        """Get channel types."""
+        _type = ", ".join(list(ch_types.keys()))
+        await ctx.send(f"Channel types: `{_type}`")
+
+    @channel.command(aliases=["make"], brief="Create a new channel.", usage="(channel type) (channel name)")
+    async def create(self, ctx, _type, *name):
+        """Create a new channel."""
+        if not _type:
+            return
+        name = "-".join([*name])
+        if not name:
+            return
+        g = ctx.message.guild
+        if _type.lower() == "voice":
+            ch = await g.create_voice_channel(name)
+            e = discord.Embed(title=f"Voice Channel called `{name}` has been created!")
+        else:
+            if _type.lower() not in list(ch_types.keys()):
+                await ctx.send("Not valid channel type")
+                return
+            ch = await g.create_text_channel(name)
+            if _type.lower() == "general":
+                e = discord.Embed(title=f"Text Channel called `{ch.name}` has been created!")
+            else:
+                with open('data/guild.json', 'w') as f:
+
+                    key = ch_types[_type.lower()]
+
+                    try:
+                        value = int(ch.id)
+                    except ValueError:
+                        json.dump(self.bot.config, f, indent=4)
+                        return
+
+                    self.bot.config[str(ctx.message.guild.id)][key] = value
+                    json.dump(self.bot.config, f, indent=4)
+                e = discord.Embed(title=f"Text Channel for {_type.title()} " 
+                                      + f"called `{ch.name}` has been created!")
+                
+        await ctx.send(embed=e)
+    
+    @channel.command()
+    async def set(self, ctx, _id, _type):
+        """Change channel type."""
+        try:
+            _id = int(_id)
+        except ValueError:
+            return
+        if _type.lower() not in list(ch_types.keys()):
+            return
+        ch = ctx.guild.get_channel(_id)
+        if isinstance(ch, discord.channel.VoiceChannel):
+            await ctx.send("You cannot change Voice Channel's type!")
+            return
+        with open('data/guild.json', 'w') as f:
+
+            key = ch_types[_type.lower()]
+
+            try:
+                value = int(_id)
+            except ValueError:
+                json.dump(self.bot.config, f, indent=4)
+                return
+
+            self.bot.config[str(ctx.message.guild.id)][key] = value
+            json.dump(self.bot.config, f, indent=4)
+        e = discord.Embed(title=f"``{ch.name}``'s type has been changed to ``{_type}``")
+        await ctx.send(embed=e)
 
 def setup(bot):
     bot.add_cog(Admin(bot))
