@@ -381,7 +381,7 @@ class Admin(commands.Cog):
                 
         await ctx.send(embed=e)
     
-    @channel.command()
+    @channel.command(usage="(channel id) (channel type)")
     async def set(self, ctx, _id, _type):
         """Change channel type."""
         try:
