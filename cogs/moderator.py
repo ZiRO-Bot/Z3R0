@@ -389,6 +389,7 @@ class Admin(commands.Cog):
         except ValueError:
             return
         if _type.lower() not in list(ch_types.keys()):
+            await ctx.send("Not valid channel type")
             return
         ch = ctx.guild.get_channel(_id)
         if isinstance(ch, discord.channel.VoiceChannel):
