@@ -173,16 +173,28 @@ class Fun(commands.Cog):
     @commands.command(usage="[amount of ping]")
     async def pingme(self, ctx, amount: int=1):
         """Ping yourself for no reason"""
-        channel = self.bot.get_channel(
-                                       int(self.bot.config[
-                                            str(ctx.message.guild.id)][
-                                                "pingme_ch"]
+        try:
+            channel = self.bot.get_channel(
+                                           int(self.bot.config[
+                                                str(ctx.message.guild.id)][
+                                                   "pingme_ch"]
+                                              )
                                           )
-                                      )
+        except KeyError:
+            await ctx.send("This server doesn't have channel with type `pingme`")
+            return
         msg = await ctx.send("Pinging...")
         for i in range(amount):
             await asyncio.sleep(3)
-            await channel.send(ctx.author.mention)
+            if channel:
+                try:
+                    await channel.send(ctx.author.mention)
+                except:
+                    await ctx.send("ziBot doesn't have permission to send message inside pingme channel!")
+                    break
+            else:
+                await ctx.send("Channel with type `pingme` can't be found!")
+                break
         await msg.delete()
 
     @commands.cooldown(1, 25, commands.BucketType.guild)
