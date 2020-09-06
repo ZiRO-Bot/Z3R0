@@ -6,6 +6,7 @@ import praw
 import re
 
 from discord.ext import commands
+from discord.errors import Forbidden
 from random import choice, randint
 from typing import Optional
 from dotenv import load_dotenv
@@ -189,7 +190,7 @@ class Fun(commands.Cog):
             if channel:
                 try:
                     await channel.send(ctx.author.mention)
-                except:
+                except Forbidden:
                     await ctx.send("ziBot doesn't have permission to send message inside pingme channel!")
                     break
             else:
