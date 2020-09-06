@@ -146,10 +146,6 @@ query($page: Int = 0, $amount: Int = 50, $mediaId: [Int!]!) {
 }
 '''
 
-# TODO: Make a command to add more anime to watchlist.
-# Temporary watchlist
-wl=[108489, 111762]
-
 def checkjson():
     try:
         f = open('data/anime.json', 'r')
@@ -249,9 +245,7 @@ async def find_with_name(self, ctx, anime, _type_):
         return q['data']
     except TypeError:
         if not _type_:
-            # await ctx.send(f"{anime} not found")
             return "NameNotFound"
-        # await ctx.send(f"{anime} with format {_type_} not found")
         return "NameTypeNotFound"
 
 async def find_id(self, ctx, url, _type_: str=None):
@@ -291,7 +285,7 @@ async def getinfo(self, ctx, other, _format_: str=None):
     mediaId = await find_id(self, ctx, other, _format_)
     if mediaId == "NameNotFound" or mediaId == "NameTypeNotFound":
         return mediaId
-    elif not mediaId:
+    if not mediaId:
         return None
 
     a = await query(generalQ,
@@ -312,11 +306,11 @@ async def send_info(self, ctx, other, _format_: str=None):
         embed.description = f"**{other}** not found"
         await ctx.send(embed=embed)
         return None
-    elif a == "NameTypeNotFound":
+    if a == "NameTypeNotFound":
         embed.description = f"**{other}** with format {_format_} not found"
         await ctx.send(embed=embed)
         return None
-    elif a is None:
+    if a is None:
         embed.description = f"Anime with id **{other}** not found"
         await ctx.send(embed=embed)
         return None
@@ -438,13 +432,16 @@ class AniList(commands.Cog):
         await getschedule(self, int(time.time() 
                                 + (24 * 60 * 60 * 1000 * 1) / 1000 ), 1)
     
-    @commands.group(brief="Get information about anime from AniList")
+    @commands.group(brief="Get information about anime from AniList.")
     async def anime(self, ctx):
         """Get information about anime from AniList"""
     
-    @anime.command(usage="(anime) [format]")
-    async def info(self, ctx, anime, _format: str=None):
-        """Get information about an anime."""
+    @anime.command(name="info", usage="(anime) [format]", brief="Get information about an anime.")
+    async def animeinfo(self, ctx, anime, _format: str=None):
+        """Get information about an anime.\n\
+           **Example**\n\
+           `>anime info Kimi_no_Na_Wa`\n\
+           `>anime info "Koe no Katachi" Movie`"""
         if not anime:
             await ctx.send("Please specify the anime!")
         async with ctx.typing():
