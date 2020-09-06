@@ -88,7 +88,7 @@ query($name:String,$aniformat:MediaFormat){
 
 generalQ = '''
 query($mediaId: Int){
-    Media(id:$mediaId){
+    Media(id:$mediaId, type:ANIME){
         id, 
         title {
             romaji, 
@@ -129,7 +129,7 @@ query($page: Int = 0, $amount: Int = 50, $mediaId: [Int!]!) {
       currentPage
       hasNextPage
     }
-    media(id_in: $mediaId){
+    media(id_in: $mediaId, type:ANIME){
         id,
         title {
             romaji,
@@ -156,6 +156,18 @@ def checkjson():
     except FileNotFoundError:
         with open('data/anime.json', 'w+') as f:
             json.dump({"watchlist": []}, f, indent=4)
+
+async def query(query: str, variables: Optional[str]):
+    if not query:
+        return None
+    async with session.post("https://graphql.anilist.co", 
+                            json={'query': query, 
+                                  'variables': variables}) as req:
+        try:
+            if (json.loads(await req.text())['errors']):
+                return None
+        except KeyError:
+            return json.loads(await req.text())
 
 async def getwatchlist(self, ctx):
     a = await query(listQ, {'mediaId' : self.watchlist})
@@ -223,18 +235,24 @@ async def getschedule(self, _time_, page):
         getschedule(self, int(time.time() 
                     + (24 * 60 * 60 * 1000 * 1) / 1000 ), page+1)
 
-
-async def query(query: str, variables: Optional[str]):
-    if not query:
-        return None
-    async with session.post("https://graphql.anilist.co", 
-                            json={'query': query, 
-                                  'variables': variables}) as req:
-        try:
-            if (json.loads(await req.text())['errors']):
-                return None
-        except KeyError:
-            return json.loads(await req.text())
+async def find_with_name(self, ctx, anime, _type_):
+    if not _type_:
+        q = await query("query($name:String){Media(search:$name,type:ANIME){id," 
+            + "title {romaji,english}, coverImage {large}, status, episodes, averageScore, seasonYear  } }",
+            {'name': anime})
+    else: 
+        _type_ = str(_type_.upper())
+        q = await query("query($name:String,$atype:MediaFormat){Media(search:$name,type:ANIME,format:$atype){id," 
+            + "title {romaji,english}, coverImage {large}, status, episodes, averageScore, seasonYear  } }",
+            {'name': anime,'atype': _type_})
+    try:
+        return q['data']
+    except TypeError:
+        if not _type_:
+            # await ctx.send(f"{anime} not found")
+            return "NameNotFound"
+        # await ctx.send(f"{anime} with format {_type_} not found")
+        return "NameTypeNotFound"
 
 async def find_id(self, ctx, url, _type_: str=None):
     # if input is ID, just return it, else find id via name (string)        
@@ -257,28 +275,52 @@ async def find_id(self, ctx, url, _type_: str=None):
     match = re.search(regexMAL, url)
     if not match:
         _id_ = await find_with_name(self, ctx, url, _type_)
-        if not _id_:
-            return
+        if _id_ == "NameNotFound" or _id_ == "NameTypeNotFound":
+            return _id_
         return int(_id_['Media']['id'])
-
+    
+    # getting ID from MAL ID
     q = await query("query($malId: Int){Media(idMal:$malId){id}}", {'malId': match.group(1)})
     if q is None:
         print("Error")
-        return
+        await ctx.send(f"Anime with id **{url}** can't be found.")
+        return None
     return int(q['data']['Media']['id'])
 
 async def getinfo(self, ctx, other, _format_: str=None):
     mediaId = await find_id(self, ctx, other, _format_)
+    if mediaId == "NameNotFound" or mediaId == "NameTypeNotFound":
+        return mediaId
+    elif not mediaId:
+        return None
+
     a = await query(generalQ,
             {'mediaId' : mediaId})
-    if a is None:
-        await ctx.send(f"Anime with id **{mediaId}** can't be found.")
+    if not a:
         return
     a = a['data']
     return a
 
 async def send_info(self, ctx, other, _format_: str=None):
     a = await getinfo(self, ctx, other, _format_)
+    
+    embed = discord.Embed(title="404",
+                          colour = discord.Colour(0x02A9FF))
+    embed.set_author(name="AniList",
+                     icon_url="https://gblobscdn.gitbook.com/spaces%2F-LHizcWWtVphqU90YAXO%2Favatar.png")
+    if a == "NameNotFound":
+        embed.description = f"**{other}** not found"
+        await ctx.send(embed=embed)
+        return None
+    elif a == "NameTypeNotFound":
+        embed.description = f"**{other}** with format {_format_} not found"
+        await ctx.send(embed=embed)
+        return None
+    elif a is None:
+        embed.description = f"Anime with id **{other}** not found"
+        await ctx.send(embed=embed)
+        return None
+
     # Streaming Site
     sites = []
     for each in a['Media']['externalLinks']:
@@ -367,24 +409,6 @@ async def search_ani(self, ctx, anime):
         inline=False)
     await ctx.send(embed=embed)
 
-async def find_with_name(self, ctx, anime, _type_):
-    if not _type_:
-        q = await query("query($name:String){Media(search:$name,type:ANIME){id," 
-            + "title {romaji,english}, coverImage {large}, status, episodes, averageScore, seasonYear  } }",
-            {'name': anime})
-    else: 
-        _type_ = str(_type_.upper())
-        q = await query("query($name:String,$atype:MediaFormat){Media(search:$name,type:ANIME,format:$atype){id," 
-            + "title {romaji,english}, coverImage {large}, status, episodes, averageScore, seasonYear  } }",
-            {'name': anime,'atype': _type_})
-    try:
-        return q['data']
-    except TypeError:
-        if not _type_:
-            await ctx.send(f"{anime} not found")
-            return None
-        await ctx.send(f"{anime} with format {_type_} not found")
-        return None
 
 # async def createAnnoucementEmbed(entry: str=None, date: str=None, upNext: str=None):
 
