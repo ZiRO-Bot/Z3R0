@@ -278,7 +278,28 @@ class Admin(commands.Cog):
             s=" is"
         await ctx.send(f"My prefix{s} `{', '.join(prefix)}`")
     
-    @prefix.command(name="set")
+    @prefix.command(name="mention")
+    @commands.check(is_mod)
+    async def togglemention(self, ctx):
+        """Toggle mention as prefix."""
+        g = ctx.message.guild
+        with open('data/guild.json', 'w') as f:
+            if self.bot.config[str(g.id)]['mention_as_prefix'] is True:
+                self.bot.config[str(g.id)]['mention_as_prefix'] = False
+                s = "Deactivated"
+            elif self.bot.config[str(g.id)]['mention_as_prefix'] is False:
+                self.bot.config[str(g.id)]['mention_as_prefix'] = True
+                s = "Activated"
+            else:
+                json.dump(self.bot.config, f, indent=4)
+                return
+            json.dump(self.bot.config, f, indent=4)
+        embed = discord.Embed(
+                              title=f"Mention as prefix has been `{s}`"
+                             )
+        await ctx.send(embed=embed)
+    
+    @prefix.command(name="set", usage="(prefix)")
     @commands.check(is_mod)
     async def prefixset(self, ctx, *, prefix):
         """Change bot's prefix."""

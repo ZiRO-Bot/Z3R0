@@ -55,7 +55,9 @@ def get_prefix(bot, message):
 
     with open('data/guild.json', 'r') as f:
         prefixes = json.load(f)
-
+    
+    if prefixes[str(message.guild.id)]['mention_as_prefix']:
+        return commands.when_mentioned_or(*prefixes[str(message.guild.id)]['prefix'])(bot, message)
     return prefixes[str(message.guild.id)]['prefix']
 
 class ziBot(commands.Bot):
@@ -79,6 +81,7 @@ class ziBot(commands.Bot):
     async def on_guild_join(self, guild):
         with open('data/guild.json', 'w') as f:
             self.config[str(guild.id)] = {}
+            self.config[str(guild.id)]['mention_as_prefix'] = False
             self.config[str(guild.id)]['prefix'] = [self.def_prefix]
 
             json.dump(self.config, f, indent=4)
