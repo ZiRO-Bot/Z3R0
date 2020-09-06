@@ -397,29 +397,41 @@ class Admin(commands.Cog):
                 
         await ctx.send(embed=e)
     
-    @channel.command(usage="(channel id) (channel type)")
-    async def set(self, ctx, _id, _type):
+    @channel.command(name="set", usage="(channel id) (channel type)")
+    async def ch_set(self, ctx, _id, _type):
         """Change channel type."""
+        # Check if _id is int
         try:
             _id = int(_id)
         except ValueError:
+            await ctx.send(f"Only numbers is allowed!\n**Example**: `{ctx.prefix}channel set 746649217543700551 general`")
             return
+
         if _type.lower() not in list(ch_types.keys()):
             await ctx.send("Not valid channel type")
             return
+        elif _type.lower() in ['general', 'voice']:
+            await ctx.send(f"You can't set channels to `{_type}`")
+            return
+
         ch = ctx.guild.get_channel(_id)
+        # Test if channel with the following id exist
+        try:
+            ch.name
+        except AttributeError:
+            await ctx.send(f"There's no channel with id `{_id}`")
+            return
+        
+        # Check if channel is a VoiceChannel
         if isinstance(ch, discord.channel.VoiceChannel):
             await ctx.send("You cannot change Voice Channel's type!")
             return
+
+        # If all good do the thing
         with open('data/guild.json', 'w') as f:
 
             key = ch_types[_type.lower()]
-
-            try:
-                value = int(_id)
-            except ValueError:
-                json.dump(self.bot.config, f, indent=4)
-                return
+            value = _id
 
             self.bot.config[str(ctx.message.guild.id)][key] = value
             json.dump(self.bot.config, f, indent=4)
