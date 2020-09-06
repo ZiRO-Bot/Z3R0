@@ -279,7 +279,7 @@ class Admin(commands.Cog):
         await ctx.send(f"My prefix{s} `{', '.join(prefix)}`")
     
     @prefix.command(name="set")
-    @commands.check(is_botmaster)
+    @commands.check(is_mod)
     async def prefixset(self, ctx, *, prefix):
         """Change bot's prefix."""
         g = ctx.message.guild
