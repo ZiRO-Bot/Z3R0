@@ -7,7 +7,7 @@ import logging
 import os
 import time
 
-from bot import get_cogs
+from bot import get_cogs, get_prefix
 from discord.errors import Forbidden
 from discord.ext import commands
 from utilities.formatting import realtime
@@ -263,10 +263,26 @@ class Admin(commands.Cog):
                              )
         await ctx.send(embed=embed)
 
-    @commands.command(aliases=['setprefix'])
+    @commands.group()
+    async def prefix(self, ctx):
+        """Manage bot's prefix."""
+        pass
+
+    @prefix.command()
+    async def list(self, ctx):
+        """List bot's prefixes."""
+        prefix = get_prefix(self.bot, ctx.message)
+        if len(prefix) > 1:
+            s="es are"
+        else:
+            s=" is"
+        await ctx.send(f"My prefix{s} `{', '.join(prefix)}`")
+    
+    @prefix.command(name="set")
     @commands.check(is_botmaster)
-    async def prefix(self, ctx, *, prefix):
-        """Change bot prefix."""
+    async def prefixset(self, ctx, *, prefix):
+        """Change bot's prefix."""
+        g = ctx.message.guild
         prefix = [*prefix]
         prefix.append(" ")
         prefixes = []
@@ -284,7 +300,7 @@ class Admin(commands.Cog):
                     prefixes.append(tmp)
                     tmp=""
         with open('data/guild.json', 'w') as f:
-            self.bot.config[str(ctx.message.guild.id)]['prefix'] = prefixes
+            self.bot.config[str(g.id)]['prefix'] = prefixes
             json.dump(self.bot.config, f, indent=4)
         embed = discord.Embed(
                               title=f"Prefix has been changed to `{', '.join(prefixes)}`"
