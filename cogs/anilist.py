@@ -396,7 +396,7 @@ async def send_info(self, ctx, other, _format_: str=None):
     else:
         embed.set_image(url="https://raw.githubusercontent.com/null2264/null2264/master/21519-1ayMXgNlmByb.jpg")
     embed.add_field(name="Studios",value=studio,inline=False)
-    if a['Media']['format'] == "MOVIE" or "MUSIC":
+    if str(data['format']).lower() in ["movie", "music"]:
         embed.add_field(name="Duration",value=f"{dur}")
     else: 
         embed.add_field(name="Episodes",value=f"{eps}")
@@ -529,7 +529,7 @@ class AniList(commands.Cog):
                 studios.append(studio['name'])
             embed.add_field(name="Studios", value=", ".join(studios) or "Unknown", inline=False)
             embed.add_field(name="Format", value=data['format'].replace('_', ' '))
-            if str(data['format']).lower() == "movie" or "music":
+            if str(data['format']).lower() in ["movie", "music"]:
                 if data['duration']:
                     embed.add_field(name="Duration", value=realtime(data['duration']*60))
                 else:
