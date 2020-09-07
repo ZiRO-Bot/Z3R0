@@ -1,3 +1,4 @@
+import aiohttp
 import asyncio
 import datetime
 import discord
@@ -10,6 +11,8 @@ import subprocess
 from discord.ext import commands
 from pytz import timezone
 from utilities.formatting import bar_make
+
+session = aiohttp.ClientSession()
 
 MORSE_CODE_DICT = {
     "A": ".-",
@@ -346,7 +349,7 @@ class General(commands.Cog):
     
     @commands.command()
     async def morse(self, ctx, *msg):
-        """Encode message into morse code"""
+        """Encode message into morse code."""
         e = discord.Embed(
                           title=f"{ctx.author.name}#{ctx.author.discriminator}",
                           description=encode(" ".join([*msg]))
@@ -355,7 +358,7 @@ class General(commands.Cog):
     
     @commands.command(aliases=["demorse"])
     async def unmorse(self, ctx, *msg):
-        """Decode morse code"""
+        """Decode morse code."""
         decoded = decode(str(" ".join([*msg])))
         if decoded is None:
             await ctx.send(f"{' '.join([*msg])} is not a morse code!")
@@ -364,6 +367,34 @@ class General(commands.Cog):
                           title=f"{ctx.author.name}#{ctx.author.discriminator}",
                           description=decoded
                          )
+        await ctx.send(embed=e)
+
+    @commands.command(usage="(gamertag)")
+    async def xboxinfo(self, ctx, gamertag):
+        """Show user's xbox information."""
+        xbox = "https://xbl-api.prouser123.me/profile/gamertag"
+        async with session.get(f"{xbox}/{gamertag}") as url:
+            xboxdata = json.loads(await url.text())['profileUsers'][0]['settings']
+        if not xboxdata:
+            return
+        
+        _gamertag = xboxdata[4]['value']
+        gamerscore = xboxdata[3]['value']
+        tier = xboxdata[6]['value']
+        reputation = xboxdata[8]['value']
+
+        e = discord.Embed(
+                          title=_gamertag,
+                          color=discord.Colour(0x107C10),
+                          timestamp=ctx.message.created_at
+                         )
+        e.set_author(name="Xbox",
+                         icon_url="https://raw.githubusercontent.com/null2264/null2264/master/xbox.png")
+        e.set_thumbnail(url=xboxdata[5]['value'])
+        e.add_field(name="Gamerscore", value=f"<:gamerscore:752423525247352884>{gamerscore}")
+        e.add_field(name="Account Tier", value=tier)
+        e.add_field(name="Reputation", value=reputation)
+        e.set_footer(text=f"Requested by {ctx.message.author.name}#{ctx.message.author.discriminator}")
         await ctx.send(embed=e)
 
 def setup(bot):
