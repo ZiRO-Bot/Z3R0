@@ -510,8 +510,8 @@ class AniList(commands.Cog):
                 embed.set_image(url="https://raw.githubusercontent.com/null2264/null2264/master/21519-1ayMXgNlmByb.jpg")
             studios = []
             for studio in data['studios']['nodes']:
-                studios.append(studio['name']) 
-            embed.add_field(name="Studios", value=studio = ", ".join(studios))
+                studios.append(studio['name'])
+            embed.add_field(name="Studios", value=", ".join(studios) or "Unknown", inline=False)
             embed.add_field(name="Format", value=data['format'].replace('_', ' '))
             if str(data['format']).lower() == "movie":
                 if data['duration']:
@@ -519,10 +519,10 @@ class AniList(commands.Cog):
                 else:
                     embed.add_field(name="Duration", value=realtime(0))
             else:
-                embed.add_field(name="Episodes", value=data['episodes'])
+                embed.add_field(name="Episodes", value=data['episodes'] or "0")
             embed.add_field(name="Status", value=hformat(data['status']))
             genres = ", ".join(data['genres'])
-            embed.add_field(name="Genres",value=genres, inline=False)
+            embed.add_field(name="Genres",value=genres or "Unknown", inline=False)
             return embed
 
         q = await search_ani_new(self, ctx, anime, 1)
