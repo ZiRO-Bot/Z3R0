@@ -379,7 +379,7 @@ async def send_info(self, ctx, other, _format_: str=None):
     embed = discord.Embed(
             title = f"{a['Media']['title']['romaji']}",
             url = f"https://anilist.co/anime/{a['Media']['id']}",
-            description = f"**{engTitle} ({seasonYear})**\n{desc}\n\n**Studios**: {studio}",
+            description = f"**{engTitle} ({seasonYear})**\n{desc}",
             colour = discord.Colour(0x02A9FF)
             )
     embed.set_author(name="AniList",
@@ -389,8 +389,9 @@ async def send_info(self, ctx, other, _format_: str=None):
         embed.set_image(url=a['Media']['bannerImage'])
     else:
         embed.set_image(url="https://raw.githubusercontent.com/null2264/null2264/master/21519-1ayMXgNlmByb.jpg")
-    embed.add_field(name="Average Score",value=f"{rating}/100",)
-    if a['Media']['format'] == "MOVIE":
+    embed.add_field(name="Studios",value=studio,inline=False)
+    embed.add_field(name="Average Score",value=f"{rating}/100")
+    if a['Media']['format'] == "MOVIE" or "MUSIC":
         embed.add_field(name="Duration",value=f"{dur}")
     else: 
         embed.add_field(name="Episodes",value=f"{eps}")
@@ -513,7 +514,7 @@ class AniList(commands.Cog):
                 studios.append(studio['name'])
             embed.add_field(name="Studios", value=", ".join(studios) or "Unknown", inline=False)
             embed.add_field(name="Format", value=data['format'].replace('_', ' '))
-            if str(data['format']).lower() == "movie":
+            if str(data['format']).lower() == "movie" or "music":
                 if data['duration']:
                     embed.add_field(name="Duration", value=realtime(data['duration']*60))
                 else:
