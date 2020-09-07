@@ -271,7 +271,7 @@ class Admin(commands.Cog):
     @prefix.command()
     async def list(self, ctx):
         """List bot's prefixes."""
-        prefix = get_prefix(self.bot, ctx.message)
+        prefix = self.bot.config[str(ctx.guild.id)]['prefix']
         if len(prefix) > 1:
             s="es are"
         else:
