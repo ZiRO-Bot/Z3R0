@@ -396,6 +396,26 @@ class General(commands.Cog):
         e.add_field(name="Reputation", value=reputation)
         e.set_footer(text=f"Requested by {ctx.message.author.name}#{ctx.message.author.discriminator}")
         await ctx.send(embed=e)
+    
+    @commands.command(usage="(country)")
+    async def covid(self, ctx, country):
+        """Show covid information on certain country."""
+        api = "https://api.covid19api.com/total/country"
+        async with session.get(f'{api}/{country}') as url:
+            covData = json.loads(await url.text())
+        if not covData:
+            return
+        covData = covData[len(covData) - 1]
+        e = discord.Embed(
+                          title=covData['Country'],
+                          timestamp=ctx.message.created_at
+                         )
+        e.add_field(name="Active", value=f"{covData['Active']:,}")
+        e.add_field(name="Recovered", value=f"{covData['Recovered']:,}")
+        e.add_field(name="Deaths", value=f"{covData['Deaths']:,}")
+        e.add_field(name="Confirmed Cases", value=f"{covData['Confirmed']:,}")
+        e.set_footer(text=f"Requested by {ctx.message.author.name}#{ctx.message.author.discriminator}")
+        await ctx.send(embed=e)
 
 def setup(bot):
     bot.add_cog(General(bot))
