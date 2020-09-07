@@ -359,9 +359,15 @@ async def send_info(self, ctx, other, _format_: str=None):
         seasonYear = "Unknown"
 
     # Rating
-    rating = a['Media']['averageScore']
-    if rating is None:
-        rating = "0"
+    rating = a['Media']['averageScore'] or 0
+    if rating >= 90:
+        ratingEmoji = "😃"
+    elif rating >= 75:
+        ratingEmoji = "🙂"
+    elif rating >= 50:
+        ratingEmoji = "😐"
+    else:
+        ratingEmoji = "😦"
 
     # Episodes / Duration
     eps = a['Media']['episodes']
@@ -382,7 +388,7 @@ async def send_info(self, ctx, other, _format_: str=None):
             description = f"**{engTitle} ({seasonYear})**\n{desc}",
             colour = discord.Colour(0x02A9FF)
             )
-    embed.set_author(name="AniList",
+    embed.set_author(name=f"AniList - {ratingEmoji} {rating}%",
                      icon_url="https://gblobscdn.gitbook.com/spaces%2F-LHizcWWtVphqU90YAXO%2Favatar.png")
     embed.set_thumbnail(url=a['Media']['coverImage']['large'])
     if a['Media']['bannerImage']:
@@ -390,7 +396,6 @@ async def send_info(self, ctx, other, _format_: str=None):
     else:
         embed.set_image(url="https://raw.githubusercontent.com/null2264/null2264/master/21519-1ayMXgNlmByb.jpg")
     embed.add_field(name="Studios",value=studio,inline=False)
-    embed.add_field(name="Average Score",value=f"{rating}/100")
     if a['Media']['format'] == "MOVIE" or "MUSIC":
         embed.add_field(name="Duration",value=f"{dur}")
     else: 
@@ -497,12 +502,22 @@ class AniList(commands.Cog):
         def create_embed(ctx, data, pageData):
             embed = None
             data = data['media'][0]
+            rating = data['averageScore'] or 0
+            if rating >= 90:
+                ratingEmoji = "😃"
+            elif rating >= 75:
+                ratingEmoji = "🙂"
+            elif rating >= 50:
+                ratingEmoji = "😐"
+            else:
+                ratingEmoji = "😦"
             embed = discord.Embed(title=data['title']['romaji'],
                                   url = f"https://anilist.co/anime/{data['id']}",
                                   description=f"**{data['title']['english'] or 'No english title'} ({data['id']})**\n\
                                                 `{ctx.prefix}anime info {data['id']} for more info`",
                                   colour = discord.Colour(0x02A9FF))
-            embed.set_author(name=f"AniList - Page {pageData['currentPage']}/{pageData['lastPage']}",
+            embed.set_author(name=f"AniList - "
+                                + f"{ratingEmoji} {rating}%",
                              icon_url="https://gblobscdn.gitbook.com/spaces%2F-LHizcWWtVphqU90YAXO%2Favatar.png")
             embed.set_thumbnail(url=data['coverImage']['large'])
             if data['bannerImage']:
@@ -524,6 +539,7 @@ class AniList(commands.Cog):
             embed.add_field(name="Status", value=hformat(data['status']))
             genres = ", ".join(data['genres'])
             embed.add_field(name="Genres",value=genres or "Unknown", inline=False)
+            embed.set_footer(text=f"Page {pageData['currentPage']}/{pageData['lastPage']}")
             return embed
 
         q = await search_ani_new(self, ctx, anime, 1)
