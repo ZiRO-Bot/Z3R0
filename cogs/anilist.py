@@ -11,7 +11,7 @@ import time
 from discord.ext import tasks, commands
 from pytz import timezone
 from typing import Optional
-from utilities.formatting import hformat
+from utilities.formatting import hformat, realtime
 
 session = aiohttp.ClientSession()
 
@@ -82,6 +82,7 @@ query($name:String,$aniformat:MediaFormat,$page:Int,$amount:Int=5){
             id,
             format,
             episodes, 
+            duration,
             status, 
             genres, 
             averageScore, 
@@ -96,12 +97,14 @@ query($name:String,$aniformat:MediaFormat,$page:Int,$amount:Int=5){
 generalQ = '''
 query($mediaId: Int){
     Media(id:$mediaId, type:ANIME){
-        id, 
+        id,
+        format,
         title {
             romaji, 
             english
         }, 
         episodes, 
+        duration,
         status, 
         startDate {
             year, 
@@ -117,6 +120,7 @@ query($mediaId: Int){
         coverImage {
             large
         }, 
+        bannerImage,
         description, 
         averageScore, 
         studios{nodes{name}}, 
@@ -358,10 +362,15 @@ async def send_info(self, ctx, other, _format_: str=None):
     if rating is None:
         rating = "0"
 
-    # Episodes
+    # Episodes / Duration
     eps = a['Media']['episodes']
     if eps is None:
         eps = "0"
+    
+    if a['Media']['duration']:
+        dur = realtime(a['Media']['duration']*60)
+    else:
+        dur = realtime(0)
     
     # Status
     stat = hformat(a['Media']['status'])
@@ -375,9 +384,17 @@ async def send_info(self, ctx, other, _format_: str=None):
     embed.set_author(name="AniList",
                      icon_url="https://gblobscdn.gitbook.com/spaces%2F-LHizcWWtVphqU90YAXO%2Favatar.png")
     embed.set_thumbnail(url=a['Media']['coverImage']['large'])
+    if a['Media']['bannerImage']:
+        embed.set_image(url=a['Media']['bannerImage'])
+    else:
+        embed.set_image(url="https://raw.githubusercontent.com/null2264/null2264/master/21519-1ayMXgNlmByb.jpg")
     embed.add_field(name="Average Score",value=f"{rating}/100",)
-    embed.add_field(name="Episodes",value=f"{eps}")
+    if a['Media']['format'] == "MOVIE":
+        embed.add_field(name="Duration",value=f"{dur}")
+    else: 
+        embed.add_field(name="Episodes",value=f"{eps}")
     embed.add_field(name="Status",value=f"{stat}")
+    embed.add_field(name="Format",value=a['Media']['format'])
     genres = ", ".join(a['Media']['genres'])
     embed.add_field(name="Genres",value=genres, inline=False)
     if sites:
@@ -491,8 +508,14 @@ class AniList(commands.Cog):
             else:
                 embed.set_image(url="https://raw.githubusercontent.com/null2264/null2264/master/21519-1ayMXgNlmByb.jpg")
             embed.add_field(name="Format", value=data['format'])
-            embed.add_field(name="Episodes", value=data['episodes'])
-            embed.add_field(name="Status", value=data['status'])
+            if str(data['format']).lower() == "movie":
+                if data['duration']:
+                    embed.add_field(name="Duration", value=realtime(data['duration']*60))
+                else:
+                    embed.add_field(name="Duration", value=realtime(0))
+            else:
+                embed.add_field(name="Episodes", value=data['episodes'])
+            embed.add_field(name="Status", value=hformat(data['status']))
             return embed
 
         q = await search_ani_new(self, ctx, anime, 1)
