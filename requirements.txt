@@ -10,3 +10,4 @@ python-dotenv==0.14.0
 praw==7.1.0
 pytz==2020.1
 aiogoogletrans==3.3.2
+xbox==0.1.3
