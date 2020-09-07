@@ -71,8 +71,9 @@ query($page: Int = 0, $amount: Int = 50, $watched: [Int!]!, $nextDay: Int!) {
 '''
 
 searchAni = '''
-query($name:String,$aniformat:MediaFormat){
-    Page(perPage:5,page:1){
+query($name:String,$aniformat:MediaFormat,$page:Int,$amount:Int=5){
+    Page(perPage:$amount,page:$page){
+        pageInfo{hasNextPage, currentPage, lastPage}
         media(search:$name,type:ANIME,format:$aniformat){
             title {
                 romaji, 
@@ -80,7 +81,13 @@ query($name:String,$aniformat:MediaFormat){
             },
             id,
             format,
-            siteUrl
+            episodes, 
+            status, 
+            genres, 
+            averageScore, 
+            siteUrl,
+            coverImage {large},
+            bannerImage
         }
     } 
 }
@@ -378,8 +385,14 @@ async def send_info(self, ctx, other, _format_: str=None):
     await ctx.send(embed=embed)
     return
 
+async def search_ani_new(self, ctx, anime, page):
+    q = await query(searchAni, {'name': anime, 'page': page, 'amount': 1})
+    if q:
+        return q['data']
+    return
+
 async def search_ani(self, ctx, anime):
-    q = await query(searchAni, {'name': anime})
+    q = await query(searchAni, {'name': anime, 'page': 1})
     q = q['data']
     embed = discord.Embed(title="Top 5 Search Result",
                             colour = discord.Colour(0x02A9FF)
@@ -402,7 +415,6 @@ async def search_ani(self, ctx, anime):
         value=f"**ID**: [{each['id']}]({each['siteUrl']})\n{engTitle}",
         inline=False)
     await ctx.send(embed=embed)
-
 
 # async def createAnnoucementEmbed(entry: str=None, date: str=None, upNext: str=None):
 
@@ -453,9 +465,86 @@ class AniList(commands.Cog):
         """Find an anime."""
         if not anime:
             await ctx.send("Please specify the anime!")
-        async with ctx.typing():
-            await search_ani(self, ctx, anime)
+            return
+        
+        page=1
+        embed_reactions = ['◀️', '▶️','⏹️']
+        def check_reactions(reaction, user):
+            if user == ctx.author and str(reaction.emoji) in embed_reactions:
+                return str(reaction.emoji)
+            else:
+                return False
+
+        def create_embed(ctx, data, pageData):
+            embed = None
+            data = data['media'][0]
+            embed = discord.Embed(title=data['title']['romaji'],
+                                  url = f"https://anilist.co/anime/{data['id']}",
+                                  description=f"**{data['title']['english'] or 'No english title'} ({data['id']})**\n\
+                                                `{ctx.prefix}anime info {data['id']} for more info`",
+                                  colour = discord.Colour(0x02A9FF))
+            embed.set_author(name=f"AniList - Page {pageData['currentPage']}/{pageData['lastPage']}",
+                             icon_url="https://gblobscdn.gitbook.com/spaces%2F-LHizcWWtVphqU90YAXO%2Favatar.png")
+            embed.set_thumbnail(url=data['coverImage']['large'])
+            if data['bannerImage']:
+                embed.set_image(url=data['bannerImage'])
+            else:
+                embed.set_image(url="https://raw.githubusercontent.com/null2264/null2264/master/21519-1ayMXgNlmByb.jpg")
+            embed.add_field(name="Format", value=data['format'])
+            embed.add_field(name="Episodes", value=data['episodes'])
+            embed.add_field(name="Status", value=data['status'])
+            return embed
+
+        q = await search_ani_new(self, ctx, anime, 1)
+        if not q:
+            await ctx.send(f"No anime with keyword '{anime}' not found.")
+            return
+        e = create_embed(ctx, q['Page'], q['Page']['pageInfo'])
+        msg = await ctx.send(embed=e)
+        for emoji in embed_reactions:
+            await msg.add_reaction(emoji)
+        
+        while True:
+            try:
+                reaction, user = await self.bot.wait_for('reaction_add',
+                                                        check=check_reactions,
+                                                        timeout=60.0)
+            except asyncio.TimeoutError:
+                break
+            else:
+                emoji = check_reactions(reaction, user)
+                try:
+                    await msg.remove_reaction(reaction.emoji, user)
+                except discord.Forbidden:
+                    pass
+                if emoji == "◀️" and page != 1:
+                    page -= 1
+                    q = await search_ani_new(self, ctx, anime, page)
+                    if not q:
+                        pass
+                    e = create_embed(ctx, q['Page'], q['Page']['pageInfo'])
+                    await msg.edit(embed=e)
+                if emoji == "▶️" and q['Page']['pageInfo']['hasNextPage']:
+                    page += 1
+                    q = await search_ani_new(self, ctx, anime, page)
+                    if not q:
+                        pass
+                    e = create_embed(ctx, q['Page'], q['Page']['pageInfo'])
+                    await msg.edit(embed=e)
+                if emoji == "⏹️":
+                    # await msg.clear_reactions()
+                    break
+
         return
+
+    # @anime.command(aliases=['find'], usage="(anime) [format]")
+    # async def search(self, ctx, anime, _format: str=None):
+    #     """Find an anime."""
+    #     if not anime:
+    #         await ctx.send("Please specify the anime!")
+    #     async with ctx.typing():
+    #         await search_ani(self, ctx, anime)
+    #     return
     
     @anime.command(usage="(anime) [format]")
     @commands.check(is_mainserver)
