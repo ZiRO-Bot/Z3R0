@@ -87,6 +87,7 @@ query($name:String,$aniformat:MediaFormat,$page:Int,$amount:Int=5){
             genres, 
             averageScore, 
             siteUrl,
+            studios{nodes{name}}, 
             coverImage {large},
             bannerImage
         }
@@ -394,7 +395,7 @@ async def send_info(self, ctx, other, _format_: str=None):
     else: 
         embed.add_field(name="Episodes",value=f"{eps}")
     embed.add_field(name="Status",value=f"{stat}")
-    embed.add_field(name="Format",value=a['Media']['format'])
+    embed.add_field(name="Format",value=a['Media']['format'].replace('_', ' '))
     genres = ", ".join(a['Media']['genres'])
     embed.add_field(name="Genres",value=genres, inline=False)
     if sites:
@@ -507,7 +508,11 @@ class AniList(commands.Cog):
                 embed.set_image(url=data['bannerImage'])
             else:
                 embed.set_image(url="https://raw.githubusercontent.com/null2264/null2264/master/21519-1ayMXgNlmByb.jpg")
-            embed.add_field(name="Format", value=data['format'])
+            studios = []
+            for studio in data['studios']['nodes']:
+                studios.append(studio['name']) 
+            embed.add_field(name="Studios", value=studio = ", ".join(studios))
+            embed.add_field(name="Format", value=data['format'].replace('_', ' '))
             if str(data['format']).lower() == "movie":
                 if data['duration']:
                     embed.add_field(name="Duration", value=realtime(data['duration']*60))
@@ -516,6 +521,8 @@ class AniList(commands.Cog):
             else:
                 embed.add_field(name="Episodes", value=data['episodes'])
             embed.add_field(name="Status", value=hformat(data['status']))
+            genres = ", ".join(data['genres'])
+            embed.add_field(name="Genres",value=genres, inline=False)
             return embed
 
         q = await search_ani_new(self, ctx, anime, 1)
