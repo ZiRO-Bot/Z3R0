@@ -390,13 +390,22 @@ async def send_info(self, ctx, other, _format_: str=None):
             )
     embed.set_author(name=f"AniList - {ratingEmoji} {rating}%",
                      icon_url="https://gblobscdn.gitbook.com/spaces%2F-LHizcWWtVphqU90YAXO%2Favatar.png")
-    embed.set_thumbnail(url=a['Media']['coverImage']['large'])
+
+    if "Hentai" in a['Media']['genres'] and ctx.channel.is_nsfw() is False:
+        embed.set_thumbnail(url="https://raw.githubusercontent.com/null2264/null2264/master/NSFW.png")
+    else:
+        embed.set_thumbnail(url=a['Media']['coverImage']['large'])
+
     if a['Media']['bannerImage']:
-        embed.set_image(url=a['Media']['bannerImage'])
+        if "Hentai" in a['Media']['genres'] and ctx.channel.is_nsfw() is False:
+            embed.set_image(url="https://raw.githubusercontent.com/null2264/null2264/master/nsfw_banner.jpg")
+        else:
+            embed.set_image(url=a['Media']['bannerImage'])
     else:
         embed.set_image(url="https://raw.githubusercontent.com/null2264/null2264/master/21519-1ayMXgNlmByb.jpg")
+
     embed.add_field(name="Studios",value=studio,inline=False)
-    if str(data['format']).lower() in ["movie", "music"]:
+    if str(a['Media']['format']).lower() in ["movie", "music"]:
         embed.add_field(name="Duration",value=f"{dur}")
     else: 
         embed.add_field(name="Episodes",value=f"{eps}")
@@ -519,11 +528,20 @@ class AniList(commands.Cog):
             embed.set_author(name=f"AniList - "
                                 + f"{ratingEmoji} {rating}%",
                              icon_url="https://gblobscdn.gitbook.com/spaces%2F-LHizcWWtVphqU90YAXO%2Favatar.png")
-            embed.set_thumbnail(url=data['coverImage']['large'])
+            
+            if "Hentai" in data['genres'] and ctx.channel.is_nsfw() is False:
+                embed.set_thumbnail(url="https://raw.githubusercontent.com/null2264/null2264/master/NSFW.png")
+            else:
+                embed.set_thumbnail(url=data['coverImage']['large'])
+
             if data['bannerImage']:
-                embed.set_image(url=data['bannerImage'])
+                if "Hentai" in data['genres'] and ctx.channel.is_nsfw() is False:
+                    embed.set_image(url="https://raw.githubusercontent.com/null2264/null2264/master/nsfw_banner.jpg")
+                else:
+                    embed.set_image(url=data['bannerImage'])
             else:
                 embed.set_image(url="https://raw.githubusercontent.com/null2264/null2264/master/21519-1ayMXgNlmByb.jpg")
+
             studios = []
             for studio in data['studios']['nodes']:
                 studios.append(studio['name'])
