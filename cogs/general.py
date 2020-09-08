@@ -398,14 +398,21 @@ class General(commands.Cog):
         await ctx.send(embed=e)
     
     @commands.command(usage="(country)")
-    async def covid(self, ctx, country):
+    async def covid(self, ctx, *country):
         """Show covid information on certain country."""
+        country = " ".join([*country])
+        if country.lower() in ['united state of america', 'america']:
+            country = 'USA'
+        if country.lower() in ['united kingdom']:
+            country = 'UK'
         api = "https://api.covid19api.com/total/country"
         async with session.get(f'{api}/{country}') as url:
             covData = json.loads(await url.text())
-        if not covData:
+        try:
+            covData = covData[len(covData) - 1]
+        except KeyError:
+            await ctx.send(f"{country} not found")
             return
-        covData = covData[len(covData) - 1]
         e = discord.Embed(
                           title=covData['Country'],
                           timestamp=ctx.message.created_at
