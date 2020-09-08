@@ -32,21 +32,25 @@ class Admin(commands.Cog):
         self.logger = logging.getLogger('discord')
         self.bot = bot
     
-    async def is_mod(ctx):
-        return ctx.author.guild_permissions.manage_channels
+    def is_mod():
+        def predicate(ctx):
+            return ctx.author.guild_permissions.manage_channels
+        return commands.check(predicate)
 
-    async def is_botmaster(ctx):
-        return ctx.author.id in ctx.bot.master
+    def is_botmaster():
+        def predicate(ctx):
+            return ctx.author.id in ctx.bot.master
+        return commands.check(predicate)
 
     @commands.command(aliases=['quit'], hidden=True)
-    @commands.check(is_botmaster)
+    @is_botmaster()
     async def force_close(self, ctx):
         """Shutdown the bot."""
         await ctx.send("Shutting down...")
         await ctx.bot.logout()
     
     @commands.command(usage="(extension)", hidden=True)
-    @commands.check(is_mod)
+    @is_botmaster()
     async def unload(self, ctx, ext):
         """Unload an extension."""
         await ctx.send(f"Unloading {ext}...")
@@ -62,7 +66,7 @@ class Admin(commands.Cog):
             self.bot.logger.exception(f'Failed to reload extension {ext}:')
 
     @commands.command(usage="[extension]", hidden=True)
-    @commands.check(is_mod)
+    @is_botmaster()
     async def reload(self, ctx, ext: str=None):
         """Reload an extension."""
         if not ext:
@@ -108,7 +112,7 @@ class Admin(commands.Cog):
             self.bot.logger.exception(f'Failed to reload extension {ext}:')
 
     @commands.command(usage="(extension)", hidden=True)
-    @commands.check(is_mod)
+    @is_botmaster()
     async def load(self, ctx, ext):
         """Load an extension."""
         await ctx.send(f"Loading {ext}...")
@@ -122,7 +126,7 @@ class Admin(commands.Cog):
             self.bot.logger.exception(f'Failed to reload extension {ext}:')
 
     @commands.command(aliases=['cc'], usage="[amount of chat]", hidden=True)
-    @commands.check(is_mod)
+    @is_mod()
     async def clearchat(self, ctx, numb: int=100):
         """Clear the chat."""
         deleted_msg = await ctx.message.channel.purge(limit=int(numb)+1, check=None, before=None, after=None, around=None, oldest_first=False, bulk=True)
@@ -141,7 +145,7 @@ class Admin(commands.Cog):
         await ctx.send(resp)
     
     @commands.command(usage="(user) [reason] [mute duration]", hidden=True)
-    @commands.check(is_mod)
+    @is_mod()
     async def mute(self, ctx, member: discord.Member=None, reason: str="No Reason", min_muted: int=0):
         """Mute a member."""
         if member is None:
@@ -162,7 +166,7 @@ class Admin(commands.Cog):
             await member.remove_roles(muted_role)
 
     @commands.command(usage="(user) [reason]", hidden=True)
-    @commands.check(is_mod)
+    @is_mod()
     async def unmute(self, ctx, member: discord.Member=None):
         """Unmute a member."""
         if member is None:
@@ -176,7 +180,7 @@ class Admin(commands.Cog):
             await ctx.send(f'{member.mention} is not muted.')
 
     @commands.command(usage="(user) [reason]", hidden=True)
-    @commands.check(is_mod)
+    @is_mod()
     async def kick(self, ctx, member: discord.Member=None, reason: str="No Reason"): 
         """Kick a member."""
         if member is None:
@@ -193,7 +197,7 @@ class Admin(commands.Cog):
             await ctx.send(f'{member.mention} has been kicked by {ctx.author.mention} for {reason}!')
     
     @commands.command(usage="(user) [reason] [ban duration]", hidden=True)
-    @commands.check(is_mod)
+    @is_mod()
     async def ban(self, ctx, member: discord.Member=None, reason: str="No Reason", min_ban: int=0): 
         """Ban a member."""
         if member is None:
@@ -211,7 +215,7 @@ class Admin(commands.Cog):
             await ctx.guild.unban(member, reason="timed out")
     
     @commands.command(usage="(user) [reason]", hidden=True)
-    @commands.check(is_mod)
+    @is_mod()
     async def unban(self, ctx, member):
         """Unban a member."""
         for s in "<!@>":
@@ -228,7 +232,7 @@ class Admin(commands.Cog):
         await ctx.send(f'{member.mention} has been unbanned by {ctx.author.mention}!')
     
     @commands.command(hidden=True)
-    @commands.check(is_botmaster)
+    @is_botmaster()
     async def pull(self, ctx):
         """Update the bot from github."""
         g = git.cmd.Git(os.getcwd())
@@ -244,7 +248,7 @@ class Admin(commands.Cog):
         await ctx.send(embed=embed)
 
     @commands.command(aliases=['addcommand', 'newcommand'], usage="(command name) (command messages)")
-    @commands.check(is_mod)
+    @commands.check_any(is_mod(), is_botmaster())
     async def setcommand(self, ctx, command, *, message):
         """Add a new simple command."""
         self.bot.custom_commands[str(ctx.guild.id)][ctx.prefix + command] = message
@@ -257,7 +261,7 @@ class Admin(commands.Cog):
         await ctx.send(embed=embed)
 
     @commands.command(aliases=['deletecommand'], usage="(command name)")
-    @commands.check(is_mod)
+    @commands.check_any(is_mod(), is_botmaster())
     async def removecommand(self, ctx, command):
         """Remove a simple command."""
         del self.bot.custom_commands[str(ctx.guild.id)][ctx.prefix + command]
@@ -285,7 +289,7 @@ class Admin(commands.Cog):
         await ctx.send(f"My prefix{s} `{', '.join(prefix)}`")
     
     @prefix.command(name="mention")
-    @commands.check(is_mod)
+    @commands.check_any(is_mod(), is_botmaster())
     async def togglemention(self, ctx):
         """Toggle mention as prefix."""
         g = ctx.message.guild
@@ -306,7 +310,7 @@ class Admin(commands.Cog):
         await ctx.send(embed=embed)
     
     @prefix.command(name="set", usage="(prefix)")
-    @commands.check(is_mod)
+    @commands.check_any(is_mod(), is_botmaster())
     async def prefixset(self, ctx, *, prefix):
         """Change bot's prefix."""
         g = ctx.message.guild
@@ -335,7 +339,7 @@ class Admin(commands.Cog):
         await ctx.send(embed=embed)
 
     @commands.command(usage="(variable) (value)")
-    @commands.check(is_botmaster)
+    @is_botmaster()
     async def setvar(self, ctx, key, *, value):
         """Set a config variable, ***use with caution!**"""
         with open('data/guild.json', 'w') as f:
@@ -349,7 +353,7 @@ class Admin(commands.Cog):
             json.dump(self.bot.config, f, indent=4)
 
     @commands.command(usage="[variable]")
-    @commands.check(is_mod)
+    @commands.check_any(is_mod(), is_botmaster())
     async def printvar(self, ctx, key=None):
         """Print config variables, use for testing."""
         if key == None:
@@ -360,7 +364,7 @@ class Admin(commands.Cog):
             await ctx.send(self.bot.config[str(ctx.message.guild.id)][key])
 
     @commands.command(aliases=['rmvar'], usage="(variable)")
-    @commands.check(is_botmaster)
+    @is_botmaster()
     async def delvar(self, ctx, key):
         """Deletes a config variable, be careful!"""
         with open('data/guild.json', 'w') as f:
@@ -370,13 +374,13 @@ class Admin(commands.Cog):
             json.dump(self.bot.config, f, indent=4)
 
     @commands.command()
-    @commands.check(is_botmaster)
+    @is_botmaster()
     async def leave(self, ctx):
         """Leave the server."""
         await ctx.message.guild.leave()
 
     @commands.group()
-    @commands.check(is_mod)
+    @is_mod()
     async def channel(self, ctx):
         """Manage server's channel."""
         pass
@@ -466,7 +470,7 @@ class Admin(commands.Cog):
         await ctx.send(embed=e)
     
     @commands.command(aliases=['sh'], usage="(shell command)", hidden=True)
-    @commands.check(is_botmaster)
+    @is_botmaster()
     async def shell(self, ctx, *command: str):
         """Execute shell command from discord. **Use with caution**"""
         if WINDOWS:
