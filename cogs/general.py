@@ -4,13 +4,21 @@ import datetime
 import discord
 import json
 import logging
+import os
 import platform
 import re
 import subprocess
 
 from discord.ext import commands
+from dotenv import load_dotenv
 from pytz import timezone
 from utilities.formatting import bar_make
+
+try:
+    WEATHER_API = os.environ['WEATHER_API']
+except: 
+    load_dotenv()
+    WEATHER_API = os.getenv("WEATHER_API")
 
 session = aiohttp.ClientSession()
 
@@ -90,8 +98,16 @@ def decode(msg):
                 decoded += list(MORSE_CODE_DICT.keys())\
                         [list(MORSE_CODE_DICT.values()).index(temp)]
                 temp = ""
-
     return decoded
+
+def temperature(temp, unit: str, number_only=False):
+    if unit == "c":
+        temp = temp-273.15
+    elif unit == "f":
+        temp = (temp-273.15)*1.8+32
+    if number_only:
+        return f"{round(temp)}"
+    return f"{round(temp)}°{unit.upper()}"
 
 class General(commands.Cog):
     def __init__(self, bot):
@@ -421,6 +437,28 @@ class General(commands.Cog):
         e.add_field(name="Recovered", value=f"{covData['Recovered']:,}")
         e.add_field(name="Deaths", value=f"{covData['Deaths']:,}")
         e.add_field(name="Confirmed Cases", value=f"{covData['Confirmed']:,}")
+        e.set_footer(text=f"Requested by {ctx.message.author.name}#{ctx.message.author.discriminator}")
+        await ctx.send(embed=e)
+
+    @commands.group(usage="(city)", invoke_without_command=True)
+    async def weather(self, ctx, *city):
+        """Show weather report."""
+        city = " ".join([*city])
+        apilink = f"https://api.openweathermap.org/data/2.5/weather?q={city}&appid={WEATHER_API}"
+        async with session.get(apilink) as url:
+            weatherData = json.loads(await url.text())
+        if weatherData['cod'] == "404":
+            await ctx.send(f"{city} not found!")
+            return
+        e = discord.Embed(
+                          title=f"{weatherData['name']}, {weatherData['sys']['country']}",
+                          timestamp=ctx.message.created_at
+                         )
+        e.set_thumbnail(url=f"https://openweathermap.org/img/wn/{weatherData['weather'][0]['icon']}@2x.png")
+        e.set_author(name="OpenWeather",
+                     icon_url="https://openweathermap.org/themes/openweathermap/assets/vendor/owm/img/icons/logo_16x16.png")
+        temp = temperature(weatherData['main']['temp'], 'c')
+        e.add_field(name="Temperature", value=temp)
         e.set_footer(text=f"Requested by {ctx.message.author.name}#{ctx.message.author.discriminator}")
         await ctx.send(embed=e)
 

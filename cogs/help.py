@@ -88,14 +88,13 @@ class CustomHelp(commands.HelpCommand):
     async def send_group_help(self, group):
         embed = discord.Embed(title=group.qualified_name, 
                               description=self.get_desc()
-                              + "\n\
-                                 `()` = Required\n\
-                                 `[]` = Optional",
+                              + "\n"
+                              + "`()` = Required\n"
+                              + "`[]` = Optional",
                               colour=self.COLOUR)
         if group.help:
-            embed.description = group.help + "\n\
-                                 `()` = Required\n\
-                                 `[]` = Optional"
+            embed.description = "`()` = Required\n"\
+                                + "`[]` = Optional\n" + group.help
 
         if isinstance(group, commands.Group):
             filtered = await self.filter_commands(group.commands, sort=True)

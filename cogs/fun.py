@@ -7,9 +7,9 @@ import re
 
 from discord.ext import commands
 from discord.errors import Forbidden
+from dotenv import load_dotenv
 from random import choice, randint
 from typing import Optional
-from dotenv import load_dotenv
 
 try:
     REDDIT_CLIENT_ID = os.environ['REDDIT_CLIENT_ID']
