@@ -450,15 +450,20 @@ class General(commands.Cog):
         if weatherData['cod'] == "404":
             await ctx.send(f"{city} not found!")
             return
+        temp = temperature(weatherData['main']['temp'], 'c')
+        feels_like = temperature(weatherData['main']['feels_like'], 'c')
         e = discord.Embed(
                           title=f"{weatherData['name']}, {weatherData['sys']['country']}",
+                          description=f"Feels like {feels_like}. {weatherData['weather'][0]['description'].title()}",
+                          color=discord.Colour(0xEA6D4A),
                           timestamp=ctx.message.created_at
                          )
         e.set_thumbnail(url=f"https://openweathermap.org/img/wn/{weatherData['weather'][0]['icon']}@2x.png")
         e.set_author(name="OpenWeather",
                      icon_url="https://openweathermap.org/themes/openweathermap/assets/vendor/owm/img/icons/logo_16x16.png")
-        temp = temperature(weatherData['main']['temp'], 'c')
         e.add_field(name="Temperature", value=temp)
+        e.add_field(name="Humidity", value=f"{weatherData['main']['humidity']}%")
+        e.add_field(name="Wind", value=f"{weatherData['wind']['speed']}")
         e.set_footer(text=f"Requested by {ctx.message.author.name}#{ctx.message.author.discriminator}")
         await ctx.send(embed=e)
 
