@@ -39,7 +39,7 @@ class Admin(commands.Cog):
         await ctx.send("Shutting down...")
         await ctx.bot.logout()
     
-    @commands.command(hidden=True)
+    @commands.command(usage="(extension)", hidden=True)
     @commands.check(is_mod)
     async def unload(self, ctx, ext):
         """Unload an extension."""
@@ -55,7 +55,7 @@ class Admin(commands.Cog):
             await ctx.send(f"{ext} failed to unload! Check the log for details.")
             self.bot.logger.exception(f'Failed to reload extension {ext}:')
 
-    @commands.command(hidden=True)
+    @commands.command(usage="[extension]", hidden=True)
     @commands.check(is_mod)
     async def reload(self, ctx, ext: str=None):
         """Reload an extension."""
@@ -101,7 +101,7 @@ class Admin(commands.Cog):
             await ctx.send(f"{ext} failed to reload! Check the log for details.")
             self.bot.logger.exception(f'Failed to reload extension {ext}:')
 
-    @commands.command(hidden=True)
+    @commands.command(usage="(extension)", hidden=True)
     @commands.check(is_mod)
     async def load(self, ctx, ext):
         """Load an extension."""
@@ -115,7 +115,7 @@ class Admin(commands.Cog):
             await ctx.send(f"{ext} failed to load! Check the log for details.")
             self.bot.logger.exception(f'Failed to reload extension {ext}:')
 
-    @commands.command(aliases=['cc'], hidden=True)
+    @commands.command(aliases=['cc'], usage="[amount of chat]", hidden=True)
     @commands.check(is_mod)
     async def clearchat(self, ctx, numb: int=100):
         """Clear the chat."""
@@ -134,7 +134,7 @@ class Admin(commands.Cog):
 
         await ctx.send(resp)
     
-    @commands.command(hidden=True)
+    @commands.command(usage="(user) [reason] [mute duration]", hidden=True)
     @commands.check(is_mod)
     async def mute(self, ctx, member: discord.Member=None, reason: str="No Reason", min_muted: int=0):
         """Mute a member."""
@@ -155,7 +155,7 @@ class Admin(commands.Cog):
             await asyncio.sleep(min_muted * 60)
             await member.remove_roles(muted_role)
 
-    @commands.command(hidden=True)
+    @commands.command(usage="(user) [reason]", hidden=True)
     @commands.check(is_mod)
     async def unmute(self, ctx, member: discord.Member=None):
         """Unmute a member."""
@@ -169,7 +169,7 @@ class Admin(commands.Cog):
         else:
             await ctx.send(f'{member.mention} is not muted.')
 
-    @commands.command(hidden=True)
+    @commands.command(usage="(user) [reason]", hidden=True)
     @commands.check(is_mod)
     async def kick(self, ctx, member: discord.Member=None, reason: str="No Reason"): 
         """Kick a member."""
@@ -186,7 +186,7 @@ class Admin(commands.Cog):
             await ctx.guild.kick(member, reason=reason)
             await ctx.send(f'{member.mention} has been kicked by {ctx.author.mention} for {reason}!')
     
-    @commands.command(hidden=True)
+    @commands.command(usage="(user) [reason] [ban duration]", hidden=True)
     @commands.check(is_mod)
     async def ban(self, ctx, member: discord.Member=None, reason: str="No Reason", min_ban: int=0): 
         """Ban a member."""
@@ -204,7 +204,7 @@ class Admin(commands.Cog):
             await asyncio.sleep(min_ban * 60)
             await ctx.guild.unban(member, reason="timed out")
     
-    @commands.command(hidden=True)
+    @commands.command(usage="(user) [reason]", hidden=True)
     @commands.check(is_mod)
     async def unban(self, ctx, member):
         """Unban a member."""
@@ -237,7 +237,7 @@ class Admin(commands.Cog):
             embed.add_field(name="Pulling...", value=f"```bash\n{e}```")
         await ctx.send(embed=embed)
 
-    @commands.command(aliases=['addcommand', 'newcommand'])
+    @commands.command(aliases=['addcommand', 'newcommand'], usage="(command name) (command messages)")
     @commands.check(is_mod)
     async def setcommand(self, ctx, command, *, message):
         """Add a new simple command."""
@@ -250,7 +250,7 @@ class Admin(commands.Cog):
                              )
         await ctx.send(embed=embed)
 
-    @commands.command(aliases=['deletecommand'])
+    @commands.command(aliases=['deletecommand'], usage="(command name)")
     @commands.check(is_mod)
     async def removecommand(self, ctx, command):
         """Remove a simple command."""
@@ -328,7 +328,7 @@ class Admin(commands.Cog):
                              )
         await ctx.send(embed=embed)
 
-    @commands.command()
+    @commands.command(usage="(variable) (value)")
     @commands.check(is_botmaster)
     async def setvar(self, ctx, key, *, value):
         """Set a config variable, ***use with caution!**"""
@@ -342,7 +342,7 @@ class Admin(commands.Cog):
             self.bot.config[str(ctx.message.guild.id)][key] = value
             json.dump(self.bot.config, f, indent=4)
 
-    @commands.command()
+    @commands.command(usage="[variable]")
     @commands.check(is_mod)
     async def printvar(self, ctx, key=None):
         """Print config variables, use for testing."""
@@ -353,7 +353,7 @@ class Admin(commands.Cog):
         else:
             await ctx.send(self.bot.config[str(ctx.message.guild.id)][key])
 
-    @commands.command(aliases=['rmvar'])
+    @commands.command(aliases=['rmvar'], usage="(variable)")
     @commands.check(is_botmaster)
     async def delvar(self, ctx, key):
         """Deletes a config variable, be careful!"""
