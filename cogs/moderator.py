@@ -5,12 +5,18 @@ import git
 import json
 import logging
 import os
+import re
+import subprocess
+import sys
 import time
 
 from bot import get_cogs, get_prefix
 from discord.errors import Forbidden
 from discord.ext import commands
 from utilities.formatting import realtime
+
+SHELL = os.getenv("SHELL") or "/bin/bash"
+WINDOWS = sys.platform == "win32"
 
 ch_types = {
         "general": "general",
@@ -458,6 +464,30 @@ class Admin(commands.Cog):
             json.dump(self.bot.config, f, indent=4)
         e = discord.Embed(title=f"``{ch.name}``'s type has been changed to ``{_type}``")
         await ctx.send(embed=e)
+    
+    @commands.command(aliases=['sh'], usage="(shell command)", hidden=True)
+    @commands.check(is_botmaster)
+    async def shell(self, ctx, *command: str):
+        """Execute shell command from discord. **Use with caution**"""
+        if WINDOWS:
+            sequence = shlex.split(' '.join([*command]))
+        else:
+            sequence = [SHELL, '-c', ' '.join([*command])]
+
+        proc = subprocess.Popen(sequence, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+
+        def clean_bytes(line):
+            """
+            Cleans a byte sequence of shell directives and decodes it.
+            """
+            lines = line
+            line = []
+            for i in lines:
+                line.append(i.decode('utf-8'))
+            line = "".join(line)
+            text = line.replace('\r', '').strip('\n')
+            return re.sub(r'\x1b[^m]*m', '', text).replace("``", "`\u200b`").strip('\n')
+        await ctx.send(f"```{clean_bytes(proc.stdout.readlines())}```")
 
 def setup(bot):
     bot.add_cog(Admin(bot))
