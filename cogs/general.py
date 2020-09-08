@@ -463,7 +463,7 @@ class General(commands.Cog):
                      icon_url="https://openweathermap.org/themes/openweathermap/assets/vendor/owm/img/icons/logo_16x16.png")
         e.add_field(name="Temperature", value=temp)
         e.add_field(name="Humidity", value=f"{weatherData['main']['humidity']}%")
-        e.add_field(name="Wind", value=f"{weatherData['wind']['speed']}")
+        e.add_field(name="Wind", value=f"{weatherData['wind']['speed']}m/s")
         e.set_footer(text=f"Requested by {ctx.message.author.name}#{ctx.message.author.discriminator}")
         await ctx.send(embed=e)
 
