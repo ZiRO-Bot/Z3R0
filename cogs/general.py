@@ -369,7 +369,7 @@ class General(commands.Cog):
                          )
         await ctx.send(embed=e)
 
-    @commands.command(usage="(gamertag)")
+    @commands.command(aliases=['xi', 'xboxuser', 'xu'],usage="(gamertag)")
     async def xboxinfo(self, ctx, gamertag):
         """Show user's xbox information."""
         xbox = "https://xbl-api.prouser123.me/profile/gamertag"
