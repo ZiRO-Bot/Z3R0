@@ -1,5 +1,4 @@
 aiohttp==3.6.2
-asyncio==3.4.3
 discord.py>=1.4.0
 colorama==0.4.3
 python-dateutil==2.8.1
