@@ -42,7 +42,7 @@ def get_cogs():
     extensions = [
                   "cogs.welcome", "cogs.help", "cogs.moderator",
                   "cogs.general", "cogs.utils", "cogs.mcbe",
-                  "cogs.anilist", "cogs.fun"
+                  "cogs.anilist", "cogs.fun", "cogs.music"
                  ]
     return extensions
 
