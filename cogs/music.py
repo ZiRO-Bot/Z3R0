@@ -186,7 +186,7 @@ class MusicPlayer:
         return self.bot.loop.create_task(self._cog.cleanup(guild))
 
 
-class Music:
+class Music(commands.Cog):
     """Music related commands."""
 
     __slots__ = ('bot', 'players')
@@ -236,7 +236,7 @@ class Music:
 
         return player
 
-    @commands.command(name='connect', aliases=['join'])
+    @commands.command(name='connect', aliases=['join'], usage="[channel]")
     async def connect_(self, ctx, *, channel: discord.VoiceChannel=None):
         """Connect to voice.
 
@@ -271,7 +271,7 @@ class Music:
 
         await ctx.send(f'Connected to: **{channel}**', delete_after=20)
 
-    @commands.command(name='play', aliases=['sing'])
+    @commands.command(name='play', aliases=['sing'], usage="(music)")
     async def play_(self, ctx, *, search: str):
         """Request a song and add it to the queue.
 
@@ -381,7 +381,7 @@ class Music:
         player.np = await ctx.send(f'**Now Playing:** `{vc.source.title}` '
                                    f'requested by `{vc.source.requester}`')
 
-    @commands.command(name='volume', aliases=['vol'])
+    @commands.command(name='volume', aliases=['vol'], usage="(volume)")
     async def change_volume(self, ctx, *, vol: float):
         """Change the player volume.
 
@@ -419,7 +419,6 @@ class Music:
             return await ctx.send('I am not currently playing anything!', delete_after=20)
 
         await self.cleanup(ctx.guild)
-
 
 def setup(bot):
     bot.add_cog(Music(bot))
