@@ -6,7 +6,7 @@ Just a fork of mcbeDiscordBot but rewritten a bit. Some code are translated mee6
 
 ### Dependencies
 - [discord.py](https://github.com/Rapptz/discord.py)
-- asyncio
+- youtube-dl
 
 To install the dependencies, you can use this command:
 ```
