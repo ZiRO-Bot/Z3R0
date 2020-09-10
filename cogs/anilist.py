@@ -526,6 +526,7 @@ class AniList(commands.Cog):
                                                 `{ctx.prefix}anime info {data['id']} for more info`",
                                   colour = discord.Colour(0x02A9FF))
             embed.set_author(name=f"AniList - "
+                                + f"Page {pageData['currentPage']}/{pageData['lastPage']} - "
                                 + f"{ratingEmoji} {rating}%",
                              icon_url="https://gblobscdn.gitbook.com/spaces%2F-LHizcWWtVphqU90YAXO%2Favatar.png")
             
@@ -557,7 +558,6 @@ class AniList(commands.Cog):
             embed.add_field(name="Status", value=hformat(data['status']))
             genres = ", ".join(data['genres'])
             embed.add_field(name="Genres",value=genres or "Unknown", inline=False)
-            embed.set_footer(text=f"Page {pageData['currentPage']}/{pageData['lastPage']}")
             return embed
 
         q = await search_ani_new(self, ctx, anime, 1)
