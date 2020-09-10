@@ -477,7 +477,7 @@ class General(commands.Cog):
                          )
         e.set_thumbnail(url=f"https://openweathermap.org/img/wn/{weatherData['weather'][0]['icon']}@2x.png")
         e.set_author(name="OpenWeather",
-                     icon_url="https://openweathermap.org/themes/openweathermap/assets/vendor/owm/img/icons/logo_16x16.png")
+                     icon_url="https://openweathermap.org/themes/openweathermap/assets/vendor/owm/img/icons/logo_60x60.png")
         e.add_field(name="Temperature", value=temp)
         e.add_field(name="Humidity", value=f"{weatherData['main']['humidity']}%")
         e.add_field(name="Wind", value=f"{weatherData['wind']['speed']}m/s")
@@ -502,7 +502,7 @@ class General(commands.Cog):
                          )
         e.set_thumbnail(url=f"https://openweathermap.org/img/wn/{weatherData['weather'][0]['icon']}@2x.png")
         e.set_author(name="OpenWeather",
-                     icon_url="https://openweathermap.org/themes/openweathermap/assets/vendor/owm/img/icons/logo_16x16.png")
+                     icon_url="https://openweathermap.org/themes/openweathermap/assets/vendor/owm/img/icons/logo_60x60.png")
         e.add_field(name="Temperature", value=temp)
         e.add_field(name="Humidity", value=f"{weatherData['main']['humidity']}%")
         e.add_field(name="Wind", value=f"{weatherData['wind']['speed']}m/s")
@@ -527,7 +527,7 @@ class General(commands.Cog):
                          )
         e.set_thumbnail(url=f"https://openweathermap.org/img/wn/{weatherData['weather'][0]['icon']}@2x.png")
         e.set_author(name="OpenWeather",
-                     icon_url="https://openweathermap.org/themes/openweathermap/assets/vendor/owm/img/icons/logo_16x16.png")
+                     icon_url="https://openweathermap.org/themes/openweathermap/assets/vendor/owm/img/icons/logo_60x60.png")
         e.add_field(name="Temperature", value=temp)
         e.add_field(name="Humidity", value=f"{weatherData['main']['humidity']}%")
         e.add_field(name="Wind", value=f"{weatherData['wind']['speed']}m/s")
