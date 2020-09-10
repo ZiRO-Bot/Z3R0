@@ -274,9 +274,14 @@ class General(commands.Cog):
             tzinfo=timezone('UTC')).astimezone(jakarta).strftime("%a, %#d %B %Y, %H:%M WIB"))
         embed.add_field(name="Joined on", value=member.joined_at.replace(
             tzinfo=timezone('UTC')).astimezone(jakarta).strftime("%a, %#d %B %Y, %H:%M WIB") if member else "Not a member.")
-        embed.add_field(name=f"Roles ({len(roles)})",
-                        value=", ".join(roles) or "No roles.",
-                        inline=False)
+        if len(", ".join(roles)) <= 1024:
+            embed.add_field(name=f"Roles ({len(roles)})",
+                            value=", ".join(roles) or "No roles.",
+                            inline=False)
+        else:
+            embed.add_field(name=f"Roles",
+                            value=f"{len(roles)}",
+                            inline=False)
         embed.set_footer(text=f"Requested by {ctx.message.author.name}#{ctx.message.author.discriminator}")
         await ctx.send(embed=embed)
 
@@ -288,13 +293,10 @@ class General(commands.Cog):
                 colour=discord.Colour(0xFFFFF0),
                 timestamp=ctx.message.created_at)
 
-        roles = [x.mention for x in ctx.guild.roles]
-        ignored_role = ["<@&645074407244562444>", "<@&745481731133669476>"]
-        for i in ignored_role:
-            try:
-                roles.remove(i)
-            except ValueError:
-                print("Role not found, skipped")
+        roles = []
+        for role in ctx.guild.roles:
+            if role.name != "@everyone":
+                roles.append(role.mention)
         width = 3
         
         boosters = [x.mention for x in ctx.guild.premium_subscribers]
@@ -321,8 +323,12 @@ class General(commands.Cog):
         else:
             embed.add_field(name=f"Boosters ({len(boosters)})",
                             value=len(boosters))
-        embed.add_field(name=f"Roles ({len(roles)})",
-                        value=", ".join(roles))
+        if len(", ".join(roles)) <= 1024:
+            embed.add_field(name=f"Roles ({len(roles)})",
+                            value=", ".join(roles))
+        else:
+            embed.add_field(name=f"Roles",
+                            value=f"{len(roles)}")
         embed.set_footer(text=f"ID: {ctx.guild.id}")
         await ctx.send(embed=embed)
 
