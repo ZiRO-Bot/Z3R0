@@ -229,14 +229,11 @@ class General(commands.Cog):
             if user == ctx.guild.owner:
                 badges.append(badge("UserFlags.owner"))
             badges.append(badge(x))
-
-        roles = [x.mention for x in user.roles]
-        ignored_role = ["<@&645074407244562444>", "<@&745481731133669476>"]
-        for i in ignored_role:
-            try:
-                roles.remove(i)
-            except ValueError:
-                self.logger.info("Role not found, skipped")
+        
+        roles = []
+        for role in user.roles:
+            if role.name != '@everyone':
+                roles.append(role.mention)
 
         jakarta = timezone('Asia/Jakarta')
 
@@ -256,7 +253,7 @@ class General(commands.Cog):
         embed.add_field(name="Joined on", value=user.joined_at.replace(
             tzinfo=timezone('UTC')).astimezone(jakarta).strftime("%a, %#d %B %Y, %H:%M WIB"))
         embed.add_field(name=f"Roles ({len(roles)})",
-                        value=", ".join(roles),
+                        value=", ".join(roles) or "No roles.",
                         inline=False)
         embed.set_footer(text=f"Requested by {ctx.message.author.name}#{ctx.message.author.discriminator}")
         await ctx.send(embed=embed)
