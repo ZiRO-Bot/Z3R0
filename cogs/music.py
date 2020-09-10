@@ -41,11 +41,7 @@ ytdlopts = {
     'quiet': True,
     'no_warnings': True,
     'default_search': 'auto',
-    'source_address': '0.0.0.0',  # ipv6 addresses cause issues sometimes
-    'postprocessors' : [ {
-        'key' : 'FFmpegExtractAudio',
-        'preferredcodec' : 'mp3'
-        } ]
+    'source_address': '0.0.0.0'  # ipv6 addresses cause issues sometimes
 }
 
 ffmpegopts = {
