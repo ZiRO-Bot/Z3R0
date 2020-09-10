@@ -198,7 +198,7 @@ class Admin(commands.Cog):
     
     @commands.command(usage="(user) [reason] [ban duration]", hidden=True)
     @is_mod()
-    async def ban(self, ctx, member: discord.Member=None, reason: str="No Reason", min_ban: int=0): 
+    async def ban(self, ctx, member: discord.User=None, reason: str="No Reason", min_ban: int=0): 
         """Ban a member."""
         if member is None:
             await ctx.send("Please specify the member you want to ban.")
@@ -206,7 +206,10 @@ class Admin(commands.Cog):
         if self.bot.user == member: # Just why would you want to mute him?
             await ctx.send(f'You\'re not allowed to ban ziBot!')
         else:
-            await member.send(f'You have been banned from {ctx.guild.name} for {reason}!')
+            try:
+                await member.send(f'You have been banned from {ctx.guild.name} for {reason}!')
+            except Forbidden:
+                self.logger.error("discord.errors.Forbidden: Can't send DM to member")
             await ctx.guild.ban(member, reason=reason)
             await ctx.send(f'{member.mention} has been banned by {ctx.author.mention} for {reason}!')
         
@@ -216,11 +219,11 @@ class Admin(commands.Cog):
     
     @commands.command(usage="(user) [reason]", hidden=True)
     @is_mod()
-    async def unban(self, ctx, member):
+    async def unban(self, ctx, member: discord.User=None):
         """Unban a member."""
-        for s in "<!@>":
-            member = member.replace(s,"")
-        member = await self.bot.fetch_user(int(member))
+        # for s in "<!@>":
+        #     member = member.replace(s,"")
+        # member = await self.bot.fetch_user(int(member))
         if member is None:
             await ctx.send("Please specify the member you want to unban.")
             return
