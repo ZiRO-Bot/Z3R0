@@ -8,6 +8,7 @@ import pytz
 import re
 import time
 
+from cogs.errors.anilist import NameNotFound, NameTypeNotFound, IdNotFound
 from discord.ext import tasks, commands
 from pytz import timezone
 from typing import Optional
@@ -257,8 +258,10 @@ async def find_with_name(self, ctx, anime, _type_):
         return q['data']
     except TypeError:
         if not _type_:
-            return "NameNotFound"
-        return "NameTypeNotFound"
+            raise NameNotFound
+            # return "NameNotFound"
+        raise NameTypeNotFound
+        # return "NameTypeNotFound"
 
 async def find_id(self, ctx, url, _type_: str=None):
     # if input is ID, just return it, else find id via name (string)        
@@ -281,8 +284,6 @@ async def find_id(self, ctx, url, _type_: str=None):
     match = re.search(regexMAL, url)
     if not match:
         _id_ = await find_with_name(self, ctx, url, _type_)
-        if _id_ == "NameNotFound" or _id_ == "NameTypeNotFound":
-            return _id_
         return int(_id_['Media']['id'])
     
     # getting ID from MAL ID
@@ -295,34 +296,33 @@ async def find_id(self, ctx, url, _type_: str=None):
 
 async def getinfo(self, ctx, other, _format_: str=None):
     mediaId = await find_id(self, ctx, other, _format_)
-    if mediaId == "NameNotFound" or mediaId == "NameTypeNotFound":
-        return mediaId
     if not mediaId:
-        return None
+        raise IdNotFound
 
     a = await query(generalQ,
             {'mediaId' : mediaId})
     if not a:
-        return
+        raise IdNotFound
+
     a = a['data']
     return a
 
 async def send_info(self, ctx, other, _format_: str=None):
-    a = await getinfo(self, ctx, other, _format_)
-    
     embed = discord.Embed(title="404",
                           colour = discord.Colour(0x02A9FF))
     embed.set_author(name="AniList",
                      icon_url="https://gblobscdn.gitbook.com/spaces%2F-LHizcWWtVphqU90YAXO%2Favatar.png")
-    if a == "NameNotFound":
+    try:
+        a = await getinfo(self, ctx, other, _format_)
+    except NameNotFound:
         embed.description = f"**{other}** not found"
         await ctx.send(embed=embed)
         return None
-    if a == "NameTypeNotFound":
+    except NameTypeNotFound:
         embed.description = f"**{other}** with format {_format_} not found"
         await ctx.send(embed=embed)
         return None
-    if a is None:
+    except IdNotFound:
         embed.description = f"Anime with id **{other}** not found"
         await ctx.send(embed=embed)
         return None
@@ -423,31 +423,6 @@ async def search_ani_new(self, ctx, anime, page):
     if q:
         return q['data']
     return
-
-async def search_ani(self, ctx, anime):
-    q = await query(searchAni, {'name': anime, 'page': 1})
-    q = q['data']
-    embed = discord.Embed(title="Top 5 Search Result",
-                            colour = discord.Colour(0x02A9FF)
-                            )
-    embed.set_author(name="AniList",
-                    icon_url="https://gblobscdn.gitbook.com/spaces%2F-LHizcWWtVphqU90YAXO%2Favatar.png")
-    if not q['Page']['media']:
-        embed = discord.Embed(title="No Result Found",
-                            colour = discord.Colour(0x02A9FF)
-                            )
-        embed.set_author(name="AniList",
-                        icon_url="https://gblobscdn.gitbook.com/spaces%2F-LHizcWWtVphqU90YAXO%2Favatar.png")
-        await ctx.send(embed=embed)
-        return
-    for each in q['Page']['media']:
-        engTitle = each['title']['english']
-        if not engTitle:
-            engTitle = "No english title."
-        embed.add_field(name=f"[{each['format']}] {each['title']['romaji']}",
-        value=f"**ID**: [{each['id']}]({each['siteUrl']})\n{engTitle}",
-        inline=False)
-    await ctx.send(embed=embed)
 
 # async def createAnnoucementEmbed(entry: str=None, date: str=None, upNext: str=None):
 
@@ -602,15 +577,6 @@ class AniList(commands.Cog):
 
         return
 
-    # @anime.command(aliases=['find'], usage="(anime) [format]")
-    # async def search(self, ctx, anime, _format: str=None):
-    #     """Find an anime."""
-    #     if not anime:
-    #         await ctx.send("Please specify the anime!")
-    #     async with ctx.typing():
-    #         await search_ani(self, ctx, anime)
-    #     return
-    
     @anime.command(usage="(anime) [format]")
     @commands.check(is_mainserver)
     async def watch(self, ctx, anime, _format: str=None):
