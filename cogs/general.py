@@ -249,7 +249,7 @@ class General(commands.Cog):
                                         + ("<:activity:748091280227041281>"
                                         + activity(str(user.activity.type).replace("ActivityType.",""))
                                         + f" **{member.activity.name}**" if member and member.activity else ""),
-                              colour=user.colour,
+                              colour=member.colour if member else discord.Colour(0x000000),
                               timestamp=ctx.message.created_at)
         embed.set_author(name=f"{user.name}#{user.discriminator}", icon_url=user.avatar_url)
         embed.set_thumbnail(url=user.avatar_url)
