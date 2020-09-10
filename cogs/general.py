@@ -9,6 +9,7 @@ import platform
 import re
 import subprocess
 
+from cogs.errors.weather import CityNotFound
 from discord.ext import commands
 from dotenv import load_dotenv
 from pytz import timezone
@@ -108,6 +109,19 @@ def temperature(temp, unit: str, number_only=False):
     if number_only:
         return f"{round(temp)}"
     return f"{round(temp)}°{unit.upper()}"
+
+async def weather_get(*place, _type="city"):
+    place = " ".join([*place])
+    if _type == "city":
+        q = "q"
+    elif _type == "zip":
+        q = "zip"
+    apilink = f"https://api.openweathermap.org/data/2.5/weather?{q}={place}&appid={WEATHER_API}"
+    async with session.get(apilink) as url:
+        weatherData = json.loads(await url.text())
+    if weatherData['cod'] == "404":
+        raise CityNotFound
+    return weatherData
 
 class General(commands.Cog):
     def __init__(self, bot):
@@ -448,12 +462,60 @@ class General(commands.Cog):
     @commands.group(usage="(city)", invoke_without_command=True)
     async def weather(self, ctx, *city):
         """Show weather report."""
-        city = " ".join([*city])
-        apilink = f"https://api.openweathermap.org/data/2.5/weather?q={city}&appid={WEATHER_API}"
-        async with session.get(apilink) as url:
-            weatherData = json.loads(await url.text())
-        if weatherData['cod'] == "404":
-            await ctx.send(f"{city} not found!")
+        try:
+            weatherData = await weather_get(*city, _type='city')
+        except CityNotFound:
+            await ctx.send("City not found")
+            return
+        temp = temperature(weatherData['main']['temp'], 'c')
+        feels_like = temperature(weatherData['main']['feels_like'], 'c')
+        e = discord.Embed(
+                          title=f"{weatherData['name']}, {weatherData['sys']['country']}",
+                          description=f"Feels like {feels_like}. {weatherData['weather'][0]['description'].title()}",
+                          color=discord.Colour(0xEA6D4A),
+                          timestamp=ctx.message.created_at
+                         )
+        e.set_thumbnail(url=f"https://openweathermap.org/img/wn/{weatherData['weather'][0]['icon']}@2x.png")
+        e.set_author(name="OpenWeather",
+                     icon_url="https://openweathermap.org/themes/openweathermap/assets/vendor/owm/img/icons/logo_16x16.png")
+        e.add_field(name="Temperature", value=temp)
+        e.add_field(name="Humidity", value=f"{weatherData['main']['humidity']}%")
+        e.add_field(name="Wind", value=f"{weatherData['wind']['speed']}m/s")
+        e.set_footer(text=f"Requested by {ctx.message.author.name}#{ctx.message.author.discriminator}")
+        await ctx.send(embed=e)
+
+    @weather.command(name="city")
+    async def weather_city(self, ctx, *city):
+        """Show weather report from a city."""
+        try:
+            weatherData = await weather_get(*city, _type='city')
+        except CityNotFound:
+            await ctx.send("City not found")
+            return
+        temp = temperature(weatherData['main']['temp'], 'c')
+        feels_like = temperature(weatherData['main']['feels_like'], 'c')
+        e = discord.Embed(
+                          title=f"{weatherData['name']}, {weatherData['sys']['country']}",
+                          description=f"Feels like {feels_like}. {weatherData['weather'][0]['description'].title()}",
+                          color=discord.Colour(0xEA6D4A),
+                          timestamp=ctx.message.created_at
+                         )
+        e.set_thumbnail(url=f"https://openweathermap.org/img/wn/{weatherData['weather'][0]['icon']}@2x.png")
+        e.set_author(name="OpenWeather",
+                     icon_url="https://openweathermap.org/themes/openweathermap/assets/vendor/owm/img/icons/logo_16x16.png")
+        e.add_field(name="Temperature", value=temp)
+        e.add_field(name="Humidity", value=f"{weatherData['main']['humidity']}%")
+        e.add_field(name="Wind", value=f"{weatherData['wind']['speed']}m/s")
+        e.set_footer(text=f"Requested by {ctx.message.author.name}#{ctx.message.author.discriminator}")
+        await ctx.send(embed=e)
+    
+    @weather.command(name="zip")
+    async def weather_zip(self, ctx, *city):
+        """Show weather report from a zip code."""
+        try:
+            weatherData = await weather_get(*city, _type='zip')
+        except CityNotFound:
+            await ctx.send("City not found")
             return
         temp = temperature(weatherData['main']['temp'], 'c')
         feels_like = temperature(weatherData['main']['feels_like'], 'c')
