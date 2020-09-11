@@ -71,7 +71,7 @@ class Fun(commands.Cog):
         else:
             dice_size = 6
             dice_number = int(arg1)
-        if dice_number >= 100:
+        if dice_number > 100:
             raise DiceTooBig
         for i in range(dice_number):
             dice.append(int(randint(1,dice_size)))
