@@ -561,7 +561,10 @@ class General(commands.Cog):
                 return False
 
         def create_embed(ctx, data, page):
-            data = data[page-1]
+            try:
+                data = data[page-1]
+            except IndexError:
+                return None
             # EGS haven't implemented rating system yet.
             rating = "🤔 -"
             
@@ -576,7 +579,7 @@ class General(commands.Cog):
             price = data['price']['totalPrice']['fmtPrice']['originalPrice']
             discountPrice = data['price']['totalPrice']['fmtPrice']['discountPrice']
             fmtPrice = price if price != '0' else 'Free'
-            if discountPrice != "0":
+            if discountPrice != "0" and price != discountPrice:
                 fmtPrice = f"~~{price if price != '0' else 'Free'}~~ {discountPrice}"
             
             imageTall = None
@@ -600,6 +603,9 @@ class General(commands.Cog):
             embed.add_field(name="Price", value=fmtPrice)
             return embed
         e = create_embed(ctx, catalog, currentPage)
+        if not e:
+            await ctx.send(f"Can't find any games with keywords `{keywords}`")
+            return
         msg = await ctx.send(embed=e)
         for emoji in embed_reactions:
             await msg.add_reaction(emoji)
