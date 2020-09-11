@@ -5,6 +5,7 @@ import os
 import praw
 import re
 
+from cogs.errors.fun import DiceTooBig
 from discord.ext import commands
 from discord.errors import Forbidden
 from dotenv import load_dotenv
@@ -70,6 +71,8 @@ class Fun(commands.Cog):
         else:
             dice_size = 6
             dice_number = int(arg1)
+        if dice_number >= 100:
+            raise DiceTooBig
         for i in range(dice_number):
             dice.append(int(randint(1,dice_size)))
         dice = ", ".join(str(i) for i in dice)
@@ -82,6 +85,8 @@ class Fun(commands.Cog):
                                        + " slowdown bud!")
             await asyncio.sleep(round(error.retry_after))
             await bot_msg.delete()
+        if isinstance(error, DiceTooBig):
+            await ctx.send("You can only roll up to 100 dices!")
 
     @commands.command()
     async def meme(self, ctx):
