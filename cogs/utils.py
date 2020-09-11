@@ -118,7 +118,7 @@ class Utils(commands.Cog):
                           title="Ping",
                           description="**API Latency** = Time it takes to recive data from the discord API\n**Response Time** = Time it took send this response to your message\n**Bot Latency** = Time needed to send/edit messages",
                           timestamp=ctx.message.created_at,
-                          color=discord.Colour(0x2B2A32)
+                          color=discord.Colour(0xffffff)
                          )
         e.add_field(name="API Latency", value=f"{round(self.bot.latency*1000)}ms")
         e.set_footer(text=f"Requested by {ctx.message.author.name}#{ctx.message.author.discriminator}")
