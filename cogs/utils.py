@@ -113,7 +113,24 @@ class Utils(commands.Cog):
     @commands.command(aliases=['p'])
     async def ping(self, ctx):
         """Tell the ping of the bot to the discord servers."""
-        await ctx.send(f'Pong! {round(self.bot.latency*1000)}ms')
+        start = time.perf_counter()
+        e = discord.Embed(
+                          title="Ping",
+                          description="**API Latency** = Time it takes to recive data from the discord API\n**Response Time** = Time it took send this response to your message\n**Bot Latency** = Time needed to send/edit messages",
+                          timestamp=ctx.message.created_at,
+                          color=discord.Colour(0x2B2A32)
+                         )
+        e.add_field(name="API Latency", value=f"{round(self.bot.latency*1000)}ms")
+        e.set_footer(text=f"Requested by {ctx.message.author.name}#{ctx.message.author.discriminator}")
+        msg = await ctx.send(embed=e)
+        end = time.perf_counter()
+        msg_ping = (end-start)*1000
+        e.add_field(
+            name="Response Time",
+            value=f"{round((msg.created_at - ctx.message.created_at).total_seconds()/1000, 4)}ms",
+        )
+        e.add_field(name="Bot Latency", value=f"{round(msg_ping)}ms")
+        await msg.edit(embed=e)
     
     @commands.command(aliases=['trans'], brief="Translate a text.", usage="(language) (text)")
     async def translate(self, ctx, lang, *txt):
@@ -138,12 +155,6 @@ class Utils(commands.Cog):
         embed.add_field(name=f"Translated [{translation.dest}]", 
                         value=translated, inline=False)
         await ctx.send(embed=embed)
-
-    @commands.command(aliases=['up'])
-    async def uptime(self, ctx):
-        """Tell the ping of the bot to the discord servers."""
-        await ctx.send('ziBot has been online for'
-                       + f' {realtime(int(time.time() - bot.start_time))}')
 
 def setup(bot):
     bot.add_cog(Utils(bot))

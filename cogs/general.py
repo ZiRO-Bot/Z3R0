@@ -1,5 +1,6 @@
 import aiohttp
 import asyncio
+import bot
 import datetime
 import discord
 import epicstore_api
@@ -9,12 +10,13 @@ import os
 import platform
 import re
 import subprocess
+import time
 
 from cogs.errors.weather import CityNotFound
+from cogs.utilities.formatting import bar_make, realtime
 from discord.ext import commands
 from dotenv import load_dotenv
 from pytz import timezone
-from utilities.formatting import bar_make
 
 try:
     WEATHER_API = os.environ['WEATHER_API']
@@ -334,9 +336,10 @@ class General(commands.Cog):
         embed.set_footer(text=f"ID: {ctx.guild.id}")
         await ctx.send(embed=embed)
 
-    @commands.command(aliases=['bi', 'about', 'info'])
+    @commands.command(aliases=['bi', 'about', 'info', 'uptime', 'up'])
     async def botinfo(self, ctx):
         """Show bot information."""
+        start = time.perf_counter()
         embed = discord.Embed(
                 title="About ziBot",
                 colour=discord.Colour(0xFFFFF0),
@@ -346,13 +349,20 @@ class General(commands.Cog):
         embed.add_field(name="Python", value=f"[{platform.python_version()}](https://www.python.org)")
         embed.add_field(name="discord.py", value=f"[{discord.__version__}](https://github.com/Rapptz/discord.py)")
         embed.add_field(name="Repository", value="[Github](https://github.com/null2264/ziBot)")
+        embed.add_field(name="Uptime", value=f"{realtime(int(time.time() - bot.start_time))}")
+        embed.add_field(name="Bot Latency", value="Loading...")
         embed.add_field(name="About", 
                         value="**ziBot** is an open source bot, "
                               + "a fork of [mcbeDiscordBot](https://github.com/AnInternetTroll/mcbeDiscordBot) "
                               + "(Steve the Bot) created by [AnInternetTroll](https://github.com/AnInternetTroll), " 
                               + "but rewritten a bit.", 
                         inline=False)
-        await ctx.send(embed=embed)
+        embed.set_footer(text=f"Requested by {ctx.message.author.name}#{ctx.message.author.discriminator}")
+        msg = await ctx.send(embed=embed)
+        end = time.perf_counter()
+        msg_ping = (end-start)*1000
+        embed.set_field_at(index=5,name="Bot Latency", value=f"{round(msg_ping)}ms")
+        await msg.edit(embed=embed)
     
     @commands.command(aliases=['spi','spot','spotify'], usage="[member]")
     async def spotifyinfo(self, ctx, *, user: discord.Member=None):
