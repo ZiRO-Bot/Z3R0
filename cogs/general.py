@@ -2,6 +2,7 @@ import aiohttp
 import asyncio
 import datetime
 import discord
+import epicstore_api
 import json
 import logging
 import os
@@ -21,6 +22,7 @@ except:
     load_dotenv()
     WEATHER_API = os.getenv("WEATHER_API")
 
+egs = epicstore_api.EpicGamesStoreAPI()
 session = aiohttp.ClientSession()
 
 MORSE_CODE_DICT = {
@@ -539,6 +541,93 @@ class General(commands.Cog):
         e.add_field(name="Wind", value=f"{weatherData['wind']['speed']}m/s")
         e.set_footer(text=f"Requested by {ctx.message.author.name}#{ctx.message.author.discriminator}")
         await ctx.send(embed=e)
+
+    @commands.group(aliases=["egs"])
+    async def epicgames(self, ctx):
+        """Get information from epic games store."""
+        pass
+
+    @epicgames.command(name="games")
+    async def _games(self, ctx, *keywords):
+        keywords = " ".join([*keywords])
+        catalog = egs.fetch_catalog(product_type="games", keywords=keywords)['data']['Catalog']['catalogOffers']['elements']
+        totalPage = len(catalog)
+        currentPage = 1
+        embed_reactions = ['◀️', '▶️','⏹️']
+        def check_reactions(reaction, user):
+            if user == ctx.author and str(reaction.emoji) in embed_reactions:
+                return str(reaction.emoji)
+            else:
+                return False
+
+        def create_embed(ctx, data, page):
+            data = data[page-1]
+            # EGS haven't implemented rating system yet.
+            rating = "🤔 -"
+            
+            publisherName = None
+            developerName = None
+            for i in range(len(data['linkedOffer']['customAttributes'])):
+                if data['linkedOffer']['customAttributes'][i]['key'] == "publisherName":
+                    publisherName = data['linkedOffer']['customAttributes'][i]['value']
+                elif data['linkedOffer']['customAttributes'][i]['key'] == "developerName":
+                    developerName = data['linkedOffer']['customAttributes'][i]['value']
+             
+            price = data['price']['totalPrice']['fmtPrice']['originalPrice']
+            discountPrice = data['price']['totalPrice']['fmtPrice']['discountPrice']
+            fmtPrice = price if price != '0' else 'Free'
+            if discountPrice != "0":
+                fmtPrice = f"~~{price if price != '0' else 'Free'}~~ {discountPrice}"
+            
+            imageTall = None
+            imageWide = None
+            for i in range(len(data['keyImages'])):
+                if data['keyImages'][i]['type'] == "DieselStoreFrontWide":
+                    imageWide = data['keyImages'][i]['url']
+                elif data['keyImages'][i]['type'] == "DieselStoreFrontTall":
+                    imageTall = data['keyImages'][i]['url']
+
+            embed = discord.Embed(title=data['title'],
+                                  url=f"https://www.epicgames.com/store/en-US/product/{data['urlSlug']}",
+                                  color=discord.Colour(0x303030)
+                                  )
+            embed.set_author(name=f'Epic Games Store - Page {currentPage}/{totalPage} - {rating}%',
+                             icon_url="https://raw.githubusercontent.com/null2264/null2264/master/egs.png")
+            embed.set_thumbnail(url=imageTall)
+            embed.set_image(url=imageWide)
+            embed.add_field(name="Developer", value=developerName or publisherName or "-")
+            embed.add_field(name="Publisher", value=publisherName or developerName or "-")
+            embed.add_field(name="Price", value=fmtPrice)
+            return embed
+        e = create_embed(ctx, catalog, currentPage)
+        msg = await ctx.send(embed=e)
+        for emoji in embed_reactions:
+            await msg.add_reaction(emoji)
+        while True:
+            try:
+                reaction, user = await self.bot.wait_for('reaction_add',
+                                                        check=check_reactions,
+                                                        timeout=60.0)
+            except asyncio.TimeoutError:
+                break
+            else:
+                emoji = check_reactions(reaction, user)
+                try:
+                    await msg.remove_reaction(reaction.emoji, user)
+                except discord.Forbidden:
+                    pass
+                if emoji == "◀️" and currentPage != 1:
+                    currentPage -= 1
+                    e = create_embed(ctx, catalog, currentPage)
+                    await msg.edit(embed=e)
+                if emoji == "▶️" and currentPage != totalPage:
+                    currentPage += 1
+                    e = create_embed(ctx, catalog, currentPage)
+                    await msg.edit(embed=e)
+                if emoji == "⏹️":
+                    # await msg.clear_reactions()
+                    break
+        return
 
 def setup(bot):
     bot.add_cog(General(bot))
