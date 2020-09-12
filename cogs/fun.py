@@ -88,6 +88,23 @@ class Fun(commands.Cog):
         if isinstance(error, DiceTooBig):
             await ctx.send("You can only roll up to 100 dices!")
 
+    @commands.command(aliases=['sroll'], usage="(number of roll)")
+    @commands.cooldown(1, 5)
+    async def steveroll(self, ctx, pool):
+        """Roll the dice in steve's style."""
+        ignore_cooldown = [745481731133669476, 747984453585993808]
+        if ctx.guild.id in ignore_cooldown:
+            ctx.command.reset_cooldown(ctx)
+        await ctx.send(f"You rolled a {randint(0, int(pool))}")
+    
+    @steveroll.error
+    async def steveroll_handler(self, ctx, error):
+        if isinstance(error, commands.CommandOnCooldown):
+            bot_msg = await ctx.send(f"{ctx.message.author.mention},"
+                                       + " slowdown bud!")
+            await asyncio.sleep(round(error.retry_after))
+            await bot_msg.delete()
+
     @commands.command()
     async def meme(self, ctx):
         """Get memes from subreddit r/memes."""
