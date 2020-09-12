@@ -88,7 +88,7 @@ class Fun(commands.Cog):
         if isinstance(error, DiceTooBig):
             await ctx.send("You can only roll up to 100 dices!")
 
-    @commands.command(aliases=['sroll'], usage="(number of roll)")
+    @commands.command(aliases=['r','sroll'], usage="(number of roll)")
     @commands.cooldown(1, 5)
     async def steveroll(self, ctx, pool):
         """Roll the dice in steve's style."""
