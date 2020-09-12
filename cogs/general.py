@@ -683,10 +683,7 @@ class General(commands.Cog):
                               color=discord.Colour(0xFFFFF0),
                               timestamp=ctx.message.created_at
                               )
-            if ctx.guild.icon:
-                e.set_author(name=f"{ctx.guild.name} - {page}/{total_page}", icon_url=ctx.guild.icon)
-            else:
-                e.set_author(name=f"{ctx.guild.name} - {page}/{total_page}")
+            e.set_author(name=f"{ctx.guild.name} - {page}/{total_page}", icon_url=ctx.guild.icon_url)
             e.set_footer(text=f"Requested by {ctx.message.author.name}#{ctx.message.author.discriminator}")
             return e
         embed = create_embed(ctx, page)
