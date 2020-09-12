@@ -496,5 +496,19 @@ class Admin(commands.Cog):
             return re.sub(r'\x1b[^m]*m', '', text).replace("``", "`\u200b`").strip('\n')
         await ctx.send(f"```{clean_bytes(proc.stdout.readlines())}```")
 
+    @commands.command(usage="(command)")
+    @is_botmaster()
+    async def sudo(self, ctx: commands.Context, *, command_string: str):
+        """
+        Run a command bypassing all checks and cooldowns.
+        """
+
+        alt_ctx = await copy_context_with(ctx, content=ctx.prefix + command_string)
+
+        if alt_ctx.command is None:
+            return await ctx.send(f'Command "{alt_ctx.invoked_with}" is not found')
+
+        return await alt_ctx.command.reinvoke(alt_ctx)
+
 def setup(bot):
     bot.add_cog(Admin(bot))
