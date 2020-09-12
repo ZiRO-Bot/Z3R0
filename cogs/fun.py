@@ -95,7 +95,7 @@ class Fun(commands.Cog):
         ignore_cooldown = [745481731133669476, 747984453585993808]
         if ctx.guild.id in ignore_cooldown:
             ctx.command.reset_cooldown(ctx)
-        await ctx.send(f"You rolled a {randint(0, int(pool))}")
+        await ctx.send(f"{ctx.message.author.mention} just rolled {randint(0, int(pool))}")
     
     @steveroll.error
     async def steveroll_handler(self, ctx, error):
