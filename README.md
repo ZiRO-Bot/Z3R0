@@ -2,9 +2,9 @@
 
 **Python 3.8.x or higher is required!**
 
-Just a fork of mcbeDiscordBot but rewritten a bit. Some code are translated mee6's old deprecated code that works on the new version of [discord.py](https://github.com/Rapptz/discord.py)
+Just a fork of mcbeDiscordBot but rewritten a bit. Some code are translated mee6's old deprecated codes and some messy translated js to python codes that works on the new version of [discord.py](https://github.com/Rapptz/discord.py)
 
-### Dependencies
+## Dependencies
 - [discord.py](https://github.com/Rapptz/discord.py)
 - youtube-dl
 
@@ -17,11 +17,18 @@ python3 -m pip install -r requirements.txt
 py -3 -m pip install -r requirements.txt
 ```
 
-### Usage
-**You need to put bot's token to your environment variable with key name "TOKEN"! or put in TOKEN = 'YOUR_TOKEN_HERE' to a file called '.env'**
+## Usage
+*Hosting ziBot on your own server is recommended!*
+### User (Limited Control)
+- [Invite](https://discord.com/api/oauth2/authorize?client_id=740122842988937286&permissions=470153334&scope=bot) ziBot to your server
+- Set necessary variable using `>channel set` and `>prefix` command
 
-- Create folder called "data" *to prevent error
+### Host (Full Control)
+- Create folder called `data` (to prevent error)
+- Specify your token:
+  + Create a new file called `.env` and put in your token like `TOKEN = 'YOUR_TOKEN_HERE'`
+  + Set an environment variable called `TOKEN`
 - Launch the bot with ```python3 zibot.py```
 
-### Information
-src.py only designed to grab MCBE runs.
+## TODOs
+[Click here](https://github.com/null2264/ziBot/projects) to see all the plan i have for this project.
