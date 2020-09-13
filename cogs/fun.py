@@ -255,15 +255,15 @@ class Fun(commands.Cog):
             bot_msg = await ctx.send(f"{ctx.message.author.mention}, slowdown bud!")
             await asyncio.sleep(round(error.retry_after))
             await bot_msg.delete()
-    
+
     @commands.cooldown(1, 25, commands.BucketType.guild)
-    @commands.command(aliases=['vfindseed', 'visualfindseed', 'vfs'])
+    @commands.command(aliases=["vfindseed", "visualfindseed", "vfs"])
     async def findseedbutvisual(self, ctx):
         """Test your luck in Minecraft but visual."""
         ignore_cooldown = [745481731133669476, 747984453585993808]
         if ctx.guild.id in ignore_cooldown:
             ctx.command.reset_cooldown(ctx)
-        
+
         rows = {
             0: [0, 0, 0],
             1: [0, 0, 0],
@@ -271,9 +271,9 @@ class Fun(commands.Cog):
             3: [0, 0, 0],
         }
         emojis = [
-            '<:empty:754550188269633556>',
-            '<:portal:754550231017979995>',
-            '<:eye:754550267382333441>'
+            "<:empty:754550188269633556>",
+            "<:portal:754550231017979995>",
+            "<:eye:754550267382333441>",
         ]
         portalframe = ""
         for r in range(4):
@@ -290,23 +290,23 @@ class Fun(commands.Cog):
                 else:
                     for e in range(3):
                         portalframe += f"\{rows[i][e]}   \{rows[i+1][e]}\n"
-        portalframe = portalframe.replace(" ",emojis[0])
-        portalframe = portalframe.replace(r"\0",emojis[1])
-        portalframe = portalframe.replace(r"\1",emojis[2])
+        portalframe = portalframe.replace(" ", emojis[0])
+        portalframe = portalframe.replace(r"\0", emojis[1])
+        portalframe = portalframe.replace(r"\1", emojis[2])
         # print(portalframe)
         e = discord.Embed(
-                title="findseed but visual",
-                description=f"Your seed looks like: \n\n {portalframe}"
-            )
+            title="findseed but visual",
+            description=f"Your seed looks like: \n\n {portalframe}",
+        )
         e.set_author(
             name=f"{ctx.message.author.name}#{ctx.message.author.discriminator}",
-            icon_url=ctx.message.author.avatar_url
+            icon_url=ctx.message.author.avatar_url,
         )
         await ctx.send(embed=e)
         # await ctx.send(
         #     f"{ctx.message.author.mention} -> your seed is a {totalEyes} eye"
         # )
-    
+
     @findseedbutvisual.error
     async def findseedbutvisual_handler(self, ctx, error):
         if isinstance(error, commands.CommandOnCooldown):
