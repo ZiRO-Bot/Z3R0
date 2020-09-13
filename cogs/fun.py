@@ -230,7 +230,7 @@ class Fun(commands.Cog):
     @commands.cooldown(1, 25, commands.BucketType.guild)
     @commands.command()
     async def findseed(self, ctx):
-        """Test your luck in Minecraft"""
+        """Test your luck in Minecraft."""
         ignore_cooldown = [745481731133669476, 747984453585993808]
         if ctx.guild.id in ignore_cooldown:
             ctx.command.reset_cooldown(ctx)
@@ -255,11 +255,62 @@ class Fun(commands.Cog):
             bot_msg = await ctx.send(f"{ctx.message.author.mention}, slowdown bud!")
             await asyncio.sleep(round(error.retry_after))
             await bot_msg.delete()
+    
+    @commands.cooldown(1, 25, commands.BucketType.guild)
+    @commands.command(aliases=['vfindseed', 'visualfindseed', 'vfs'])
+    async def findseedbutvisual(self, ctx):
+        """Test your luck in Minecraft but visual."""
+        ignore_cooldown = [745481731133669476, 747984453585993808]
+        if ctx.guild.id in ignore_cooldown:
+            ctx.command.reset_cooldown(ctx)
+        
+        rows = {
+            0: [0, 0, 0],
+            1: [0, 0, 0],
+            2: [0, 0, 0],
+            3: [0, 0, 0],
+        }
+        emojis = [
+            '<:empty:754550188269633556>',
+            '<:portal:754550231017979995>',
+            '<:eye:754550267382333441>'
+        ]
+        portalframe = ""
+        for r in range(4):
+            for e in range(3):
+                randomness = randint(1, 10)
+                if randomness <= 1:
+                    rows[r][e] = 1
+        for i in range(4):
+            if i == 0 or i == 3:
+                portalframe += f" \{rows[i][0]}\{rows[i][1]}\{rows[i][2]}\n"
+            else:
+                if i == 2:
+                    pass
+                else:
+                    for e in range(3):
+                        portalframe += f"\{rows[i][e]}   \{rows[i+1][e]}\n"
+        portalframe = portalframe.replace(" ",emojis[0])
+        portalframe = portalframe.replace(r"\0",emojis[1])
+        portalframe = portalframe.replace(r"\1",emojis[2])
+        # print(portalframe)
+        e = discord.Embed(
+                title="findseed but visual",
+                description=f"Your seed looks like: \n\n {portalframe}"
+            )
+        e.set_author(
+            name=f"{ctx.message.author.name}#{ctx.message.author.discriminator}",
+            icon_url=ctx.message.author.avatar_url
+        )
+        await ctx.send(embed=e)
+        # await ctx.send(
+        #     f"{ctx.message.author.mention} -> your seed is a {totalEyes} eye"
+        # )
 
     @commands.cooldown(1, 25, commands.BucketType.guild)
     @commands.command()
     async def findsleep(self, ctx):
-        """See how long you sleep"""
+        """See how long you sleep."""
         ignore_cooldown = [745481731133669476, 747984453585993808]
         if ctx.guild.id in ignore_cooldown:
             ctx.command.reset_cooldown(ctx)
@@ -307,6 +358,7 @@ class Fun(commands.Cog):
     @commands.command()
     @commands.check(is_redarmy)
     async def someone(self, ctx):
+        """Summon random member."""
         await ctx.send(choice(ctx.guild.members).mention)
 
 
