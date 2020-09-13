@@ -306,6 +306,13 @@ class Fun(commands.Cog):
         # await ctx.send(
         #     f"{ctx.message.author.mention} -> your seed is a {totalEyes} eye"
         # )
+    
+    @findseedbutvisual.error
+    async def findseedbutvisual_handler(self, ctx, error):
+        if isinstance(error, commands.CommandOnCooldown):
+            bot_msg = await ctx.send(f"{ctx.message.author.mention}, slowdown bud!")
+            await asyncio.sleep(round(error.retry_after))
+            await bot_msg.delete()
 
     @commands.cooldown(1, 25, commands.BucketType.guild)
     @commands.command()
