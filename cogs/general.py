@@ -396,10 +396,13 @@ class General(commands.Cog):
         embed.set_footer(text=f"ID: {ctx.guild.id}")
         await ctx.send(embed=embed)
 
-    @commands.command(aliases=["bi", "about", "info", "uptime", "up"])
+    @commands.command(aliases=["bi", "about", "info", "uptime", "up", "invite"])
     async def botinfo(self, ctx):
         """Show bot information."""
         start = time.perf_counter()
+        invite_link = discord.utils.oauth_url(
+            self.bot.user.id, permissions=None, guild=None, redirect_uri=None
+        )
         embed = discord.Embed(
             title="About ziBot",
             colour=discord.Colour(0xFFFFF0),
@@ -416,7 +419,8 @@ class General(commands.Cog):
             value=f"[{discord.__version__}](https://github.com/Rapptz/discord.py)",
         )
         embed.add_field(
-            name="Repository", value="[Github](https://github.com/null2264/ziBot)"
+            name="Links",
+            value=f"[Invitation]({invite_link})\n[GitHub Repo](https://github.com/null2264/ziBot)",
         )
         embed.add_field(
             name="Uptime", value=f"{realtime(int(time.time() - bot.start_time))}"
