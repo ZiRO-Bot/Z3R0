@@ -296,7 +296,7 @@ class Fun(commands.Cog):
         # print(portalframe)
         e = discord.Embed(
             title="findseed but visual",
-            description=f"Your seed looks like: \n\n {portalframe}",
+            description=f"Your seed looks like: \n\n{portalframe}",
         )
         e.set_author(
             name=f"{ctx.message.author.name}#{ctx.message.author.discriminator}",
