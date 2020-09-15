@@ -357,7 +357,8 @@ class Admin(commands.Cog, name="Moderator"):
         await ctx.send(f"My prefix{s} {prefixes}")
 
     @prefix.command(name="mention")
-    @commands.check_any(is_mod(), is_botmaster())
+    @is_botmaster()
+    # @commands.check_any(is_mod(), is_botmaster())
     async def togglemention(self, ctx):
         """Toggle mention as prefix."""
         g = ctx.message.guild
