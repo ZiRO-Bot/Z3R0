@@ -50,7 +50,7 @@ async def copy_context_with(
     return await ctx.bot.get_context(alt_message, cls=type(ctx))
 
 
-class Admin(commands.Cog, name='Moderator'):
+class Admin(commands.Cog, name="Moderator"):
     def __init__(self, bot):
         self.logger = logging.getLogger("discord")
         self.bot = bot
@@ -349,7 +349,7 @@ class Admin(commands.Cog, name='Moderator'):
         prefixes = ", ".join([f"`{i}`" for i in prefix]).replace(
             r"`<@![0-9]*.*`", self.bot.user.mention
         )
-        prefixes = re.sub(r'`<\S*[0-9]+(..)`', self.bot.user.mention, prefixes)
+        prefixes = re.sub(r"`<\S*[0-9]+(..)`", self.bot.user.mention, prefixes)
         if len(prefix) > 1:
             s = "es are"
         else:
@@ -380,7 +380,10 @@ class Admin(commands.Cog, name='Moderator'):
     async def prefixset(self, ctx, *prefix):
         """Change bot's prefix."""
         g = ctx.message.guild
-        prefixes = list(prefix)
+        regex = re.compile(r'^\s+')
+        prefixes = [i for i in list(prefix) if not regex.match(i)]
+        if not prefixes:
+            return
         with open("data/guild.json", "w") as f:
             self.bot.config[str(g.id)]["prefix"] = prefixes
             json.dump(self.bot.config, f, indent=4)
@@ -388,31 +391,55 @@ class Admin(commands.Cog, name='Moderator'):
             title=f"Prefix has been changed to `{', '.join(prefixes)}`"
         )
         await ctx.send(embed=embed)
-        await ctx.send(f"This command will be removed soon, use `{ctx.prefix}prefix add` instead")
+        await ctx.send(
+            f"This command will be removed soon, use `{ctx.prefix}prefix add` instead"
+        )
 
     @prefix.command(name="add", usage="(prefix)")
     @commands.check_any(is_mod(), is_botmaster())
     async def prefixadd(self, ctx, *prefixes):
         """Add a new prefix to bot."""
-        print(prefixes)
         g = ctx.guild
         added = []
         not_added = []
         for prefix in prefixes:
-            if prefix in self.bot.config[str(g.id)]['prefix']:
-                # await ctx.send("This prefix already exist!")
-                # return
+            match = re.match(r'^\s+', prefix)
+            if prefix in self.bot.config[str(g.id)]["prefix"] or match:
                 not_added.append(prefix)
                 pass
             else:
-                self.bot.config[str(g.id)]['prefix'].append(prefix)
+                self.bot.config[str(g.id)]["prefix"].append(prefix)
                 added.append(prefix)
         if len(added) > 0:
-            with open('data/guild.json', 'w') as f:
+            with open("data/guild.json", "w") as f:
                 json.dump(self.bot.config, f, indent=4)
             await ctx.send(f"`{', '.join(added)}` successfully added to prefix")
             return
         await ctx.send("No prefix successfully added")
+
+    @prefix.command(name="remove", aliases=["rm"], usage="(prefix)")
+    @commands.check_any(is_mod(), is_botmaster())
+    async def prefixrm(self, ctx, *prefixes):
+        """Remove a prefix from bot."""
+        g = ctx.guild
+        removed = []
+        not_removed = []
+        for prefix in prefixes:
+            if (
+                prefix in self.bot.config[str(g.id)]["prefix"]
+                and len(self.bot.config[str(g.id)]["prefix"]) >= 2
+            ):
+                self.bot.config[str(g.id)]["prefix"].remove(prefix)
+                removed.append(prefix)
+            else:
+                not_removed.append(prefix)
+                pass
+        if len(removed) > 0:
+            with open("data/guild.json", "w") as f:
+                json.dump(self.bot.config, f, indent=4)
+            await ctx.send(f"`{', '.join(removed)}` successfully removed from prefix")
+            return
+        await ctx.send("No prefix successfully removed")
 
     @commands.command(usage="(variable) (value)")
     @is_botmaster()
