@@ -1,4 +1,5 @@
 import asyncio
+import bot
 import copy
 import datetime
 import discord
@@ -49,7 +50,7 @@ async def copy_context_with(
     return await ctx.bot.get_context(alt_message, cls=type(ctx))
 
 
-class Admin(commands.Cog):
+class Admin(commands.Cog, name='Moderator'):
     def __init__(self, bot):
         self.logger = logging.getLogger("discord")
         self.bot = bot
@@ -342,12 +343,18 @@ class Admin(commands.Cog):
     @prefix.command()
     async def list(self, ctx):
         """List bot's prefixes."""
-        prefix = self.bot.config[str(ctx.guild.id)]["prefix"]
+        prefix = bot.get_prefix(self.bot, ctx.message)
+        if self.bot.user.mention in prefix:
+            prefix.pop(0)
+        prefixes = ", ".join([f"`{i}`" for i in prefix]).replace(
+            r"`<@![0-9]*.*`", self.bot.user.mention
+        )
+        prefixes = re.sub(r'`<\S*[0-9]+(..)`', self.bot.user.mention, prefixes)
         if len(prefix) > 1:
             s = "es are"
         else:
             s = " is"
-        await ctx.send(f"My prefix{s} `{', '.join(prefix)}`")
+        await ctx.send(f"My prefix{s} {prefixes}")
 
     @prefix.command(name="mention")
     @commands.check_any(is_mod(), is_botmaster())
@@ -370,25 +377,10 @@ class Admin(commands.Cog):
 
     @prefix.command(name="set", usage="(prefix)")
     @commands.check_any(is_mod(), is_botmaster())
-    async def prefixset(self, ctx, *, prefix):
+    async def prefixset(self, ctx, *prefix):
         """Change bot's prefix."""
         g = ctx.message.guild
-        prefix = [*prefix]
-        prefix.append(" ")
-        prefixes = []
-        tmp = ""
-        i = 0
-        for _prefix in prefix:
-            if _prefix != " ":
-                i = 0
-                tmp += str(_prefix)
-            else:
-                i += 1
-                if i == 2:
-                    pass
-                else:
-                    prefixes.append(tmp)
-                    tmp = ""
+        prefixes = list(prefix)
         with open("data/guild.json", "w") as f:
             self.bot.config[str(g.id)]["prefix"] = prefixes
             json.dump(self.bot.config, f, indent=4)
@@ -396,6 +388,7 @@ class Admin(commands.Cog):
             title=f"Prefix has been changed to `{', '.join(prefixes)}`"
         )
         await ctx.send(embed=embed)
+        await ctx.send(f"This command will be removed soon, use `{ctx.prefix}prefix add` instead")
 
     @commands.command(usage="(variable) (value)")
     @is_botmaster()
