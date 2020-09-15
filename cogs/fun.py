@@ -369,6 +369,20 @@ class Fun(commands.Cog):
         """Summon random member."""
         await ctx.send(choice(ctx.guild.members).mention)
 
+    @commands.command(aliases=["badjokes"])
+    async def dadjokes(self, ctx):
+        headers = {"accept": "application/json"}
+        async with self.bot.session.get(
+            "https://icanhazdadjoke.com/", headers=headers
+        ) as req:
+            dadjoke = json.loads(await req.text())["joke"]
+        e = discord.Embed(title=dadjoke, color=discord.Colour(0xFEDE58))
+        e.set_author(
+            name="icanhazdadjoke",
+            icon_url="https://raw.githubusercontent.com/null2264/null2264/master/epicface.png",
+        )
+        await ctx.send(embed=e)
+
 
 def setup(bot):
     bot.add_cog(Fun(bot))
