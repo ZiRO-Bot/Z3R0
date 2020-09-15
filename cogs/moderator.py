@@ -381,7 +381,10 @@ class Admin(commands.Cog, name="Moderator"):
     async def prefixset(self, ctx, *prefix):
         """Change bot's prefix."""
         g = ctx.message.guild
-        regex = re.compile(r'^\s+')
+        if len(prefix) > 15:
+            await ctx.send("You can only set prefix up to 15 prefixes")
+            return
+        regex = re.compile(r"^\s+")
         prefixes = [i for i in list(prefix) if not regex.match(i)]
         if not prefixes:
             return
@@ -404,8 +407,12 @@ class Admin(commands.Cog, name="Moderator"):
         added = []
         not_added = []
         for prefix in prefixes:
-            match = re.match(r'^\s+', prefix)
-            if prefix in self.bot.config[str(g.id)]["prefix"] or match:
+            match = re.match(r"^\s+", prefix)
+            if (
+                prefix in self.bot.config[str(g.id)]["prefix"]
+                or len(self.bot.config[str(g.id)]["prefix"]) + 1 > 15
+                or match
+            ):
                 not_added.append(prefix)
                 pass
             else:
