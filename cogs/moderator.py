@@ -390,6 +390,30 @@ class Admin(commands.Cog, name='Moderator'):
         await ctx.send(embed=embed)
         await ctx.send(f"This command will be removed soon, use `{ctx.prefix}prefix add` instead")
 
+    @prefix.command(name="add", usage="(prefix)")
+    @commands.check_any(is_mod(), is_botmaster())
+    async def prefixadd(self, ctx, *prefixes):
+        """Add a new prefix to bot."""
+        print(prefixes)
+        g = ctx.guild
+        added = []
+        not_added = []
+        for prefix in prefixes:
+            if prefix in self.bot.config[str(g.id)]['prefix']:
+                # await ctx.send("This prefix already exist!")
+                # return
+                not_added.append(prefix)
+                pass
+            else:
+                self.bot.config[str(g.id)]['prefix'].append(prefix)
+                added.append(prefix)
+        if len(added) > 0:
+            with open('data/guild.json', 'w') as f:
+                json.dump(self.bot.config, f, indent=4)
+            await ctx.send(f"`{', '.join(added)}` successfully added to prefix")
+            return
+        await ctx.send("No prefix successfully added")
+
     @commands.command(usage="(variable) (value)")
     @is_botmaster()
     async def setvar(self, ctx, key, *, value):
