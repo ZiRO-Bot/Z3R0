@@ -56,7 +56,7 @@ def get_cogs():
         "cogs.mcbe",
         "cogs.anilist",
         "cogs.fun",
-        "cogs.music",
+        # "cogs.music",
     ]
     return extensions
 
