@@ -165,7 +165,7 @@ def checkjson():
         f = open("data/anime.json", "r")
     except FileNotFoundError:
         with open("data/anime.json", "w+") as f:
-            json.dump({"watchlist": []}, f, indent=4)
+            json.dump({}, f, indent=4)
 
 
 async def query(query: str, variables: Optional[str]):
@@ -182,7 +182,7 @@ async def query(query: str, variables: Optional[str]):
 
 
 async def getwatchlist(self, ctx):
-    a = await query(listQ, {"mediaId": self.watchlist})
+    a = await query(listQ, {"mediaId": self.watchlist[str(ctx.guild.id)]})
     a = a["data"]
     embed = discord.Embed(title="Anime Watchlist", colour=discord.Colour(0x02A9FF))
     embed.set_author(
@@ -218,59 +218,63 @@ async def getwatchlist(self, ctx):
 
 
 async def getschedule(self, _time_, page):
-    q = await query(
-        scheduleQuery,
-        {"page": 1, "amount": 50, "watched": self.watchlist, "nextDay": _time_},
-    )
-    q = q["data"]
-    # channel = self.bot.get_channel(744528830382735421)
-    if q["Page"]["airingSchedules"]:
-        for e in q["Page"]["airingSchedules"]:
-            self.logger.info(
-                f"Scheduling {e['media']['title']['romaji']} episode {e['episode']} (about to air in {str(datetime.timedelta(seconds=e['timeUntilAiring']))})"
-            )
+    for server in self.watchlist:
+        # Get data from anilist for every anime that listed on watchlist
+        q = await query(
+            scheduleQuery,
+            {
+                "page": 1,
+                "amount": 50,
+                "watched": self.watchlist[str(server)],
+                "nextDay": _time_,
+            },
+        )
+        q = q["data"]
 
-            async def queueSchedule(self):
+        # Get channel to send the releases
+        channel = self.bot.get_channel(self.bot.config[str(server)]["anime_ch"])
+
+        # If q is not empty and airingSchedules are exist, do stuff
+        if q and q["Page"]["airingSchedules"]:
+            # For every anime in here get the information and schedule it
+            for e in q["Page"]["airingSchedules"]:
                 anime = e["media"]["title"]["romaji"]
-                id = e["media"]["id"]
+                _id = e["media"]["id"]
                 eps = e["episode"]
                 sites = []
                 for site in e["media"]["externalLinks"]:
                     if str(site["site"]) in streamingSites:
                         sites.append(f"[{site['site']}]({site['url']})")
                 sites = " | ".join(sites)
-                _date_ = datetime.datetime.fromtimestamp(e["airingAt"])
-                embed = discord.Embed(
-                    title="New Release!",
-                    description=f"Episode {eps} of [{anime}]({e['media']['siteUrl']}) ({id}) has just aired!",
-                    timestamp=_date_,
-                    colour=discord.Colour(0x02A9FF),
+                self.logger.info(
+                    f"Scheduling {e['media']['title']['romaji']} episode {e['episode']} (about to air in {str(datetime.timedelta(seconds=e['timeUntilAiring']))})"
                 )
-                embed.set_author(
-                    name="AniList",
-                    icon_url="https://gblobscdn.gitbook.com/spaces%2F-LHizcWWtVphqU90YAXO%2Favatar.png",
-                )
-                embed.set_thumbnail(url=e["media"]["coverImage"]["large"])
-                if sites:
-                    embed.add_field(name="Streaming Sites", value=sites, inline=False)
-                else:
-                    embed.add_field(
-                        name="Streaming Sites",
-                        value="No official stream links available",
-                    )
-                if id in self.watchlist:
-                    for server in self.bot.config:
-                        try:
-                            channel = self.bot.get_channel(
-                                self.bot.config[str(server)]["anime_ch"]
-                            )
-                        except KeyError:
-                            continue
-                        except TypeError:
-                            continue
-                        await channel.send(embed=embed)
-                else:
-                    self.logger.warning(f"{anime} ({id}) no longer in the watchlist.")
+                embed_dict = {
+                    "title": "New Release!",
+                    "description": f"Episode {eps} of [{anime}]({e['media']['siteUrl']}) ({_id}) has just aired!",
+                    "timestamp": datetime.datetime.fromtimestamp(
+                        e["airingAt"]
+                    ).isoformat(),
+                    "color": 0x02A9FF,
+                    "thumbnail": {"url": e["media"]["coverImage"]["large"]},
+                    "author": {
+                        "name": "AniList",
+                        "icon_url": "https://gblobscdn.gitbook.com/spaces%2F-LHizcWWtVphqU90YAXO%2Favatar.png",
+                    },
+                }
+
+                async def queueSchedule(self):
+                    embed = discord.Embed.from_dict(embed_dict)
+                    if sites:
+                        embed.add_field(
+                            name="Streaming Sites", value=sites, inline=False
+                        )
+                    else:
+                        embed.add_field(
+                            name="Streaming Sites",
+                            value="No official stream links available",
+                        )
+                    await channel.send(embed=embed)
 
             if self.bot.user.id == 733622032901603388:
                 # ---- For testing only
@@ -280,7 +284,9 @@ async def getschedule(self, _time_, page):
             await queueSchedule(self)
 
     if q["Page"]["pageInfo"]["hasNextPage"]:
-        getschedule(self, int(time.time() + (24 * 60 * 60 * 1000 * 1) / 1000), page + 1)
+        await getschedule(
+            self, int(time.time() + (24 * 60 * 60 * 1000 * 1) / 1000), page + 1
+        )
 
 
 async def find_with_name(self, ctx, anime, _type_):
@@ -490,14 +496,8 @@ class AniList(commands.Cog):
         self.bot = bot
         self.handle_schedule.start()
         self.logger = logging.getLogger("discord")
-
+        self.watchlist = self.bot.watchlist
         checkjson()
-
-        with open("data/anime.json") as f:
-            try:
-                self.watchlist = json.load(f)["watchlist"]
-            except json.decoder.JSONDecodeError:
-                self.watchlist = []
 
     def cog_unload(self):
         self.handle_schedule.cancel()
@@ -651,10 +651,10 @@ class AniList(commands.Cog):
                     break
 
         return
-    
-    #TODO: Make watchlist per server
+
+    # TODO: Make watchlist per server
     @anime.command(usage="(anime) [format]")
-    @commands.check(is_mainserver)
+    # @commands.check(is_mainserver)
     async def watch(self, ctx, anime, _format: str = None):
         """Add anime to watchlist."""
         if not anime:
@@ -665,10 +665,17 @@ class AniList(commands.Cog):
         q = await getinfo(self, ctx, anime, _format)
 
         title = q["Media"]["title"]["romaji"]
-        if _id_ not in self.watchlist:
-            self.watchlist.append(_id_)
+
+        # add guild id to watchlist if not exist
+        try:
+            tmp = self.watchlist[str(ctx.guild.id)]
+        except KeyError:
+            self.watchlist[str(ctx.guild.id)] = []
+
+        if _id_ not in self.watchlist[str(ctx.guild.id)]:
+            self.watchlist[str(ctx.guild.id)].append(_id_)
             with open("data/anime.json", "w") as f:
-                json.dump({"watchlist": self.watchlist}, f, indent=4)
+                json.dump(self.watchlist, f, indent=4)
             embed = discord.Embed(
                 title="New anime just added!",
                 description=f"**{title}** ({_id_}) has been added to the watchlist!",
@@ -689,7 +696,7 @@ class AniList(commands.Cog):
         return
 
     @anime.command(usage="(anime) [format]")
-    @commands.check(is_mainserver)
+    # @commands.check(is_mainserver)
     async def unwatch(self, ctx, anime, _format: str = None):
         """Remove anime to watchlist."""
         if not anime:
@@ -699,11 +706,17 @@ class AniList(commands.Cog):
         # Get info from API
         q = await getinfo(self, ctx, anime, _format)
 
+        # add guild id to watchlist if not exist
+        try:
+            tmp = self.watchlist[str(ctx.guild.id)]
+        except KeyError:
+            self.watchlist[str(ctx.guild.id)] = []
+
         title = q["Media"]["title"]["romaji"]
-        if _id_ in self.watchlist:
-            self.watchlist.remove(_id_)
+        if _id_ in self.watchlist[str(ctx.guild.id)]:
+            self.watchlist[str(ctx.guild.id)].remove(_id_)
             with open("data/anime.json", "w") as f:
-                json.dump({"watchlist": self.watchlist}, f, indent=4)
+                json.dump({"watchlist": self.watchlist[str(ctx.guild.id)]}, f, indent=4)
             embed = discord.Embed(
                 title="An anime just removed!",
                 description=f"**{title}** ({_id_}) has been removed from the watchlist!",

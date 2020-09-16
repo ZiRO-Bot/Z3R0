@@ -91,6 +91,9 @@ class ziBot(commands.Bot):
 
         check_jsons()
 
+        with open('data/anime.json', 'r') as wl:
+            self.watchlist = json.load(wl)
+
         with open("data/custom_commands.json", "r") as cc:
             self.custom_commands = json.load(cc)
 
@@ -104,6 +107,10 @@ class ziBot(commands.Bot):
             self.config[str(guild.id)]["prefix"] = [self.def_prefix]
 
             json.dump(self.config, f, indent=4)
+        
+        with open('data/anime.json', 'w') as f:
+            watchlist[str(guild.id)] = []
+            json.dump(watchlist, f, indent=4)
 
     async def on_guild_remove(self, guild):
         with open("data/guild.json", "w") as f:
