@@ -234,7 +234,10 @@ async def getschedule(self, _time_, page):
         q = q["data"]
 
         # Get channel to send the releases
-        channel = self.bot.get_channel(self.bot.config[str(server)]["anime_ch"])
+        try:
+            channel = self.bot.get_channel(self.bot.config[str(server)]["anime_ch"])
+        except KeyError:
+            continue
 
         # If q is not empty and airingSchedules are exist, do stuff
         if q and q["Page"]["airingSchedules"]:
