@@ -515,6 +515,13 @@ class AniList(commands.Cog):
     @commands.group(brief="Get information about anime from AniList.")
     async def anime(self, ctx):
         """Get information about anime from AniList"""
+        # add guild id to watchlist if not exist
+        try:
+            tmp = self.watchlist[str(ctx.guild.id)]
+        except KeyError:
+            self.watchlist[str(ctx.guild.id)] = []
+            with open("data/anime.json", "w") as f:
+                json.dump(self.watchlist, f, indent=4)
 
     @anime.command(
         name="info", usage="(anime) [format]", brief="Get information about an anime."
@@ -668,11 +675,6 @@ class AniList(commands.Cog):
 
         title = q["Media"]["title"]["romaji"]
 
-        # add guild id to watchlist if not exist
-        try:
-            tmp = self.watchlist[str(ctx.guild.id)]
-        except KeyError:
-            self.watchlist[str(ctx.guild.id)] = []
 
         if _id_ not in self.watchlist[str(ctx.guild.id)]:
             self.watchlist[str(ctx.guild.id)].append(_id_)
@@ -707,12 +709,6 @@ class AniList(commands.Cog):
 
         # Get info from API
         q = await getinfo(self, ctx, anime, _format)
-
-        # add guild id to watchlist if not exist
-        try:
-            tmp = self.watchlist[str(ctx.guild.id)]
-        except KeyError:
-            self.watchlist[str(ctx.guild.id)] = []
 
         title = q["Media"]["title"]["romaji"]
         if _id_ in self.watchlist[str(ctx.guild.id)]:
