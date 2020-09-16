@@ -651,9 +651,10 @@ class AniList(commands.Cog):
                     break
 
         return
-
+    
+    #TODO: Make watchlist per server
     @anime.command(usage="(anime) [format]")
-    # @commands.check(is_mainserver)
+    @commands.check(is_mainserver)
     async def watch(self, ctx, anime, _format: str = None):
         """Add anime to watchlist."""
         if not anime:
@@ -688,7 +689,7 @@ class AniList(commands.Cog):
         return
 
     @anime.command(usage="(anime) [format]")
-    # @commands.check(is_mainserver)
+    @commands.check(is_mainserver)
     async def unwatch(self, ctx, anime, _format: str = None):
         """Remove anime to watchlist."""
         if not anime:
