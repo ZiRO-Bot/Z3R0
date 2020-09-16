@@ -190,8 +190,8 @@ async def getwatchlist(self, ctx):
         icon_url="https://gblobscdn.gitbook.com/spaces%2F-LHizcWWtVphqU90YAXO%2Favatar.png",
     )
     jakarta = timezone("Asia/Jakarta")
-    if not a['Page']['media']:
-        embed.description="No anime in watchlist."
+    if not a["Page"]["media"]:
+        embed.description = "No anime in watchlist."
     for e in a["Page"]["media"]:
         if e["nextAiringEpisode"]:
             status = "AIRING"
@@ -674,7 +674,6 @@ class AniList(commands.Cog):
         q = await getinfo(self, ctx, anime, _format)
 
         title = q["Media"]["title"]["romaji"]
-
 
         if _id_ not in self.watchlist[str(ctx.guild.id)]:
             self.watchlist[str(ctx.guild.id)].append(_id_)
