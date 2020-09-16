@@ -501,9 +501,12 @@ class General(commands.Cog):
     @commands.command()
     async def morse(self, ctx, *msg):
         """Encode message into morse code."""
+        encoded = encode(" ".join([*msg]))
+        if not encoded:
+            return
         e = discord.Embed(
             title=f"{ctx.author.name}#{ctx.author.discriminator}",
-            description=encode(" ".join([*msg])),
+            description=encoded,
         )
         await ctx.send(embed=e)
 

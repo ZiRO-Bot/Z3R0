@@ -190,6 +190,8 @@ async def getwatchlist(self, ctx):
         icon_url="https://gblobscdn.gitbook.com/spaces%2F-LHizcWWtVphqU90YAXO%2Favatar.png",
     )
     jakarta = timezone("Asia/Jakarta")
+    if not a['Page']['media']:
+        embed.description="No anime in watchlist."
     for e in a["Page"]["media"]:
         if e["nextAiringEpisode"]:
             status = "AIRING"
