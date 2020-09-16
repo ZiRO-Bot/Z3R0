@@ -223,7 +223,7 @@ async def getschedule(self, _time_, page):
         {"page": 1, "amount": 50, "watched": self.watchlist, "nextDay": _time_},
     )
     q = q["data"]
-    channel = self.bot.get_channel(744528830382735421)
+    # channel = self.bot.get_channel(744528830382735421)
     if q["Page"]["airingSchedules"]:
         for e in q["Page"]["airingSchedules"]:
             self.logger.info(
@@ -259,13 +259,24 @@ async def getschedule(self, _time_, page):
                         value="No official stream links available",
                     )
                 if id in self.watchlist:
-                    await channel.send(embed=embed)
+                    for server in self.bot.config:
+                        try:
+                            channel = self.bot.get_channel(
+                                self.bot.config[str(server)]["anime_ch"]
+                            )
+                        except KeyError:
+                            continue
+                        except TypeError:
+                            continue
+                        await channel.send(embed=embed)
                 else:
                     self.logger.warning(f"{anime} ({id}) no longer in the watchlist.")
 
-            await asyncio.sleep(e["timeUntilAiring"])
-            # ---- For testing only
-            # await asyncio.sleep(5)
+            if self.bot.user.id == 733622032901603388:
+                # ---- For testing only
+                await asyncio.sleep(5)
+            else:
+                await asyncio.sleep(e["timeUntilAiring"])
             await queueSchedule(self)
 
     if q["Page"]["pageInfo"]["hasNextPage"]:
@@ -642,7 +653,7 @@ class AniList(commands.Cog):
         return
 
     @anime.command(usage="(anime) [format]")
-    @commands.check(is_mainserver)
+    # @commands.check(is_mainserver)
     async def watch(self, ctx, anime, _format: str = None):
         """Add anime to watchlist."""
         if not anime:
@@ -677,7 +688,7 @@ class AniList(commands.Cog):
         return
 
     @anime.command(usage="(anime) [format]")
-    @commands.check(is_mainserver)
+    # @commands.check(is_mainserver)
     async def unwatch(self, ctx, anime, _format: str = None):
         """Remove anime to watchlist."""
         if not anime:
@@ -713,7 +724,7 @@ class AniList(commands.Cog):
         return
 
     @anime.command(aliases=["wl", "list"])
-    @commands.check(is_mainserver)
+    # @commands.check(is_mainserver)
     async def watchlist(self, ctx):
         """Get list of anime that added to watchlist."""
         await getwatchlist(self, ctx)
