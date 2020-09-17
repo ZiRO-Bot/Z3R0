@@ -569,17 +569,17 @@ class Admin(commands.Cog, name="Moderator"):
 
         await ctx.send(embed=e)
 
-    @channel.command(name="set", usage="(channel type) (channel id)")
-    async def ch_set(self, ctx, _type, _id):
+    @channel.command(name="set", usage="(channel type) (channel)")
+    async def ch_set(self, ctx, _type, _id: discord.TextChannel = None):
         """Change channel type."""
         # Check if _id is int
-        try:
-            _id = int(_id)
-        except ValueError:
-            await ctx.send(
-                f"Only numbers is allowed!\n**Example**: `{ctx.prefix}channel set 746649217543700551 general`"
-            )
-            return
+        # try:
+        #     _id = int(_id)
+        # except ValueError:
+        #     await ctx.send(
+        #         f"Only numbers is allowed!\n**Example**: `{ctx.prefix}channel set 746649217543700551 general`"
+        #     )
+        #     return
 
         if _type.lower() not in list(ch_types.keys()):
             await ctx.send("Not valid channel type")
@@ -588,29 +588,29 @@ class Admin(commands.Cog, name="Moderator"):
             await ctx.send(f"You can't set channels to `{_type}`")
             return
 
-        ch = ctx.guild.get_channel(_id)
+        ch = ctx.guild.get_channel(_id.id)
         # Test if channel with the following id exist
         try:
             ch.name
         except AttributeError:
-            await ctx.send(f"There's no channel with id `{_id}`")
-            return
-
-        # Check if channel is a VoiceChannel
-        if isinstance(ch, discord.channel.VoiceChannel):
-            await ctx.send("You cannot change Voice Channel's type!")
+            await ctx.send(f"There's no channel with id `{ch.id}`")
             return
 
         # If all good do the thing
         with open("data/guild.json", "w") as f:
 
             key = ch_types[_type.lower()][0]
-            value = _id
+            value = ch.id
 
             self.bot.config[str(ctx.message.guild.id)][key] = value
             json.dump(self.bot.config, f, indent=4)
         e = discord.Embed(title=f"``{ch.name}``'s type has been changed to ``{_type}``")
         await ctx.send(embed=e)
+
+    @ch_set.error
+    async def ch_set_handler(self, ctx, error):
+        if isinstance(error, commands.BadArgument):
+            await ctx.send("You can only set a text channel's type!")
 
     @commands.command(aliases=["sh"], usage="(shell command)", hidden=True)
     @is_botmaster()
@@ -658,15 +658,15 @@ class Admin(commands.Cog, name="Moderator"):
         pass
 
     @role.command(alias=["type"])
-    async def types(self, ctx):
+    async def role_types(self, ctx):
         """Get channel types."""
         e = discord.Embed(title="Role Types")
         for _type in role_types:
             e.add_field(name=_type, value=role_types[_type][1], inline=False)
         await ctx.send(embed=e)
-    
-    @role.command(usage="(type) (role id)")
-    async def set(self, ctx, role_type, role: discord.Role):
+
+    @role.command(usage="(type) (role)")
+    async def role_set(self, ctx, role_type, role: discord.Role):
         """Set type for a role"""
         if role_type.lower() in role_types:
             if role_type.lower() != "general":
@@ -683,8 +683,8 @@ class Admin(commands.Cog, name="Moderator"):
                     self.bot.config[str(ctx.message.guild.id)][key] = value
                     json.dump(self.bot.config, f, indent=4)
                 e = discord.Embed(
-                        title=f"`{role.name}`'s type has been changed to {role_type.lower()}!"
-                    )
+                    title=f"`{role.name}`'s type has been changed to {role_type.lower()}!"
+                )
                 await ctx.send(embed=e)
 
     @role.command(aliases=["create"], usage="(type) (role name)")
@@ -710,15 +710,14 @@ class Admin(commands.Cog, name="Moderator"):
                     self.bot.config[str(ctx.message.guild.id)][key] = value
                     json.dump(self.bot.config, f, indent=4)
                 e = discord.Embed(
-                        title=f"Role for `{role_type}` "
-                        + f"called `{role.name}` has been created!"
-                    )
+                    title=f"Role for `{role_type}` "
+                    + f"called `{role.name}` has been created!"
+                )
             else:
                 e = discord.Embed(
-                        title=f"Role for called `{role.name}` has been created!"
-                    )
+                    title=f"Role for called `{role.name}` has been created!"
+                )
             await ctx.send(embed=e)
-                
 
 
 def setup(bot):
