@@ -264,37 +264,32 @@ class Fun(commands.Cog):
         ignore_cooldown = [745481731133669476, 747984453585993808]
         if ctx.guild.id in ignore_cooldown:
             ctx.command.reset_cooldown(ctx)
-
-        rows = {
-            0: [0, 0, 0],
-            1: [0, 0, 0],
-            2: [0, 0, 0],
-            3: [0, 0, 0],
+        emojis = {
+            "{air}": "<:empty:754550188269633556>",
+            "{frame}": "<:portal:754550231017979995>",
+            "{eye}": "<:eye:754550267382333441>",
         }
-        emojis = [
-            "<:empty:754550188269633556>",
-            "<:portal:754550231017979995>",
-            "<:eye:754550267382333441>",
-        ]
+        eyes = ["{eye}" if randint(1, 10) == 1 else "{frame}" for i in range(12)]
+        rows = {
+            0: [eyes[0], eyes[1], eyes[2]],
+            1: [eyes[3], eyes[4], eyes[5]],
+            2: [eyes[6], eyes[7], eyes[8]],
+            3: [eyes[9], eyes[10], eyes[11]],
+        }
         portalframe = ""
-        for r in range(4):
-            for e in range(3):
-                randomness = randint(1, 10)
-                if randomness <= 1:
-                    rows[r][e] = 1
         for i in range(4):
             if i == 0 or i == 3:
-                portalframe += f" \{rows[i][0]}\{rows[i][1]}\{rows[i][2]}\n"
+                portalframe += "{air}" + f"{rows[i][0]}{rows[i][1]}{rows[i][2]}\n"
             else:
                 if i == 2:
                     pass
                 else:
                     for e in range(3):
-                        portalframe += f"\{rows[i][e]}   \{rows[i+1][e]}\n"
-        portalframe = portalframe.replace(" ", emojis[0])
-        portalframe = portalframe.replace(r"\0", emojis[1])
-        portalframe = portalframe.replace(r"\1", emojis[2])
-        # print(portalframe)
+                        portalframe += (
+                            f"{rows[i][e]}" + "{air}{air}{air}" + f"{rows[i+1][e]}\n"
+                        )
+        for placeholder in emojis.keys():
+            portalframe = portalframe.replace(placeholder, emojis[placeholder])
         e = discord.Embed(
             title="findseed but visual",
             description=f"Your seed looks like: \n\n{portalframe}",
@@ -305,9 +300,6 @@ class Fun(commands.Cog):
             icon_url=ctx.message.author.avatar_url,
         )
         await ctx.send(embed=e)
-        # await ctx.send(
-        #     f"{ctx.message.author.mention} -> your seed is a {totalEyes} eye"
-        # )
 
     @findseedbutvisual.error
     async def findseedbutvisual_handler(self, ctx, error):
