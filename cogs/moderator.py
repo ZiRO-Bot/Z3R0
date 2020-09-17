@@ -13,6 +13,7 @@ import sys
 import time
 
 from bot import get_cogs, get_prefix
+from cogs.utilities.embed_formatting import em_ctx_send_error
 from discord.errors import Forbidden
 from discord.ext import commands
 from utilities.formatting import realtime
@@ -570,7 +571,7 @@ class Admin(commands.Cog, name="Moderator"):
         await ctx.send(embed=e)
 
     @channel.command(name="set", usage="(channel type) (channel)")
-    async def ch_set(self, ctx, _type, _id: discord.TextChannel = None):
+    async def ch_set(self, ctx, _type, ch: discord.TextChannel = None):
         """Change channel type."""
         # Check if _id is int
         # try:
@@ -585,15 +586,7 @@ class Admin(commands.Cog, name="Moderator"):
             await ctx.send("Not valid channel type")
             return
         elif _type.lower() in ["general", "voice"]:
-            await ctx.send(f"You can't set channels to `{_type}`")
-            return
-
-        ch = ctx.guild.get_channel(_id.id)
-        # Test if channel with the following id exist
-        try:
-            ch.name
-        except AttributeError:
-            await ctx.send(f"There's no channel with id `{ch.id}`")
+            await em_ctx_send_error(ctx, f"You can't set channels to `{_type}`")
             return
 
         # If all good do the thing
@@ -610,7 +603,7 @@ class Admin(commands.Cog, name="Moderator"):
     @ch_set.error
     async def ch_set_handler(self, ctx, error):
         if isinstance(error, commands.BadArgument):
-            await ctx.send("You can only set a text channel's type!")
+            await em_ctx_send_error(ctx, "You can only set a text channel's type!")
 
     @commands.command(aliases=["sh"], usage="(shell command)", hidden=True)
     @is_botmaster()
