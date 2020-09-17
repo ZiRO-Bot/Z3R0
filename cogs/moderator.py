@@ -356,13 +356,14 @@ class Admin(commands.Cog, name="Moderator"):
         )
         await ctx.send(embed=embed)
 
-    @commands.group()
+    @commands.group(invoke_without_command=True)
     async def prefix(self, ctx):
         """Manage bot's prefix."""
+        await ctx.invoke(self.bot.get_command('prefix list'))
         pass
 
-    @prefix.command()
-    async def list(self, ctx):
+    @prefix.command(name="list")
+    async def prefix_list(self, ctx):
         """List bot's prefixes."""
         prefix = bot.get_prefix(self.bot, ctx.message)
         if self.bot.user.mention in prefix:
