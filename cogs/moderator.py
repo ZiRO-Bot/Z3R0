@@ -21,12 +21,19 @@ SHELL = os.getenv("SHELL") or "/bin/bash"
 WINDOWS = sys.platform == "win32"
 
 ch_types = {
-    "general": "general",
-    "voice": "voice",
-    "welcome": "welcome_ch",
-    "purgatory": "purge_ch",
-    "meme": "meme_ch",
-    "pingme": "pingme_ch",
+    "general": ["general", "Regular text channel"],
+    "voice": ["voice", "Voice channel"],
+    "welcome": ["welcome_ch", "Text channel for welcome/farewell messages"],
+    "purgatory": ["purge_ch", "Text channel for monitoring edited/deleted messages"],
+    "meme": ["meme_ch", "Text channel for meme commands"],
+    "anime": ["anime_ch", "Text channel for anime releases"],
+    "pingme": ["pingme_ch", "Text channel to get ping by pingme command"],
+}
+
+role_types = {
+    "general": ["general", "Regular role"],
+    "default": ["default_role", "Default role, will be given when the member join"],
+    "mute": ["mute_role", "Make a member can't send messages"],
 }
 
 
@@ -192,7 +199,20 @@ class Admin(commands.Cog, name="Moderator"):
         if member is None:
             await ctx.send("Please specify the member you want to mute.")
             return
-        muted_role = discord.utils.get(member.guild.roles, name="Muted")
+        try:
+            muted_role = ctx.guild.get_role(
+                self.bot.config[str(ctx.guild.id)]["mute_role"]
+            )
+            if not muted_role:
+                raise KeyError
+        except KeyError:
+            await ctx.send(
+                "This server does not have a mute role, "
+                + f"use `{ctx.prefix}role set mute (role name)` to"
+                + f" set one or `{ctx.prefix}role create mute (role name)` to create one."
+            )
+            return
+        # muted_role = discord.utils.get(member.guild.roles, name="Muted")
         if self.bot.user == member:  # Just why would you want to mute him?
             await ctx.send(f"You're not allowed to mute ziBot!")
         else:
@@ -498,8 +518,10 @@ class Admin(commands.Cog, name="Moderator"):
     @channel.command(alias=["type"])
     async def types(self, ctx):
         """Get channel types."""
-        _type = ", ".join(list(ch_types.keys()))
-        await ctx.send(f"Channel types: `{_type}`")
+        e = discord.Embed(title="Channel Types")
+        for _type in ch_types:
+            e.add_field(name=_type, value=ch_types[_type][1], inline=False)
+        await ctx.send(embed=e)
 
     @channel.command(
         aliases=["make"],
@@ -529,7 +551,7 @@ class Admin(commands.Cog, name="Moderator"):
             else:
                 with open("data/guild.json", "w") as f:
 
-                    key = ch_types[_type.lower()]
+                    key = ch_types[_type.lower()][0]
 
                     try:
                         value = int(ch.id)
@@ -539,6 +561,7 @@ class Admin(commands.Cog, name="Moderator"):
 
                     self.bot.config[str(ctx.message.guild.id)][key] = value
                     json.dump(self.bot.config, f, indent=4)
+
                 e = discord.Embed(
                     title=f"Text Channel for {_type.title()} "
                     + f"called `{ch.name}` has been created!"
@@ -546,8 +569,8 @@ class Admin(commands.Cog, name="Moderator"):
 
         await ctx.send(embed=e)
 
-    @channel.command(name="set", usage="(channel id) (channel type)")
-    async def ch_set(self, ctx, _id, _type):
+    @channel.command(name="set", usage="(channel type) (channel id)")
+    async def ch_set(self, ctx, _type, _id):
         """Change channel type."""
         # Check if _id is int
         try:
@@ -581,7 +604,7 @@ class Admin(commands.Cog, name="Moderator"):
         # If all good do the thing
         with open("data/guild.json", "w") as f:
 
-            key = ch_types[_type.lower()]
+            key = ch_types[_type.lower()][0]
             value = _id
 
             self.bot.config[str(ctx.message.guild.id)][key] = value
@@ -627,6 +650,75 @@ class Admin(commands.Cog, name="Moderator"):
             return await ctx.send(f'Command "{alt_ctx.invoked_with}" is not found')
 
         return await alt_ctx.command.reinvoke(alt_ctx)
+
+    @commands.group()
+    @commands.check_any(is_mod(), is_botmaster())
+    async def role(self, ctx):
+        """Manage server's roles."""
+        pass
+
+    @role.command(alias=["type"])
+    async def types(self, ctx):
+        """Get channel types."""
+        e = discord.Embed(title="Role Types")
+        for _type in role_types:
+            e.add_field(name=_type, value=role_types[_type][1], inline=False)
+        await ctx.send(embed=e)
+    
+    @role.command(usage="(type) (role id)")
+    async def set(self, ctx, role_type, role: discord.Role):
+        """Set type for a role"""
+        if role_type.lower() in role_types:
+            if role_type.lower() != "general":
+                with open("data/guild.json", "w") as f:
+
+                    key = role_types[role_type.lower()][0]
+
+                    try:
+                        value = int(role.id)
+                    except ValueError:
+                        json.dump(self.bot.config, f, indent=4)
+                        return
+
+                    self.bot.config[str(ctx.message.guild.id)][key] = value
+                    json.dump(self.bot.config, f, indent=4)
+                e = discord.Embed(
+                        title=f"`{role.name}`'s type has been changed to {role_type.lower()}!"
+                    )
+                await ctx.send(embed=e)
+
+    @role.command(aliases=["create"], usage="(type) (role name)")
+    async def make(self, ctx, role_type, *role_name):
+        """Make a new role."""
+        name = "-".join([*role_name])
+        if not name:
+            return
+        g = ctx.message.guild
+        if role_type.lower() in role_types:
+            role = await g.create_role(name=name)
+            if role_type.lower() != "general":
+                with open("data/guild.json", "w") as f:
+
+                    key = role_types[role_type.lower()][0]
+
+                    try:
+                        value = int(role.id)
+                    except ValueError:
+                        json.dump(self.bot.config, f, indent=4)
+                        return
+
+                    self.bot.config[str(ctx.message.guild.id)][key] = value
+                    json.dump(self.bot.config, f, indent=4)
+                e = discord.Embed(
+                        title=f"Role for `{role_type}` "
+                        + f"called `{role.name}` has been created!"
+                    )
+            else:
+                e = discord.Embed(
+                        title=f"Role for called `{role.name}` has been created!"
+                    )
+            await ctx.send(embed=e)
+                
 
 
 def setup(bot):
