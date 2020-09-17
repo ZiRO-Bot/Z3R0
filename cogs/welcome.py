@@ -21,13 +21,20 @@ class Welcome(commands.Cog, name="Welcome"):
         ]
 
         server = member.guild
-        welcome_channel = self.bot.get_channel(
-            int(self.bot.config[str(server.id)]["welcome_ch"])
-        )
         try:
-            member_role = discord.utils.get(member.guild.roles, name="Member")
+            welcome_channel = self.bot.get_channel(
+                int(self.bot.config[str(server.id)]["welcome_ch"])
+            )
+        except KeyError:
+            return
+        try:
+            member_role = server.get_role(
+                int(self.bot.config[str(server.id)]["default_role"])
+            )
+            if not member_role:
+                raise KeyError
             await member.add_roles(member_role)
-        except AttributeError:
+        except KeyError:
             pass
         await welcome_channel.send(f"{welcome_msg[randint(0, len(welcome_msg) - 1)]}")
 
