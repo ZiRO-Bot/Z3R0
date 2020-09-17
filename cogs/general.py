@@ -419,12 +419,14 @@ class General(commands.Cog):
         )
         embed.add_field(
             name="Links",
-            value=f"[Invitation]({invite_link})\n[GitHub Repo](https://github.com/null2264/ziBot)",
+            value=f"[Invitation]({invite_link})\n"
+                 + "[GitHub Repo](https://github.com/null2264/ziBot)\n" 
+                 + "[Support Server](https://discord.gg/sP9xRy6)\n",
         )
         embed.add_field(
-            name="Uptime", value=f"{realtime(int(time.time() - bot.start_time))}"
+                name="Stats", value=f"**Uptime**: {realtime(int(time.time() - bot.start_time))}\n**Servers**: {len(self.bot.guilds)}"
         )
-        embed.add_field(name="Bot Latency", value="Loading...")
+        embed.add_field(name="License", value="[GNU GPLv3.0](https://github.com/null2264/ziBot/blob/master/LICENSE)")
         embed.add_field(
             name="About",
             value="**ziBot** is an open source bot, "
@@ -436,11 +438,7 @@ class General(commands.Cog):
         embed.set_footer(
             text=f"Requested by {ctx.message.author.name}#{ctx.message.author.discriminator}"
         )
-        msg = await ctx.send(embed=embed)
-        end = time.perf_counter()
-        msg_ping = (end - start) * 1000
-        embed.set_field_at(index=5, name="Bot Latency", value=f"{round(msg_ping)}ms")
-        await msg.edit(embed=embed)
+        await ctx.send(embed=embed)
 
     @commands.command(aliases=["spi", "spot", "spotify"], usage="[member]")
     async def spotifyinfo(self, ctx, *, user: discord.Member = None):
