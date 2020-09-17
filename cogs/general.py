@@ -235,10 +235,9 @@ class General(commands.Cog):
         await ctx.send(f"ziBot's source code: \n {git_link}")
 
     @commands.command(aliases=["ui"], usage="[member]")
-    async def userinfo(self, ctx, *, user: discord.User = None):
+    async def userinfo(self, ctx, *, user: discord.Member = None):
         """Show user information."""
-        user = user or ctx.message.author
-        member = ctx.guild.get_member(user.id)
+        member = user or ctx.message.author
 
         def stat(x):
             return {
@@ -275,9 +274,9 @@ class General(commands.Cog):
             }.get(x, "None")
 
         badges = []
-        for x in list(user.public_flags.all()):
+        for x in list(member.public_flags.all()):
             x = str(x)
-            if user == ctx.guild.owner:
+            if member == ctx.guild.owner:
                 badges.append(badge("UserFlags.owner"))
             badges.append(badge(x))
 
@@ -299,7 +298,7 @@ class General(commands.Cog):
             description=f"{statEmoji}({status})\n"
             + (
                 "<:activity:748091280227041281>"
-                + activity(str(user.activity.type).replace("ActivityType.", ""))
+                + activity(str(member.activity.type).replace("ActivityType.", ""))
                 + f" **{member.activity.name}**"
                 if member and member.activity
                 else ""
@@ -308,17 +307,17 @@ class General(commands.Cog):
             timestamp=ctx.message.created_at,
         )
         embed.set_author(
-            name=f"{user.name}#{user.discriminator}", icon_url=user.avatar_url
+            name=f"{member.name}#{member.discriminator}", icon_url=member.avatar_url
         )
-        embed.set_thumbnail(url=user.avatar_url)
-        embed.add_field(name="ID", value=user.id)
-        embed.add_field(name="Guild name", value=user.display_name)
+        embed.set_thumbnail(url=member.avatar_url)
+        embed.add_field(name="ID", value=member.id)
+        embed.add_field(name="Guild name", value=member.display_name)
         embed.add_field(
             name="Badges", value=" ".join(badges) if badges else "No badge."
         )
         embed.add_field(
             name="Created on",
-            value=user.created_at.replace(tzinfo=timezone("UTC"))
+            value=member.created_at.replace(tzinfo=timezone("UTC"))
             .astimezone(jakarta)
             .strftime("%a, %#d %B %Y, %H:%M WIB"),
         )
