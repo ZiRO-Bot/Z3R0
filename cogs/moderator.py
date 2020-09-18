@@ -609,7 +609,9 @@ class Admin(commands.Cog, name="Moderator"):
     @ch_set.error
     async def ch_set_handler(self, ctx, error):
         if isinstance(error, commands.BadArgument):
-            await em_ctx_send_error(ctx, "You can only set a text channel's type!")
+            match = re.match(r"Channel \"[0-9]*\" not found.", str(error))
+            if match:
+                await em_ctx_send_error(ctx, "You can only set a text channel's type!")
 
     @commands.command(aliases=["sh"], usage="(shell command)", hidden=True)
     @is_botmaster()
