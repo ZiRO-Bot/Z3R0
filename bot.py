@@ -25,6 +25,7 @@ except:
 shard = os.getenv("SHARD") or 0
 shard_count = os.getenv("SHARD_COUNT") or 1
 
+
 def check_jsons():
     try:
         f = open("data/guild.json", "r")
@@ -65,13 +66,14 @@ extensions = get_cogs()
 
 start_time = time.time()
 
+
 def get_prefix(bot, message):
     """A callable Prefix for our bot. This could be edited to allow per server prefixes."""
 
-    bot.c.execute("SELECT * FROM servers WHERE (id=?)", (str(message.guild.id),)) 
+    bot.c.execute("SELECT * FROM servers WHERE (id=?)", (str(message.guild.id),))
     servers_row = bot.c.fetchall()
-    pre = {k[0]: k[1] or '>' for k in servers_row}
-    prefixes = {int(k): v.split(',') for (k, v) in pre.items()}
+    pre = {k[0]: k[1] or ">" for k in servers_row}
+    prefixes = {int(k): v.split(",") for (k, v) in pre.items()}
 
     return prefixes[message.guild.id]
 
@@ -79,18 +81,24 @@ def get_prefix(bot, message):
 class ziBot(commands.Bot):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        
+
         self.logger = logging.getLogger("discord")
         self.session = aiohttp.ClientSession()
         self.def_prefix = ">"
-        
+
         # Init database
-        self.conn = sqlite3.connect('data/database.db')
+        self.conn = sqlite3.connect("data/database.db")
         self.c = self.conn.cursor()
         # Create "servers" table if its not exists
-        self.c.execute("""CREATE TABLE IF NOT EXISTS servers
+        self.c.execute(
+            """CREATE TABLE IF NOT EXISTS servers
                 (id text unique, prefixes text, anime_ch int, 
-                greeting_ch int, meme_ch int, purge_ch int)""")
+                greeting_ch int, meme_ch int, purge_ch int)"""
+        )
+        self.c.execute(
+            """CREATE TABLE IF NOT EXISTS ani_watchlist
+                (id text unique, anime_id int)"""
+        )
 
         self.master = [186713080841895936]
 
@@ -106,14 +114,31 @@ class ziBot(commands.Bot):
 
     async def on_guild_join(self, guild):
         # guild_id, prefix, anime_ch, greeting_ch, meme_ch, purge_ch
-        self.c.execute('''INSERT OR IGNORE INTO servers
-                        VALUES (?, ?, ?, ?, ?, ?)''',
-                    (str(guild.id), self.def_prefix, None, None, None, None))
+        self.c.execute(
+            """INSERT OR IGNORE INTO servers
+                        VALUES (?, ?, ?, ?, ?, ?)""",
+            (str(guild.id), self.def_prefix, None, None, None, None),
+        )
+        self.conn.commit()
+        self.c.execute(
+            """INSERT OR IGNORE INTO ani_watchlist
+            VALUES (?, ?)""",
+            (str(server.id), None),
+        )
         self.conn.commit()
 
     async def on_guild_remove(self, guild):
-        self.c.execute('''DELETE FROM servers 
-                          WHERE id=?''', (str(guild.id),))
+        self.c.execute(
+            """DELETE FROM servers 
+            WHERE id=?""",
+            (str(guild.id),),
+        )
+        self.conn.commit()
+        self.c.execute(
+            """DELETE FROM ani_watchlist
+            WHERE id=?""",
+            (str(guild.id),),
+        )
         self.conn.commit()
 
     async def on_ready(self):
@@ -128,9 +153,17 @@ class ziBot(commands.Bot):
         self.logger.warning(f"Online: {self.user} (ID: {self.user.id})")
 
         for server in self.guilds:
-            self.c.execute('''INSERT OR IGNORE INTO servers
-                            VALUES (?, ?, ?, ?, ?, ?)''',
-                        (str(server.id), self.def_prefix, None, None, None, None))
+            self.c.execute(
+                """INSERT OR IGNORE INTO servers
+                VALUES (?, ?, ?, ?, ?, ?)""",
+                (str(server.id), self.def_prefix, None, None, None, None),
+            )
+            self.conn.commit()
+            self.c.execute(
+                """INSERT OR IGNORE INTO ani_watchlist
+                VALUES (?, ?)""",
+                (str(server.id), None),
+            )
             self.conn.commit()
 
     async def on_message(self, message):
