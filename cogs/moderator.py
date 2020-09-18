@@ -426,24 +426,27 @@ class Admin(commands.Cog, name="Moderator"):
     async def prefixadd(self, ctx, *prefixes):
         """Add a new prefix to bot."""
         g = ctx.guild
-        added = []
-        not_added = []
+        added = 0
+        prefixes = list([*prefixes])
+        ori_prefixes = list(bot.get_prefix(self.bot, ctx.message))
+        # Filter whitespaces and prefix that already exist from *prefixes
         for prefix in prefixes:
             match = re.match(r"^\s+", prefix)
-            if (
-                prefix in self.bot.config[str(g.id)]["prefix"]
-                or len(self.bot.config[str(g.id)]["prefix"]) + 1 > 15
-                or match
-            ):
-                not_added.append(prefix)
-                pass
+            if match or prefix in ori_prefixes:
+                prefixes.remove(prefix)
             else:
-                self.bot.config[str(g.id)]["prefix"].append(prefix)
-                added.append(prefix)
-        if len(added) > 0:
-            with open("data/guild.json", "w") as f:
-                json.dump(self.bot.config, f, indent=4)
-            await ctx.send(f"`{', '.join(added)}` successfully added to prefix")
+                added += 1
+        prefixes = ori_prefixes + prefixes
+        if len(prefixes) > 15:
+            await em_ctx_send_error(ctx, "You can only add up to 15 prefixes!")
+            return
+        # database stuff
+        up_prefixes = ",".join(sorted([*prefixes]))
+        self.bot.c.execute("UPDATE servers SET prefixes = ? WHERE id = ?", (up_prefixes, str(ctx.guild.id)))
+        self.bot.conn.commit()
+        # inform the user
+        if added > 0:
+            await ctx.send(f"`{', '.join(prefixes)}` successfully added to prefix")
             return
         await ctx.send("No prefix successfully added")
 
@@ -453,20 +456,22 @@ class Admin(commands.Cog, name="Moderator"):
         """Remove a prefix from bot."""
         g = ctx.guild
         removed = []
-        not_removed = []
+        ori_prefixes = list(bot.get_prefix(self.bot, ctx.message))
         for prefix in prefixes:
             if (
-                prefix in self.bot.config[str(g.id)]["prefix"]
-                and len(self.bot.config[str(g.id)]["prefix"]) >= 2
+                prefix in ori_prefixes
+                and len(ori_prefixes) >= 1
             ):
-                self.bot.config[str(g.id)]["prefix"].remove(prefix)
                 removed.append(prefix)
+                ori_prefixes.remove(prefix)
             else:
-                not_removed.append(prefix)
                 pass
+        # database stuff
+        up_prefixes = ",".join(sorted(ori_prefixes))
+        self.bot.c.execute("UPDATE servers SET prefixes = ? WHERE id = ?", (up_prefixes, str(ctx.guild.id)))
+        self.bot.conn.commit()
+        # inform the user
         if len(removed) > 0:
-            with open("data/guild.json", "w") as f:
-                json.dump(self.bot.config, f, indent=4)
             await ctx.send(f"`{', '.join(removed)}` successfully removed from prefix")
             return
         await ctx.send("No prefix successfully removed")

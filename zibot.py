@@ -2,6 +2,7 @@ import asyncio
 import discord
 import json
 import logging
+import sqlite3
 
 from bot import ziBot, get_prefix, shard, shard_count, token
 
@@ -27,6 +28,7 @@ def setup_logging():
 
 
 def init_bot():
+    
     logger = logging.getLogger("discord")
 
     if token is None:
