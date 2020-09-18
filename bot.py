@@ -98,17 +98,16 @@ class ziBot(commands.Bot):
         )
         self.c.execute(
             """CREATE TABLE IF NOT EXISTS ani_watchlist
-                (id text unique, anime_id int)"""
+                (id text unique, anime_id text)"""
         )
         self.c.execute(
             """CREATE TABLE IF NOT EXISTS roles
                 (id text unique, default_role int, mute_role int)"""
         )
 
-        self.master = [186713080841895936]
+        self.master = [186713080841895936] 
 
         check_jsons()
-
 
         with open("data/custom_commands.json", "r") as cc:
             self.custom_commands = json.load(cc)
@@ -153,7 +152,7 @@ class ziBot(commands.Bot):
         self.c.execute(
             """DELETE FROM roles
             WHERE id=?""",
-            (str(server.id),),
+            (str(guild.id),),
         )
         self.conn.commit()
 
