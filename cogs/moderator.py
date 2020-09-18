@@ -29,6 +29,7 @@ ch_types = {
     "meme": ["meme_ch", "Text channel for meme commands"],
     "anime": ["anime_ch", "Text channel for anime releases"],
     "pingme": ["pingme_ch", "Text channel to get ping by pingme command"],
+    "announcement": ["announcement_ch", "Text channel for announcements (for !announce)"],
 }
 
 role_types = {

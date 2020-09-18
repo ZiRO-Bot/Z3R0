@@ -288,10 +288,10 @@ async def getschedule(self, _time_, page):
                 await asyncio.sleep(e["timeUntilAiring"])
             await queueSchedule(self)
 
-    if q["Page"]["pageInfo"]["hasNextPage"]:
-        await getschedule(
-            self, int(time.time() + (24 * 60 * 60 * 1000 * 1) / 1000), page + 1
-        )
+        if q["Page"]["pageInfo"]["hasNextPage"]:
+            await getschedule(
+                self, int(time.time() + (24 * 60 * 60 * 1000 * 1) / 1000), page + 1
+            )
 
 
 async def find_with_name(self, ctx, anime, _type_):
@@ -501,7 +501,7 @@ class AniList(commands.Cog):
         self.bot = bot
         self.handle_schedule.start()
         self.logger = logging.getLogger("discord")
-        self.watchlist = self.bot.watchlist
+        self.watchlist = {}
         checkjson()
 
     def cog_unload(self):

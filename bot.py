@@ -93,18 +93,22 @@ class ziBot(commands.Bot):
         self.c.execute(
             """CREATE TABLE IF NOT EXISTS servers
                 (id text unique, prefixes text, anime_ch int, 
-                greeting_ch int, meme_ch int, purge_ch int)"""
+                greeting_ch int, meme_ch int, purge_ch int,
+                pingme_ch int, announcement_ch int)"""
         )
         self.c.execute(
             """CREATE TABLE IF NOT EXISTS ani_watchlist
                 (id text unique, anime_id int)"""
+        )
+        self.c.execute(
+            """CREATE TABLE IF NOT EXISTS roles
+                (id text unique, default_role int, mute_role int)"""
         )
 
         self.master = [186713080841895936]
 
         check_jsons()
 
-        self.watchlist = {}
 
         with open("data/custom_commands.json", "r") as cc:
             self.custom_commands = json.load(cc)
@@ -112,22 +116,28 @@ class ziBot(commands.Bot):
         with open("data/guild.json", "r") as ch:
             self.config = json.load(ch)
 
-    async def on_guild_join(self, guild):
+    def add_empty_data(self, guild):
         # guild_id, prefix, anime_ch, greeting_ch, meme_ch, purge_ch
         self.c.execute(
             """INSERT OR IGNORE INTO servers
-                        VALUES (?, ?, ?, ?, ?, ?)""",
-            (str(guild.id), self.def_prefix, None, None, None, None),
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+            (str(guild.id), self.def_prefix, None, None, None, None, None, None),
         )
         self.conn.commit()
         self.c.execute(
             """INSERT OR IGNORE INTO ani_watchlist
             VALUES (?, ?)""",
-            (str(server.id), None),
+            (str(guild.id), None),
+        )
+        self.conn.commit()
+        self.c.execute(
+            """INSERT OR IGNORE INTO roles
+            VALUES (?, ?, ?)""",
+            (str(guild.id), None, None),
         )
         self.conn.commit()
 
-    async def on_guild_remove(self, guild):
+    def remove_guild_data(self, guild):
         self.c.execute(
             """DELETE FROM servers 
             WHERE id=?""",
@@ -140,6 +150,18 @@ class ziBot(commands.Bot):
             (str(guild.id),),
         )
         self.conn.commit()
+        self.c.execute(
+            """DELETE FROM roles
+            WHERE id=?""",
+            (str(server.id),),
+        )
+        self.conn.commit()
+
+    async def on_guild_join(self, guild):
+        self.add_empty_data(guild)
+        
+    async def on_guild_remove(self, guild):
+        self.remove_guild_data(guild)
 
     async def on_ready(self):
         activity = discord.Activity(
@@ -153,23 +175,13 @@ class ziBot(commands.Bot):
         self.logger.warning(f"Online: {self.user} (ID: {self.user.id})")
 
         for server in self.guilds:
-            self.c.execute(
-                """INSERT OR IGNORE INTO servers
-                VALUES (?, ?, ?, ?, ?, ?)""",
-                (str(server.id), self.def_prefix, None, None, None, None),
-            )
-            self.conn.commit()
-            self.c.execute(
-                """INSERT OR IGNORE INTO ani_watchlist
-                VALUES (?, ?)""",
-                (str(server.id), None),
-            )
-            self.conn.commit()
+            self.add_empty_data(server)
 
     async def on_message(self, message):
         # dont accept commands from bot
         if message.author.bot:
             return
+
         await self.process_commands(message)
 
         try:
