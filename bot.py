@@ -148,6 +148,9 @@ class ziBot(commands.Bot):
             conn.commit()
 
     async def on_message(self, message):
+        # dont accept commands from bot
+        if message.author.bot:
+            return
         await self.process_commands(message)
 
         try:
