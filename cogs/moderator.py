@@ -426,7 +426,7 @@ class Admin(commands.Cog, name="Moderator"):
     async def prefixadd(self, ctx, *prefixes):
         """Add a new prefix to bot."""
         g = ctx.guild
-        added = 0
+        added = []
         prefixes = list([*prefixes])
         ori_prefixes = list(bot.get_prefix(self.bot, ctx.message))
         # Filter whitespaces and prefix that already exist from *prefixes
@@ -435,7 +435,7 @@ class Admin(commands.Cog, name="Moderator"):
             if match or prefix in ori_prefixes:
                 prefixes.remove(prefix)
             else:
-                added += 1
+                added.append(prefix)
         prefixes = ori_prefixes + prefixes
         if len(prefixes) > 15:
             await em_ctx_send_error(ctx, "You can only add up to 15 prefixes!")
@@ -445,8 +445,8 @@ class Admin(commands.Cog, name="Moderator"):
         self.bot.c.execute("UPDATE servers SET prefixes = ? WHERE id = ?", (up_prefixes, str(ctx.guild.id)))
         self.bot.conn.commit()
         # inform the user
-        if added > 0:
-            await ctx.send(f"`{', '.join(prefixes)}` successfully added to prefix")
+        if len(added) > 0:
+            await ctx.send(f"`{', '.join(added)}` successfully added to prefix")
             return
         await ctx.send("No prefix successfully added")
 
