@@ -96,8 +96,7 @@ class ziBot(commands.Bot):
 
         check_jsons()
 
-        with open('data/anime.json', 'r') as wl:
-            self.watchlist = json.load(wl)
+        self.watchlist = {}
 
         with open("data/custom_commands.json", "r") as cc:
             self.custom_commands = json.load(cc)
@@ -112,22 +111,10 @@ class ziBot(commands.Bot):
                     (str(guild.id), self.def_prefix, None, None, None, None))
         self.conn.commit()
 
-        with open("data/guild.json", "w") as f:
-            self.config[str(guild.id)] = {}
-            self.config[str(guild.id)]["mention_as_prefix"] = False
-            self.config[str(guild.id)]["prefix"] = [self.def_prefix]
-
-            json.dump(self.config, f, indent=4)
-        
-        with open('data/anime.json', 'w') as f:
-            watchlist[str(guild.id)] = []
-            json.dump(watchlist, f, indent=4)
-
     async def on_guild_remove(self, guild):
-        with open("data/guild.json", "w") as f:
-            del self.config[str(guild.id)]
-
-            json.dump(self.config, f, indent=4)
+        self.c.execute('''DELETE FROM servers 
+                          WHERE id=?''', (str(guild.id),))
+        self.conn.commit()
 
     async def on_ready(self):
         activity = discord.Activity(
