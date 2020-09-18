@@ -25,9 +25,6 @@ except:
 shard = os.getenv("SHARD") or 0
 shard_count = os.getenv("SHARD_COUNT") or 1
 
-conn = sqlite3.connect('data/database.db')
-c = conn.cursor()
-
 def check_jsons():
     try:
         f = open("data/guild.json", "r")
@@ -71,8 +68,8 @@ start_time = time.time()
 def get_prefix(bot, message):
     """A callable Prefix for our bot. This could be edited to allow per server prefixes."""
 
-    c.execute("SELECT * FROM servers WHERE (id=?)", (str(message.guild.id),)) 
-    servers_row = c.fetchall()
+    bot.c.execute("SELECT * FROM servers WHERE (id=?)", (str(message.guild.id),)) 
+    servers_row = bot.c.fetchall()
     pre = {k[0]: k[1] or '>' for k in servers_row}
     prefixes = {int(k): v.split(',') for (k, v) in pre.items()}
 
@@ -87,8 +84,10 @@ class ziBot(commands.Bot):
         self.session = aiohttp.ClientSession()
         self.def_prefix = ">"
         
-        self.conn = conn
-        self.c = conn.cursor()
+        # Init database
+        self.conn = sqlite3.connect('data/database.db')
+        self.c = self.conn.cursor()
+        # Create "servers" table if its not exists
         self.c.execute("""CREATE TABLE IF NOT EXISTS servers
                 (id text unique, prefixes text, anime_ch int, 
                 greeting_ch int, meme_ch int, purge_ch int)""")
@@ -108,10 +107,10 @@ class ziBot(commands.Bot):
 
     async def on_guild_join(self, guild):
         # guild_id, prefix, anime_ch, greeting_ch, meme_ch, purge_ch
-        c.execute('''INSERT OR IGNORE INTO servers
+        self.c.execute('''INSERT OR IGNORE INTO servers
                         VALUES (?, ?, ?, ?, ?, ?)''',
                     (str(guild.id), self.def_prefix, None, None, None, None))
-        conn.commit()
+        self.conn.commit()
 
         with open("data/guild.json", "w") as f:
             self.config[str(guild.id)] = {}
@@ -142,10 +141,10 @@ class ziBot(commands.Bot):
         self.logger.warning(f"Online: {self.user} (ID: {self.user.id})")
 
         for server in self.guilds:
-            c.execute('''INSERT OR IGNORE INTO servers
+            self.c.execute('''INSERT OR IGNORE INTO servers
                             VALUES (?, ?, ?, ?, ?, ?)''',
                         (str(server.id), self.def_prefix, None, None, None, None))
-            conn.commit()
+            self.conn.commit()
 
     async def on_message(self, message):
         # dont accept commands from bot
