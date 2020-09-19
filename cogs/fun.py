@@ -7,6 +7,7 @@ import praw
 import re
 
 from cogs.errors.fun import DiceTooBig
+from cogs.utilities.embed_formatting import em_ctx_send_error
 from discord.ext import commands
 from discord.errors import Forbidden
 from dotenv import load_dotenv
@@ -115,17 +116,19 @@ class Fun(commands.Cog):
     @commands.command()
     async def meme(self, ctx):
         """Get memes from subreddit r/memes."""
-        try:
-            meme_channel = self.bot.get_channel(
-                int(self.bot.config[str(ctx.message.guild.id)]["meme_ch"])
-            )
-        except KeyError:
-            meme_channel = ctx
+        self.bot.c.execute(
+            "SELECT meme_ch FROM servers WHERE id=?", (str(ctx.guild.id),)
+        )
+        meme_channel = self.bot.c.fetchall()[0][0]
+        meme_channel = self.bot.get_channel(meme_channel)
+        if not meme_channel:
+            await em_ctx_send_error(ctx, f"This server doesn't have channe with type `meme`")
+            return
 
         meme_subreddits = ["memes", "funny"]
         reg_img = r".*/(i)\.redd\.it"
-
-        if ctx.channel is not meme_channel and meme_channel is not ctx:
+        
+        if ctx.channel != meme_channel:
             async with ctx.typing():
                 await ctx.send(f"Please do this command on {meme_channel.mention}")
                 return

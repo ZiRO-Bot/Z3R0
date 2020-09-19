@@ -204,13 +204,12 @@ class Admin(commands.Cog, name="Moderator"):
         if member is None:
             await ctx.send("Please specify the member you want to mute.")
             return
-        try:
-            muted_role = ctx.guild.get_role(
-                self.bot.config[str(ctx.guild.id)]["mute_role"]
-            )
-            if not muted_role:
-                raise KeyError
-        except KeyError:
+        self.bot.c.execute(
+            "SELECT mute_role FROM roles WHERE id=?", (str(ctx.guild.id),)
+        )
+        muted_role = self.bot.c.fetchall()[0][0]
+        muted_role = server.get_role(int(muted_role))
+        if not muted_role:
             await ctx.send(
                 "This server does not have a mute role, "
                 + f"use `{ctx.prefix}role set mute (role name)` to"
