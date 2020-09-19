@@ -12,6 +12,7 @@ from discord.errors import Forbidden
 from discord.ext import commands
 from utilities.formatting import realtime
 
+
 class CustomCommands(commands.Cog):
     def __init__(self, bot):
         self.logger = logging.getLogger("discord")
@@ -20,6 +21,7 @@ class CustomCommands(commands.Cog):
             """CREATE TABLE IF NOT EXISTS tags
                 (id text unique, name text, content text, uses real, author text)"""
         )
+
 
 def setup(bot):
     bot.add_cog(CustomCommands(bot))

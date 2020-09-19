@@ -692,7 +692,10 @@ class AniList(commands.Cog):
         title = q["Media"]["title"]["romaji"]
 
         watchlist = self.get_watchlist()
-        if not watchlist[int(ctx.guild.id)] or str(_id_) not in watchlist[int(ctx.guild.id)]:
+        if (
+            not watchlist[int(ctx.guild.id)]
+            or str(_id_) not in watchlist[int(ctx.guild.id)]
+        ):
             try:
                 watchlist[int(ctx.guild.id)].append(str(_id_))
             except AttributeError:
@@ -754,7 +757,6 @@ class AniList(commands.Cog):
                     (None, str(ctx.guild.id)),
                 )
                 self.bot.conn.commit()
-
 
             embed = discord.Embed(
                 title="An anime just removed!",

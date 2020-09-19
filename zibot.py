@@ -28,7 +28,7 @@ def setup_logging():
 
 
 def init_bot():
-    
+
     logger = logging.getLogger("discord")
 
     if token is None:

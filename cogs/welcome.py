@@ -22,11 +22,15 @@ class Welcome(commands.Cog, name="Welcome"):
 
         server = member.guild
 
-        self.bot.c.execute('SELECT greeting_ch FROM servers WHERE id=?', (str(server.id),))
+        self.bot.c.execute(
+            "SELECT greeting_ch FROM servers WHERE id=?", (str(server.id),)
+        )
         welcome_channel = self.bot.c.fetchall()[0][0]
         welcome_channel = server.get_channel(int(welcome_channel))
 
-        self.bot.c.execute('SELECT default_role FROM roles WHERE id=?', (str(server.id),))
+        self.bot.c.execute(
+            "SELECT default_role FROM roles WHERE id=?", (str(server.id),)
+        )
         member_role = self.bot.c.fetchall()[0][0]
         member_role = server.get_role(int(member_role))
         if member_role:

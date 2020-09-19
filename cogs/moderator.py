@@ -29,7 +29,10 @@ ch_types = {
     "meme": ["meme_ch", "Text channel for meme commands"],
     "anime": ["anime_ch", "Text channel for anime releases"],
     "pingme": ["pingme_ch", "Text channel to get ping by pingme command"],
-    "announcement": ["announcement_ch", "Text channel for announcements (for !announce)"],
+    "announcement": [
+        "announcement_ch",
+        "Text channel for announcements (for !announce)",
+    ],
 }
 
 role_types = {
@@ -360,7 +363,7 @@ class Admin(commands.Cog, name="Moderator"):
     @commands.group(invoke_without_command=True)
     async def prefix(self, ctx):
         """Manage bot's prefix."""
-        await ctx.invoke(self.bot.get_command('prefix list'))
+        await ctx.invoke(self.bot.get_command("prefix list"))
         pass
 
     @prefix.command(name="list")
@@ -398,7 +401,10 @@ class Admin(commands.Cog, name="Moderator"):
             return
         # database stuff
         up_prefixes = ",".join(sorted([*prefixes]))
-        self.bot.c.execute("UPDATE servers SET prefixes = ? WHERE id = ?", (up_prefixes, str(ctx.guild.id)))
+        self.bot.c.execute(
+            "UPDATE servers SET prefixes = ? WHERE id = ?",
+            (up_prefixes, str(ctx.guild.id)),
+        )
         self.bot.conn.commit()
         # inform the user
         if len(added) > 0:
@@ -414,17 +420,17 @@ class Admin(commands.Cog, name="Moderator"):
         removed = []
         ori_prefixes = list(bot.get_prefix(self.bot, ctx.message))
         for prefix in prefixes:
-            if (
-                prefix in ori_prefixes
-                and len(ori_prefixes) >= 1
-            ):
+            if prefix in ori_prefixes and len(ori_prefixes) - 1 >= 1:
                 removed.append(prefix)
                 ori_prefixes.remove(prefix)
             else:
                 pass
         # database stuff
         up_prefixes = ",".join(sorted(ori_prefixes))
-        self.bot.c.execute("UPDATE servers SET prefixes = ? WHERE id = ?", (up_prefixes, str(ctx.guild.id)))
+        self.bot.c.execute(
+            "UPDATE servers SET prefixes = ? WHERE id = ?",
+            (up_prefixes, str(ctx.guild.id)),
+        )
         self.bot.conn.commit()
         # inform the user
         if len(removed) > 0:
@@ -515,7 +521,10 @@ class Admin(commands.Cog, name="Moderator"):
                 key = ch_types[_type.lower()][0]
                 value = ch.id
 
-                self.bot.c.execute(f"UPDATE servers SET {key} = ? WHERE id = ?", (int(value), str(g.id)))
+                self.bot.c.execute(
+                    f"UPDATE servers SET {key} = ? WHERE id = ?",
+                    (int(value), str(g.id)),
+                )
                 self.bot.conn.commit()
 
                 e = discord.Embed(
@@ -546,8 +555,11 @@ class Admin(commands.Cog, name="Moderator"):
 
         key = ch_types[_type.lower()][0]
         value = ch.id
-        
-        self.bot.c.execute(f"UPDATE servers SET {key} = ? WHERE id = ?", (int(value), str(ctx.guild.id)))
+
+        self.bot.c.execute(
+            f"UPDATE servers SET {key} = ? WHERE id = ?",
+            (int(value), str(ctx.guild.id)),
+        )
         self.bot.conn.commit()
 
         e = discord.Embed(title=f"``{ch.name}``'s type has been changed to ``{_type}``")
@@ -622,7 +634,10 @@ class Admin(commands.Cog, name="Moderator"):
                 key = role_types[role_type.lower()][0]
                 value = int(role.id)
 
-                self.bot.c.execute(f"UPDATE roles SET {key} = ? WHERE id = ?", (int(value), str(ctx.guild.id)))
+                self.bot.c.execute(
+                    f"UPDATE roles SET {key} = ? WHERE id = ?",
+                    (int(value), str(ctx.guild.id)),
+                )
                 self.bot.conn.commit()
 
                 e = discord.Embed(
@@ -643,9 +658,11 @@ class Admin(commands.Cog, name="Moderator"):
                 key = role_types[role_type.lower()][0]
                 value = int(role.id)
 
-                self.bot.c.execute(f"UPDATE roles SET {key} = ? WHERE id = ?", (int(value), str(g.id)))
+                self.bot.c.execute(
+                    f"UPDATE roles SET {key} = ? WHERE id = ?", (int(value), str(g.id))
+                )
                 self.bot.conn.commit()
-                
+
                 e = discord.Embed(
                     title=f"Role for `{role_type}` "
                     + f"called `{role.name}` has been created!"

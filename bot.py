@@ -105,7 +105,7 @@ class ziBot(commands.Bot):
                 (id text unique, default_role int, mute_role int)"""
         )
 
-        self.master = [186713080841895936] 
+        self.master = [186713080841895936]
 
         check_jsons()
 
@@ -158,7 +158,7 @@ class ziBot(commands.Bot):
 
     async def on_guild_join(self, guild):
         self.add_empty_data(guild)
-        
+
     async def on_guild_remove(self, guild):
         self.remove_guild_data(guild)
 

@@ -205,7 +205,9 @@ class Fun(commands.Cog):
     @commands.command(usage="[amount of ping]")
     async def pingme(self, ctx, amount: int = 1):
         """Ping yourself for no reason"""
-        self.bot.c.execute("SELECT pingme_ch FROM servers WHERE id=?", (str(ctx.guild.id),))
+        self.bot.c.execute(
+            "SELECT pingme_ch FROM servers WHERE id=?", (str(ctx.guild.id),)
+        )
         channel = self.bot.c.fetchall()[0][0]
         channel = self.bot.get_channel(channel)
         if not channel:
