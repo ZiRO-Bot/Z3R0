@@ -19,8 +19,24 @@ class CustomCommands(commands.Cog):
         self.bot = bot
         self.bot.c.execute(
             """CREATE TABLE IF NOT EXISTS tags
-                (id text unique, name text, content text, uses real, author text)"""
+                (id text unique, name text, content text, created int, updated int, uses real, author text)"""
         )
+
+    def clean_tag_content(self, content):
+        return content.replace("@everyone", "@\u200beveryone").replace(
+            "@here", "@\u200bhere"
+        )
+
+    async def send_tag_content(self, ctx, name):
+        pass
+
+    @commands.group()
+    async def tag(self, ctx, name: str):
+        pass
+
+    @tag.command(aliases=['+', 'create'])
+    async def add(self, ctx, name, *, content: str):
+        pass
 
 
 def setup(bot):

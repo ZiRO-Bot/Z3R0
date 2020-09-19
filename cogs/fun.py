@@ -122,8 +122,7 @@ class Fun(commands.Cog):
         meme_channel = self.bot.c.fetchall()[0][0]
         meme_channel = self.bot.get_channel(meme_channel)
         if not meme_channel:
-            await em_ctx_send_error(ctx, f"This server doesn't have channe with type `meme`")
-            return
+            meme_channel = ctx.channel
 
         meme_subreddits = ["memes", "funny"]
         reg_img = r".*/(i)\.redd\.it"
