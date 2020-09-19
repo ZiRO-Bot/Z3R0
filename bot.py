@@ -1,4 +1,5 @@
 import aiohttp
+import copy
 import discord
 import json
 import logging
@@ -57,6 +58,7 @@ def get_cogs():
         "cogs.mcbe",
         "cogs.anilist",
         "cogs.fun",
+        "cogs.custom_commands",
         # "cogs.music",
     ]
     return extensions
@@ -183,19 +185,21 @@ class ziBot(commands.Bot):
 
         await self.process_commands(message)
 
-        try:
-            command = message.content.split()[0]
-        except IndexError:
-            pass
+        ctx = await self.get_context(message)
+        if ctx.invoked_with and ctx.invoked_with.lower() not in self.commands and ctx.command is None:
+            msg = copy.copy(message)
+            if ctx.prefix:
+                new_content = msg.content[len(ctx.prefix):]
+                msg.content = "{}tag {}".format(ctx.prefix, new_content)
+                await self.process_commands(msg)
 
-        try:
-            if command in self.custom_commands[str(message.guild.id)]:
-                await message.channel.send(
-                    self.custom_commands[str(message.guild.id)][command]
-                )
-                return
-        except:
+    async def on_command_error(self, ctx, error):
+        if isinstance(error, commands.CommandNotFound):
             return
+
+    async def close(self):
+        await super().close()
+        await self.session.close()
 
     def run(self):
         super().run(token, reconnect=True)

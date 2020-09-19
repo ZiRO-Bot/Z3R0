@@ -390,7 +390,7 @@ class Admin(commands.Cog, name="Moderator"):
         # Filter whitespaces and prefix that already exist from *prefixes
         for prefix in prefixes:
             match = re.match(r"^\s+", prefix)
-            if match or prefix in ori_prefixes:
+            if match or prefix in ori_prefixes or prefix == ",":
                 prefixes.remove(prefix)
             else:
                 added.append(prefix)
