@@ -24,7 +24,7 @@ WINDOWS = sys.platform == "win32"
 ch_types = {
     "general": ["general", "Regular text channel"],
     "voice": ["voice", "Voice channel"],
-    "welcome": ["welcome_ch", "Text channel for welcome/farewell messages"],
+    "greeting": ["greeting_ch", "Text channel for welcome/farewell messages"],
     "purgatory": ["purge_ch", "Text channel for monitoring edited/deleted messages"],
     "meme": ["meme_ch", "Text channel for meme commands"],
     "anime": ["anime_ch", "Text channel for anime releases"],
@@ -432,39 +432,39 @@ class Admin(commands.Cog, name="Moderator"):
             return
         await ctx.send("No prefix successfully removed")
 
-    @commands.command(usage="(variable) (value)")
-    @is_botmaster()
-    async def setvar(self, ctx, key, *, value):
-        """Set a config variable, ***use with caution!**"""
-        with open("data/guild.json", "w") as f:
-            if value[0] == "[" and value[len(value) - 1] == "]":
-                value = list(map(int, value[1:-1].split(",")))
-            try:
-                value = int(value)
-            except ValueError:
-                pass
-            self.bot.config[str(ctx.message.guild.id)][key] = value
-            json.dump(self.bot.config, f, indent=4)
+    # @commands.command(usage="(variable) (value)")
+    # @is_botmaster()
+    # async def setvar(self, ctx, key, *, value):
+    #     """Set a config variable, ***use with caution!**"""
+    #     with open("data/guild.json", "w") as f:
+    #         if value[0] == "[" and value[len(value) - 1] == "]":
+    #             value = list(map(int, value[1:-1].split(",")))
+    #         try:
+    #             value = int(value)
+    #         except ValueError:
+    #             pass
+    #         self.bot.config[str(ctx.message.guild.id)][key] = value
+    #         json.dump(self.bot.config, f, indent=4)
 
-    @commands.command(usage="[variable]")
-    @commands.check_any(is_mod(), is_botmaster())
-    async def printvar(self, ctx, key=None):
-        """Print config variables, use for testing."""
-        if key == None:
-            for key, value in self.bot.config[str(ctx.message.guild.id)].items():
-                await ctx.send(f"Key: {key} | Value: {value}")
-        else:
-            await ctx.send(self.bot.config[str(ctx.message.guild.id)][key])
+    # @commands.command(usage="[variable]")
+    # @commands.check_any(is_mod(), is_botmaster())
+    # async def printvar(self, ctx, key=None):
+    #     """Print config variables, use for testing."""
+    #     if key == None:
+    #         for key, value in self.bot.config[str(ctx.message.guild.id)].items():
+    #             await ctx.send(f"Key: {key} | Value: {value}")
+    #     else:
+    #         await ctx.send(self.bot.config[str(ctx.message.guild.id)][key])
 
-    @commands.command(aliases=["rmvar"], usage="(variable)")
-    @is_botmaster()
-    async def delvar(self, ctx, key):
-        """Deletes a config variable, be careful!"""
-        with open("data/guild.json", "w") as f:
-            await ctx.send(
-                f"Removed {self.bot.config[str(ctx.message.guild.id)].pop(key)}"
-            )
-            json.dump(self.bot.config, f, indent=4)
+    # @commands.command(aliases=["rmvar"], usage="(variable)")
+    # @is_botmaster()
+    # async def delvar(self, ctx, key):
+    #     """Deletes a config variable, be careful!"""
+    #     with open("data/guild.json", "w") as f:
+    #         await ctx.send(
+    #             f"Removed {self.bot.config[str(ctx.message.guild.id)].pop(key)}"
+    #         )
+    #         json.dump(self.bot.config, f, indent=4)
 
     @commands.command()
     @is_botmaster()
@@ -618,18 +618,13 @@ class Admin(commands.Cog, name="Moderator"):
         """Set type for a role"""
         if role_type.lower() in role_types:
             if role_type.lower() != "general":
-                with open("data/guild.json", "w") as f:
 
-                    key = role_types[role_type.lower()][0]
+                key = role_types[role_type.lower()][0]
+                value = int(role.id)
 
-                    try:
-                        value = int(role.id)
-                    except ValueError:
-                        json.dump(self.bot.config, f, indent=4)
-                        return
+                self.bot.c.execute(f"UPDATE roles SET {key} = ? WHERE id = ?", (int(value), str(ctx.guild.id)))
+                self.bot.conn.commit()
 
-                    self.bot.config[str(ctx.message.guild.id)][key] = value
-                    json.dump(self.bot.config, f, indent=4)
                 e = discord.Embed(
                     title=f"`{role.name}`'s type has been changed to {role_type.lower()}!"
                 )
@@ -638,25 +633,19 @@ class Admin(commands.Cog, name="Moderator"):
     @role.command(aliases=["create"], usage="(type) (role name)")
     async def make(self, ctx, role_type, *role_name):
         """Make a new role."""
-        name = "-".join([*role_name])
+        name = " ".join([*role_name])
         if not name:
             return
-        g = ctx.message.guild
+        g = ctx.guild
         if role_type.lower() in role_types:
             role = await g.create_role(name=name)
             if role_type.lower() != "general":
-                with open("data/guild.json", "w") as f:
+                key = role_types[role_type.lower()][0]
+                value = int(role.id)
 
-                    key = role_types[role_type.lower()][0]
-
-                    try:
-                        value = int(role.id)
-                    except ValueError:
-                        json.dump(self.bot.config, f, indent=4)
-                        return
-
-                    self.bot.config[str(ctx.message.guild.id)][key] = value
-                    json.dump(self.bot.config, f, indent=4)
+                self.bot.c.execute(f"UPDATE roles SET {key} = ? WHERE id = ?", (int(value), str(g.id)))
+                self.bot.conn.commit()
+                
                 e = discord.Embed(
                     title=f"Role for `{role_type}` "
                     + f"called `{role.name}` has been created!"

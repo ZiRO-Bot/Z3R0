@@ -14,8 +14,7 @@ class CustomHelp(commands.HelpCommand):
     COLOUR = discord.Colour.blue()
 
     def get_desc(self):
-        with open("data/guild.json", "r") as f:
-            prefixes = bot.get_prefix(self.context.bot, self.context.message)
+        prefixes = bot.get_prefix(self.context.bot, self.context.message)
         if len(prefixes) > 1:
             s = "are"
         else:
