@@ -377,49 +377,6 @@ class Admin(commands.Cog, name="Moderator"):
             s = " is"
         await ctx.send(f"My prefix{s} {prefixes}")
 
-    @prefix.command(name="mention")
-    @is_botmaster()
-    # @commands.check_any(is_mod(), is_botmaster())
-    async def togglemention(self, ctx):
-        """Toggle mention as prefix."""
-        g = ctx.message.guild
-        with open("data/guild.json", "w") as f:
-            if self.bot.config[str(g.id)]["mention_as_prefix"] is True:
-                self.bot.config[str(g.id)]["mention_as_prefix"] = False
-                s = "Deactivated"
-            elif self.bot.config[str(g.id)]["mention_as_prefix"] is False:
-                self.bot.config[str(g.id)]["mention_as_prefix"] = True
-                s = "Activated"
-            else:
-                json.dump(self.bot.config, f, indent=4)
-                return
-            json.dump(self.bot.config, f, indent=4)
-        embed = discord.Embed(title=f"Mention as prefix has been `{s}`")
-        await ctx.send(embed=embed)
-
-    @prefix.command(name="set", usage="(prefix)")
-    @commands.check_any(is_mod(), is_botmaster())
-    async def prefixset(self, ctx, *prefix):
-        """Change bot's prefix."""
-        g = ctx.message.guild
-        if len(prefix) > 15:
-            await ctx.send("You can only set prefix up to 15 prefixes")
-            return
-        regex = re.compile(r"^\s+")
-        prefixes = [i for i in list(prefix) if not regex.match(i)]
-        if not prefixes:
-            return
-        with open("data/guild.json", "w") as f:
-            self.bot.config[str(g.id)]["prefix"] = prefixes
-            json.dump(self.bot.config, f, indent=4)
-        embed = discord.Embed(
-            title=f"Prefix has been changed to `{', '.join(prefixes)}`"
-        )
-        await ctx.send(embed=embed)
-        await ctx.send(
-            f"This command will be removed soon, use `{ctx.prefix}prefix add` instead"
-        )
-
     @prefix.command(name="add", usage="(prefix)")
     @commands.check_any(is_mod(), is_botmaster())
     async def prefixadd(self, ctx, *prefixes):
