@@ -178,7 +178,7 @@ class CustomCommands(commands.Cog):
         self.bot.c.execute("SELECT uses FROM tags WHERE id=?", (str(ctx.guild.id),))
         rc = self.bot.c.fetchall()
         rank = sorted([x[0] for x in rc], reverse=True).index(uses) + 1
-        e = discord.Embed(title=name)
+        e = discord.Embed(title=f"Custom Command - {name}", color=discord.Colour(0xFFFFF0))
         e.add_field(name="Owner", value=f"<@{author}>")
         e.add_field(name="Uses", value=int(uses))
         e.add_field(name="Rank", value=rank)
