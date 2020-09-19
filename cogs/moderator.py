@@ -551,14 +551,12 @@ class Admin(commands.Cog, name="Moderator"):
             await em_ctx_send_error(ctx, f"You can't set channels to `{_type}`")
             return
 
-        # If all good do the thing
-        with open("data/guild.json", "w") as f:
+        key = ch_types[_type.lower()][0]
+        value = ch.id
+        
+        self.bot.c.execute(f"UPDATE servers SET {key} = ? WHERE id = ?", (int(value), str(ctx.guild.id)))
+        self.bot.conn.commit()
 
-            key = ch_types[_type.lower()][0]
-            value = ch.id
-
-            self.bot.config[str(ctx.message.guild.id)][key] = value
-            json.dump(self.bot.config, f, indent=4)
         e = discord.Embed(title=f"``{ch.name}``'s type has been changed to ``{_type}``")
         await ctx.send(embed=e)
 
