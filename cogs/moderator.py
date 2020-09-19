@@ -369,9 +369,7 @@ class Admin(commands.Cog, name="Moderator"):
         prefix = bot.get_prefix(self.bot, ctx.message)
         if self.bot.user.mention in prefix:
             prefix.pop(0)
-        prefixes = ", ".join([f"`{i}`" for i in prefix]).replace(
-            r"`<@![0-9]*.*`", self.bot.user.mention
-        )
+        prefixes = ", ".join([f"`{i}`" for i in prefix])
         prefixes = re.sub(r"`<\S*[0-9]+(..)`", self.bot.user.mention, prefixes)
         if len(prefix) > 1:
             s = "es are"

@@ -3,6 +3,7 @@ import bot
 import discord
 import json
 import logging
+import re
 
 from bot import get_prefix
 from discord.ext import commands
@@ -14,13 +15,14 @@ class CustomHelp(commands.HelpCommand):
 
     def get_desc(self):
         with open("data/guild.json", "r") as f:
-            prefixes = json.load(f)[str(self.get_destination().guild.id)]["prefix"]
+            prefixes = bot.get_prefix(self.context.bot, self.context.message)
         if len(prefixes) > 1:
             s = "are"
         else:
             s = "is"
-        prefixes = ", ".join(prefixes)
-        desc = f"Bot prefixes {s} `{prefixes}`"
+        prefixes = ", ".join([f"`{i}`" for i in prefixes])
+        prefixes = re.sub(r"`<\S*[0-9]+(..)`", self.context.bot.user.mention, prefixes)
+        desc = f"Bot prefixes {s} {prefixes}"
         return desc
 
     def get_ending_note(self):
