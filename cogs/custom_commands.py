@@ -31,6 +31,8 @@ class CustomCommands(commands.Cog):
 
     async def send_tag_content(self, ctx, name):
         lookup = name.lower().strip()
+        if ctx.prefix == "@" and (lookup == "everyone" or lookup == "here"):
+            return
         self.bot.c.execute(
             "SELECT * FROM tags WHERE (name = ? AND id = ?)",
             (lookup, str(ctx.guild.id)),
