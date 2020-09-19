@@ -21,21 +21,22 @@ class Welcome(commands.Cog, name="Welcome"):
         ]
 
         server = member.guild
-        try:
-            welcome_channel = self.bot.get_channel(
-                int(self.bot.config[str(server.id)]["welcome_ch"])
-            )
-        except KeyError:
-            return
-        try:
-            member_role = server.get_role(
-                int(self.bot.config[str(server.id)]["default_role"])
-            )
-            if not member_role:
-                raise KeyError
+
+        self.bot.c.execute(
+            "SELECT greeting_ch FROM servers WHERE id=?", (str(server.id),)
+        )
+        welcome_channel = self.bot.c.fetchall()[0][0]
+        welcome_channel = server.get_channel(int(welcome_channel))
+
+        self.bot.c.execute(
+            "SELECT default_role FROM roles WHERE id=?", (str(server.id),)
+        )
+        member_role = self.bot.c.fetchall()[0][0]
+        member_role = server.get_role(int(member_role))
+        if member_role:
             await member.add_roles(member_role)
-        except KeyError:
-            pass
+        if not welcome_channel:
+            return
         await welcome_channel.send(f"{welcome_msg[randint(0, len(welcome_msg) - 1)]}")
 
 

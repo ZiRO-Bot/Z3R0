@@ -420,13 +420,17 @@ class General(commands.Cog):
         embed.add_field(
             name="Links",
             value=f"[Invitation]({invite_link})\n"
-                 + "[GitHub Repo](https://github.com/null2264/ziBot)\n" 
-                 + "[Support Server](https://discord.gg/sP9xRy6)\n",
+            + "[GitHub Repo](https://github.com/null2264/ziBot)\n"
+            + "[Support Server](https://discord.gg/sP9xRy6)\n",
         )
         embed.add_field(
-                name="Stats", value=f"**Uptime**: {realtime(int(time.time() - bot.start_time))}\n**Servers**: {len(self.bot.guilds)}"
+            name="Stats",
+            value=f"**Uptime**: {realtime(int(time.time() - bot.start_time))}\n**Servers**: {len(self.bot.guilds)}",
         )
-        embed.add_field(name="License", value="[GNU GPLv3.0](https://github.com/null2264/ziBot/blob/master/LICENSE)")
+        embed.add_field(
+            name="License",
+            value="[GNU GPLv3.0](https://github.com/null2264/ziBot/blob/master/LICENSE)",
+        )
         embed.add_field(
             name="About",
             value="**ziBot** is an open source bot, "

@@ -71,9 +71,15 @@ class Utils(commands.Cog):
     async def on_message_delete(self, message):
         if message.author == self.bot.user:
             return
-        purgatory_ch = self.bot.get_channel(
-            int(self.bot.config[str(message.guild.id)]["purge_ch"])
+
+        self.bot.c.execute(
+            "SELECT purge_ch FROM servers WHERE id=?", (str(message.guild.id),)
         )
+        purgatory_ch = self.bot.c.fetchall()[0][0]
+        purgatory_ch = self.bot.get_channel(purgatory_ch)
+        if not purgatory_ch:
+            return
+
         embed = discord.Embed(title="Deleted Message", colour=discord.Colour.red())
         embed.add_field(name="User", value=f"{message.author.mention}")
         embed.add_field(name="Channel", value=f"{message.channel.mention}")
@@ -89,9 +95,15 @@ class Utils(commands.Cog):
         if before.content == after.content:
             return
         message = before
-        purgatory_ch = self.bot.get_channel(
-            int(self.bot.config[str(message.guild.id)]["purge_ch"])
+
+        self.bot.c.execute(
+            "SELECT purge_ch FROM servers WHERE id=?", (str(message.guild.id),)
         )
+        purgatory_ch = self.bot.c.fetchall()[0][0]
+        purgatory_ch = self.bot.get_channel(purgatory_ch)
+        if not purgatory_ch:
+            return
+
         embed = discord.Embed(title="Edited Message", colour=discord.Colour.red())
         embed.add_field(name="User", value=f"{message.author.mention}")
         embed.add_field(name="Channel", value=f"{message.channel.mention}")

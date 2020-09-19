@@ -7,6 +7,7 @@ import praw
 import re
 
 from cogs.errors.fun import DiceTooBig
+from cogs.utilities.embed_formatting import em_ctx_send_error
 from discord.ext import commands
 from discord.errors import Forbidden
 from dotenv import load_dotenv
@@ -115,17 +116,18 @@ class Fun(commands.Cog):
     @commands.command()
     async def meme(self, ctx):
         """Get memes from subreddit r/memes."""
-        try:
-            meme_channel = self.bot.get_channel(
-                int(self.bot.config[str(ctx.message.guild.id)]["meme_ch"])
-            )
-        except KeyError:
-            meme_channel = ctx
+        self.bot.c.execute(
+            "SELECT meme_ch FROM servers WHERE id=?", (str(ctx.guild.id),)
+        )
+        meme_channel = self.bot.c.fetchall()[0][0]
+        meme_channel = self.bot.get_channel(meme_channel)
+        if not meme_channel:
+            meme_channel = ctx.channel
 
         meme_subreddits = ["memes", "funny"]
         reg_img = r".*/(i)\.redd\.it"
 
-        if ctx.channel is not meme_channel and meme_channel is not ctx:
+        if ctx.channel != meme_channel:
             async with ctx.typing():
                 await ctx.send(f"Please do this command on {meme_channel.mention}")
                 return
@@ -205,26 +207,23 @@ class Fun(commands.Cog):
     @commands.command(usage="[amount of ping]")
     async def pingme(self, ctx, amount: int = 1):
         """Ping yourself for no reason"""
-        try:
-            channel = self.bot.get_channel(
-                int(self.bot.config[str(ctx.message.guild.id)]["pingme_ch"])
-            )
-        except KeyError:
+        self.bot.c.execute(
+            "SELECT pingme_ch FROM servers WHERE id=?", (str(ctx.guild.id),)
+        )
+        channel = self.bot.c.fetchall()[0][0]
+        channel = self.bot.get_channel(channel)
+        if not channel:
             await ctx.send("This server doesn't have channel with type `pingme`")
             return
         msg = await ctx.send("Pinging...")
         for i in range(amount):
             await asyncio.sleep(3)
-            if channel:
-                try:
-                    await channel.send(ctx.author.mention)
-                except Forbidden:
-                    await ctx.send(
-                        "ziBot doesn't have permission to send message inside pingme channel!"
-                    )
-                    break
-            else:
-                await ctx.send("Channel with type `pingme` can't be found!")
+            try:
+                await channel.send(ctx.author.mention)
+            except Forbidden:
+                await ctx.send(
+                    "ziBot doesn't have permission to send message inside pingme channel!"
+                )
                 break
         await msg.delete()
 

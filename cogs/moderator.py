@@ -24,11 +24,15 @@ WINDOWS = sys.platform == "win32"
 ch_types = {
     "general": ["general", "Regular text channel"],
     "voice": ["voice", "Voice channel"],
-    "welcome": ["welcome_ch", "Text channel for welcome/farewell messages"],
+    "greeting": ["greeting_ch", "Text channel for welcome/farewell messages"],
     "purgatory": ["purge_ch", "Text channel for monitoring edited/deleted messages"],
     "meme": ["meme_ch", "Text channel for meme commands"],
     "anime": ["anime_ch", "Text channel for anime releases"],
     "pingme": ["pingme_ch", "Text channel to get ping by pingme command"],
+    "announcement": [
+        "announcement_ch",
+        "Text channel for announcements (for !announce)",
+    ],
 }
 
 role_types = {
@@ -200,13 +204,12 @@ class Admin(commands.Cog, name="Moderator"):
         if member is None:
             await ctx.send("Please specify the member you want to mute.")
             return
-        try:
-            muted_role = ctx.guild.get_role(
-                self.bot.config[str(ctx.guild.id)]["mute_role"]
-            )
-            if not muted_role:
-                raise KeyError
-        except KeyError:
+        self.bot.c.execute(
+            "SELECT mute_role FROM roles WHERE id=?", (str(ctx.guild.id),)
+        )
+        muted_role = self.bot.c.fetchall()[0][0]
+        muted_role = server.get_role(int(muted_role))
+        if not muted_role:
             await ctx.send(
                 "This server does not have a mute role, "
                 + f"use `{ctx.prefix}role set mute (role name)` to"
@@ -330,36 +333,10 @@ class Admin(commands.Cog, name="Moderator"):
             embed.add_field(name="Pulling...", value=f"```bash\n{e}```")
         await ctx.send(embed=embed)
 
-    @commands.command(
-        aliases=["addcommand", "newcommand"], usage="(command name) (command messages)"
-    )
-    @commands.check_any(is_mod(), is_botmaster())
-    async def setcommand(self, ctx, command, *, message):
-        """Add a new simple command."""
-        self.bot.custom_commands[str(ctx.guild.id)][ctx.prefix + command] = message
-        with open("data/custom_commands.json", "w") as f:
-            json.dump(self.bot.custom_commands, f, indent=4)
-        embed = discord.Embed(
-            title="New command has been added!", description=f"{ctx.prefix}{command}"
-        )
-        await ctx.send(embed=embed)
-
-    @commands.command(aliases=["deletecommand"], usage="(command name)")
-    @commands.check_any(is_mod(), is_botmaster())
-    async def removecommand(self, ctx, command):
-        """Remove a simple command."""
-        del self.bot.custom_commands[str(ctx.guild.id)][ctx.prefix + command]
-        with open("data/custom_commands.json", "w") as f:
-            json.dump(self.bot.custom_commands, f, indent=4)
-        embed = discord.Embed(
-            title="A command has been removed!", description=f"{ctx.prefix}{command}"
-        )
-        await ctx.send(embed=embed)
-
     @commands.group(invoke_without_command=True)
     async def prefix(self, ctx):
         """Manage bot's prefix."""
-        await ctx.invoke(self.bot.get_command('prefix list'))
+        await ctx.invoke(self.bot.get_command("prefix list"))
         pass
 
     @prefix.command(name="list")
@@ -368,9 +345,7 @@ class Admin(commands.Cog, name="Moderator"):
         prefix = bot.get_prefix(self.bot, ctx.message)
         if self.bot.user.mention in prefix:
             prefix.pop(0)
-        prefixes = ", ".join([f"`{i}`" for i in prefix]).replace(
-            r"`<@![0-9]*.*`", self.bot.user.mention
-        )
+        prefixes = ", ".join([f"`{i}`" for i in prefix])
         prefixes = re.sub(r"`<\S*[0-9]+(..)`", self.bot.user.mention, prefixes)
         if len(prefix) > 1:
             s = "es are"
@@ -378,71 +353,34 @@ class Admin(commands.Cog, name="Moderator"):
             s = " is"
         await ctx.send(f"My prefix{s} {prefixes}")
 
-    @prefix.command(name="mention")
-    @is_botmaster()
-    # @commands.check_any(is_mod(), is_botmaster())
-    async def togglemention(self, ctx):
-        """Toggle mention as prefix."""
-        g = ctx.message.guild
-        with open("data/guild.json", "w") as f:
-            if self.bot.config[str(g.id)]["mention_as_prefix"] is True:
-                self.bot.config[str(g.id)]["mention_as_prefix"] = False
-                s = "Deactivated"
-            elif self.bot.config[str(g.id)]["mention_as_prefix"] is False:
-                self.bot.config[str(g.id)]["mention_as_prefix"] = True
-                s = "Activated"
-            else:
-                json.dump(self.bot.config, f, indent=4)
-                return
-            json.dump(self.bot.config, f, indent=4)
-        embed = discord.Embed(title=f"Mention as prefix has been `{s}`")
-        await ctx.send(embed=embed)
-
-    @prefix.command(name="set", usage="(prefix)")
-    @commands.check_any(is_mod(), is_botmaster())
-    async def prefixset(self, ctx, *prefix):
-        """Change bot's prefix."""
-        g = ctx.message.guild
-        if len(prefix) > 15:
-            await ctx.send("You can only set prefix up to 15 prefixes")
-            return
-        regex = re.compile(r"^\s+")
-        prefixes = [i for i in list(prefix) if not regex.match(i)]
-        if not prefixes:
-            return
-        with open("data/guild.json", "w") as f:
-            self.bot.config[str(g.id)]["prefix"] = prefixes
-            json.dump(self.bot.config, f, indent=4)
-        embed = discord.Embed(
-            title=f"Prefix has been changed to `{', '.join(prefixes)}`"
-        )
-        await ctx.send(embed=embed)
-        await ctx.send(
-            f"This command will be removed soon, use `{ctx.prefix}prefix add` instead"
-        )
-
     @prefix.command(name="add", usage="(prefix)")
     @commands.check_any(is_mod(), is_botmaster())
     async def prefixadd(self, ctx, *prefixes):
         """Add a new prefix to bot."""
         g = ctx.guild
         added = []
-        not_added = []
+        prefixes = list([*prefixes])
+        ori_prefixes = list(bot.get_prefix(self.bot, ctx.message))
+        # Filter whitespaces and prefix that already exist from *prefixes
         for prefix in prefixes:
             match = re.match(r"^\s+", prefix)
-            if (
-                prefix in self.bot.config[str(g.id)]["prefix"]
-                or len(self.bot.config[str(g.id)]["prefix"]) + 1 > 15
-                or match
-            ):
-                not_added.append(prefix)
-                pass
+            if match or prefix in ori_prefixes or prefix == ",":
+                prefixes.remove(prefix)
             else:
-                self.bot.config[str(g.id)]["prefix"].append(prefix)
                 added.append(prefix)
+        prefixes = ori_prefixes + prefixes
+        if len(prefixes) > 15:
+            await em_ctx_send_error(ctx, "You can only add up to 15 prefixes!")
+            return
+        # database stuff
+        up_prefixes = ",".join(sorted([*prefixes]))
+        self.bot.c.execute(
+            "UPDATE servers SET prefixes = ? WHERE id = ?",
+            (up_prefixes, str(ctx.guild.id)),
+        )
+        self.bot.conn.commit()
+        # inform the user
         if len(added) > 0:
-            with open("data/guild.json", "w") as f:
-                json.dump(self.bot.config, f, indent=4)
             await ctx.send(f"`{', '.join(added)}` successfully added to prefix")
             return
         await ctx.send("No prefix successfully added")
@@ -453,57 +391,59 @@ class Admin(commands.Cog, name="Moderator"):
         """Remove a prefix from bot."""
         g = ctx.guild
         removed = []
-        not_removed = []
+        ori_prefixes = list(bot.get_prefix(self.bot, ctx.message))
         for prefix in prefixes:
-            if (
-                prefix in self.bot.config[str(g.id)]["prefix"]
-                and len(self.bot.config[str(g.id)]["prefix"]) >= 2
-            ):
-                self.bot.config[str(g.id)]["prefix"].remove(prefix)
+            if prefix in ori_prefixes and len(ori_prefixes) - 1 >= 1:
                 removed.append(prefix)
+                ori_prefixes.remove(prefix)
             else:
-                not_removed.append(prefix)
                 pass
+        # database stuff
+        up_prefixes = ",".join(sorted(ori_prefixes))
+        self.bot.c.execute(
+            "UPDATE servers SET prefixes = ? WHERE id = ?",
+            (up_prefixes, str(ctx.guild.id)),
+        )
+        self.bot.conn.commit()
+        # inform the user
         if len(removed) > 0:
-            with open("data/guild.json", "w") as f:
-                json.dump(self.bot.config, f, indent=4)
             await ctx.send(f"`{', '.join(removed)}` successfully removed from prefix")
             return
         await ctx.send("No prefix successfully removed")
 
-    @commands.command(usage="(variable) (value)")
-    @is_botmaster()
-    async def setvar(self, ctx, key, *, value):
-        """Set a config variable, ***use with caution!**"""
-        with open("data/guild.json", "w") as f:
-            if value[0] == "[" and value[len(value) - 1] == "]":
-                value = list(map(int, value[1:-1].split(",")))
-            try:
-                value = int(value)
-            except ValueError:
-                pass
-            self.bot.config[str(ctx.message.guild.id)][key] = value
-            json.dump(self.bot.config, f, indent=4)
+    # @commands.command(usage="(variable) (value)")
+    # @is_botmaster()
+    # async def setvar(self, ctx, key, *, value):
+    #     """Set a config variable, ***use with caution!**"""
+    #     with open("data/guild.json", "w") as f:
+    #         if value[0] == "[" and value[len(value) - 1] == "]":
+    #             value = list(map(int, value[1:-1].split(",")))
+    #         try:
+    #             value = int(value)
+    #         except ValueError:
+    #             pass
+    #         self.bot.config[str(ctx.message.guild.id)][key] = value
+    #         json.dump(self.bot.config, f, indent=4)
 
-    @commands.command(usage="[variable]")
-    @commands.check_any(is_mod(), is_botmaster())
-    async def printvar(self, ctx, key=None):
-        """Print config variables, use for testing."""
-        if key == None:
-            for key, value in self.bot.config[str(ctx.message.guild.id)].items():
-                await ctx.send(f"Key: {key} | Value: {value}")
-        else:
-            await ctx.send(self.bot.config[str(ctx.message.guild.id)][key])
+    # @commands.command(usage="[variable]")
+    # @commands.check_any(is_mod(), is_botmaster())
+    # async def printvar(self, ctx, key=None):
+    #     """Print config variables, use for testing."""
+    #     if key == None:
+    #         for key, value in self.bot.config[str(ctx.message.guild.id)].items():
+    #             await ctx.send(f"Key: {key} | Value: {value}")
+    #     else:
+    #         await ctx.send(self.bot.config[str(ctx.message.guild.id)][key])
 
-    @commands.command(aliases=["rmvar"], usage="(variable)")
-    @is_botmaster()
-    async def delvar(self, ctx, key):
-        """Deletes a config variable, be careful!"""
-        with open("data/guild.json", "w") as f:
-            await ctx.send(
-                f"Removed {self.bot.config[str(ctx.message.guild.id)].pop(key)}"
-            )
-            json.dump(self.bot.config, f, indent=4)
+    # @commands.command(aliases=["rmvar"], usage="(variable)")
+    # @is_botmaster()
+    # async def delvar(self, ctx, key):
+    #     """Deletes a config variable, be careful!"""
+    #     with open("data/guild.json", "w") as f:
+    #         await ctx.send(
+    #             f"Removed {self.bot.config[str(ctx.message.guild.id)].pop(key)}"
+    #         )
+    #         json.dump(self.bot.config, f, indent=4)
 
     @commands.command()
     @is_botmaster()
@@ -551,18 +491,14 @@ class Admin(commands.Cog, name="Moderator"):
                     title=f"Text Channel called `{ch.name}` has been created!"
                 )
             else:
-                with open("data/guild.json", "w") as f:
+                key = ch_types[_type.lower()][0]
+                value = ch.id
 
-                    key = ch_types[_type.lower()][0]
-
-                    try:
-                        value = int(ch.id)
-                    except ValueError:
-                        json.dump(self.bot.config, f, indent=4)
-                        return
-
-                    self.bot.config[str(ctx.message.guild.id)][key] = value
-                    json.dump(self.bot.config, f, indent=4)
+                self.bot.c.execute(
+                    f"UPDATE servers SET {key} = ? WHERE id = ?",
+                    (int(value), str(g.id)),
+                )
+                self.bot.conn.commit()
 
                 e = discord.Embed(
                     title=f"Text Channel for {_type.title()} "
@@ -590,21 +526,24 @@ class Admin(commands.Cog, name="Moderator"):
             await em_ctx_send_error(ctx, f"You can't set channels to `{_type}`")
             return
 
-        # If all good do the thing
-        with open("data/guild.json", "w") as f:
+        key = ch_types[_type.lower()][0]
+        value = ch.id
 
-            key = ch_types[_type.lower()][0]
-            value = ch.id
+        self.bot.c.execute(
+            f"UPDATE servers SET {key} = ? WHERE id = ?",
+            (int(value), str(ctx.guild.id)),
+        )
+        self.bot.conn.commit()
 
-            self.bot.config[str(ctx.message.guild.id)][key] = value
-            json.dump(self.bot.config, f, indent=4)
         e = discord.Embed(title=f"``{ch.name}``'s type has been changed to ``{_type}``")
         await ctx.send(embed=e)
 
     @ch_set.error
     async def ch_set_handler(self, ctx, error):
         if isinstance(error, commands.BadArgument):
-            await em_ctx_send_error(ctx, "You can only set a text channel's type!")
+            match = re.match(r"Channel \"[0-9]*\" not found.", str(error))
+            if match:
+                await em_ctx_send_error(ctx, "You can only set a text channel's type!")
 
     @commands.command(aliases=["sh"], usage="(shell command)", hidden=True)
     @is_botmaster()
@@ -664,18 +603,16 @@ class Admin(commands.Cog, name="Moderator"):
         """Set type for a role"""
         if role_type.lower() in role_types:
             if role_type.lower() != "general":
-                with open("data/guild.json", "w") as f:
 
-                    key = role_types[role_type.lower()][0]
+                key = role_types[role_type.lower()][0]
+                value = int(role.id)
 
-                    try:
-                        value = int(role.id)
-                    except ValueError:
-                        json.dump(self.bot.config, f, indent=4)
-                        return
+                self.bot.c.execute(
+                    f"UPDATE roles SET {key} = ? WHERE id = ?",
+                    (int(value), str(ctx.guild.id)),
+                )
+                self.bot.conn.commit()
 
-                    self.bot.config[str(ctx.message.guild.id)][key] = value
-                    json.dump(self.bot.config, f, indent=4)
                 e = discord.Embed(
                     title=f"`{role.name}`'s type has been changed to {role_type.lower()}!"
                 )
@@ -684,25 +621,21 @@ class Admin(commands.Cog, name="Moderator"):
     @role.command(aliases=["create"], usage="(type) (role name)")
     async def make(self, ctx, role_type, *role_name):
         """Make a new role."""
-        name = "-".join([*role_name])
+        name = " ".join([*role_name])
         if not name:
             return
-        g = ctx.message.guild
+        g = ctx.guild
         if role_type.lower() in role_types:
             role = await g.create_role(name=name)
             if role_type.lower() != "general":
-                with open("data/guild.json", "w") as f:
+                key = role_types[role_type.lower()][0]
+                value = int(role.id)
 
-                    key = role_types[role_type.lower()][0]
+                self.bot.c.execute(
+                    f"UPDATE roles SET {key} = ? WHERE id = ?", (int(value), str(g.id))
+                )
+                self.bot.conn.commit()
 
-                    try:
-                        value = int(role.id)
-                    except ValueError:
-                        json.dump(self.bot.config, f, indent=4)
-                        return
-
-                    self.bot.config[str(ctx.message.guild.id)][key] = value
-                    json.dump(self.bot.config, f, indent=4)
                 e = discord.Embed(
                     title=f"Role for `{role_type}` "
                     + f"called `{role.name}` has been created!"
