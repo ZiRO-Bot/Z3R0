@@ -186,11 +186,15 @@ class ziBot(commands.Bot):
         await self.process_commands(message)
 
         ctx = await self.get_context(message)
-        if ctx.invoked_with and ctx.invoked_with.lower() not in self.commands and ctx.command is None:
+        if (
+            ctx.invoked_with
+            and ctx.invoked_with.lower() not in self.commands
+            and ctx.command is None
+        ):
             msg = copy.copy(message)
             if ctx.prefix:
-                new_content = msg.content[len(ctx.prefix):]
-                msg.content = "{}tag {}".format(ctx.prefix, new_content)
+                new_content = msg.content[len(ctx.prefix) :]
+                msg.content = "{}tag get {}".format(ctx.prefix, new_content)
                 await self.process_commands(msg)
 
     async def on_command_error(self, ctx, error):

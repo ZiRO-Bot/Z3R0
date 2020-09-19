@@ -126,7 +126,7 @@ class Fun(commands.Cog):
 
         meme_subreddits = ["memes", "funny"]
         reg_img = r".*/(i)\.redd\.it"
-        
+
         if ctx.channel != meme_channel:
             async with ctx.typing():
                 await ctx.send(f"Please do this command on {meme_channel.mention}")
