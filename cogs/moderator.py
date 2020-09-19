@@ -512,18 +512,11 @@ class Admin(commands.Cog, name="Moderator"):
                     title=f"Text Channel called `{ch.name}` has been created!"
                 )
             else:
-                with open("data/guild.json", "w") as f:
+                key = ch_types[_type.lower()][0]
+                value = ch.id
 
-                    key = ch_types[_type.lower()][0]
-
-                    try:
-                        value = int(ch.id)
-                    except ValueError:
-                        json.dump(self.bot.config, f, indent=4)
-                        return
-
-                    self.bot.config[str(ctx.message.guild.id)][key] = value
-                    json.dump(self.bot.config, f, indent=4)
+                self.bot.c.execute(f"UPDATE servers SET {key} = ? WHERE id = ?", (int(value), str(g.id)))
+                self.bot.conn.commit()
 
                 e = discord.Embed(
                     title=f"Text Channel for {_type.title()} "

@@ -518,8 +518,8 @@ class AniList(commands.Cog):
             ids,
         )
         server_row = self.bot.c.fetchall()
-        pre = {k[0]: k[1] or "None" for k in server_row}
-        watchlist = {int(k): v.split(",") for (k, v) in pre.items()}
+        pre = {k[0]: k[1] or None for k in server_row}
+        watchlist = {int(k): v.split(",") if v else None for (k, v) in pre.items()}
         return watchlist
 
     def cog_unload(self):
@@ -692,8 +692,12 @@ class AniList(commands.Cog):
         title = q["Media"]["title"]["romaji"]
 
         watchlist = self.get_watchlist()
-        if str(_id_) not in watchlist[int(ctx.guild.id)]:
-            watchlist[int(ctx.guild.id)].append(str(_id_))
+        if not watchlist[int(ctx.guild.id)] or str(_id_) not in watchlist[int(ctx.guild.id)]:
+            try:
+                watchlist[int(ctx.guild.id)].append(str(_id_))
+            except AttributeError:
+                watchlist[int(ctx.guild.id)] = [str(_id_)]
+
             new_watchlist = ",".join(watchlist[int(ctx.guild.id)])
 
             self.bot.c.execute(
@@ -738,12 +742,19 @@ class AniList(commands.Cog):
         if str(_id_) in watchlist[int(ctx.guild.id)]:
             watchlist[int(ctx.guild.id)].remove(str(_id_))
             new_watchlist = ",".join(watchlist[int(ctx.guild.id)])
+            if len(watchlist) >= 2:
+                self.bot.c.execute(
+                    "UPDATE ani_watchlist SET anime_id = ? WHERE id = ?",
+                    (new_watchlist, str(ctx.guild.id)),
+                )
+                self.bot.conn.commit()
+            else:
+                self.bot.c.execute(
+                    "UPDATE ani_watchlist SET anime_id = ? WHERE id = ?",
+                    (None, str(ctx.guild.id)),
+                )
+                self.bot.conn.commit()
 
-            self.bot.c.execute(
-                "UPDATE ani_watchlist SET anime_id = ? WHERE id = ?",
-                (new_watchlist, str(ctx.guild.id)),
-            )
-            self.bot.conn.commit()
 
             embed = discord.Embed(
                 title="An anime just removed!",

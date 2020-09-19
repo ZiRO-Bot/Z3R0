@@ -112,8 +112,8 @@ class ziBot(commands.Bot):
         with open("data/custom_commands.json", "r") as cc:
             self.custom_commands = json.load(cc)
 
-        with open("data/guild.json", "r") as ch:
-            self.config = json.load(ch)
+        # with open("data/guild.json", "r") as ch:
+        #     self.config = json.load(ch)
 
     def add_empty_data(self, guild):
         # guild_id, prefix, anime_ch, greeting_ch, meme_ch, purge_ch
