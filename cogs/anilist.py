@@ -160,14 +160,6 @@ query($page: Int = 0, $amount: Int = 50, $mediaId: [Int!]!) {
 """
 
 
-def checkjson():
-    try:
-        f = open("data/anime.json", "r")
-    except FileNotFoundError:
-        with open("data/anime.json", "w+") as f:
-            json.dump({}, f, indent=4)
-
-
 async def query(query: str, variables: Optional[str]):
     if not query:
         return None
@@ -181,8 +173,9 @@ async def query(query: str, variables: Optional[str]):
             return json.loads(await req.text())
 
 
-async def getwatchlist(self, ctx):
-    a = await query(listQ, {"mediaId": self.watchlist[str(ctx.guild.id)]})
+async def send_watchlist(self, ctx):
+    watchlist = self.get_watchlist()
+    a = await query(listQ, {"mediaId": watchlist[ctx.guild.id]})
     a = a["data"]
     embed = discord.Embed(title="Anime Watchlist", colour=discord.Colour(0x02A9FF))
     embed.set_author(
@@ -220,23 +213,24 @@ async def getwatchlist(self, ctx):
 
 
 async def getschedule(self, _time_, page):
-    for server in self.watchlist:
+    watchlist = self.get_watchlist()
+    for server in watchlist:
         # Get data from anilist for every anime that listed on watchlist
         q = await query(
             scheduleQuery,
             {
                 "page": 1,
                 "amount": 50,
-                "watched": self.watchlist[str(server)],
+                "watched": watchlist[int(server)],
                 "nextDay": _time_,
             },
         )
         q = q["data"]
 
         # Get channel to send the releases
-        try:
-            channel = self.bot.get_channel(self.bot.config[str(server)]["anime_ch"])
-        except KeyError:
+        self.bot.c.execute("SELECT anime_ch FROM servers WHERE id=?", (str(server),))
+        channel = self.bot.c.fetchall()[0][0]
+        if not channel:
             continue
 
         # If q is not empty and airingSchedules are exist, do stuff
@@ -493,16 +487,31 @@ async def search_ani_new(self, ctx, anime, page):
     return
 
 
-# async def createAnnoucementEmbed(entry: str=None, date: str=None, upNext: str=None):
-
-
 class AniList(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.handle_schedule.start()
         self.logger = logging.getLogger("discord")
         self.watchlist = {}
-        checkjson()
+
+    def get_watchlist(self):
+        """
+        Get schedule from database.
+        {
+            <guild_id>: [anime_ids, anime_ids]
+        }
+        """
+        ids = [guild.id for guild in self.bot.guilds]
+        self.bot.c.execute(
+            "SELECT * FROM ani_watchlist WHERE id in ({0})".format(
+                ", ".join("?" for _ in ids)
+            ),
+            ids,
+        )
+        server_row = self.bot.c.fetchall()
+        pre = {k[0]: k[1] or None for k in server_row}
+        watchlist = {int(k): v.split(",") for (k, v) in pre.items()}
+        return watchlist
 
     def cog_unload(self):
         self.handle_schedule.cancel()
@@ -519,12 +528,7 @@ class AniList(commands.Cog):
     async def anime(self, ctx):
         """Get information about anime from AniList"""
         # add guild id to watchlist if not exist
-        try:
-            tmp = self.watchlist[str(ctx.guild.id)]
-        except KeyError:
-            self.watchlist[str(ctx.guild.id)] = []
-            with open("data/anime.json", "w") as f:
-                json.dump(self.watchlist, f, indent=4)
+        pass
 
     @anime.command(
         name="info", usage="(anime) [format]", brief="Get information about an anime."
@@ -678,10 +682,17 @@ class AniList(commands.Cog):
 
         title = q["Media"]["title"]["romaji"]
 
-        if _id_ not in self.watchlist[str(ctx.guild.id)]:
-            self.watchlist[str(ctx.guild.id)].append(_id_)
-            with open("data/anime.json", "w") as f:
-                json.dump(self.watchlist, f, indent=4)
+        watchlist = self.get_watchlist()
+        if str(_id_) not in watchlist[int(ctx.guild.id)]:
+            watchlist[int(ctx.guild.id)].append(str(_id_))
+            new_watchlist = ",".join(watchlist[int(ctx.guild.id)])
+
+            self.bot.c.execute(
+                "UPDATE ani_watchlist SET anime_id = ? WHERE id = ?",
+                (new_watchlist, str(ctx.guild.id)),
+            )
+            self.bot.conn.commit()
+
             embed = discord.Embed(
                 title="New anime just added!",
                 description=f"**{title}** ({_id_}) has been added to the watchlist!",
@@ -713,10 +724,18 @@ class AniList(commands.Cog):
         q = await getinfo(self, ctx, anime, _format)
 
         title = q["Media"]["title"]["romaji"]
-        if _id_ in self.watchlist[str(ctx.guild.id)]:
-            self.watchlist[str(ctx.guild.id)].remove(_id_)
-            with open("data/anime.json", "w") as f:
-                json.dump({"watchlist": self.watchlist[str(ctx.guild.id)]}, f, indent=4)
+
+        watchlist = self.get_watchlist()
+        if str(_id_) in watchlist[int(ctx.guild.id)]:
+            watchlist[int(ctx.guild.id)].remove(str(_id_))
+            new_watchlist = ",".join(watchlist[int(ctx.guild.id)])
+
+            self.bot.c.execute(
+                "UPDATE ani_watchlist SET anime_id = ? WHERE id = ?",
+                (new_watchlist, str(ctx.guild.id)),
+            )
+            self.bot.conn.commit()
+
             embed = discord.Embed(
                 title="An anime just removed!",
                 description=f"**{title}** ({_id_}) has been removed from the watchlist!",
@@ -728,7 +747,6 @@ class AniList(commands.Cog):
                 description=f"**{title}** ({_id_}) is not in the watchlist!",
                 colour=discord.Colour(0x02A9FF),
             )
-        await ctx.send(f"**{title}** ({_id_}) has been removed from the watchlist")
         embed.set_author(
             name="AniList",
             icon_url="https://gblobscdn.gitbook.com/spaces%2F-LHizcWWtVphqU90YAXO%2Favatar.png",
@@ -741,7 +759,7 @@ class AniList(commands.Cog):
     # @commands.check(is_mainserver)
     async def watchlist(self, ctx):
         """Get list of anime that added to watchlist."""
-        await getwatchlist(self, ctx)
+        await send_watchlist(self, ctx)
         return
 
 
