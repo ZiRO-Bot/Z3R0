@@ -27,38 +27,18 @@ shard = os.getenv("SHARD") or 0
 shard_count = os.getenv("SHARD_COUNT") or 1
 
 
-def check_jsons():
-    try:
-        f = open("data/guild.json", "r")
-    except FileNotFoundError:
-        with open("data/guild.json", "w+") as f:
-            json.dump({}, f, indent=4)
-
-    try:
-        f = open("data/custom_commands.json", "r")
-    except FileNotFoundError:
-        with open("data/custom_commands.json", "w+") as f:
-            json.dump({}, f, indent=4)
-
-    try:
-        f = open("data/anime.json", "r")
-    except FileNotFoundError:
-        with open("data/anime.json", "w+") as f:
-            json.dump({"watchlist": []}, f, indent=4)
-
-
 def get_cogs():
     """callable extensions"""
     extensions = [
         "cogs.welcome",
         "cogs.help",
+        "cogs.custom_commands",
         "cogs.moderator",
         "cogs.general",
         "cogs.utils",
         "cogs.mcbe",
         "cogs.anilist",
         "cogs.fun",
-        "cogs.custom_commands",
         # "cogs.music",
     ]
     return extensions
@@ -108,14 +88,6 @@ class ziBot(commands.Bot):
         )
 
         self.master = [186713080841895936]
-
-        check_jsons()
-
-        with open("data/custom_commands.json", "r") as cc:
-            self.custom_commands = json.load(cc)
-
-        # with open("data/guild.json", "r") as ch:
-        #     self.config = json.load(ch)
 
     def add_empty_data(self, guild):
         # guild_id, prefix, anime_ch, greeting_ch, meme_ch, purge_ch

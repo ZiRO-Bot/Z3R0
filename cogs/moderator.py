@@ -333,32 +333,6 @@ class Admin(commands.Cog, name="Moderator"):
             embed.add_field(name="Pulling...", value=f"```bash\n{e}```")
         await ctx.send(embed=embed)
 
-    @commands.command(
-        aliases=["addcommand", "newcommand"], usage="(command name) (command messages)"
-    )
-    @commands.check_any(is_mod(), is_botmaster())
-    async def setcommand(self, ctx, command, *, message):
-        """Add a new simple command."""
-        self.bot.custom_commands[str(ctx.guild.id)][ctx.prefix + command] = message
-        with open("data/custom_commands.json", "w") as f:
-            json.dump(self.bot.custom_commands, f, indent=4)
-        embed = discord.Embed(
-            title="New command has been added!", description=f"{ctx.prefix}{command}"
-        )
-        await ctx.send(embed=embed)
-
-    @commands.command(aliases=["deletecommand"], usage="(command name)")
-    @commands.check_any(is_mod(), is_botmaster())
-    async def removecommand(self, ctx, command):
-        """Remove a simple command."""
-        del self.bot.custom_commands[str(ctx.guild.id)][ctx.prefix + command]
-        with open("data/custom_commands.json", "w") as f:
-            json.dump(self.bot.custom_commands, f, indent=4)
-        embed = discord.Embed(
-            title="A command has been removed!", description=f"{ctx.prefix}{command}"
-        )
-        await ctx.send(embed=embed)
-
     @commands.group(invoke_without_command=True)
     async def prefix(self, ctx):
         """Manage bot's prefix."""
