@@ -174,14 +174,18 @@ async def query(query: str, variables: Optional[str]):
 
 
 async def send_watchlist(self, ctx):
-    watchlist = self.get_watchlist()
-    a = await query(listQ, {"mediaId": watchlist[ctx.guild.id]})
-    a = a["data"]
     embed = discord.Embed(title="Anime Watchlist", colour=discord.Colour(0x02A9FF))
     embed.set_author(
         name="AniList",
         icon_url="https://gblobscdn.gitbook.com/spaces%2F-LHizcWWtVphqU90YAXO%2Favatar.png",
     )
+    watchlist = self.get_watchlist()
+    a = await query(listQ, {"mediaId": watchlist[ctx.guild.id]})
+    if not a:
+        embed.description = "No anime in watchlist."
+        await ctx.send(embed=embed)
+        return
+    a = a["data"]
     jakarta = timezone("Asia/Jakarta")
     if not a["Page"]["media"]:
         embed.description = "No anime in watchlist."
@@ -214,6 +218,8 @@ async def send_watchlist(self, ctx):
 
 async def getschedule(self, _time_, page):
     watchlist = self.get_watchlist()
+    if not watchlist:
+        return
     for server in watchlist:
         # Get data from anilist for every anime that listed on watchlist
         q = await query(
@@ -225,6 +231,8 @@ async def getschedule(self, _time_, page):
                 "nextDay": _time_,
             },
         )
+        if not q:
+            continue
         q = q["data"]
 
         # Get channel to send the releases
@@ -510,7 +518,7 @@ class AniList(commands.Cog):
             ids,
         )
         server_row = self.bot.c.fetchall()
-        pre = {k[0]: k[1] or None for k in server_row}
+        pre = {k[0]: k[1] or "None" for k in server_row}
         watchlist = {int(k): v.split(",") for (k, v) in pre.items()}
         return watchlist
 
