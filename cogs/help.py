@@ -154,14 +154,8 @@ class Help(commands.Cog):
     @commands.command(aliases=["customcommands", "ccmds"])
     async def listcommands(self, ctx):
         """List all custom commands."""
-        embed = discord.Embed(title="Help", colour=discord.Colour.gold())
-        with open("data/custom_commands.json", "r") as f:
-            commands = json.load(f)
-            ccmds = ", ".join([*commands[str(ctx.guild.id)]])
-            # await ctx.send(f"```List of custom commands: \n{ccmds}```")
-            # output += f'{ccmds}```'
-        embed.add_field(name="Custom Commands", value=f"{ccmds}", inline=False)
-        await ctx.send(embed=embed)
+        await ctx.invoke(self.bot.get_command("custom list"))
+        await ctx.send(f"This command will be removed soon, please use `{ctx.prefix}custom list` instead")
 
 
 def setup(bot):
