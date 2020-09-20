@@ -420,6 +420,7 @@ class General(commands.Cog):
         embed.add_field(
             name="Links",
             value=f"[Invitation]({invite_link})\n"
+            + "[Donate](https://www.patreon.com/ziro2264)\n"
             + "[GitHub Repo](https://github.com/null2264/ziBot)\n"
             + "[Support Server](https://discord.gg/sP9xRy6)\n",
         )
@@ -436,7 +437,7 @@ class General(commands.Cog):
             value="**ziBot** is an open source bot, "
             + "a fork of [mcbeDiscordBot](https://github.com/AnInternetTroll/mcbeDiscordBot) "
             + "(Steve the Bot) created by [AnInternetTroll](https://github.com/AnInternetTroll), "
-            + "but rewritten a bit.",
+            + "but rewritten a bit.\n\n**Bot Version**: 1.0",
             inline=False,
         )
         embed.set_footer(
