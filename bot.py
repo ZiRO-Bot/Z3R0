@@ -176,7 +176,9 @@ class ziBot(commands.Bot):
             return
         else:
             self.logger.exception(f"Something went wrong!")
-            traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
+            traceback.print_exception(
+                type(error), error, error.__traceback__, file=sys.stderr
+            )
 
     async def close(self):
         await super().close()
