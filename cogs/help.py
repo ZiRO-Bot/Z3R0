@@ -56,16 +56,33 @@ class CustomHelp(commands.HelpCommand):
         embed = discord.Embed(
             title="Bot Commands", description=self.get_desc(), colour=self.COLOUR
         )
-        for cog,commands in mapping.items():
-            name = "No Category" if cog is None else str(cog.qualified_name).title()
+        for cog, commands in mapping.items():
+
+            def f(x):
+                return {
+                    "mcbe": "<:src:757467110564954172>",
+                    "moderation": "🔨",
+                    "customcommands": "❗",
+                    "help": "❓",
+                    "utils": "🔧",
+                    "anilist": "<:anilist:757473769101983784>",
+                    "fun": "🎉",
+                    "general": "🗨️",
+                }.get(x.lower(), "​")
+
+            name = (
+                "No Category"
+                if cog is None
+                else f"{f(cog.qualified_name)} {cog.qualified_name}".title()
+            )
             value = f"```{self.clean_prefix}help {'No Category' if cog is None else cog.qualified_name}```"
             filtered = await self.filter_commands(commands, sort=True)
             if filtered:
-            #     value = ", ".join(f"`{c.name}`" for c in commands)
-            #     if cog and cog.description:
-            #         value = f"{cog.description}\n{value}"
-            # if name != "No Category":
-                embed.add_field(name=name, value=value, inline=True)
+                #     value = ", ".join(f"`{c.name}`" for c in commands)
+                #     if cog and cog.description:
+                #         value = f"{cog.description}\n{value}"
+                if cog.qualified_name.lower() != "help":
+                    embed.add_field(name=name, value=value, inline=True)
         embed.set_footer(text=self.get_ending_note())
         await destination.send(embed=embed)
 
@@ -142,7 +159,7 @@ class CustomHelp(commands.HelpCommand):
         await self.get_destination().send(embed=embed)
 
 
-class Help(commands.Cog, name="help", command_attrs=dict(hidden=True)):
+class Help(commands.Cog, name="Help", command_attrs=dict(hidden=True)):
     def __init__(self, bot):
         self.bot = bot
         self.logger = logging.getLogger("discord")
@@ -157,7 +174,9 @@ class Help(commands.Cog, name="help", command_attrs=dict(hidden=True)):
     async def listcommands(self, ctx):
         """List all custom commands."""
         await ctx.invoke(self.bot.get_command("custom list"))
-        await ctx.send(f"This command will be removed soon, please use `{ctx.prefix}custom list` instead")
+        await ctx.send(
+            f"This command will be removed soon, please use `{ctx.prefix}custom list` instead"
+        )
 
 
 def setup(bot):
