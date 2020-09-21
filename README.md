@@ -32,3 +32,6 @@ py -3 -m pip install -r requirements.txt
 
 ## TODOs
 [Click here](https://github.com/null2264/ziBot/projects) to see all the plan i have for this project.
+
+## License
+[GNU GPL-3.0-or-later](https://github.com/null2264/ziBot/blob/master/LICENSE)

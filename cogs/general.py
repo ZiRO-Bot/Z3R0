@@ -430,7 +430,7 @@ class General(commands.Cog):
         )
         embed.add_field(
             name="License",
-            value="[GNU GPLv3.0](https://github.com/null2264/ziBot/blob/master/LICENSE)",
+            value="[GNU GPL-3.0-or-later](https://github.com/null2264/ziBot/blob/master/LICENSE)",
         )
         embed.add_field(
             name="About",
