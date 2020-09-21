@@ -56,16 +56,15 @@ class CustomHelp(commands.HelpCommand):
         embed = discord.Embed(
             title="Bot Commands", description=self.get_desc(), colour=self.COLOUR
         )
-        cogs,_ = mapping.items()
-        for cog in cogs:
+        for cog,commands in mapping.items():
             name = "No Category" if cog is None else str(cog.qualified_name).title()
-            value = f"`{self.clean_prefix}help {'No Category' if cog is None else cog.qualified_name}`"
-            # filtered = await self.filter_commands(commands, sort=True)
-            # if filtered:
+            value = f"```{self.clean_prefix}help {'No Category' if cog is None else cog.qualified_name}```"
+            filtered = await self.filter_commands(commands, sort=True)
+            if filtered:
             #     value = ", ".join(f"`{c.name}`" for c in commands)
             #     if cog and cog.description:
             #         value = f"{cog.description}\n{value}"
-            if name != "No Category":
+            # if name != "No Category":
                 embed.add_field(name=name, value=value, inline=True)
         embed.set_footer(text=self.get_ending_note())
         await destination.send(embed=embed)
