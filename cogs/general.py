@@ -850,7 +850,7 @@ class General(commands.Cog, name="general"):
                     break
         return
 
-    @emoji.command(name="add", usage="(name)")
+    @emoji.command(name="add", aliases=['+'], usage="(name)")
     @is_mod()
     async def emoji_add(self, ctx, name: Optional[str], emote_pic: Optional[str]):
         """Add emoji to a server."""
