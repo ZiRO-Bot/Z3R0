@@ -15,7 +15,7 @@ from pytz import timezone
 from utilities.formatting import realtime
 
 
-class CustomCommands(commands.Cog):
+class CustomCommands(commands.Cog, name="customcommands"):
     def __init__(self, bot):
         self.logger = logging.getLogger("discord")
         self.bot = bot

@@ -194,7 +194,7 @@ async def pendingrun(self, ctx):
 
 
 # Cog commands
-class MCBE(commands.Cog):
+class MCBE(commands.Cog, name="mcbe"):
     def __init__(self, bot):
         self.bot = bot
 

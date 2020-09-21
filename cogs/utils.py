@@ -12,7 +12,7 @@ from utilities.formatting import realtime
 translator = Translator()
 
 
-class Utils(commands.Cog):
+class Utils(commands.Cog, name="utils"):
     def __init__(self, bot):
         self.bot = bot
         self.logger = logging.getLogger("discord")

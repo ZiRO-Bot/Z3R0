@@ -137,7 +137,7 @@ async def weather_get(*place, _type="city"):
     return weatherData
 
 
-class General(commands.Cog):
+class General(commands.Cog, name="general"):
     def __init__(self, bot):
         self.bot = bot
         self.logger = logging.getLogger("discord")

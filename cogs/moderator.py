@@ -62,7 +62,7 @@ async def copy_context_with(
     return await ctx.bot.get_context(alt_message, cls=type(ctx))
 
 
-class Admin(commands.Cog, name="Moderator"):
+class Admin(commands.Cog, name="moderation"):
     def __init__(self, bot):
         self.logger = logging.getLogger("discord")
         self.bot = bot

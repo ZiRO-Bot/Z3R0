@@ -5,6 +5,8 @@ import json
 import logging
 import os
 import sqlite3
+import sys
+import traceback
 import time
 
 from discord.errors import NotFound
@@ -172,6 +174,9 @@ class ziBot(commands.Bot):
     async def on_command_error(self, ctx, error):
         if isinstance(error, commands.CommandNotFound):
             return
+        else:
+            self.logger.exception(f"Something went wrong!")
+            traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
 
     async def close(self):
         await super().close()

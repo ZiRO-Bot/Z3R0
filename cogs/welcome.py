@@ -6,7 +6,7 @@ from discord.ext import commands
 from random import randint
 
 
-class Welcome(commands.Cog, name="Welcome"):
+class Welcome(commands.Cog, name="welcome"):
     # Welcome message + set roles when new member joined
     def __init__(self, bot):
         self.bot = bot
