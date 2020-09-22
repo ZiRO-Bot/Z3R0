@@ -60,7 +60,7 @@ class CustomHelp(commands.HelpCommand):
 
             def f(x):
                 return {
-                    "mcbe": "<:src:757467110564954172>",
+                    "src": "<:src:757467110564954172>",
                     "moderation": "🔨",
                     "customcommands": "❗",
                     "help": "❓",

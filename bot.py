@@ -38,7 +38,7 @@ def get_cogs():
         "cogs.moderator",
         "cogs.general",
         "cogs.utils",
-        "cogs.mcbe",
+        "cogs.src",
         "cogs.anilist",
         "cogs.fun",
         # "cogs.music",
