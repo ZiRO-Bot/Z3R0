@@ -36,15 +36,13 @@ class SRC(commands.Cog, name="src"):
         data = data["data"]
         subcategory = {}
         for i in data:
-            if i["category"] == cat_id and i["is-subcategory"]:
-                subcategory[i["name"]] = i["id"]
-            if (
-                not i["category"]
-                and i["is-subcategory"]
-                and i["scope"]["type"] == "full-game"
-            ):
-                subcategory[i["name"]] = i["id"]
-        print(subcategory)
+            if (i["is-subcategory"] and i["scope"]["type"] == "full-game" and i['category'] == cat_id):
+                for e in i['values']['values']:
+                    subcategory[i['values']['values'][e]['label']] = {"subcat_id": i['id'], "id": e}
+            if (i["is-subcategory"] and i["scope"]["type"] == "full-game" and not i['category']):
+                for e in i['values']['values']:
+                    subcategory[i['values']['values'][e]['label']] = {"subcat_id": i['id'], "id": e}
+        return subcategory
 
     async def get_game(self, game):
         """Get game data without abbreviation."""
@@ -84,6 +82,38 @@ class SRC(commands.Cog, name="src"):
     async def mcbe(self, ctx):
         """Get mcbe run informations from speedrun.com."""
         pass
+
+    @mcbe.command(name="wrs", usage="(main/ext) [category] [seed]")
+    async def mcbe_wrs(self, ctx, leaderboard, category, seed):
+        if leaderboard == "main":
+            leaderboard = "mcbe"
+        elif leaderboard == "ext":
+            leaderboard = "mcbece"
+        else:
+            await ctx.send(f"Usage: {ctx.prefix}mcbe wrs (main/ext) [category] [seed_type]")
+            return
+        game = await self.get_game(leaderboard)
+        game = game[0]
+        subcats = await self.get_subcats(game['id'], category)
+        seeds = []
+        platforms = []
+        for i in subcats:
+            if "seed" in i.lower():
+                seeds.append({pformat(i): subcats[i]})
+            else:
+                platforms.append({pformat(i): subcats[i]})
+        for types in seeds:
+            for i in types:
+                if pformat(seed) == i:
+                    seed_id = types[i]['id']
+                    seed_subcat_id = types[i]['subcat_id']
+        varlink = f"&var-{seed_subcat_id}={seed_id}"
+        for i in platforms:
+            for platform in i:
+                pf_varlink = f"&var-{i[platform]['subcat_id']}={i[platform]['id']}"
+                data = await self.get(f"leaderboards/{game['id']}/category/{category}?top=1{varlink}{pf_varlink}")
+                print(data)
+            
 
     @commands.command()
     async def lb(self, ctx, game, category):
