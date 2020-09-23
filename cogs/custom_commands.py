@@ -49,6 +49,7 @@ class CustomCommands(commands.Cog, name="customcommands"):
         await ctx.send(content)
 
     @commands.group(
+        name="command",
         aliases=["tag", "customcommand"],
         invoke_without_command=True,
         usage="(command name)",
@@ -130,7 +131,7 @@ class CustomCommands(commands.Cog, name="customcommands"):
         await ctx.send(f"Command `{name}` has been edited")
 
     @custom.command(
-        name="rm", aliases=["remove", "-", "delete", "del"], usage="(command name)"
+        name="remove", aliases=["-", "rm", "delete", "del"], usage="(command name)"
     )
     async def command_rm(self, ctx, name: str):
         """Remove a custom command."""
@@ -152,7 +153,7 @@ class CustomCommands(commands.Cog, name="customcommands"):
     async def command_list(self, ctx):
         """Show all custom commands."""
         tags = self.bot.c.execute(
-            "SELECT name FROM tags WHERE id=? ORDER BY name ASC", (str(ctx.guild.id),)
+            "SELECT name FROM tags WHERE id=? ORDER BY uses ASC", (str(ctx.guild.id),)
         )
         tags = tags.fetchall()
         tags = [x[0] for x in tags]
@@ -160,12 +161,12 @@ class CustomCommands(commands.Cog, name="customcommands"):
             e = discord.Embed(title="Custom Commands")
             e.description = ""
             for tag in tags:
-                e.description = f"{tag}\n"
+                e.description += f"{tags.index(tag) + 1}. {tag}\n"
             await ctx.send(embed=e)
         else:
             await ctx.send("This server doesn't have custom command")
 
-    @custom.command(name="info", usage="(command name)")
+    @custom.command(name="info", aliases=['?'], usage="(command name)")
     async def command_info(self, ctx, name: str):
         """Show information of a custom command."""
         jakarta = timezone("Asia/Jakarta")
