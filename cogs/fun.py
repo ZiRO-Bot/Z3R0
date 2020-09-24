@@ -11,7 +11,7 @@ from cogs.utilities.embed_formatting import em_ctx_send_error
 from discord.ext import commands
 from discord.errors import Forbidden
 from dotenv import load_dotenv
-from random import choice, randint
+from random import choice, randint, random
 from typing import Optional
 
 try:
@@ -374,6 +374,29 @@ class Fun(commands.Cog, name="fun"):
             icon_url="https://raw.githubusercontent.com/null2264/null2264/master/epicface.png",
         )
         await ctx.send(embed=e)
+    
+    @commands.cooldown(1, 25, commands.BucketType.guild)
+    @commands.command(aliases=['isimposter'], usage="[impostor count] [player count]")
+    async def isimpostor(self, ctx, impostor: int=1, player: int=10):
+        """Check if you're an impostor or a crewmate."""
+        ignore_cooldown = [745481731133669476, 747984453585993808]
+        if ctx.guild.id in ignore_cooldown:
+            ctx.command.reset_cooldown(ctx)
+        if 3 < impostor < 1:
+            await em_ctx_send_error("Impostor counter can only be up to 3 impostors")
+            return
+        chance = 100*impostor/player/100
+        if random() < chance:
+            await ctx.send(f"{ctx.author.mention}, you're a crewmate!")
+        else:
+            await ctx.send(f"{ctx.author.mention}, you're an impostor!")
+    
+    @isimpostor.error
+    async def isimpostor_handler(self, ctx, error):
+        if isinstance(error, commands.CommandOnCooldown):
+            bot_msg = await ctx.send(f"{ctx.message.author.mention}, slowdown bud!")
+            await asyncio.sleep(round(error.retry_after))
+            await bot_msg.delete()
 
 
 def setup(bot):
