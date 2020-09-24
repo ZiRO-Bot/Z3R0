@@ -81,7 +81,7 @@ class CustomHelp(commands.HelpCommand):
                 #     value = ", ".join(f"`{c.name}`" for c in commands)
                 #     if cog and cog.description:
                 #         value = f"{cog.description}\n{value}"
-                if cog.qualified_name.lower() != "help":
+                if cog.qualified_name.lower() not in ["help", "pingloop"]:
                     embed.add_field(name=name, value=value, inline=True)
         embed.set_footer(text=self.get_ending_note())
         await destination.send(embed=embed)
