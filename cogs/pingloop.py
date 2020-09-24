@@ -28,7 +28,7 @@ class Pingloop(commands.Cog):
     @commands.command()
     @is_redarmy()
     async def start_pingloop(self, ctx):
-        if channel.guild.id not in [747984453585993808, 745481731133669476]:
+        if ctx.guild.id not in [747984453585993808, 745481731133669476]:
             return
         if self.handle_schedule.is_running():
             return
