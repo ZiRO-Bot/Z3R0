@@ -591,7 +591,7 @@ class Admin(commands.Cog, name="moderation"):
         """Manage server's roles."""
         pass
 
-    @role.command(alias=["type"])
+    @role.command(name="types", aliases=["type"])
     async def role_types(self, ctx):
         """Get channel types."""
         e = discord.Embed(title="Role Types")
@@ -599,7 +599,7 @@ class Admin(commands.Cog, name="moderation"):
             e.add_field(name=_type, value=role_types[_type][1], inline=False)
         await ctx.send(embed=e)
 
-    @role.command(usage="(type) (role)")
+    @role.command(name="set", usage="(type) (role)")
     async def role_set(self, ctx, role_type, role: discord.Role):
         """Set type for a role"""
         if role_type.lower() in role_types:
@@ -619,7 +619,7 @@ class Admin(commands.Cog, name="moderation"):
                 )
                 await ctx.send(embed=e)
 
-    @role.command(aliases=["create"], usage="(type) (role name)")
+    @role.command(aliases=["+", "create"], usage="(type) (role name)")
     async def make(self, ctx, role_type, *role_name):
         """Make a new role."""
         name = " ".join([*role_name])
