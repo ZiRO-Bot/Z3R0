@@ -28,8 +28,10 @@ def pformat(text):
     return text
 
 
-def hformat(text):
+def hformat(text, all_upper=False):
     text = text.replace("_", " ")
+    if all_upper:
+        return text.upper()
     return text.title()
 
 
