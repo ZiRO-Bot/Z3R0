@@ -69,6 +69,7 @@ class ziBot(commands.Bot):
         self.logger = logging.getLogger("discord")
         self.session = aiohttp.ClientSession()
         self.def_prefix = ">"
+        self.norules = [758764126679072788, 747984453585993808, 745481731133669476]
 
         # Init database
         self.conn = sqlite3.connect("data/database.db")

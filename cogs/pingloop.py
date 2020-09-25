@@ -13,14 +13,14 @@ class Pingloop(commands.Cog):
 
     def is_redarmy():
         def predicate(ctx):
-            return ctx.guild.id in [747984453585993808, 745481731133669476]
+            return ctx.guild.id in [747984453585993808, 745481731133669476, 758764126679072788]
 
         return commands.check(predicate)
 
     @tasks.loop(seconds=3)
     async def handle_schedule(self):
-        channel = self.bot.get_channel(755058568461418496)
-        if channel.guild.id not in [747984453585993808, 745481731133669476]:
+        channel = self.bot.get_channel(758769038879883325)
+        if channel.guild.id not in self.bot.norules:
             self.handle_schedule.cancel()
             return
         await channel.send("@everyone")
@@ -28,7 +28,7 @@ class Pingloop(commands.Cog):
     @commands.command()
     @is_redarmy()
     async def start_pingloop(self, ctx):
-        if ctx.guild.id not in [747984453585993808, 745481731133669476]:
+        if ctx.guild.id not in self.bot.norules:
             return
         if self.handle_schedule.is_running():
             return

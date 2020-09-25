@@ -44,7 +44,7 @@ class Fun(commands.Cog, name="fun"):
         self.bot = bot
 
     async def is_redarmy(ctx):
-        return ctx.guild.id == 747984453585993808
+        return ctx.guild.id in [747984453585993808, 758764126679072788]
 
     @commands.command()
     @commands.cooldown(1, 5)
@@ -97,8 +97,7 @@ class Fun(commands.Cog, name="fun"):
     @commands.cooldown(1, 5)
     async def steveroll(self, ctx, pool):
         """Roll the dice in steve's style."""
-        ignore_cooldown = [745481731133669476, 747984453585993808]
-        if ctx.guild.id in ignore_cooldown:
+        if ctx.guild.id in self.bot.norules:
             ctx.command.reset_cooldown(ctx)
         await ctx.send(
             f"{ctx.message.author.mention} just rolled {randint(0, int(pool))}"
@@ -231,8 +230,7 @@ class Fun(commands.Cog, name="fun"):
     @commands.command()
     async def findseed(self, ctx):
         """Test your luck in Minecraft."""
-        ignore_cooldown = [745481731133669476, 747984453585993808]
-        if ctx.guild.id in ignore_cooldown:
+        if ctx.guild.id in self.bot.norules:
             ctx.command.reset_cooldown(ctx)
 
         rigged = {186713080841895936: 9000}
@@ -260,8 +258,7 @@ class Fun(commands.Cog, name="fun"):
     @commands.command(aliases=["vfindseed", "visualfindseed", "vfs"])
     async def findseedbutvisual(self, ctx):
         """Test your luck in Minecraft but visual."""
-        ignore_cooldown = [745481731133669476, 747984453585993808]
-        if ctx.guild.id in ignore_cooldown:
+        if ctx.guild.id in self.bot.norules:
             ctx.command.reset_cooldown(ctx)
         emojis = {
             "{air}": "<:empty:754550188269633556>",
@@ -311,8 +308,7 @@ class Fun(commands.Cog, name="fun"):
     @commands.command()
     async def findsleep(self, ctx):
         """See how long you sleep."""
-        ignore_cooldown = [745481731133669476, 747984453585993808]
-        if ctx.guild.id in ignore_cooldown:
+        if ctx.guild.id in self.bot.norules:
             ctx.command.reset_cooldown(ctx)
 
         lessSleepMsg = [
@@ -379,8 +375,7 @@ class Fun(commands.Cog, name="fun"):
     @commands.command(aliases=['isimposter'], usage="[impostor count] [player count]")
     async def isimpostor(self, ctx, impostor: int=1, player: int=10):
         """Check if you're an impostor or a crewmate."""
-        ignore_cooldown = [745481731133669476, 747984453585993808]
-        if ctx.guild.id in ignore_cooldown:
+        if ctx.guild.id in self.bot.norules:
             ctx.command.reset_cooldown(ctx)
         if 3 < impostor < 1:
             await em_ctx_send_error("Impostor counter can only be up to 3 impostors")
