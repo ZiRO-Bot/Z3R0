@@ -26,7 +26,8 @@ class Welcome(commands.Cog, name="welcome"):
             "SELECT greeting_ch FROM servers WHERE id=?", (str(server.id),)
         )
         welcome_channel = self.bot.c.fetchall()[0][0]
-        welcome_channel = server.get_channel(int(welcome_channel))
+        if welcome_channel:
+            welcome_channel = server.get_channel(int(welcome_channel))
 
         self.bot.c.execute(
             "SELECT default_role FROM roles WHERE id=?", (str(server.id),)
