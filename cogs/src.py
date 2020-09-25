@@ -152,7 +152,7 @@ class SRC(commands.Cog, name="src"):
                 platform_name = i[platform]["name"]
                 e.add_field(
                     name=platform_name,
-                    value=f"{runners} [**[{realtime(rundata[0]['run']['times']['realtime_t'])}]({rundata[0]['run']['weblink']})**]",
+                    value=f"{runners} (**[{realtime(rundata[0]['run']['times']['realtime_t'])}]({rundata[0]['run']['weblink']})**)",
                     inline=False
                 )
         e.set_author(
