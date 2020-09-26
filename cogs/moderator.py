@@ -241,7 +241,18 @@ class Admin(commands.Cog, name="moderation"):
         if member is None:
             await ctx.send("Please specify the member you want to unmute.")
             return
-        muted_role = discord.utils.get(member.guild.roles, name="Muted")
+        self.bot.c.execute(
+            "SELECT mute_role FROM roles WHERE id=?", (str(ctx.guild.id),)
+        )
+        muted_role = self.bot.c.fetchall()[0][0]
+        if not muted_role:
+            await ctx.send(
+                "This server does not have a mute role, "
+                + f"use `{ctx.prefix}role set mute (role name)` to"
+                + f" set one or `{ctx.prefix}role create mute (role name)` to create one."
+            )
+            return
+        muted_role = ctx.guild.get_role(int(muted_role))
         if muted_role in member.roles:
             await member.remove_roles(muted_role)
             await ctx.send(
