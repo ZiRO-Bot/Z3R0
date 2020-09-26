@@ -304,7 +304,7 @@ class Admin(commands.Cog, name="moderation"):
                 )
             except Forbidden:
                 self.logger.error("discord.errors.Forbidden: Can't send DM to member")
-            await ctx.guild.ban(member, reason=reason)
+            await ctx.guild.ban(member, reason=reason, delete_message_days=0)
             await ctx.send(
                 f"{member.mention} has been banned by {ctx.author.mention} for {reason}!"
             )
