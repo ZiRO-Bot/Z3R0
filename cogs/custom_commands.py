@@ -153,7 +153,7 @@ class CustomCommands(commands.Cog, name="customcommands"):
     async def command_list(self, ctx):
         """Show all custom commands."""
         tags = self.bot.c.execute(
-            "SELECT name FROM tags WHERE id=? ORDER BY uses ASC", (str(ctx.guild.id),)
+            "SELECT name FROM tags WHERE id=? ORDER BY uses DESC", (str(ctx.guild.id),)
         )
         tags = tags.fetchall()
         tags = [x[0] for x in tags]
