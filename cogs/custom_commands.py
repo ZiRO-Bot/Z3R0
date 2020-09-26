@@ -47,6 +47,9 @@ class CustomCommands(commands.Cog, name="customcommands"):
         self.bot.conn.commit()
         content = self.clean_tag_content(a[2])
         await ctx.send(content)
+    
+    async def is_mod(ctx):
+        return ctx.author.guild_premissions.manage_channels
 
     @commands.group(
         name="command",
@@ -65,6 +68,7 @@ class CustomCommands(commands.Cog, name="customcommands"):
     @custom.command(
         name="add", aliases=["+", "create"], usage="(command name) (content)"
     )
+    @command.check(is_mod)
     async def command_add(self, ctx, name: str, *, content: str):
         """Add new custom command."""
         if ctx.message.mentions:
