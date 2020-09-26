@@ -193,14 +193,15 @@ class Admin(commands.Cog, name="moderation"):
 
         await ctx.send(resp)
 
-    @commands.command(usage="(user) [reason] [mute duration]", hidden=True)
+    @commands.command(usage="(user) [mute duration] [reason]", hidden=True)
     @is_mod()
     async def mute(
         self,
         ctx,
         member: discord.Member = None,
-        reason: str = "No Reason",
         min_muted: int = 0,
+        *,
+        reason: str = "No Reason",
     ):
         """Mute a member."""
         if member is None:
@@ -234,7 +235,7 @@ class Admin(commands.Cog, name="moderation"):
             await asyncio.sleep(min_muted * 60)
             await member.remove_roles(muted_role)
 
-    @commands.command(usage="(user) [reason]", hidden=True)
+    @commands.command(usage="(user)", hidden=True)
     @is_mod()
     async def unmute(self, ctx, member: discord.Member = None):
         """Unmute a member."""
@@ -263,7 +264,9 @@ class Admin(commands.Cog, name="moderation"):
 
     @commands.command(usage="(user) [reason]", hidden=True)
     @is_mod()
-    async def kick(self, ctx, member: discord.Member = None, reason: str = "No Reason"):
+    async def kick(
+        self, ctx, member: discord.Member = None, *, reason: str = "No Reason"
+    ):
         """Kick a member."""
         if member is None:
             await ctx.send("Please specify the member you want to kick.")
@@ -282,14 +285,15 @@ class Admin(commands.Cog, name="moderation"):
                 f"{member.mention} has been kicked by {ctx.author.mention} for {reason}!"
             )
 
-    @commands.command(usage="(user) [reason] [ban duration]", hidden=True)
+    @commands.command(usage="(user) [ban duration] [reason]", hidden=True)
     @is_mod()
     async def ban(
         self,
         ctx,
         member: discord.User = None,
-        reason: str = "No Reason",
         min_ban: int = 0,
+        *,
+        reason: str = "No Reason",
     ):
         """Ban a member."""
         if member is None:
@@ -313,7 +317,7 @@ class Admin(commands.Cog, name="moderation"):
             await asyncio.sleep(min_ban * 60)
             await ctx.guild.unban(member, reason="timed out")
 
-    @commands.command(usage="(user) [reason]", hidden=True)
+    @commands.command(usage="(user)", hidden=True)
     @is_mod()
     async def unban(self, ctx, member: discord.User = None):
         """Unban a member."""
