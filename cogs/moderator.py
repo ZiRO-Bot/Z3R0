@@ -468,7 +468,7 @@ class Admin(commands.Cog, name="moderation"):
         await ctx.send(embed=e)
 
     @channel.command(
-        aliases=["make"],
+        aliases=["+", "make"],
         brief="Create a new channel.",
         usage="(channel type) (channel name)",
     )
