@@ -25,15 +25,13 @@ class Welcome(commands.Cog, name="welcome"):
         self.bot.c.execute(
             "SELECT greeting_ch FROM servers WHERE id=?", (str(server.id),)
         )
-        welcome_channel = self.bot.c.fetchall()[0][0]
-        if welcome_channel:
-            welcome_channel = server.get_channel(int(welcome_channel))
+        welcome_channel = server.get_channel(int(self.bot.c.fetchall()[0][0]))
 
         self.bot.c.execute(
             "SELECT default_role FROM roles WHERE id=?", (str(server.id),)
         )
-        member_role = self.bot.c.fetchall()[0][0]
-        member_role = server.get_role(int(member_role))
+        member_role = server.get_role(int(self.bot.c.fetchall()[0][0]))
+
         if member_role:
             await member.add_roles(member_role)
         if not welcome_channel:
