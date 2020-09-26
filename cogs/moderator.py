@@ -209,8 +209,7 @@ class Admin(commands.Cog, name="moderation"):
         self.bot.c.execute(
             "SELECT mute_role FROM roles WHERE id=?", (str(ctx.guild.id),)
         )
-        muted_role = self.bot.c.fetchall()[0][0]
-        muted_role = ctx.guild.get_role(int(muted_role))
+        muted_role = ctx.guild.get_role(int(self.bot.c.fetchall()[0][0]))
         if not muted_role:
             await ctx.send(
                 "This server does not have a mute role, "
