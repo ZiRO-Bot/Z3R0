@@ -392,7 +392,23 @@ class Fun(commands.Cog, name="fun"):
             bot_msg = await ctx.send(f"{ctx.message.author.mention}, slowdown bud!")
             await asyncio.sleep(round(error.retry_after))
             await bot_msg.delete()
-
+    
+    @commands.Cog.listener()
+    async def on_message(self, message):
+        if not message.guild:
+            return
+        if message.author.bot:
+            return
+        
+        fair_guilds = [759073367767908375, 758764126679072788, 745481731133669476]
+        bad_words = ["fair", "ⓕⓐⓘⓡ", "ɹıɐɟ"]
+        count = 0
+        for word in bad_words:
+            if word in message.content.lower().replace(" ", ""):
+                count += 1
+                fair = "Fair " * count
+        if message.guild.id in fair_guilds:
+            await message.channel.send(fair)
 
 def setup(bot):
     bot.add_cog(Fun(bot))
