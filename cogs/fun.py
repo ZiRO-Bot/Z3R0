@@ -359,6 +359,7 @@ class Fun(commands.Cog, name="fun"):
 
     @commands.command(aliases=["badjokes"])
     async def dadjokes(self, ctx):
+        """Get random dad jokes."""
         headers = {"accept": "application/json"}
         async with self.bot.session.get(
             "https://icanhazdadjoke.com/", headers=headers
