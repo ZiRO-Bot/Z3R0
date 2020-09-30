@@ -233,7 +233,10 @@ class Fun(commands.Cog, name="fun"):
         if ctx.guild.id in self.bot.norules:
             ctx.command.reset_cooldown(ctx)
 
-        rigged = {186713080841895936: 9000}
+        rigged = {
+            186713080841895936: 9000,
+            299668599650648065: 11,
+        }
 
         if ctx.author.id in rigged:
             totalEyes = rigged[ctx.author.id]
@@ -371,36 +374,36 @@ class Fun(commands.Cog, name="fun"):
             icon_url="https://raw.githubusercontent.com/null2264/null2264/master/epicface.png",
         )
         await ctx.send(embed=e)
-    
+
     @commands.cooldown(1, 25, commands.BucketType.guild)
-    @commands.command(aliases=['isimposter'], usage="[impostor count] [player count]")
-    async def isimpostor(self, ctx, impostor: int=1, player: int=10):
+    @commands.command(aliases=["isimposter"], usage="[impostor count] [player count]")
+    async def isimpostor(self, ctx, impostor: int = 1, player: int = 10):
         """Check if you're an impostor or a crewmate."""
         if ctx.guild.id in self.bot.norules:
             ctx.command.reset_cooldown(ctx)
         if 3 < impostor < 1:
             await em_ctx_send_error("Impostor counter can only be up to 3 impostors")
             return
-        chance = 100*impostor/player/100
+        chance = 100 * impostor / player / 100
         if random() < chance:
             await ctx.send(f"{ctx.author.mention}, you're a crewmate!")
         else:
             await ctx.send(f"{ctx.author.mention}, you're an impostor!")
-    
+
     @isimpostor.error
     async def isimpostor_handler(self, ctx, error):
         if isinstance(error, commands.CommandOnCooldown):
             bot_msg = await ctx.send(f"{ctx.message.author.mention}, slowdown bud!")
             await asyncio.sleep(round(error.retry_after))
             await bot_msg.delete()
-    
+
     @commands.Cog.listener()
     async def on_message(self, message):
         if not message.guild:
             return
         if message.author.bot:
             return
-        
+
         fair_guilds = [759073367767908375, 758764126679072788, 745481731133669476]
         bad_words = ["fair", "ⓕⓐⓘⓡ", "ɹıɐɟ"]
         count = 0
@@ -410,6 +413,7 @@ class Fun(commands.Cog, name="fun"):
                 fair = "Fair " * count
         if message.guild.id in fair_guilds:
             await message.channel.send(fair)
+
 
 def setup(bot):
     bot.add_cog(Fun(bot))
