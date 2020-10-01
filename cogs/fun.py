@@ -409,7 +409,10 @@ class Fun(commands.Cog, name="fun"):
                 count += 1
                 fair = "Fair " * count
         if message.guild.id in fair_guilds:
-            await message.channel.send(fair)
+            try:
+                await message.channel.send(fair)
+            except UnboundLocalError:
+                pass
 
 
 def setup(bot):
