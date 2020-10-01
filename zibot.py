@@ -41,6 +41,7 @@ def init_bot():
         allowed_mentions=discord.AllowedMentions(
             users=True, roles=False
         ),
+        intents=discord.Intents.all(),
         shard_id=int(shard),
         shard_count=int(shard_count),
     )

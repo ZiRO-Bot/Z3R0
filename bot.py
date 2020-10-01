@@ -33,6 +33,7 @@ def get_cogs():
     """callable extensions"""
     extensions = [
         "cogs.welcome",
+        "cogs.error_handler",
         "cogs.help",
         "cogs.general",
         "cogs.moderator",
@@ -171,15 +172,6 @@ class ziBot(commands.Bot):
                 new_content = msg.content[len(ctx.prefix) :]
                 msg.content = "{}tag get {}".format(ctx.prefix, new_content)
                 await self.process_commands(msg)
-
-    async def on_command_error(self, ctx, error):
-        if isinstance(error, commands.CommandNotFound):
-            return
-        else:
-            self.logger.exception(f"Something went wrong!")
-            traceback.print_exception(
-                type(error), error, error.__traceback__, file=sys.stderr
-            )
 
     async def close(self):
         await super().close()
