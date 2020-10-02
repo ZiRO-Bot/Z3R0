@@ -15,7 +15,7 @@ import time
 
 from bot import get_cogs, get_prefix
 from cogs.utilities.embed_formatting import em_ctx_send_error
-from discord.errors import Forbidden
+from discord.errors import Forbidden, NotFound
 from discord.ext import commands
 from typing import Optional
 from utilities.formatting import realtime
@@ -33,7 +33,7 @@ ch_types = {
     "pingme": ["pingme_ch", "Text channel to get ping by pingme command"],
     "announcement": [
         "announcement_ch",
-        "Text channel for announcements (for !announce)",
+        "Text channel for announcements (for announce command)",
     ],
 }
 
@@ -193,20 +193,27 @@ class Admin(commands.Cog, name="moderation"):
 
         await ctx.send(resp)
 
-    @commands.command(usage="(user) [mute duration] [reason]", hidden=True)
+    @commands.command(usage="(member) [reason];[duration]", hidden=True)
     @is_mod()
     async def mute(
         self,
         ctx,
-        member: discord.Member = None,
-        min_muted: int = 0,
+        members: commands.Greedy[discord.Member],
         *,
-        reason: str = "No Reason",
+        reason_duration: str = "No Reason;0",
     ):
-        """Mute a member."""
-        if member is None:
-            await ctx.send("Please specify the member you want to mute.")
-            return
+        """Mute members."""
+
+        # split reason and duration
+        r_and_d = reason_duration.split(";")
+        if len(r_and_d) < 2:
+            r_and_d.append("0")
+        reason = r_and_d[0]
+        min_muted = int(r_and_d[1])
+
+        if not members:
+            return await ctx.send("Please specify the member you want to mute.")
+
         self.bot.c.execute(
             "SELECT mute_role FROM roles WHERE id=?", (str(ctx.guild.id),)
         )
@@ -219,29 +226,34 @@ class Admin(commands.Cog, name="moderation"):
             )
             return
         muted_role = ctx.guild.get_role(int(muted_role))
-        # muted_role = discord.utils.get(member.guild.roles, name="Muted")
-        if self.bot.user == member:  # Just why would you want to mute him?
-            await ctx.send(f"You're not allowed to mute ziBot!")
-        else:
-            if muted_role in member.roles:
-                await ctx.send(f"{member.mention} is already muted.")
+
+        # mute multiple member
+        for member in members:
+            if self.bot.user == member:  # Just why would you want to mute him?
+                await ctx.send(f"You're not allowed to mute ziBot!")
             else:
-                await member.add_roles(muted_role)
-                await ctx.send(
-                    f"{member.mention} has been muted by {ctx.author.mention} for {reason}!"
-                )
+                if muted_role in member.roles:
+                    await ctx.send(f"{member.mention} is already muted.")
+                else:
+                    await member.add_roles(muted_role)
+                    duration = ""
+                    if min_muted > 0:
+                        duration = f" ({min_muted} minutes)"
+                    await ctx.send(
+                        f"{member.mention} has been muted by {ctx.author.mention} for {reason}!{duration}"
+                    )
 
-        if min_muted > 0:
-            await asyncio.sleep(min_muted * 60)
-            await member.remove_roles(muted_role)
+            if min_muted > 0:
+                await asyncio.sleep(min_muted * 60)
+                await member.remove_roles(muted_role)
 
-    @commands.command(usage="(user)", hidden=True)
+    @commands.command(usage="(member)", hidden=True)
     @is_mod()
-    async def unmute(self, ctx, member: discord.Member = None):
-        """Unmute a member."""
-        if member is None:
-            await ctx.send("Please specify the member you want to unmute.")
-            return
+    async def unmute(self, ctx, members: commands.Greedy[discord.Member]):
+        """Unmute members."""
+        if not members:
+            return await ctx.send("Please specify the member you want to unmute.")
+
         self.bot.c.execute(
             "SELECT mute_role FROM roles WHERE id=?", (str(ctx.guild.id),)
         )
@@ -254,85 +266,101 @@ class Admin(commands.Cog, name="moderation"):
             )
             return
         muted_role = ctx.guild.get_role(int(muted_role))
-        if muted_role in member.roles:
-            await member.remove_roles(muted_role)
-            await ctx.send(
-                f"{member.mention} has been unmuted by {ctx.author.mention}."
-            )
-        else:
-            await ctx.send(f"{member.mention} is not muted.")
 
-    @commands.command(usage="(user) [reason]", hidden=True)
+        for member in members:
+            if muted_role in member.roles:
+                await member.remove_roles(muted_role)
+                await ctx.send(
+                    f"{member.mention} has been unmuted by {ctx.author.mention}."
+                )
+            else:
+                await ctx.send(f"{member.mention} is not muted.")
+
+    @commands.command(usage="(member) [reason]", hidden=True)
     @is_mod()
     async def kick(
-        self, ctx, member: discord.Member = None, *, reason: str = "No Reason"
+        self, ctx, members: commands.Greedy[discord.Member], *, reason: str = "No Reason"
     ):
         """Kick a member."""
-        if member is None:
-            await ctx.send("Please specify the member you want to kick.")
-            return
-        if self.bot.user == member:  # Just why would you want to mute him?
-            await ctx.send(f"You're not allowed to kick ziBot!")
-        else:
-            try:
-                await member.send(
-                    f"You have been kicked from {ctx.guild.name} for {reason}!"
+        if not members:
+            return await ctx.send("Please specify the member you want to kick.")
+        
+        for member in members:
+            if self.bot.user == member:  # Just why would you want to mute him?
+                await ctx.send(f"You're not allowed to kick ziBot!")
+            else:
+                try:
+                    await member.send(
+                        f"You have been kicked from {ctx.guild.name} for {reason}!"
+                    )
+                except discord.errors.HTTPException:
+                    pass
+                await ctx.guild.kick(member, reason=reason)
+                await ctx.send(
+                    f"{member.mention} has been kicked by {ctx.author.mention} for {reason}!"
                 )
-            except discord.errors.HTTPException:
-                pass
-            await ctx.guild.kick(member, reason=reason)
-            await ctx.send(
-                f"{member.mention} has been kicked by {ctx.author.mention} for {reason}!"
-            )
 
     @commands.command(usage="(user) [ban duration] [reason]", hidden=True)
     @is_mod()
     async def ban(
         self,
         ctx,
-        member: discord.User = None,
-        min_ban: int = 0,
+        members: commands.Greedy[discord.User],
         *,
-        reason: str = "No Reason",
+        reason_duration: str = "No Reason;0",
     ):
         """Ban a member."""
-        if member is None:
-            await ctx.send("Please specify the member you want to ban.")
-            return
-        if self.bot.user == member:  # Just why would you want to mute him?
-            await ctx.send(f"You're not allowed to ban ziBot!")
-        else:
-            try:
-                await member.send(
-                    f"You have been banned from {ctx.guild.name} for {reason}!"
+        r_and_d = reason_duration.split(";")
+        if len(r_and_d) < 2:
+            r_and_d.append("0")
+        reason = r_and_d[0]
+        min_ban = int(r_and_d[1])
+        
+        if not members:
+            return await ctx.send("Please specify the member you want to ban.")
+            
+        for member in members:
+            if self.bot.user == member:  # Just why would you want to mute him?
+                await ctx.send(f"You're not allowed to ban ziBot!")
+            else:
+                try:
+                    await member.send(
+                        f"You have been banned from {ctx.guild.name} for {reason}!"
+                    )
+                except Forbidden:
+                    self.logger.error("discord.errors.Forbidden: Can't send DM to member")
+                await ctx.guild.ban(member, reason=reason, delete_message_days=0)
+                duration = ""
+                if min_muted > 0:
+                    duration = f" ({min_ban} minutes)"
+                await ctx.send(
+                    f"{member.mention} has been banned by {ctx.author.mention} for {reason}!{duration}"
                 )
-            except Forbidden:
-                self.logger.error("discord.errors.Forbidden: Can't send DM to member")
-            await ctx.guild.ban(member, reason=reason, delete_message_days=0)
-            await ctx.send(
-                f"{member.mention} has been banned by {ctx.author.mention} for {reason}!"
-            )
-
-        if min_ban > 0:
-            await asyncio.sleep(min_ban * 60)
-            await ctx.guild.unban(member, reason="timed out")
+    
+            if min_ban > 0:
+                await asyncio.sleep(min_ban * 60)
+                await ctx.guild.unban(member, reason="timed out")
 
     @commands.command(usage="(user)", hidden=True)
     @is_mod()
-    async def unban(self, ctx, member: discord.User = None):
+    async def unban(self, ctx, members: commands.Greedy[discord.User]):
         """Unban a member."""
-        # for s in "<!@>":
-        #     member = member.replace(s,"")
-        # member = await self.bot.fetch_user(int(member))
-        if member is None:
-            await ctx.send("Please specify the member you want to unban.")
-            return
-        try:
-            await member.send(f"You have been unbanned from {ctx.guild.name}!")
-        except Forbidden:
-            self.logger.error("discord.errors.Forbidden: Can't send DM to member")
-        await ctx.guild.unban(member)
-        await ctx.send(f"{member.mention} has been unbanned by {ctx.author.mention}!")
+        if not members:
+            return await ctx.send("Please specify the member you want to unban.")
+        
+        for member in members:
+            # try:
+            #     await member.send(f"You have been unbanned from {ctx.guild.name}!")
+            # except Forbidden:
+            #     self.logger.error("discord.errors.Forbidden: Can't send DM to member")
+            # except AttributeError:
+            #     self.logger.error("Attribute error!")
+            try:
+                await ctx.guild.unban(member)
+            except NotFound:
+                await ctx.send(f"{member.mention} is not banned!")
+                continue
+            await ctx.send(f"{member.mention} has been unbanned by {ctx.author.mention}!")
 
     @commands.command(hidden=True)
     @is_botmaster()
