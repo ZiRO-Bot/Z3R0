@@ -11,13 +11,7 @@ class Welcome(commands.Cog, name="welcome"):
     def __init__(self, bot):
         self.bot = bot
         self.blocks = [
-            block.BreakBlock(),
-            block.MathBlock(),
             block.RandomBlock(),
-            block.RangeBlock(),
-            block.StrfBlock(),
-            block.AssignmentBlock(),
-            block.FiftyFiftyBlock(),
             block.StrictVariableGetterBlock()
         ]
         self.engine = Interpreter(self.blocks)
