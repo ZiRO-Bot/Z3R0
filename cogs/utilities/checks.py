@@ -31,9 +31,14 @@ def has_guild_permissions(*, check=all, **perms):
 
 # Is mod, is admid thingy
 
+def is_botmaster():
+    def predicate(ctx):
+        return ctx.author.id in ctx.bot.master
+    return commands.check(predicate)
+
 def is_mod():
     async def pred(ctx):
-        return await check_guild_permissions(ctx, {'manage_guild': True})
+        return await check_guild_permissions(ctx, {'manage_channels': True})
     return commands.check(pred)
 
 def is_admin():
@@ -52,3 +57,4 @@ def admin_or_permissions(**perms):
     async def predicate(ctx):
         return await check_guild_permissions(ctx, perms, check=any)
     return commands.check(predicate)
+

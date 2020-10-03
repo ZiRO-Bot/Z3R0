@@ -1,5 +1,6 @@
 import asyncio
 import bot
+import cogs.utilities.checks as checks
 import copy
 import datetime
 import discord
@@ -14,7 +15,7 @@ import textwrap
 import time
 
 from bot import get_cogs, get_prefix
-from cogs.utilities.embed_formatting import em_ctx_send_error
+from cogs.utilities.embed_formatting import em_ctx_send_error, em_ctx_send_success
 from discord.errors import Forbidden, NotFound
 from discord.ext import commands
 from typing import Optional
@@ -82,14 +83,14 @@ class Admin(commands.Cog, name="moderation"):
         return commands.check(predicate)
 
     @commands.command(aliases=["quit"], hidden=True)
-    @is_botmaster()
+    @checks.is_botmaster()
     async def force_close(self, ctx):
         """Shutdown the bot."""
         await ctx.send("Shutting down...")
         await ctx.bot.logout()
 
     @commands.command(usage="(extension)", hidden=True)
-    @is_botmaster()
+    @checks.is_botmaster()
     async def unload(self, ctx, ext):
         """Unload an extension."""
         await ctx.send(f"Unloading {ext}...")
@@ -105,7 +106,7 @@ class Admin(commands.Cog, name="moderation"):
             self.bot.logger.exception(f"Failed to reload extension {ext}:")
 
     @commands.command(usage="[extension]", hidden=True)
-    @is_botmaster()
+    @checks.is_botmaster()
     async def reload(self, ctx, ext: str = None):
         """Reload an extension."""
         if not ext:
@@ -153,7 +154,7 @@ class Admin(commands.Cog, name="moderation"):
             self.bot.logger.exception(f"Failed to reload extension {ext}:")
 
     @commands.command(usage="(extension)", hidden=True)
-    @is_botmaster()
+    @checks.is_botmaster()
     async def load(self, ctx, ext):
         """Load an extension."""
         await ctx.send(f"Loading {ext}...")
@@ -167,7 +168,7 @@ class Admin(commands.Cog, name="moderation"):
             self.bot.logger.exception(f"Failed to reload extension {ext}:")
 
     @commands.command(aliases=["cc"], usage="[amount of chat]", hidden=True)
-    @is_mod()
+    @checks.is_mod()
     async def clearchat(self, ctx, numb: int = 100):
         """Clear the chat."""
         deleted_msg = await ctx.message.channel.purge(
@@ -194,7 +195,7 @@ class Admin(commands.Cog, name="moderation"):
         await ctx.send(resp)
 
     @commands.command(usage="(member) [reason];[duration]", hidden=True)
-    @is_mod()
+    @checks.is_mod()
     async def mute(
         self,
         ctx,
@@ -248,7 +249,7 @@ class Admin(commands.Cog, name="moderation"):
                 await member.remove_roles(muted_role)
 
     @commands.command(usage="(member)", hidden=True)
-    @is_mod()
+    @checks.is_mod()
     async def unmute(self, ctx, members: commands.Greedy[discord.Member]):
         """Unmute members."""
         if not members:
@@ -277,14 +278,18 @@ class Admin(commands.Cog, name="moderation"):
                 await ctx.send(f"{member.mention} is not muted.")
 
     @commands.command(usage="(member) [reason]", hidden=True)
-    @is_mod()
+    @checks.is_mod()
     async def kick(
-        self, ctx, members: commands.Greedy[discord.Member], *, reason: str = "No Reason"
+        self,
+        ctx,
+        members: commands.Greedy[discord.Member],
+        *,
+        reason: str = "No Reason",
     ):
         """Kick a member."""
         if not members:
             return await ctx.send("Please specify the member you want to kick.")
-        
+
         for member in members:
             if self.bot.user == member:  # Just why would you want to mute him?
                 await ctx.send(f"You're not allowed to kick ziBot!")
@@ -301,7 +306,7 @@ class Admin(commands.Cog, name="moderation"):
                 )
 
     @commands.command(usage="(user) [ban duration] [reason]", hidden=True)
-    @is_mod()
+    @checks.is_mod()
     async def ban(
         self,
         ctx,
@@ -315,10 +320,10 @@ class Admin(commands.Cog, name="moderation"):
             r_and_d.append("0")
         reason = r_and_d[0]
         min_ban = int(r_and_d[1])
-        
+
         if not members:
             return await ctx.send("Please specify the member you want to ban.")
-            
+
         for member in members:
             if self.bot.user == member:  # Just why would you want to mute him?
                 await ctx.send(f"You're not allowed to ban ziBot!")
@@ -328,7 +333,9 @@ class Admin(commands.Cog, name="moderation"):
                         f"You have been banned from {ctx.guild.name} for {reason}!"
                     )
                 except Forbidden:
-                    self.logger.error("discord.errors.Forbidden: Can't send DM to member")
+                    self.logger.error(
+                        "discord.errors.Forbidden: Can't send DM to member"
+                    )
                 await ctx.guild.ban(member, reason=reason, delete_message_days=0)
                 duration = ""
                 if min_muted > 0:
@@ -336,18 +343,18 @@ class Admin(commands.Cog, name="moderation"):
                 await ctx.send(
                     f"{member.mention} has been banned by {ctx.author.mention} for {reason}!{duration}"
                 )
-    
+
             if min_ban > 0:
                 await asyncio.sleep(min_ban * 60)
                 await ctx.guild.unban(member, reason="timed out")
 
     @commands.command(usage="(user)", hidden=True)
-    @is_mod()
+    @checks.is_mod()
     async def unban(self, ctx, members: commands.Greedy[discord.User]):
         """Unban a member."""
         if not members:
             return await ctx.send("Please specify the member you want to unban.")
-        
+
         for member in members:
             # try:
             #     await member.send(f"You have been unbanned from {ctx.guild.name}!")
@@ -360,10 +367,12 @@ class Admin(commands.Cog, name="moderation"):
             except NotFound:
                 await ctx.send(f"{member.mention} is not banned!")
                 continue
-            await ctx.send(f"{member.mention} has been unbanned by {ctx.author.mention}!")
+            await ctx.send(
+                f"{member.mention} has been unbanned by {ctx.author.mention}!"
+            )
 
     @commands.command(hidden=True)
-    @is_botmaster()
+    @checks.is_botmaster()
     async def pull(self, ctx):
         """Update the bot from github."""
         g = git.cmd.Git(os.getcwd())
@@ -399,7 +408,7 @@ class Admin(commands.Cog, name="moderation"):
         await ctx.send(f"My prefix{s} {prefixes}")
 
     @prefix.command(name="add", usage="(prefix)")
-    @commands.check_any(is_mod(), is_botmaster())
+    @checks.is_mod()
     async def prefixadd(self, ctx, *prefixes):
         """Add a new prefix to bot."""
         g = ctx.guild
@@ -431,7 +440,7 @@ class Admin(commands.Cog, name="moderation"):
         await ctx.send("No prefix successfully added")
 
     @prefix.command(name="remove", aliases=["rm"], usage="(prefix)")
-    @commands.check_any(is_mod(), is_botmaster())
+    @checks.is_mod()
     async def prefixrm(self, ctx, *prefixes):
         """Remove a prefix from bot."""
         g = ctx.guild
@@ -456,48 +465,14 @@ class Admin(commands.Cog, name="moderation"):
             return
         await ctx.send("No prefix successfully removed")
 
-    # @commands.command(usage="(variable) (value)")
-    # @is_botmaster()
-    # async def setvar(self, ctx, key, *, value):
-    #     """Set a config variable, ***use with caution!**"""
-    #     with open("data/guild.json", "w") as f:
-    #         if value[0] == "[" and value[len(value) - 1] == "]":
-    #             value = list(map(int, value[1:-1].split(",")))
-    #         try:
-    #             value = int(value)
-    #         except ValueError:
-    #             pass
-    #         self.bot.config[str(ctx.message.guild.id)][key] = value
-    #         json.dump(self.bot.config, f, indent=4)
-
-    # @commands.command(usage="[variable]")
-    # @commands.check_any(is_mod(), is_botmaster())
-    # async def printvar(self, ctx, key=None):
-    #     """Print config variables, use for testing."""
-    #     if key == None:
-    #         for key, value in self.bot.config[str(ctx.message.guild.id)].items():
-    #             await ctx.send(f"Key: {key} | Value: {value}")
-    #     else:
-    #         await ctx.send(self.bot.config[str(ctx.message.guild.id)][key])
-
-    # @commands.command(aliases=["rmvar"], usage="(variable)")
-    # @is_botmaster()
-    # async def delvar(self, ctx, key):
-    #     """Deletes a config variable, be careful!"""
-    #     with open("data/guild.json", "w") as f:
-    #         await ctx.send(
-    #             f"Removed {self.bot.config[str(ctx.message.guild.id)].pop(key)}"
-    #         )
-    #         json.dump(self.bot.config, f, indent=4)
-
     @commands.command()
-    @is_botmaster()
+    @checks.is_botmaster()
     async def leave(self, ctx):
         """Leave the server."""
         await ctx.message.guild.leave()
 
     @commands.group()
-    @is_mod()
+    @checks.is_mod()
     async def channel(self, ctx):
         """Manage server's channel."""
         pass
@@ -591,7 +566,7 @@ class Admin(commands.Cog, name="moderation"):
                 await em_ctx_send_error(ctx, "You can only set a text channel's type!")
 
     @commands.command(aliases=["sh"], usage="(shell command)", hidden=True)
-    @is_botmaster()
+    @checks.is_botmaster()
     async def shell(self, ctx, *command: str):
         """Execute shell command from discord. **Use with caution**"""
         if WINDOWS:
@@ -616,7 +591,7 @@ class Admin(commands.Cog, name="moderation"):
         await ctx.send(f"```{clean_bytes(proc.stdout.readlines())}```")
 
     @commands.command(usage="(command)")
-    @is_botmaster()
+    @checks.is_botmaster()
     async def sudo(self, ctx: commands.Context, *, command_string: str):
         """
         Run a command bypassing all checks and cooldowns.
@@ -630,7 +605,7 @@ class Admin(commands.Cog, name="moderation"):
         return await alt_ctx.command.reinvoke(alt_ctx)
 
     @commands.group()
-    @commands.check_any(is_mod(), is_botmaster())
+    @checks.is_mod()
     async def role(self, ctx):
         """Manage server's roles."""
         pass
@@ -759,7 +734,7 @@ class Admin(commands.Cog, name="moderation"):
         return
 
     @emoji.command(name="add", aliases=["+"], usage="(name)")
-    @is_mod()
+    @checks.has_guild_permissions(manage_emojis=True)
     async def emoji_add(self, ctx, name: Optional[str], emote_pic: Optional[str]):
         """Add emoji to a server."""
         if ctx.message.attachments and not emote_pic:
@@ -793,6 +768,106 @@ class Admin(commands.Cog, name="moderation"):
             text=f"Added by {ctx.message.author.name}#{ctx.message.author.discriminator}"
         )
         await ctx.send(embed=embed)
+
+    def get_settings(self, ctx, data: str = "*"):
+        self.bot.c.execute(
+            f"SELECT {data} FROM settings WHERE id=?", (str(ctx.guild.id),)
+        )
+        settings = self.bot.c.fetchone()
+        return settings
+
+    @commands.group()
+    @checks.is_mod()
+    async def settings(self, ctx):
+        """Manage bot's settings."""
+        pass
+
+    @settings.command(aliases=["show"])
+    async def print(self, ctx):
+        """Show current bot settings."""
+        settings = self.get_settings(ctx)
+        e = discord.Embed(title="Bot's Settings")
+        e.add_field(
+            name="send_error_msg",
+            value="`Send error message if something wrong happens`\nValue: "
+            + "**False**"
+            if settings[1] == 0
+            else "**True**",
+        )
+        e.add_field(
+            name="disabled_cmds",
+            value=f"`Disabled commands`\nValue: **"
+            + (str(settings[2]).replace(",", ", ") if settings[2] else "None")
+            + "**",
+        )
+        e.add_field(
+            name="welcome_msg",
+            value=f"`Message that sent when a user join the server`\nValue: **"
+            + (str(settings[3]) if settings[3] else "Not set")
+            + "**",
+        )
+        e.add_field(
+            name="farewell_msg",
+            value=f"`Message that sent when a user leaves the server`\nValue: **"
+            + (str(settings[4]) if settings[4] else "Not set")
+            + "**",
+        )
+        e.add_field(
+            name="mods_only",
+            value=f"`Commands that only able to be executed by mods`\nValue: **"
+            + (str(settings[5]).replace(",", ", ") if settings[5] else "None")
+            + "**",
+        )
+        await ctx.send(embed=e)
+
+    @settings.command(aliases=["send_error"])
+    async def send_error_msg(self, ctx):
+        """Toggle send_error_msg."""
+        settings = self.get_settings(ctx, data="send_error_msg")[0]
+
+        def set_send_error(ctx, value):
+            self.bot.c.execute(
+                "UPDATE settings SET send_error_msg = ? WHERE id = ?",
+                (value, str(ctx.guild.id)),
+            )
+            self.bot.conn.commit()
+
+        if settings > 0:
+            set_send_error(ctx, 0)
+            await em_ctx_send_success(ctx, "`send_error_msg` has been set to **False**")
+        elif settings < 1:
+            set_send_error(ctx, 1)
+            await em_ctx_send_success(ctx, "`send_error_msg` has been set to **True**")
+        else:
+            return
+
+    @settings.command(aliases=["welcome"], brief="Change welcome_msg")
+    async def welcome_msg(self, ctx, *, message: str = None):
+        """Change welcome_msg.
+        Special values: 
+        **{clear}** - clear welcome message (NULL)
+        **{mention}** - ping the user
+        **{user}** - name of the user
+        **{server}** - name of the server
+        **{user(id)}** - ID of the user
+        **{user(proper)}** - name of the user followed by their discriminator (ziBot#3977)
+        **{server(members)}** - number of members on the server"""
+
+        def set_welcome_msg(ctx, value):
+            self.bot.c.execute(
+                "UPDATE settings SET welcome_msg = ? WHERE id = ?",
+                (value, str(ctx.guild.id)),
+            )
+            self.bot.conn.commit()
+
+        if not message:
+            return
+        if message == "{clear}":
+            set_welcome_msg(ctx, None)
+            await em_ctx_send_success(ctx, "`welcome_msg` has been cleared")
+        else:
+            set_welcome_msg(ctx, message)
+            await em_ctx_send_success(ctx, f"`welcome_msg` has been set to '{message}'")
 
 
 def setup(bot):

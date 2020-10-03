@@ -90,6 +90,12 @@ class ziBot(commands.Bot):
             """CREATE TABLE IF NOT EXISTS roles
                 (id text unique, default_role int, mute_role int)"""
         )
+        self.c.execute(
+            """CREATE TABLE IF NOT EXISTS settings
+                (id text unique, send_error_msg int, 
+                disabled_cmds text, welcome_msg text, 
+                farewell_msg text, mods_only text)"""
+        )
 
         self.master = [186713080841895936]
 
@@ -113,6 +119,12 @@ class ziBot(commands.Bot):
             (str(guild.id), None, None),
         )
         self.conn.commit()
+        self.c.execute(
+            """INSERT OR IGNORE INTO settings
+            VALUES (?, ?, ?, ?, ?, ?)""",
+            (str(guild.id), 0, None, None, None, "commands"),
+        )
+        self.conn.commit()
 
     def remove_guild_data(self, guild):
         self.c.execute(
@@ -129,6 +141,12 @@ class ziBot(commands.Bot):
         self.conn.commit()
         self.c.execute(
             """DELETE FROM roles
+            WHERE id=?""",
+            (str(guild.id),),
+        )
+        self.conn.commit()
+        self.c.execute(
+            """DELETE FROM settings
             WHERE id=?""",
             (str(guild.id),),
         )

@@ -11,11 +11,41 @@ from utilities.formatting import realtime
 
 translator = Translator()
 
-
 class Utils(commands.Cog, name="utils"):
     def __init__(self, bot):
         self.bot = bot
         self.logger = logging.getLogger("discord")
+    
+    def get_disabled(self, ctx):
+        bot.c.execute("SELECT * FROM settings WHERE (id=?)", (str(ctx.guild.id),))
+        servers_row = bot.c.fetchall()
+        disabled = {k[0]: k[2] or ">" for k in servers_row}
+        disabled_cmds = {int(k): v.split(",") for (k, v) in disabled.items()}
+
+        return disabled_cmds[ctx.guild.id]
+    
+    def get_mods_only(self, ctx):
+        bot.c.execute("SELECT * FROM settings WHERE (id=?)", (str(ctx.guild.id),))
+        servers_row = bot.c.fetchall()
+        mods = {k[0]: k[5] or ">" for k in servers_row}
+        mods_only = {int(k): v.split(",") for (k, v) in mods.items()}
+
+        return mods_only[ctx.guild.id]
+
+    async def bot_check_once(self, ctx):
+        if not ctx.guild:
+            return True
+
+        is_owner = await ctx.bot.is_owner(ctx.author)
+        if is_owner:
+            return True
+        
+        disabled_cmds = self.get_disabled(ctx)
+        if ctx.command.qualified_name not in disabled_cmds:
+            return True
+
+        if ctx.command.qualified_name in mods_only and ctx.author.guild_permissions.manage_channels:
+            return True
 
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload):

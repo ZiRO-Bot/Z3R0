@@ -38,7 +38,14 @@ class CustomCommands(commands.Cog, name="customcommands"):
             (lookup, str(ctx.guild.id)),
         )
         a = self.bot.c.fetchone()
+        self.bot.c.execute(
+            "SELECT send_error_msg FROM settings WHERE (id = ?)",
+            (str(ctx.guild.id),),
+        )
+        send_err = self.bot.c.fetchone()
         if not a:
+            if send_err[0] == 0:
+                return
             return await em_ctx_send_error(ctx, f"No command called `{name}`")
         self.bot.c.execute(
             "UPDATE tags SET uses = uses + 1 WHERE (name=? AND id=?)",
