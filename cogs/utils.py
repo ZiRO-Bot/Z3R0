@@ -52,16 +52,20 @@ class Utils(commands.Cog, name="utils"):
         if is_owner:
             return True
 
+        cmd_name = ctx.command.root_parent
+        if not cmd_name:
+            cmd_name = ctx.command.qualified_name
+
         disabled_cmds = self.get_disabled(ctx)
         if disabled_cmds:
-            if ctx.command.root_parent in disabled_cmds:
+            if cmd_name in disabled_cmds:
                 return False
             if ctx.command.qualified_name in disabled_cmds:
                 return False
 
         mods_only = self.get_mods_only(ctx)
         if mods_only and not ctx.author.guild_permissions.manage_channels:
-            if ctx.command.root_parent in mods_only:
+            if cmd_name in mods_only:
                 return False
             if ctx.command.qualified_name in mods_only:
                 return False

@@ -70,6 +70,30 @@ class Admin(commands.Cog, name="moderation"):
         self.logger = logging.getLogger("discord")
         self.bot = bot
 
+    def get_disabled(self, ctx):
+        self.bot.c.execute(
+            "SELECT disabled_cmds FROM settings WHERE (id=?)", (str(ctx.guild.id),)
+        )
+        disabled = self.bot.c.fetchone()
+        try:
+            disabled_cmds = disabled[0].split(",")
+        except AttributeError:
+            disabled_cmds = []
+
+        return disabled_cmds
+
+    def get_mods_only(self, ctx):
+        self.bot.c.execute(
+            "SELECT mods_only FROM settings WHERE (id=?)", (str(ctx.guild.id),)
+        )
+        mods = self.bot.c.fetchone()
+        try:
+            mods_only = mods[0].split(",")
+        except AttributeError:
+            mods_only = []
+
+        return mods_only
+
     def is_mod():
         def predicate(ctx):
             return ctx.author.guild_permissions.manage_channels
@@ -896,6 +920,40 @@ class Admin(commands.Cog, name="moderation"):
         else:
             set_farewell_msg(ctx, message)
             await em_ctx_send_success(ctx, f"`farewell_msg` has been set to '{message}'")
+
+    @settings.command(aliases=['toggle'], usage="(commands)")
+    async def toggle_command(self, ctx, *_commands):
+        """Toggle commands."""
+        whitelist = ['help', 'settings toggle_command', 'settings']
+        commands = []
+        for cmd in _commands:
+            cmd = self.bot.get_command(str(cmd))
+            if cmd:
+                if cmd.qualified_name in whitelist:
+                    return
+                commands.append(cmd.qualified_name)
+        settings = self.get_disabled(ctx) or []
+        enabled = []
+        disabled = []
+        for cmd in commands:
+            if cmd in settings:
+                settings.remove(cmd)
+                enabled.append(cmd)
+            else:
+                settings.append(cmd)
+                disabled.append(cmd)
+        settings = ",".join(settings)
+        if not settings:
+            settings = None
+        self.bot.c.execute(
+            "UPDATE settings SET disabled_cmds = ? WHERE id = ?",
+            (settings, str(ctx.guild.id)),
+        )
+        self.bot.conn.commit()
+        if enabled:
+            await em_ctx_send_success(ctx, f"`{', '.join(enabled)}` has been enabled!")
+        if disabled:
+            await em_ctx_send_success(ctx, f"`{', '.join(disabled)}` has been disabled!")
 
 def setup(bot):
     bot.add_cog(Admin(bot))
