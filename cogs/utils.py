@@ -133,7 +133,11 @@ class Utils(commands.Cog, name="utils"):
 
         msg = f"**Deleted Message** in {message.channel.mention}"
 
-        embed = discord.Embed(description=message.content, colour=discord.Colour.red())
+        embed = discord.Embed(
+            description=message.content,
+            timestamp=message.created_at,
+            colour=discord.Colour.red(),
+        )
         embed.set_author(
             name=f"{message.author.name}#{message.author.discriminator}",
             icon_url=message.author.avatar_url,
@@ -157,6 +161,7 @@ class Utils(commands.Cog, name="utils"):
                     value=f"[{_file.filename}]({_file.url})",
                     inline=False,
                 )
+        embed.set_footer(text=message.id)
         await purgatory_ch.send(msg, embed=embed)
 
     @commands.Cog.listener()
@@ -175,9 +180,7 @@ class Utils(commands.Cog, name="utils"):
 
         msg = f"**Edited Message** in {message.channel.mention}"
 
-        embed = discord.Embed(
-            colour=discord.Colour.red(),
-        )
+        embed = discord.Embed(colour=discord.Colour.red(), timestamp=after.edited_at)
         embed.set_author(
             name=f"{message.author.name}#{message.author.discriminator}",
             icon_url=message.author.avatar_url,
@@ -205,6 +208,7 @@ class Utils(commands.Cog, name="utils"):
                     value=f"[{_file.filename}]({_file.url})",
                     inline=False,
                 )
+        embed.set_footer(text=after.id)
         await purgatory_ch.send(msg, embed=embed)
 
     @commands.command(aliases=["p"])
