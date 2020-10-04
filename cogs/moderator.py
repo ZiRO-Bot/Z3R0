@@ -868,7 +868,7 @@ class Admin(commands.Cog, name="moderation"):
     @settings.command(aliases=["welcome"], brief="Change welcome_msg")
     async def welcome_msg(self, ctx, *, message: str = None):
         """Change welcome_msg.
-        Special values: 
+        Special values:
         **{clear}** - clear welcome message (NULL)
         **{mention}** - ping the user
         **{user}** - name of the user
@@ -896,7 +896,7 @@ class Admin(commands.Cog, name="moderation"):
     @settings.command(aliases=["farewell", "leave"], brief="Change farewell_msg")
     async def farewell_msg(self, ctx, *, message: str = None):
         """Change farewell_msg.
-        Special values: 
+        Special values:
         **{clear}** - clear farewell message (NULL)
         **{mention}** - ping the user
         **{user}** - name of the user
@@ -919,12 +919,14 @@ class Admin(commands.Cog, name="moderation"):
             await em_ctx_send_success(ctx, "`farewell_msg` has been cleared")
         else:
             set_farewell_msg(ctx, message)
-            await em_ctx_send_success(ctx, f"`farewell_msg` has been set to '{message}'")
+            await em_ctx_send_success(
+                ctx, f"`farewell_msg` has been set to '{message}'"
+            )
 
-    @settings.command(aliases=['toggle'], usage="(commands)")
+    @settings.command(aliases=["toggle"], usage="(commands)")
     async def toggle_command(self, ctx, *_commands):
         """Toggle commands."""
-        whitelist = ['help', 'settings toggle_command', 'settings']
+        whitelist = ["help", "settings toggle_command", "settings"]
         commands = []
         for cmd in _commands:
             cmd = self.bot.get_command(str(cmd))
@@ -953,7 +955,43 @@ class Admin(commands.Cog, name="moderation"):
         if enabled:
             await em_ctx_send_success(ctx, f"`{', '.join(enabled)}` has been enabled!")
         if disabled:
-            await em_ctx_send_success(ctx, f"`{', '.join(disabled)}` has been disabled!")
+            await em_ctx_send_success(
+                ctx, f"`{', '.join(disabled)}` has been disabled!"
+            )
+
+    @settings.command(aliases=["mods_only", "toggle_mods", "mods"], usage="(commands)")
+    async def toggle_mods_only(self, ctx, *_commands):
+        """Toggle mods only commands."""
+        commands = []
+        for cmd in _commands:
+            cmd = self.bot.get_command(str(cmd))
+            if cmd:
+                commands.append(cmd.qualified_name)
+        settings = self.get_mods_only(ctx) or []
+        enabled = []
+        disabled = []
+        for cmd in commands:
+            if cmd in settings:
+                settings.remove(cmd)
+                enabled.append(cmd)
+            else:
+                settings.append(cmd)
+                disabled.append(cmd)
+        settings = ",".join(settings)
+        if not settings:
+            settings = None
+        self.bot.c.execute(
+            "UPDATE settings SET mods_only = ? WHERE id = ?",
+            (settings, str(ctx.guild.id)),
+        )
+        self.bot.conn.commit()
+        if enabled:
+            await em_ctx_send_success(ctx, f"`{', '.join(enabled)}` is now mods only!")
+        if disabled:
+            await em_ctx_send_success(
+                ctx, f"`{', '.join(disabled)}` is no longer mods only!"
+            )
+
 
 def setup(bot):
     bot.add_cog(Admin(bot))
