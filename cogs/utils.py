@@ -11,26 +11,31 @@ from utilities.formatting import realtime
 
 translator = Translator()
 
+
 class Utils(commands.Cog, name="utils"):
     def __init__(self, bot):
         self.bot = bot
         self.logger = logging.getLogger("discord")
-    
+
     def get_disabled(self, ctx):
-        self.bot.c.execute("SELECT disabled_cmds FROM settings WHERE (id=?)", (str(ctx.guild.id),))
+        self.bot.c.execute(
+            "SELECT disabled_cmds FROM settings WHERE (id=?)", (str(ctx.guild.id),)
+        )
         disabled = self.bot.c.fetchone()
         try:
-            disabled_cmds = disabled[0].split(',')
+            disabled_cmds = disabled[0].split(",")
         except AttributeError:
             disabled_cmds = []
 
         return disabled_cmds
-    
+
     def get_mods_only(self, ctx):
-        self.bot.c.execute("SELECT mods_only FROM settings WHERE (id=?)", (str(ctx.guild.id),))
+        self.bot.c.execute(
+            "SELECT mods_only FROM settings WHERE (id=?)", (str(ctx.guild.id),)
+        )
         mods = self.bot.c.fetchone()
         try:
-            mods_only = mods[0].split(',')
+            mods_only = mods[0].split(",")
         except AttributeError:
             mods_only = []
 
@@ -126,17 +131,33 @@ class Utils(commands.Cog, name="utils"):
             return
         purgatory_ch = self.bot.get_channel(purgatory_ch)
 
-        embed = discord.Embed(title="Deleted Message", colour=discord.Colour.red())
-        embed.add_field(name="User", value=f"{message.author.mention}")
-        embed.add_field(name="Channel", value=f"{message.channel.mention}")
-        for attachement in message.attachments:
-            if attachement.height:
-                embed.set_image(url=attachement.url)
-        msg = message.content
-        if not message.content:
-            msg = "None"
-        embed.add_field(name="Message", value=f"{msg}", inline=False)
-        await purgatory_ch.send(embed=embed)
+        msg = f"**Deleted Message** in {message.channel.mention}"
+
+        embed = discord.Embed(description=message.content, colour=discord.Colour.red())
+        embed.set_author(
+            name=f"{message.author.name}#{message.author.discriminator}",
+            icon_url=message.author.avatar_url,
+        )
+        if message.attachments:
+            _file = message.attachments[0]
+            spoiler = _file.is_spoiler()
+            if not spoiler and _file.url.lower().endswith(
+                ("png", "jpeg", "jpg", "gif", "webp")
+            ):
+                embed.set_image(url=_file.url)
+            elif spoiler:
+                embed.add_field(
+                    name="📎 Attachment",
+                    value=f"||[{_file.filename}]({_file.url})||",
+                    inline=False,
+                )
+            else:
+                embed.add_field(
+                    name="📎 Attachment",
+                    value=f"[{_file.filename}]({_file.url})",
+                    inline=False,
+                )
+        await purgatory_ch.send(msg, embed=embed)
 
     @commands.Cog.listener()
     async def on_message_edit(self, before, after):
@@ -152,21 +173,39 @@ class Utils(commands.Cog, name="utils"):
             return
         purgatory_ch = self.bot.get_channel(purgatory_ch)
 
-        embed = discord.Embed(title="Edited Message", colour=discord.Colour.red())
-        embed.add_field(name="User", value=f"{message.author.mention}")
-        embed.add_field(name="Channel", value=f"{message.channel.mention}")
-        for attachement in message.attachments:
-            if attachement.height:
-                embed.set_image(url=attachement.url)
-        b_msg = message.content
-        if not message.content:
-            b_msg = "None"
-        a_msg = after.content
-        if not after.content:
-            a_msg = "None"
-        embed.add_field(name="Before", value=f"{b_msg}", inline=False)
-        embed.add_field(name="After", value=f"{a_msg}", inline=False)
-        await purgatory_ch.send(embed=embed)
+        msg = f"**Edited Message** in {message.channel.mention}"
+
+        embed = discord.Embed(
+            colour=discord.Colour.red(),
+        )
+        embed.set_author(
+            name=f"{message.author.name}#{message.author.discriminator}",
+            icon_url=message.author.avatar_url,
+        )
+        embed.add_field(
+            name="**Original Message**", value=message.content or "\u200b", inline=False
+        )
+        embed.add_field(name="**New Message**", value=after.content, inline=False)
+        if message.attachments:
+            _file = message.attachments[0]
+            spoiler = _file.is_spoiler()
+            if not spoiler and _file.url.lower().endswith(
+                ("png", "jpeg", "jpg", "gif", "webp")
+            ):
+                embed.set_image(url=_file.url)
+            elif spoiler:
+                embed.add_field(
+                    name="📎 Attachment",
+                    value=f"||[{_file.filename}]({_file.url})||",
+                    inline=False,
+                )
+            else:
+                embed.add_field(
+                    name="📎 Attachment",
+                    value=f"[{_file.filename}]({_file.url})",
+                    inline=False,
+                )
+        await purgatory_ch.send(msg, embed=embed)
 
     @commands.command(aliases=["p"])
     async def ping(self, ctx):
