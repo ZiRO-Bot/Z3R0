@@ -869,6 +869,33 @@ class Admin(commands.Cog, name="moderation"):
             set_welcome_msg(ctx, message)
             await em_ctx_send_success(ctx, f"`welcome_msg` has been set to '{message}'")
 
+    @settings.command(aliases=["farewell", "leave"], brief="Change farewell_msg")
+    async def farewell_msg(self, ctx, *, message: str = None):
+        """Change farewell_msg.
+        Special values: 
+        **{clear}** - clear farewell message (NULL)
+        **{mention}** - ping the user
+        **{user}** - name of the user
+        **{server}** - name of the server
+        **{user(id)}** - ID of the user
+        **{user(proper)}** - name of the user followed by their discriminator (ziBot#3977)
+        **{server(members)}** - number of members on the server"""
+
+        def set_farewell_msg(ctx, value):
+            self.bot.c.execute(
+                "UPDATE settings SET farewell_msg = ? WHERE id = ?",
+                (value, str(ctx.guild.id)),
+            )
+            self.bot.conn.commit()
+
+        if not message:
+            return
+        if message == "{clear}":
+            set_farewell_msg(ctx, None)
+            await em_ctx_send_success(ctx, "`farewell_msg` has been cleared")
+        else:
+            set_farewell_msg(ctx, message)
+            await em_ctx_send_success(ctx, f"`farewell_msg` has been set to '{message}'")
 
 def setup(bot):
     bot.add_cog(Admin(bot))

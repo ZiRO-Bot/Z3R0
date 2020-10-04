@@ -29,6 +29,30 @@ class Welcome(commands.Cog, name="welcome"):
         #     message = message.replace(key, str(special_vals[key]))
         message = self.engine.process(message, special_vals).body
         return message
+    
+    @commands.Cog.listener()
+    async def on_member_remove(self, member):
+        server = member.guild
+        
+        # Get farewell_msg from database
+        self.bot.c.execute(
+            f"SELECT farewell_msg FROM settings WHERE id=?", (str(server.id),)
+        )
+        settings = self.bot.c.fetchone()
+        if not settings[0]:
+            return
+        # fetch special values
+        farewell_msg = self.fetch_special_val(member, str(settings[0]))
+        
+        # get greet_channel and send the message
+        self.bot.c.execute(
+            "SELECT greeting_ch FROM servers WHERE id=?", (str(server.id),)
+        )
+        greet_channel = self.bot.c.fetchall()[0][0]
+        if not greet_channel:
+            return
+        greet_channel = server.get_channel(int(greet_channel))
+        await greet_channel.send(farewell_msg)
 
     @commands.Cog.listener()
     async def on_member_join(self, member):

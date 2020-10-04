@@ -536,7 +536,6 @@ class AniList(commands.Cog, name="anilist"):
     @commands.group(brief="Get information about anime from AniList.")
     async def anime(self, ctx):
         """Get information about anime from AniList"""
-        # add guild id to watchlist if not exist
         pass
 
     @anime.command(

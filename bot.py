@@ -122,7 +122,7 @@ class ziBot(commands.Bot):
         self.c.execute(
             """INSERT OR IGNORE INTO settings
             VALUES (?, ?, ?, ?, ?, ?)""",
-            (str(guild.id), 0, None, None, None, "commands"),
+            (str(guild.id), 0, None, None, None, "command add,command edit,command remove"),
         )
         self.conn.commit()
 

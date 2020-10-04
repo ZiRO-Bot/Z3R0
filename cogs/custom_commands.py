@@ -78,7 +78,6 @@ class CustomCommands(commands.Cog, name="customcommands"):
     @custom.command(
         name="add", aliases=["+", "create"], usage="(command name) (content)"
     )
-    @is_mod()
     async def command_add(self, ctx, name: str, *, content: str):
         """Add new custom command."""
         if ctx.message.mentions:
@@ -114,7 +113,6 @@ class CustomCommands(commands.Cog, name="customcommands"):
         await ctx.send(f"Command `{name}` has been created")
 
     @custom.command(name="edit", aliases=["&", "ed"], usage="(command name) (content)")
-    @is_mod()
     async def command_edit(self, ctx, name: str, *, content: str):
         """Edit a custom command."""
         if ctx.message.mentions:
@@ -148,7 +146,6 @@ class CustomCommands(commands.Cog, name="customcommands"):
     @custom.command(
         name="remove", aliases=["-", "rm", "delete", "del"], usage="(command name)"
     )
-    @is_mod()
     async def command_rm(self, ctx, name: str):
         """Remove a custom command."""
         lookup = name.lower()

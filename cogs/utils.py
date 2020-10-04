@@ -17,35 +17,51 @@ class Utils(commands.Cog, name="utils"):
         self.logger = logging.getLogger("discord")
     
     def get_disabled(self, ctx):
-        bot.c.execute("SELECT * FROM settings WHERE (id=?)", (str(ctx.guild.id),))
-        servers_row = bot.c.fetchall()
-        disabled = {k[0]: k[2] or ">" for k in servers_row}
-        disabled_cmds = {int(k): v.split(",") for (k, v) in disabled.items()}
+        self.bot.c.execute("SELECT disabled_cmds FROM settings WHERE (id=?)", (str(ctx.guild.id),))
+        disabled = self.bot.c.fetchone()
+        try:
+            disabled_cmds = disabled[0].split(',')
+        except AttributeError:
+            disabled_cmds = []
 
-        return disabled_cmds[ctx.guild.id]
+        return disabled_cmds
     
     def get_mods_only(self, ctx):
-        bot.c.execute("SELECT * FROM settings WHERE (id=?)", (str(ctx.guild.id),))
-        servers_row = bot.c.fetchall()
-        mods = {k[0]: k[5] or ">" for k in servers_row}
-        mods_only = {int(k): v.split(",") for (k, v) in mods.items()}
+        self.bot.c.execute("SELECT mods_only FROM settings WHERE (id=?)", (str(ctx.guild.id),))
+        mods = self.bot.c.fetchone()
+        try:
+            mods_only = mods[0].split(',')
+        except AttributeError:
+            mods_only = []
 
-        return mods_only[ctx.guild.id]
+        return mods_only
 
-    async def bot_check_once(self, ctx):
+    async def bot_check(self, ctx):
+        """
+        Global checks, owner bypass all checks
+        """
         if not ctx.guild:
             return True
 
         is_owner = await ctx.bot.is_owner(ctx.author)
         if is_owner:
             return True
-        
-        disabled_cmds = self.get_disabled(ctx)
-        if ctx.command.qualified_name not in disabled_cmds:
-            return True
 
-        if ctx.command.qualified_name in mods_only and ctx.author.guild_permissions.manage_channels:
-            return True
+        disabled_cmds = self.get_disabled(ctx)
+        if disabled_cmds:
+            if ctx.command.root_parent in disabled_cmds:
+                return False
+            if ctx.command.qualified_name in disabled_cmds:
+                return False
+
+        mods_only = self.get_mods_only(ctx)
+        if mods_only and not ctx.author.guild_permissions.manage_channels:
+            if ctx.command.root_parent in mods_only:
+                return False
+            if ctx.command.qualified_name in mods_only:
+                return False
+
+        return True
 
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload):
