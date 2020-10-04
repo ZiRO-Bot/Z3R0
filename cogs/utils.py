@@ -122,17 +122,19 @@ class Utils(commands.Cog, name="utils"):
             "SELECT purge_ch FROM servers WHERE id=?", (str(message.guild.id),)
         )
         purgatory_ch = self.bot.c.fetchall()[0][0]
-        purgatory_ch = self.bot.get_channel(purgatory_ch)
         if not purgatory_ch:
             return
+        purgatory_ch = self.bot.get_channel(purgatory_ch)
 
         embed = discord.Embed(title="Deleted Message", colour=discord.Colour.red())
         embed.add_field(name="User", value=f"{message.author.mention}")
         embed.add_field(name="Channel", value=f"{message.channel.mention}")
+        for attachement in message.attachments:
+            if attachement.height:
+                embed.set_image(url=attachement.url)
+        msg = message.content
         if not message.content:
             msg = "None"
-        else:
-            msg = message.content
         embed.add_field(name="Message", value=f"{msg}", inline=False)
         await purgatory_ch.send(embed=embed)
 
@@ -146,21 +148,22 @@ class Utils(commands.Cog, name="utils"):
             "SELECT purge_ch FROM servers WHERE id=?", (str(message.guild.id),)
         )
         purgatory_ch = self.bot.c.fetchall()[0][0]
-        purgatory_ch = self.bot.get_channel(purgatory_ch)
         if not purgatory_ch:
             return
+        purgatory_ch = self.bot.get_channel(purgatory_ch)
 
         embed = discord.Embed(title="Edited Message", colour=discord.Colour.red())
         embed.add_field(name="User", value=f"{message.author.mention}")
         embed.add_field(name="Channel", value=f"{message.channel.mention}")
+        for attachement in message.attachments:
+            if attachement.height:
+                embed.set_image(url=attachement.url)
+        b_msg = message.content
         if not message.content:
             b_msg = "None"
-        else:
-            b_msg = message.content
+        a_msg = after.content
         if not after.content:
             a_msg = "None"
-        else:
-            a_msg = after.content
         embed.add_field(name="Before", value=f"{b_msg}", inline=False)
         embed.add_field(name="After", value=f"{a_msg}", inline=False)
         await purgatory_ch.send(embed=embed)
