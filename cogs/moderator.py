@@ -886,6 +886,8 @@ class Admin(commands.Cog, name="moderation"):
 
         if not message:
             return
+        if len(message) > 512:
+            return await em_ctx_send_error(ctx, "`welcome_msg` can't be longer than 512 characters!")
         if message == "{clear}":
             set_welcome_msg(ctx, None)
             await em_ctx_send_success(ctx, "`welcome_msg` has been cleared")
@@ -914,6 +916,8 @@ class Admin(commands.Cog, name="moderation"):
 
         if not message:
             return
+        if len(message) > 512:
+            return await em_ctx_send_error(ctx, "`farewell_msg` can't be longer than 512 characters!")
         if message == "{clear}":
             set_farewell_msg(ctx, None)
             await em_ctx_send_success(ctx, "`farewell_msg` has been cleared")
