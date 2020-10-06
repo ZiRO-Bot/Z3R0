@@ -242,7 +242,7 @@ class Admin(commands.Cog, name="moderation"):
         self.bot.c.execute(
             "SELECT mute_role FROM roles WHERE id=?", (str(ctx.guild.id),)
         )
-        muted_role = self.bot.c.fetchall()[0][0]
+        muted_role = ctx.guild.get_role(int(self.bot.c.fetchone()[0] or 0))
         if not muted_role:
             await ctx.send(
                 "This server does not have a mute role, "
@@ -250,7 +250,6 @@ class Admin(commands.Cog, name="moderation"):
                 + f" set one or `{ctx.prefix}role create mute (role name)` to create one."
             )
             return
-        muted_role = ctx.guild.get_role(int(muted_role))
 
         # mute multiple member
         for member in members:
@@ -282,7 +281,7 @@ class Admin(commands.Cog, name="moderation"):
         self.bot.c.execute(
             "SELECT mute_role FROM roles WHERE id=?", (str(ctx.guild.id),)
         )
-        muted_role = self.bot.c.fetchall()[0][0]
+        muted_role = ctx.guild.get_role(int(self.bot.c.fetchone()[0] or 0))
         if not muted_role:
             await ctx.send(
                 "This server does not have a mute role, "
@@ -290,7 +289,6 @@ class Admin(commands.Cog, name="moderation"):
                 + f" set one or `{ctx.prefix}role create mute (role name)` to create one."
             )
             return
-        muted_role = ctx.guild.get_role(int(muted_role))
 
         for member in members:
             if muted_role in member.roles:
