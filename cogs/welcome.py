@@ -83,7 +83,8 @@ class Welcome(commands.Cog, name="welcome"):
         welcome_channel = self.bot.c.fetchall()[0][0]
         if welcome_channel:
             welcome_channel = server.get_channel(int(welcome_channel))
-            await welcome_channel.send(welcome_msg)
+            if welcome_channel:
+                await welcome_channel.send(welcome_msg)
 
         self.bot.c.execute(
             "SELECT default_role FROM roles WHERE id=?", (str(server.id),)
