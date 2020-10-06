@@ -83,18 +83,20 @@ class Welcome(commands.Cog, name="welcome"):
         welcome_channel = self.bot.c.fetchall()[0][0]
         if welcome_channel:
             welcome_channel = server.get_channel(int(welcome_channel))
+            await welcome_channel.send(welcome_msg)
 
         self.bot.c.execute(
             "SELECT default_role FROM roles WHERE id=?", (str(server.id),)
         )
+        member_role = self.bot.c.fetchone()[0]
+        if not member_role:
+            return
         try:
-            member_role = server.get_role(int(self.bot.c.fetchall()[0][0]))
+            member_role = server.get_role(int(member_role))
             if member_role:
                 await member.add_roles(member_role)
         except TypeError:
             pass
-        if welcome_channel:
-            await welcome_channel.send(welcome_msg)
 
 
 def setup(bot):
