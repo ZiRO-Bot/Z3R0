@@ -48,11 +48,9 @@ class Welcome(commands.Cog, name="welcome"):
         self.bot.c.execute(
             "SELECT greeting_ch FROM servers WHERE id=?", (str(server.id),)
         )
-        greet_channel = self.bot.c.fetchall()[0][0]
-        if not greet_channel:
-            return
-        greet_channel = server.get_channel(int(greet_channel))
-        await greet_channel.send(farewell_msg)
+        greet_channel = server.get_channel(int(self.bot.c.fetchone()[0] or 0))
+        if greet_channel:
+            await greet_channel.send(farewell_msg)
 
     @commands.Cog.listener()
     async def on_member_join(self, member):
@@ -64,6 +62,14 @@ class Welcome(commands.Cog, name="welcome"):
         ]
 
         server = member.guild
+        
+        # Get welcome channel
+        self.bot.c.execute(
+            "SELECT greeting_ch FROM servers WHERE id=?", (str(server.id),)
+        )
+        welcome_channel = server.get_channel(int(self.bot.c.fetchone()[0] or 0))
+        if not welcome_channel:
+            return
 
         self.bot.c.execute(
             f"SELECT welcome_msg FROM settings WHERE id=?", (str(server.id),)
@@ -76,24 +82,15 @@ class Welcome(commands.Cog, name="welcome"):
             if settings[0]
             else def_welcome_msg[randint(0, len(def_welcome_msg) - 1)]
         )
-
-        self.bot.c.execute(
-            "SELECT greeting_ch FROM servers WHERE id=?", (str(server.id),)
-        )
-        welcome_channel = self.bot.c.fetchall()[0][0]
-        if welcome_channel:
-            welcome_channel = server.get_channel(int(welcome_channel))
-            if welcome_channel:
-                await welcome_channel.send(welcome_msg)
+        
+        # send msg after getting welcome msg
+        await welcome_channel.send(welcome_msg)
 
         self.bot.c.execute(
             "SELECT default_role FROM roles WHERE id=?", (str(server.id),)
         )
-        member_role = self.bot.c.fetchone()[0]
-        if not member_role:
-            return
+        member_role = server.get_role(int(self.bot.c.fetchone()[0] or 0))
         try:
-            member_role = server.get_role(int(member_role))
             if member_role:
                 await member.add_roles(member_role)
         except TypeError:
