@@ -72,6 +72,13 @@ class ziBot(commands.Bot):
         self.def_prefix = ">"
         self.norules = [758764126679072788, 747984453585993808, 745481731133669476]
 
+        with open("config.json", "r") as f:
+            self.config = json.load(f)
+
+        if not self.config['token']:
+            self.logger.error("No token found!")
+            return
+
         # Init database
         self.conn = sqlite3.connect("data/database.db")
         self.c = self.conn.cursor()
@@ -196,4 +203,4 @@ class ziBot(commands.Bot):
         await self.session.close()
 
     def run(self):
-        super().run(token, reconnect=True)
+        super().run(self.config['token'], reconnect=True)

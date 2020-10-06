@@ -27,9 +27,19 @@ def setup_logging():
     logger.addHandler(console_handler)
 
 
+def check_json():
+    try:
+        f = open("config.json", "r")
+    except FileNotFoundError:
+        token = input("[Bot Setup] Enter your bot token: ")
+        with open("config.json", "w+") as f:
+            json.dump({"token": token}, f, indent=4)
+
 def init_bot():
 
     logger = logging.getLogger("discord")
+    
+    check_json()
 
     if token is None:
         logger.error('No token found, please add environment variable "TOKEN"!')
