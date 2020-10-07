@@ -439,7 +439,7 @@ class General(commands.Cog, name="general"):
             value="**ziBot** is an open source bot, "
             + "a fork of [mcbeDiscordBot](https://github.com/AnInternetTroll/mcbeDiscordBot) "
             + "(Steve the Bot) created by [AnInternetTroll](https://github.com/AnInternetTroll), "
-            + "but rewritten a bit.\n\n**Bot Version**: 1.0",
+            + "but rewritten a bit.\n\n**Bot Version**: 2.0",
             inline=False,
         )
         embed.set_footer(
