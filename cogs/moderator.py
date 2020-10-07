@@ -94,12 +94,6 @@ class Admin(commands.Cog, name="moderation"):
 
         return mods_only
 
-    def is_mod():
-        def predicate(ctx):
-            return ctx.author.guild_permissions.manage_channels
-
-        return commands.check(predicate)
-
     def is_botmaster():
         def predicate(ctx):
             return ctx.author.id in ctx.bot.master

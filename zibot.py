@@ -32,20 +32,28 @@ def check_json():
         f = open("config.json", "r")
     except FileNotFoundError:
         with open("config.json", "w+") as f:
-            json.dump({"token": "", "twitch": {"id": "", "secret": ""}}, f, indent=4)
+            json.dump(
+                {
+                    "bot_token": "",
+                    "twitch": {"id": "", "secret": ""},
+                    "reddit": {"id": "", "secret": "", "user_agent": ""},
+                    "openweather_apikey": "",
+                },
+                f,
+                indent=4,
+            )
+
 
 def init_bot():
 
     logger = logging.getLogger("discord")
-    
+
     check_json()
 
     bot = ziBot(
         command_prefix=get_prefix,
         case_insensitive=True,
-        allowed_mentions=discord.AllowedMentions(
-            users=True, roles=False
-        ),
+        allowed_mentions=discord.AllowedMentions(users=True, roles=False),
         intents=discord.Intents.all(),
         shard_id=int(shard),
         shard_count=int(shard_count),

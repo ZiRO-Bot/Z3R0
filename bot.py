@@ -75,7 +75,7 @@ class ziBot(commands.Bot):
         with open("config.json", "r") as f:
             self.config = json.load(f)
 
-        if not self.config['token']:
+        if not self.config['bot_token']:
             self.logger.error("No token found. Please add it to config.json!")
             raise AttributeError("No token found!")
 
@@ -203,4 +203,4 @@ class ziBot(commands.Bot):
         await self.session.close()
 
     def run(self):
-        super().run(self.config['token'], reconnect=True)
+        super().run(self.config['bot_token'], reconnect=True)

@@ -14,34 +14,27 @@ from dotenv import load_dotenv
 from random import choice, randint, random
 from typing import Optional
 
-try:
-    REDDIT_CLIENT_ID = os.environ["REDDIT_CLIENT_ID"]
-except:
-    load_dotenv()
-    REDDIT_CLIENT_ID = os.getenv("REDDIT_CLIENT_ID")
-
-try:
-    REDDIT_CLIENT_SECRET = os.environ["REDDIT_CLIENT_SECRET"]
-except:
-    load_dotenv()
-    REDDIT_CLIENT_SECRET = os.getenv("REDDIT_CLIENT_SECRET")
-
-try:
-    REDDIT_USER_AGENT = os.environ["REDDIT_USER_AGENT"]
-except:
-    load_dotenv()
-    REDDIT_USER_AGENT = os.getenv("REDDIT_USER_AGENT")
-
-reddit = praw.Reddit(
-    client_id=REDDIT_CLIENT_ID,
-    client_secret=REDDIT_CLIENT_SECRET,
-    user_agent=REDDIT_USER_AGENT,
-)
-
 
 class Fun(commands.Cog, name="fun"):
     def __init__(self, bot):
         self.bot = bot
+        praw.Reddit
+        self.reddit = praw.Reddit(
+            client_id = self.bot.config["reddit"]["id"],
+            client_secret = self.bot.config["reddit"]["secret"],
+            user_agent = self.bot.config["reddit"]["user_agent"],
+        )
+
+    def is_reddit():
+        def predicate(ctx):
+            reddit_id = ctx.bot.config["reddit"]["id"]
+            reddit_secret = ctx.bot.config["reddit"]["secret"]
+            reddit_user_agent = ctx.bot.config["reddit"]["user_agent"]
+            if reddit_id and reddit_secret and reddit_user_agent:
+                return True
+            return False
+
+        return commands.check(predicate)
 
     async def is_redarmy(ctx):
         return ctx.guild.id in [747984453585993808, 758764126679072788]
@@ -113,13 +106,14 @@ class Fun(commands.Cog, name="fun"):
             await bot_msg.delete()
 
     @commands.command()
+    @is_reddit()
     async def meme(self, ctx):
         """Get memes from subreddit r/memes."""
+        reddit = self.reddit
         self.bot.c.execute(
             "SELECT meme_ch FROM servers WHERE id=?", (str(ctx.guild.id),)
         )
-        meme_channel = self.bot.c.fetchall()[0][0]
-        meme_channel = self.bot.get_channel(meme_channel)
+        meme_channel = self.bot.get_channel(int(self.bot.c.fetchone()[0] or 0))
         if not meme_channel:
             meme_channel = ctx.channel
 

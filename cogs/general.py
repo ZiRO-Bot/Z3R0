@@ -21,12 +21,6 @@ from dotenv import load_dotenv
 from pytz import timezone
 from typing import Optional
 
-try:
-    WEATHER_API = os.environ["WEATHER_API"]
-except:
-    load_dotenv()
-    WEATHER_API = os.getenv("WEATHER_API")
-
 egs = epicstore_api.EpicGamesStoreAPI()
 session = aiohttp.ClientSession()
 
@@ -123,7 +117,7 @@ def temperature(temp, unit: str, number_only=False):
     return f"{round(temp)}°{unit.upper()}"
 
 
-async def weather_get(*place, _type="city"):
+async def weather_get(key, *place, _type="city"):
     place = " ".join([*place])
     if _type == "city":
         q = "q"
@@ -141,6 +135,14 @@ class General(commands.Cog, name="general"):
     def __init__(self, bot):
         self.bot = bot
         self.logger = logging.getLogger("discord")
+        self.weather_key = self.bot.config['openweather_apikey']
+
+    def is_weather():
+        def predicate(ctx):
+            if ctx.bot.config['openweather_apikey']:
+                return True
+
+        return commands.check(predicate)
 
     def is_mod():
         def predicate(ctx):
@@ -585,10 +587,11 @@ class General(commands.Cog, name="general"):
         await ctx.send(embed=e)
 
     @commands.group(usage="(city)", invoke_without_command=True)
+    @is_weather()
     async def weather(self, ctx, *city):
         """Show weather report."""
         try:
-            weatherData = await weather_get(*city, _type="city")
+            weatherData = await weather_get(self.weather_key, *city, _type="city")
         except CityNotFound:
             await ctx.send("City not found")
             return
@@ -619,7 +622,7 @@ class General(commands.Cog, name="general"):
     async def weather_city(self, ctx, *city):
         """Show weather report from a city."""
         try:
-            weatherData = await weather_get(*city, _type="city")
+            weatherData = await weather_get(self.weather_key, *city, _type="city")
         except CityNotFound:
             await ctx.send("City not found")
             return
@@ -650,7 +653,7 @@ class General(commands.Cog, name="general"):
     async def weather_zip(self, ctx, *city):
         """Show weather report from a zip code."""
         try:
-            weatherData = await weather_get(*city, _type="zip")
+            weatherData = await weather_get(self.weather_key, *city, _type="zip")
         except CityNotFound:
             await ctx.send("City not found")
             return
