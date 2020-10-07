@@ -77,7 +77,7 @@ class ziBot(commands.Bot):
 
         if not self.config['token']:
             self.logger.error("No token found!")
-            return
+            raise AttributeError("No token found!")
 
         # Init database
         self.conn = sqlite3.connect("data/database.db")
