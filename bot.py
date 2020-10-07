@@ -76,7 +76,7 @@ class ziBot(commands.Bot):
             self.config = json.load(f)
 
         if not self.config['token']:
-            self.logger.error("No token found!")
+            self.logger.error("No token found. Please add it to config.json!")
             raise AttributeError("No token found!")
 
         # Init database
