@@ -237,8 +237,7 @@ async def getschedule(self, _time_, page):
 
         # Get channel to send the releases
         self.bot.c.execute("SELECT anime_ch FROM servers WHERE id=?", (str(server),))
-        channel = self.bot.c.fetchall()[0][0]
-        channel = self.bot.get_channel(channel)
+        channel = self.bot.get_channel(int(self.bot.c.fetchone()[0] or 0))
         if not channel:
             continue
 
