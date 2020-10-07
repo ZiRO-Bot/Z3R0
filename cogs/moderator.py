@@ -321,7 +321,7 @@ class Admin(commands.Cog, name="moderation"):
                     f"{member.mention} has been kicked by {ctx.author.mention} for {reason}!"
                 )
 
-    @commands.command(usage="(user) [ban duration] [reason]", hidden=True)
+    @commands.command(usage="(user) [reason];[ban duration]", hidden=True)
     @checks.is_mod()
     async def ban(
         self,
