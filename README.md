@@ -1,13 +1,12 @@
 # ziBot
 
-**Python 3.8.x or higher is required!**
+**Python 3.8.x or higher is required!** 
 
-Just a fork of mcbeDiscordBot but rewritten a bit. Some code are translated mee6's old deprecated codes and some messy translated js to python codes that works on the new version of [discord.py](https://github.com/Rapptz/discord.py)
+A multi-purpose customizable open-source discord bot.
+
+A fork of mcbeDiscordBot (Steve the bot) that rewritten to be able to operate on multiple server. Some code are translated mee6's old deprecated codes that rewritten and some are messy js to python translation.
 
 ## Dependencies
-- [discord.py](https://github.com/Rapptz/discord.py)
-- youtube-dl
-
 To install the dependencies, you can use this command:
 ```
 # Linux
@@ -25,9 +24,22 @@ py -3 -m pip install -r requirements.txt
 
 ### Host (Full Control)
 - Create folder called `data` (to prevent error)
-- Specify your token:
-  + Create a new file called `.env` and put in your token like `TOKEN = 'YOUR_TOKEN_HERE'`
-  + Set an environment variable called `TOKEN`
+- Create a file named `config.json` with this format:
+```json
+{
+    "bot_token": "YOUR-TOKEN-HERE",
+    "twitch": {
+        "id": "",
+        "secret": ""
+    },
+    "reddit": {
+        "id": "",
+        "secret": "",
+        "user_agent": "ziBot/0.4"
+    },
+    "openweather_apikey": ""
+}
+```
 - Launch the bot with ```python3 zibot.py```
 
 ## TODOs
