@@ -1,6 +1,0 @@
-{
-    "<guild_id>": {
-        "<prefix><command>": "<message>",
-        "<prefix><command2>": "<message2>"
-    }
-}
