@@ -25,9 +25,22 @@ py -3 -m pip install -r requirements.txt
 
 ### Host (Full Control)
 - Create folder called `data` (to prevent error)
-- Specify your token:
-  + Create a new file called `.env` and put in your token like `TOKEN = 'YOUR_TOKEN_HERE'`
-  + Set an environment variable called `TOKEN`
+- Create a file named `config.json` with this format:
+```json
+{
+    "bot_token": "YOUR-TOKEN-HERE",
+    "twitch": {
+        "id": "",
+        "secret": ""
+    },
+    "reddit": {
+        "id": "",
+        "secret": "",
+        "user_agent": "ziBot/0.4"
+    },
+    "openweather_apikey": ""
+}
+```
 - Launch the bot with ```python3 zibot.py```
 
 ## TODOs
