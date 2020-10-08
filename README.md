@@ -1,13 +1,12 @@
 # ziBot
 
-**Python 3.8.x or higher is required!**
+**Python 3.8.x or higher is required!** 
 
-Just a fork of mcbeDiscordBot but rewritten a bit. Some code are translated mee6's old deprecated codes and some messy translated js to python codes that works on the new version of [discord.py](https://github.com/Rapptz/discord.py)
+A multi-purpose customizable open-source discord bot.
+
+A fork of mcbeDiscordBot (Steve the bot) that rewritten to be able to operate on multiple server. Some code are translated mee6's old deprecated codes that rewritten and some are messy js to python translation.
 
 ## Dependencies
-- [discord.py](https://github.com/Rapptz/discord.py)
-- youtube-dl
-
 To install the dependencies, you can use this command:
 ```
 # Linux
