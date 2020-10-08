@@ -227,7 +227,7 @@ class Admin(commands.Cog, name="moderation"):
         r_and_d = reason_duration.split(";")
         if len(r_and_d) < 2:
             r_and_d.append("0")
-        reason = r_and_d[0]
+        reason = r_and_d[0] or "No Reason"
         min_muted = int(r_and_d[1])
 
         if not members:
@@ -334,7 +334,7 @@ class Admin(commands.Cog, name="moderation"):
         r_and_d = reason_duration.split(";")
         if len(r_and_d) < 2:
             r_and_d.append("0")
-        reason = r_and_d[0]
+        reason = r_and_d[0] or "No Reason"
         min_ban = int(r_and_d[1])
 
         if not members:
