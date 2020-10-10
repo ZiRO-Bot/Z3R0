@@ -400,6 +400,7 @@ class General(commands.Cog, name="general"):
     @commands.command(aliases=["bi", "about", "info", "uptime", "up", "invite"])
     async def botinfo(self, ctx):
         """Show bot information."""
+        bot_ver = "2.1.S"
         start = time.perf_counter()
         invite_link = discord.utils.oauth_url(
             self.bot.user.id, permissions=None, guild=None, redirect_uri=None
@@ -439,7 +440,7 @@ class General(commands.Cog, name="general"):
             value="**ziBot** is an open source bot, "
             + "a fork of [mcbeDiscordBot](https://github.com/AnInternetTroll/mcbeDiscordBot) "
             + "(Steve the Bot) created by [AnInternetTroll](https://github.com/AnInternetTroll), "
-            + "but rewritten a bit.\n\n**Bot Version**: 2.0",
+            + f"but rewritten a bit.\n\n**Bot Version**: {bot_ver}",
             inline=False,
         )
         embed.set_footer(
