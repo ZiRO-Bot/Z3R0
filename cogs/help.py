@@ -144,16 +144,14 @@ class CustomHelp(commands.HelpCommand):
     async def send_command_help(self, command):
         embed = discord.Embed(
             title=f"Help with {command.qualified_name} command",
-            description=self.get_desc()
-            + "\n\
-                                 `()` = Required\n\
-                                 `[]` = Optional",
+            description=command.help or "No description.",
             colour=self.COLOUR,
         )
-        if command.help:
-            value = command.help
+        if command.example:
+            value = str(command.example).replace("{prefix}", self.clean_prefix)
+            embed.add_field(name="Example", value=value)
         embed.add_field(
-            name=self.get_command_signature(command), value=value or "No description."
+            name="Usage", value=self.clean_prefix+self.get_command_signature(command)
         )
 
         await self.get_destination().send(embed=embed)

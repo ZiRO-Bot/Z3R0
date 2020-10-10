@@ -503,7 +503,7 @@ class General(commands.Cog, name="general"):
             )
             await ctx.send(embed=embed)
 
-    @commands.command()
+    @commands.command(example="{prefix}morse SOS")
     async def morse(self, ctx, *msg):
         """Encode message into morse code."""
         encoded = encode(" ".join([*msg]))

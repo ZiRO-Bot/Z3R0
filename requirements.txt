@@ -2,7 +2,7 @@ GitPython == 2.1.15
 aiogoogletrans == 3.3.2
 aiohttp == 3.6.2
 async_timeout == 3.0.1
-discord.py == 1.5.0
+discord.py @ git+git://github.com/null2264/discord.py.git@de58a6ac63f7fe78351c7cf4e6ee3382ac4bdc27
 epicstore_api == 0.0.4
 praw == 7.1.0
 python_dateutil == 2.8.1
