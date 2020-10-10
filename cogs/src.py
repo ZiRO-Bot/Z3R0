@@ -1,6 +1,7 @@
 import aiohttp
 import discord
 import json
+import re
 
 from discord.ext import commands
 from cogs.utilities.formatting import pformat, realtime, hformat
@@ -62,6 +63,10 @@ class SRC(commands.Cog, name="src"):
 
     async def get_game(self, game):
         """Get game data without abbreviation."""
+        regex = r".*:\/\/.*\.speedrun\..*\/([a-zA-Z0-9]*)(.*)"
+        match = re.match(regex, game)
+        if match[1]:
+            game = match[1]
         data = await self.get(f"games/{game}")
         bulk = False
         try:
@@ -168,17 +173,17 @@ class SRC(commands.Cog, name="src"):
     #     # await ctx.send(data['names']['international'])
     #     pass
 
-    # @commands.command()
-    # async def categories(self, ctx, game):
-    #     game = await self.get_game(game)
-    #     game = game[0]
-    #     catdict = await self.get_cats(game["id"])
-    #     e = discord.Embed(title=f"{game['name']} Categories")
-    #     for i in catdict:
-    #         e.add_field(
-    #             name=catdict[i]["name"], value=pformat(catdict[i]["name"]), inline=False
-    #         )
-    #     await ctx.send(embed=e)
+    @commands.command()
+    async def categories(self, ctx, game):
+        game = await self.get_game(game)
+        game = game[0]
+        catdict = await self.get_cats(game["id"])
+        e = discord.Embed(title=f"{game['name']} Categories")
+        for i in catdict:
+            e.add_field(
+                name=catdict[i]["name"], value=pformat(catdict[i]["name"]), inline=False
+            )
+        await ctx.send(embed=e)
 
 
 def setup(bot):
