@@ -41,7 +41,7 @@ class CustomHelp(commands.HelpCommand):
         return f"Command `{command.qualified_name}` has no subcommands"
 
     def cmd_and_alias(self, command):
-        cmd = " | ".join([str(command.qualified_name), *command.aliases])
+        cmd = "|".join([str(command.qualified_name), *command.aliases])
         return cmd
 
     async def send_error_message(self, error):
