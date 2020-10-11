@@ -418,7 +418,7 @@ class General(commands.Cog, name="general"):
         )
         embed.add_field(
             name="discord.py",
-            value=f"[{discord.__version__}](https://github.com/Rapptz/discord.py)",
+            value=f"[{discord.__version__}-modified](https://github.com/null2264/discord.py)",
         )
         embed.add_field(
             name="Links",
