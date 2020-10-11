@@ -135,11 +135,11 @@ class General(commands.Cog, name="general"):
     def __init__(self, bot):
         self.bot = bot
         self.logger = logging.getLogger("discord")
-        self.weather_key = self.bot.config['openweather_apikey']
+        self.weather_key = self.bot.config["openweather_apikey"]
 
     def is_weather():
         def predicate(ctx):
-            if ctx.bot.config['openweather_apikey']:
+            if ctx.bot.config["openweather_apikey"]:
                 return True
 
         return commands.check(predicate)
@@ -503,7 +503,7 @@ class General(commands.Cog, name="general"):
             )
             await ctx.send(embed=embed)
 
-    @commands.command(example="{prefix}morse SOS")
+    @commands.command(usage="(words)", example="{prefix}morse SOS")
     async def morse(self, ctx, *msg):
         """Encode message into morse code."""
         encoded = encode(" ".join([*msg]))
@@ -515,7 +515,9 @@ class General(commands.Cog, name="general"):
         )
         await ctx.send(embed=e)
 
-    @commands.command(aliases=["demorse"])
+    @commands.command(
+        usage="(morse code)", aliases=["demorse"], example="{prefix}unmorse ... --- ..."
+    )
     async def unmorse(self, ctx, *msg):
         """Decode morse code."""
         decoded = decode(str(" ".join([*msg])))
