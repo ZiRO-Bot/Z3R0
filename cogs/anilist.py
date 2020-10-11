@@ -538,13 +538,13 @@ class AniList(commands.Cog, name="anilist"):
         pass
 
     @anime.command(
-        name="info", usage="(anime) [format]", brief="Get information about an anime."
+        name="info",
+        usage="(anime) [format]",
+        brief="Get information about an anime.",
+        example='{prefix}anime info Kimi_no_Na_Wa\n{prefix}anime info "Koe no Katachi" Movie',
     )
     async def animeinfo(self, ctx, anime, _format: str = None):
-        """Get information about an anime.\n\
-           **Example**\n\
-           `>anime info Kimi_no_Na_Wa`\n\
-           `>anime info "Koe no Katachi" Movie`"""
+        """Get information about an anime."""
         if not anime:
             await ctx.send("Please specify the anime!")
         async with ctx.typing():
