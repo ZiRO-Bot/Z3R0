@@ -115,11 +115,8 @@ class CustomHelp(commands.HelpCommand):
 
     async def send_group_help(self, group):
         embed = discord.Embed(
-            title=group.qualified_name,
-            description=self.get_desc()
-            + "\n"
-            + "`()` = Required\n"
-            + "`[]` = Optional",
+            title=self.clean_prefix + self.get_command_signature(group),
+            description=self.get_desc(),
             colour=self.COLOUR,
         )
         if group.help:
@@ -127,16 +124,23 @@ class CustomHelp(commands.HelpCommand):
 
         if isinstance(group, commands.Group):
             filtered = await self.filter_commands(group.commands, sort=True)
+            subcmds = "```"
             for command in filtered:
                 if command.brief:
                     value = command.brief
                 else:
                     value = command.short_doc
-                embed.add_field(
-                    name=self.get_command_signature(command),
-                    value=value or "No description.",
-                    inline=False,
-                )
+                subcmds += f"{self.clean_prefix}{self.get_command_signature(command)}\n{value}\n\n"
+                # embed.add_field(
+                #     name=self.get_command_signature(command),
+                #     value=value or "No description.",
+                #     inline=False,
+                # )
+            subcmds += "```"
+            embed.add_field(name="Subcommands", value=subcmds)
+            if command.example:
+                value = str(group.example).replace("{prefix}", self.clean_prefix)
+                embed.add_field(name="Example", value=f"```{value}```")
 
         embed.set_footer(text=self.get_ending_note())
         await self.get_destination().send(embed=embed)
@@ -149,7 +153,7 @@ class CustomHelp(commands.HelpCommand):
         )
         if command.example:
             value = str(command.example).replace("{prefix}", self.clean_prefix)
-            embed.add_field(name="Example", value=value)
+            embed.add_field(name="Example", value=f"```{value}```")
 
         await self.get_destination().send(embed=embed)
 

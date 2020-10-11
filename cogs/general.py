@@ -589,7 +589,7 @@ class General(commands.Cog, name="general"):
         )
         await ctx.send(embed=e)
 
-    @commands.group(usage="(city)", invoke_without_command=True)
+    @commands.group(usage="(city)", invoke_without_command=True, example="{prefix}weather Palembang")
     @is_weather()
     async def weather(self, ctx, *city):
         """Show weather report."""
@@ -621,7 +621,7 @@ class General(commands.Cog, name="general"):
         )
         await ctx.send(embed=e)
 
-    @weather.command(name="city")
+    @weather.command(name="city", usage="(city)", example="{prefix}weather city Palembang")
     async def weather_city(self, ctx, *city):
         """Show weather report from a city."""
         try:
@@ -652,7 +652,7 @@ class General(commands.Cog, name="general"):
         )
         await ctx.send(embed=e)
 
-    @weather.command(name="zip")
+    @weather.command(name="zip", usage="(zip code)", example="{prefix}weather zip 10404")
     async def weather_zip(self, ctx, *city):
         """Show weather report from a zip code."""
         try:
