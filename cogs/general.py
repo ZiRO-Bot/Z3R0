@@ -425,6 +425,7 @@ class General(commands.Cog, name="general"):
             value=f"[Invitation]({invite_link})\n"
             + "[Donate](https://www.patreon.com/ziro2264)\n"
             + "[GitHub Repo](https://github.com/null2264/ziBot)\n"
+            + "[Documentation](https://ziro-bot.github.io)\n"
             + "[Support Server](https://discord.gg/sP9xRy6)\n",
         )
         embed.add_field(

@@ -25,7 +25,7 @@ class CustomHelp(commands.HelpCommand):
         return desc
 
     def get_ending_note(self):
-        return "Use {0}{1} [command] for more info on a command.".format(
+        return "Use {0}{1} [command] for more info on a command, or {0}{1} [category] for more info on a category".format(
             self.clean_prefix, self.invoked_with
         )
 
@@ -54,7 +54,12 @@ class CustomHelp(commands.HelpCommand):
     async def send_bot_help(self, mapping):
         destination = self.get_destination()
         embed = discord.Embed(
-            title="Bot Commands", description=self.get_desc(), colour=self.COLOUR
+            title="Categories",
+            description=self.get_desc()
+            + "\n"
+            + "`()` = Required\n"
+            + "`[]` = Optional",
+            colour=self.COLOUR,
         )
         for cog, commands in mapping.items():
 
