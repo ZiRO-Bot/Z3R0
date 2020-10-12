@@ -756,14 +756,16 @@ class Admin(commands.Cog, name="moderation"):
         # Get emote_pic from embeds
         if ctx.message.embeds:
             data = ctx.message.embeds[0]
-            if data.type == 'image':
+            if data.type == "image":
                 async with self.bot.session.get(data.url) as f:
                     emote_pic = await f.read()
             else:
-                return await em_ctx_send_error(ctx, "Emoji only supports `.png`, `.jpg`, and `.gif` filetype")
+                return await em_ctx_send_error(
+                    ctx, "Emoji only supports `.png`, `.jpg`, and `.gif` filetype"
+                )
         else:
             emote_pic = None
-        
+
         # Check if it has attachments
         if ctx.message.attachments and not emote_pic:
             for attachment in ctx.message.attachments:
@@ -788,11 +790,15 @@ class Admin(commands.Cog, name="moderation"):
                 name=name, image=emote_pic
             )
         except Forbidden:
-            await em_ctx_send_error(ctx, "Bot need **Manage Emojis** permission for this command!")
+            await em_ctx_send_error(
+                ctx, "Bot need **Manage Emojis** permission for this command!"
+            )
             return
         except discord.InvalidArgument as err:
             if err == "Unsupported image type given":
-                return await em_ctx_send_error(ctx, "Emoji only supports `.png`, `.jpg`, and `.gif` filetype")
+                return await em_ctx_send_error(
+                    ctx, "Emoji only supports `.png`, `.jpg`, and `.gif` filetype"
+                )
 
         # Just embed stuff to give user info that the bot successfully added an emoji
         embed = discord.Embed(
@@ -900,7 +906,9 @@ class Admin(commands.Cog, name="moderation"):
         if not message:
             return
         if len(message) > 512:
-            return await em_ctx_send_error(ctx, "`welcome_msg` can't be longer than 512 characters!")
+            return await em_ctx_send_error(
+                ctx, "`welcome_msg` can't be longer than 512 characters!"
+            )
         if message == "{clear}":
             set_welcome_msg(ctx, None)
             await em_ctx_send_success(ctx, "`welcome_msg` has been cleared")
@@ -930,7 +938,9 @@ class Admin(commands.Cog, name="moderation"):
         if not message:
             return
         if len(message) > 512:
-            return await em_ctx_send_error(ctx, "`farewell_msg` can't be longer than 512 characters!")
+            return await em_ctx_send_error(
+                ctx, "`farewell_msg` can't be longer than 512 characters!"
+            )
         if message == "{clear}":
             set_farewell_msg(ctx, None)
             await em_ctx_send_success(ctx, "`farewell_msg` has been cleared")

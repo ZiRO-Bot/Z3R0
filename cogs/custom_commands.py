@@ -54,7 +54,7 @@ class CustomCommands(commands.Cog, name="customcommands"):
         self.bot.conn.commit()
         content = self.clean_tag_content(a[2])
         await ctx.send(content)
-    
+
     def is_mod():
         def predicate(ctx):
             return ctx.author.guild_permissions.manage_channels
@@ -179,7 +179,7 @@ class CustomCommands(commands.Cog, name="customcommands"):
         else:
             await ctx.send("This server doesn't have custom command")
 
-    @custom.command(name="info", aliases=['?'], usage="(command name)")
+    @custom.command(name="info", aliases=["?"], usage="(command name)")
     async def command_info(self, ctx, name: str):
         """Show information of a custom command."""
         jakarta = timezone("Asia/Jakarta")

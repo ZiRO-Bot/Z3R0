@@ -20,9 +20,9 @@ class Fun(commands.Cog, name="fun"):
         self.bot = bot
         praw.Reddit
         self.reddit = praw.Reddit(
-            client_id = self.bot.config["reddit"]["id"],
-            client_secret = self.bot.config["reddit"]["secret"],
-            user_agent = self.bot.config["reddit"]["user_agent"],
+            client_id=self.bot.config["reddit"]["id"],
+            client_secret=self.bot.config["reddit"]["secret"],
+            user_agent=self.bot.config["reddit"]["user_agent"],
         )
 
     def is_reddit():
@@ -152,7 +152,11 @@ class Fun(commands.Cog, name="fun"):
                 return
             await meme_channel.send(embed=embed)
 
-    @commands.command(usage="(choice)", brief="Rock Paper Scissors with the bot.", example="{prefix}rps rock")
+    @commands.command(
+        usage="(choice)",
+        brief="Rock Paper Scissors with the bot.",
+        example="{prefix}rps rock",
+    )
     @commands.cooldown(1, 5)
     async def rps(self, ctx, choice: str):
         """Rock Paper Scissors with the bot."""

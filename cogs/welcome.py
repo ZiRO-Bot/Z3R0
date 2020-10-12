@@ -6,14 +6,12 @@ from discord.ext import commands
 from random import randint
 from TagScriptEngine import Verb, Interpreter, adapter, block
 
+
 class Welcome(commands.Cog, name="welcome"):
     # Welcome message + set roles when new member joined
     def __init__(self, bot):
         self.bot = bot
-        self.blocks = [
-            block.RandomBlock(),
-            block.StrictVariableGetterBlock()
-        ]
+        self.blocks = [block.RandomBlock(), block.StrictVariableGetterBlock()]
         self.engine = Interpreter(self.blocks)
 
     def fetch_special_val(self, member, message: str):
@@ -22,18 +20,20 @@ class Welcome(commands.Cog, name="welcome"):
             "user": adapter.StringAdapter(member.name),
             "server": adapter.StringAdapter(member.guild.name),
             "user(id)": adapter.StringAdapter(str(member.id)),
-            "user(proper)": adapter.StringAdapter(f"{member.name}#{member.discriminator}"),
+            "user(proper)": adapter.StringAdapter(
+                f"{member.name}#{member.discriminator}"
+            ),
             "server(members)": adapter.StringAdapter(str(member.guild.member_count)),
         }
         # for key in list(special_vals.keys()):
         #     message = message.replace(key, str(special_vals[key]))
         message = self.engine.process(message, special_vals).body
         return message
-    
+
     @commands.Cog.listener()
     async def on_member_remove(self, member):
         server = member.guild
-        
+
         # Get farewell_msg from database
         self.bot.c.execute(
             f"SELECT farewell_msg FROM settings WHERE id=?", (str(server.id),)
@@ -43,7 +43,7 @@ class Welcome(commands.Cog, name="welcome"):
             return
         # fetch special values
         farewell_msg = self.fetch_special_val(member, str(settings[0]))
-        
+
         # get greet_channel and send the message
         self.bot.c.execute(
             "SELECT greeting_ch FROM servers WHERE id=?", (str(server.id),)
@@ -62,7 +62,7 @@ class Welcome(commands.Cog, name="welcome"):
         ]
 
         server = member.guild
-        
+
         # Get welcome channel
         self.bot.c.execute(
             "SELECT greeting_ch FROM servers WHERE id=?", (str(server.id),)
@@ -82,7 +82,7 @@ class Welcome(commands.Cog, name="welcome"):
             if settings[0]
             else def_welcome_msg[randint(0, len(def_welcome_msg) - 1)]
         )
-        
+
         # send msg after getting welcome msg
         await welcome_channel.send(welcome_msg)
 

@@ -158,7 +158,7 @@ class SRC(commands.Cog, name="src"):
                 e.add_field(
                     name=platform_name,
                     value=f"{runners} (**[{realtime(rundata[0]['run']['times']['realtime_t'])}]({rundata[0]['run']['weblink']})**)",
-                    inline=False
+                    inline=False,
                 )
         e.set_author(
             name=f"MCBE - {cat_name} - {seed_name}",

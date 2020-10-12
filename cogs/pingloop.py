@@ -13,7 +13,11 @@ class Pingloop(commands.Cog):
 
     def is_redarmy():
         def predicate(ctx):
-            return ctx.guild.id in [747984453585993808, 745481731133669476, 758764126679072788]
+            return ctx.guild.id in [
+                747984453585993808,
+                745481731133669476,
+                758764126679072788,
+            ]
 
         return commands.check(predicate)
 

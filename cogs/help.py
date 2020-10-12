@@ -147,7 +147,7 @@ class CustomHelp(commands.HelpCommand):
 
     async def send_command_help(self, command):
         embed = discord.Embed(
-            title=self.clean_prefix+self.get_command_signature(command),
+            title=self.clean_prefix + self.get_command_signature(command),
             description=command.help or "No description.",
             colour=self.COLOUR,
         )

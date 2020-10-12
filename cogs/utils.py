@@ -17,7 +17,7 @@ class Utils(commands.Cog, name="utils"):
     def __init__(self, bot):
         self.bot = bot
         self.logger = logging.getLogger("discord")
-        self.spoilers = re.compile(r'\|\|(.+?)\|\|')
+        self.spoilers = re.compile(r"\|\|(.+?)\|\|")
 
     def is_url_spoiler(self, text, url):
         spoilers = self.spoilers.findall(text)
@@ -158,7 +158,9 @@ class Utils(commands.Cog, name="utils"):
 
         if message.embeds:
             data = message.embeds[0]
-            if data.type == 'image' and not self.is_url_spoiler(message.content, data.url):
+            if data.type == "image" and not self.is_url_spoiler(
+                message.content, data.url
+            ):
                 embed.set_image(url=data.url)
 
         if message.attachments:
@@ -208,10 +210,12 @@ class Utils(commands.Cog, name="utils"):
             name="**Original Message**", value=message.content or "\u200b", inline=False
         )
         embed.add_field(name="**New Message**", value=after.content, inline=False)
-        
+
         if message.embeds:
             data = message.embeds[0]
-            if data.type == 'image' and not self.is_url_spoiler(message.content, data.url):
+            if data.type == "image" and not self.is_url_spoiler(
+                message.content, data.url
+            ):
                 embed.set_image(url=data.url)
 
         if message.attachments:
