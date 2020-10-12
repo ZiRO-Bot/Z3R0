@@ -65,7 +65,7 @@ class SRC(commands.Cog, name="src"):
         """Get game data without abbreviation."""
         regex = r".*:\/\/.*\.speedrun\..*\/([a-zA-Z0-9]*)(.*)"
         match = re.match(regex, game)
-        if match[1]:
+        if match and match[1]:
             game = match[1]
         data = await self.get(f"games/{game}")
         bulk = False

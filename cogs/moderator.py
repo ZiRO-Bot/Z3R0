@@ -753,9 +753,23 @@ class Admin(commands.Cog, name="moderation"):
     @checks.has_guild_permissions(manage_emojis=True)
     async def emoji_add(self, ctx, name: Optional[str], emote_pic: Optional[str]):
         """Add emoji to a server."""
+        # Get emote_pic from embeds
+        if ctx.message.embeds:
+            data = ctx.message.embeds[0]
+            if data.type == 'image':
+                async with self.bot.session.get(data.url) as f:
+                    emote_pic = await f.read()
+            else:
+                return await em_ctx_send_error(ctx, "Emoji only supports `.png`, `.jpg`, and `.gif` filetype")
+        else:
+            emote_pic = None
+        
+        # Check if it has attachments
         if ctx.message.attachments and not emote_pic:
             for attachment in ctx.message.attachments:
                 emote_pic = await attachment.read()
+
+        # This look ugly but sure why not
         if not emote_pic:
             await ctx.send("You need to attach an image of the emoji!")
             return
@@ -767,13 +781,20 @@ class Admin(commands.Cog, name="moderation"):
                 "The name of the emoji needs to be at least 2 characters long!"
             )
             return
+
+        # Try to add new emoji, if fails send error
         try:
             added_emote = await ctx.guild.create_custom_emoji(
                 name=name, image=emote_pic
             )
         except Forbidden:
-            await ctx.send("Bot need **Manage Emojis** permission for this command!")
+            await em_ctx_send_error(ctx, "Bot need **Manage Emojis** permission for this command!")
             return
+        except discord.InvalidArgument as err:
+            if err == "Unsupported image type given":
+                return await em_ctx_send_error(ctx, "Emoji only supports `.png`, `.jpg`, and `.gif` filetype")
+
+        # Just embed stuff to give user info that the bot successfully added an emoji
         embed = discord.Embed(
             title="New emote has been added!",
             description=f"{str(added_emote)} `:{added_emote.name}:`",
