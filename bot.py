@@ -54,18 +54,26 @@ start_time = time.time()
 
 def get_prefix(bot, message):
     """A callable Prefix for our bot. This could be edited to allow per server prefixes."""
-
-    bot.c.execute("SELECT * FROM servers WHERE (id=?)", (str(message.guild.id),))
-    servers_row = bot.c.fetchall()
-    pre = {k[0]: k[1] or ">" for k in servers_row}
-    prefixes = {int(k): v.split(",") for (k, v) in pre.items()}
-
-    return prefixes[message.guild.id]
+    base = []
+    if not message.guild:
+        base.append(">")
+    else:
+        base.extend(bot.prefixes.get(message.guild.id, [">"]))
+    return base
 
 
 class ziBot(commands.Bot):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+        # Init database
+        self.conn = sqlite3.connect("data/database.db")
+        self.c = self.conn.cursor()
+
+        self.c.execute("SELECT * FROM servers WHERE 1")
+        servers_row = self.c.fetchall()
+        pre = {k[0]: k[1] or ">" for k in servers_row}
+        self.prefixes = {int(k): v.split(",") for (k, v) in pre.items()}
 
         self.logger = logging.getLogger("discord")
         self.session = aiohttp.ClientSession()
@@ -79,9 +87,6 @@ class ziBot(commands.Bot):
             self.logger.error("No token found. Please add it to config.json!")
             raise AttributeError("No token found!")
 
-        # Init database
-        self.conn = sqlite3.connect("data/database.db")
-        self.c = self.conn.cursor()
         # Create "servers" table if its not exists
         self.c.execute(
             """CREATE TABLE IF NOT EXISTS servers
