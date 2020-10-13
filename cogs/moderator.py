@@ -439,16 +439,11 @@ class Admin(commands.Cog, name="moderation"):
             else:
                 added.append(prefix)
         prefixes = ori_prefixes + prefixes
-        if len(prefixes) > 15:
-            await em_ctx_send_error(ctx, "You can only add up to 15 prefixes!")
+        try:
+            self.bot.set_guild_prefixes(ctx.guild, prefixes)
+        except RuntimeError as err:
+            await em_ctx_send_error(ctx, err)
             return
-        # database stuff
-        up_prefixes = ",".join(sorted([*prefixes]))
-        self.bot.c.execute(
-            "UPDATE servers SET prefixes = ? WHERE id = ?",
-            (up_prefixes, str(ctx.guild.id)),
-        )
-        self.bot.conn.commit()
         # inform the user
         if len(added) > 0:
             await ctx.send(f"`{', '.join(added)}` successfully added to prefix")
@@ -468,13 +463,11 @@ class Admin(commands.Cog, name="moderation"):
                 ori_prefixes.remove(prefix)
             else:
                 pass
-        # database stuff
-        up_prefixes = ",".join(sorted(ori_prefixes))
-        self.bot.c.execute(
-            "UPDATE servers SET prefixes = ? WHERE id = ?",
-            (up_prefixes, str(ctx.guild.id)),
-        )
-        self.bot.conn.commit()
+        try:
+            self.bot.set_guild_prefixes(ctx.guild, ori_prefixes)
+        except RuntimeError as err:
+            await em_ctx_send_error(ctx, err)
+            return
         # inform the user
         if len(removed) > 0:
             await ctx.send(f"`{', '.join(removed)}` successfully removed from prefix")

@@ -110,6 +110,22 @@ class ziBot(commands.Bot):
         )
 
         self.master = [186713080841895936]
+    
+    def set_guild_prefixes(self, guild, prefixes):
+        if not prefixes:
+            self.c.execute('UPDATE servers SET prefix=? WHERE id=?',
+                      (None, guild.id))
+            self.conn.commit()
+            self.prefixes[guild.id] = prefixes
+        elif len(prefixes) > 15:
+            raise RuntimeError('You can only add up to 15 prefixes.')
+        else:
+            self.c.execute(
+                "UPDATE servers SET prefixes = ? WHERE id = ?",
+                (",".join(sorted(prefixes)), str(guild.id)),
+            )
+            self.conn.commit()
+            self.prefixes[guild.id] = sorted(set(prefixes))
 
     def add_empty_data(self, guild):
         # guild_id, prefix, anime_ch, greeting_ch, meme_ch, purge_ch
