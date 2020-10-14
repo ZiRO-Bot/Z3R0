@@ -1,3 +1,4 @@
+import asyncio
 import aiohttp
 import copy
 import discord
@@ -12,6 +13,41 @@ import time
 from discord.errors import NotFound
 from discord.ext import commands
 from dotenv import load_dotenv
+
+def setup_logging():
+    FORMAT = "%(asctime)s - [%(levelname)s]: %(message)s"
+    DATE_FORMAT = "%d/%m/%Y (%H:%M:%S)"
+
+    logger = logging.getLogger("discord")
+    logger.setLevel(logging.INFO)
+
+    file_handler = logging.FileHandler(
+        filename="discord.log", mode="a", encoding="utf-8"
+    )
+    file_handler.setFormatter(logging.Formatter(fmt=FORMAT, datefmt=DATE_FORMAT))
+    file_handler.setLevel(logging.INFO)
+    logger.addHandler(file_handler)
+
+    console_handler = logging.StreamHandler()
+    console_handler.setFormatter(logging.Formatter(fmt=FORMAT, datefmt=DATE_FORMAT))
+    console_handler.setLevel(logging.WARNING)
+    logger.addHandler(console_handler)
+
+def check_json():
+    try:
+        f = open("config.json", "r")
+    except FileNotFoundError:
+        with open("config.json", "w+") as f:
+            json.dump(
+                {
+                    "bot_token": "",
+                    "twitch": {"id": "", "secret": ""},
+                    "reddit": {"id": "", "secret": "", "user_agent": ""},
+                    "openweather_apikey": "",
+                },
+                f,
+                indent=4,
+            )
 
 # Create data directory if its not exist
 try:
@@ -63,8 +99,13 @@ def get_prefix(bot, message):
 
 
 class ziBot(commands.Bot):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self):
+        super().__init__(
+            command_prefix=get_prefix,
+            case_insensitive=True,
+            allowed_mentions=discord.AllowedMentions(users=True, roles=False),
+            intents=discord.Intents.all(),
+        )
 
         # Init database
         self.conn = sqlite3.connect("data/database.db")
@@ -76,7 +117,7 @@ class ziBot(commands.Bot):
         self.prefixes = {int(k): v.split(",") for (k, v) in pre.items()}
 
         self.logger = logging.getLogger("discord")
-        self.session = aiohttp.ClientSession()
+        self.session = aiohttp.ClientSession(loop=self.loop)
         self.def_prefix = ">"
         self.norules = [758764126679072788, 747984453585993808, 745481731133669476]
 
@@ -232,3 +273,13 @@ class ziBot(commands.Bot):
 
     def run(self):
         super().run(self.config["bot_token"], reconnect=True)
+
+if __name__ == "__main__":
+    loop = asyncio.get_event_loop()
+    logger = logging.getLogger("discord")
+    
+    setup_logging()
+    check_json()
+
+    bot = ziBot()
+    bot.run()
