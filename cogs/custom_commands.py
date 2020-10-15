@@ -34,8 +34,7 @@ class CustomCommands(commands.Cog, name="customcommands"):
             "@here", "@\u200bhere"
         )
 
-    async def send_tag_content(self, ctx, name):
-        lookup = name.lower().strip()
+    def fetch_blocks(self, ctx, message):
         # TSE's documentation is pretty bad so this is my workaround for now
         special_vals = {
             "mention": adapter.StringAdapter(ctx.author.mention),
@@ -48,6 +47,10 @@ class CustomCommands(commands.Cog, name="customcommands"):
             ),
             "server": adapter.StringAdapter(ctx.guild.name),
         }
+        return self.clean_tag_content(self.engine.process(message, special_vals).body)
+
+    async def send_tag_content(self, ctx, name):
+        lookup = name.lower().strip()
         self.bot.c.execute(
             "SELECT * FROM tags WHERE (name = ? AND id = ?)",
             (lookup, str(ctx.guild.id)),
@@ -69,8 +72,7 @@ class CustomCommands(commands.Cog, name="customcommands"):
             (lookup, str(ctx.guild.id)),
         )
         self.bot.conn.commit()
-        content = self.clean_tag_content(a[2])
-        content = self.engine.process(content, special_vals).body
+        content = self.fetch_blocks(ctx, a[2])
         await ctx.send(content)
 
     def is_mod():
