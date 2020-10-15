@@ -2,6 +2,7 @@ import asyncio
 import discord
 import logging
 
+from .utilities.stringparamadapter import StringParamAdapter
 from discord.ext import commands
 from random import randint
 from TagScriptEngine import Verb, Interpreter, adapter, block
@@ -17,13 +18,19 @@ class Welcome(commands.Cog, name="welcome"):
     def fetch_special_val(self, member, message: str):
         special_vals = {
             "mention": adapter.StringAdapter(member.mention),
-            "user": adapter.StringAdapter(member.name),
-            "server": adapter.StringAdapter(member.guild.name),
-            "user(id)": adapter.StringAdapter(str(member.id)),
-            "user(proper)": adapter.StringAdapter(
-                f"{member.name}#{member.discriminator}"
+            "user": StringParamAdapter(
+                member.name,
+                {
+                    "id": str(member.id),
+                    "proper": f"{member.name}#{member.discriminator}",
+                },
             ),
-            "server(members)": adapter.StringAdapter(str(member.guild.member_count)),
+            "server": StringParamAdapter(
+                member.guild.name, {
+                    "id": str(member.guild.id),
+                    "members": str(len(member.guild.members))
+                }
+            ),
         }
         # for key in list(special_vals.keys()):
         #     message = message.replace(key, str(special_vals[key]))

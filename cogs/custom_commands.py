@@ -7,12 +7,15 @@ import logging
 import os
 import time
 
+from .utilities.embed_formatting import em_ctx_send_error
+from .utilities.formatting import realtime
+from .utilities.stringparamadapter import StringParamAdapter
 from bot import get_cogs
-from cogs.utilities.embed_formatting import em_ctx_send_error
 from discord.errors import Forbidden
 from discord.ext import commands
 from pytz import timezone
-from utilities.formatting import realtime
+from TagScriptEngine import Verb, Interpreter, adapter, block
+from blocks import zibot
 
 
 class CustomCommands(commands.Cog, name="customcommands"):
@@ -23,6 +26,8 @@ class CustomCommands(commands.Cog, name="customcommands"):
             """CREATE TABLE IF NOT EXISTS tags
                 (id text, name text, content text, created int, updated int, uses real, author text)"""
         )
+        self.blocks = [block.RandomBlock(), block.StrictVariableGetterBlock()]
+        self.engine = Interpreter(self.blocks)
 
     def clean_tag_content(self, content):
         return content.replace("@everyone", "@\u200beveryone").replace(
@@ -31,8 +36,18 @@ class CustomCommands(commands.Cog, name="customcommands"):
 
     async def send_tag_content(self, ctx, name):
         lookup = name.lower().strip()
-        if ctx.prefix == "@" and (lookup == "everyone" or lookup == "here"):
-            return
+        # TSE's documentation is pretty bad so this is my workaround for now
+        special_vals = {
+            "mention": adapter.StringAdapter(ctx.author.mention),
+            "user": StringParamAdapter(
+                ctx.author.name,
+                {
+                    "id": str(ctx.author.id),
+                    "proper": f"{ctx.author.name}#{ctx.author.discriminator}",
+                },
+            ),
+            "server": adapter.StringAdapter(ctx.guild.name),
+        }
         self.bot.c.execute(
             "SELECT * FROM tags WHERE (name = ? AND id = ?)",
             (lookup, str(ctx.guild.id)),
@@ -44,7 +59,9 @@ class CustomCommands(commands.Cog, name="customcommands"):
         )
         send_err = self.bot.c.fetchone()
         if not a:
-            if send_err[0] == 0:
+            if send_err[0] == 0 or (
+                ctx.prefix == "@" and (lookup == "everyone" or lookup == "here")
+            ):
                 return
             return await em_ctx_send_error(ctx, f"No command called `{name}`")
         self.bot.c.execute(
@@ -53,6 +70,7 @@ class CustomCommands(commands.Cog, name="customcommands"):
         )
         self.bot.conn.commit()
         content = self.clean_tag_content(a[2])
+        content = self.engine.process(content, special_vals).body
         await ctx.send(content)
 
     def is_mod():
