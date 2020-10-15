@@ -43,8 +43,7 @@ class Fun(commands.Cog, name="fun"):
     @commands.cooldown(1, 5)
     async def flip(self, ctx):
         """Flip a coin."""
-        coin_side = ["heads", "tails"]
-        await ctx.send(f"{ctx.message.author.mention} {coin_side[randint(0, 1)]}")
+        await ctx.send(f"{ctx.message.author.mention} {coin_side[choice(["heads", "tails"])]}")
 
     @flip.error
     async def flip_handler(self, ctx, error):
@@ -122,7 +121,7 @@ class Fun(commands.Cog, name="fun"):
 
         if ctx.channel != meme_channel:
             async with ctx.typing():
-                await ctx.send(f"Please do this command on {meme_channel.mention}")
+                await ctx.send(f"Please do this command in {meme_channel.mention}")
                 return
         async with meme_channel.typing():
             selected_subreddit = meme_subreddits[randint(0, len(meme_subreddits) - 1)]
