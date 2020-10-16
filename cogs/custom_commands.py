@@ -35,7 +35,7 @@ class CustomCommands(commands.Cog, name="customcommands"):
             "@here", "@\u200bhere"
         )
 
-    def fetch_blocks(self, ctx, message):
+    def fetch_tags(self, ctx, message):
         # TSE's documentation is pretty bad so this is my workaround for now
         special_vals = {
             "mention": adapter.StringAdapter(ctx.author.mention),
@@ -79,7 +79,7 @@ class CustomCommands(commands.Cog, name="customcommands"):
             (lookup, str(ctx.guild.id)),
         )
         self.bot.conn.commit()
-        content = self.fetch_blocks(ctx, a[2])
+        content = self.fetch_tags(ctx, a[2])
         await ctx.send(content)
 
     def is_mod():
