@@ -53,6 +53,7 @@ class CustomCommands(commands.Cog, name="customcommands"):
                     "members": str(len(ctx.guild.members)),
                 },
             ),
+            "unix": adapter.IntAdapter(int(datetime.datetime.utcnow().timestamp())),
         }
         return self.clean_tag_content(self.engine.process(message, special_vals).body)
 
