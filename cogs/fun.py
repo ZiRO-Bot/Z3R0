@@ -43,7 +43,7 @@ class Fun(commands.Cog, name="fun"):
     @commands.cooldown(1, 5)
     async def flip(self, ctx):
         """Flip a coin."""
-        await ctx.send(f"{ctx.message.author.mention} {coin_side[choice(["heads", "tails"])]}")
+        await ctx.send(f"{ctx.message.author.mention} {choice(['heads', 'tails'])}")
 
     @flip.error
     async def flip_handler(self, ctx, error):
