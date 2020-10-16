@@ -83,7 +83,7 @@ class CustomCommands(commands.Cog, name="customcommands"):
 
     @commands.group(
         name="command",
-        aliases=["tag", "customcommand"],
+        aliases=["tag", "customcommand", "cmd"],
         invoke_without_command=True,
         usage="(command name)",
     )
@@ -186,15 +186,15 @@ class CustomCommands(commands.Cog, name="customcommands"):
     async def command_list(self, ctx):
         """Show all custom commands."""
         tags = self.bot.c.execute(
-            "SELECT name FROM tags WHERE id=? ORDER BY uses DESC", (str(ctx.guild.id),)
+            "SELECT * FROM tags WHERE id=? ORDER BY uses DESC", (str(ctx.guild.id),)
         )
         tags = tags.fetchall()
-        tags = [x[0] for x in tags]
+        tags = {x[1]: {"uses": x[5]} for x in tags}
         if tags:
             e = discord.Embed(title="Custom Commands")
             e.description = ""
-            for tag in tags:
-                e.description += f"{tags.index(tag) + 1}. {tag}\n"
+            for key, val in tags.items():
+                e.description += f"{list(tags.keys()).index(key) + 1}. {key} **[{int(val['uses'])} uses]**\n"
             await ctx.send(embed=e)
         else:
             await ctx.send("This server doesn't have custom command")
