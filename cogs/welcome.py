@@ -26,10 +26,8 @@ class Welcome(commands.Cog, name="welcome"):
                 },
             ),
             "server": StringParamAdapter(
-                member.guild.name, {
-                    "id": str(member.guild.id),
-                    "members": str(len(member.guild.members))
-                }
+                member.guild.name,
+                {"id": str(member.guild.id), "members": str(len(member.guild.members))},
             ),
         }
         # for key in list(special_vals.keys()):

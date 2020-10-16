@@ -516,12 +516,14 @@ class AniList(commands.Cog, name="anilist"):
 
     def set_guild_watchlist(self, guild, watchlist):
         if not watchlist:
-            self.bot.c.execute("UPDATE ani_watchlist SET anime_id=? WHERE id=?", (None, guild.id))
+            self.bot.c.execute(
+                "UPDATE ani_watchlist SET anime_id=? WHERE id=?", (None, guild.id)
+            )
             self.bot.conn.commit()
             self.watchlist[guild.id] = watchlist
         else:
             self.bot.c.execute(
-                "UPDATE ani_watchlist SET anime_id=? WHERE id=?", 
+                "UPDATE ani_watchlist SET anime_id=? WHERE id=?",
                 (",".join(sorted(watchlist)), str(guild.id)),
             )
 
@@ -704,7 +706,7 @@ class AniList(commands.Cog, name="anilist"):
                 watchlist[int(ctx.guild.id)] = [str(_id_)]
 
             new_watchlist = ",".join(watchlist[int(ctx.guild.id)])
-            
+
             self.set_guild_watchlist(ctx.guild, new_watchlist)
 
             embed = discord.Embed(

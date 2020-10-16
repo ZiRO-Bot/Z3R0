@@ -173,12 +173,14 @@ class SRC(commands.Cog, name="src"):
     #     # await ctx.send(data['names']['international'])
     #     pass
 
-    @commands.command(aliases=['cats'])
+    @commands.command(aliases=["cats"])
     async def categories(self, ctx, game):
         game = await self.get_game(game)
         game = game[0]
         catdict = await self.get_cats(game["id"])
-        e = discord.Embed(title=f"{game['name']} Categories", colour=discord.Colour.gold())
+        e = discord.Embed(
+            title=f"{game['name']} Categories", colour=discord.Colour.gold()
+        )
         e.set_author(
             name=f"speedrun.com",
             icon_url="https://www.speedrun.com/themes/Default/1st.png",

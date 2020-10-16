@@ -7,6 +7,7 @@ import logging
 import os
 import time
 
+from .utilities.tse_blocks import RandomBlock
 from .utilities.embed_formatting import em_ctx_send_error
 from .utilities.formatting import realtime
 from .utilities.stringparamadapter import StringParamAdapter
@@ -26,7 +27,7 @@ class CustomCommands(commands.Cog, name="customcommands"):
             """CREATE TABLE IF NOT EXISTS tags
                 (id text, name text, content text, created int, updated int, uses real, author text)"""
         )
-        self.blocks = [block.RandomBlock(), block.StrictVariableGetterBlock()]
+        self.blocks = [RandomBlock(), block.StrictVariableGetterBlock()]
         self.engine = Interpreter(self.blocks)
 
     def clean_tag_content(self, content):
@@ -43,9 +44,15 @@ class CustomCommands(commands.Cog, name="customcommands"):
                 {
                     "id": str(ctx.author.id),
                     "proper": f"{ctx.author.name}#{ctx.author.discriminator}",
+                    "mention": ctx.author.mention,
                 },
             ),
-            "server": adapter.StringAdapter(ctx.guild.name),
+            "server": StringParamAdapter(
+                ctx.guild.name,
+                {
+                    "members": str(len(ctx.guild.members)),
+                },
+            ),
         }
         return self.clean_tag_content(self.engine.process(message, special_vals).body)
 
