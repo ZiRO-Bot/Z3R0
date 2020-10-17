@@ -144,8 +144,9 @@ class CustomHelp(commands.HelpCommand):
             subcmds += "```"
             embed.add_field(name="Subcommands", value=subcmds)
             if command.example:
-                value = str(group.example).replace("{prefix}", self.clean_prefix)
-                embed.add_field(name="Example", value=f"```{value}```")
+                value = "```" + str(group.example).replace("{prefix}", self.clean_prefix) + "```"
+                if value != "``````":
+                    embed.add_field(name="Example", value=value)
 
         embed.set_footer(text=self.get_ending_note())
         await self.get_destination().send(embed=embed)
