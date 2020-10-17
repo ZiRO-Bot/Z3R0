@@ -104,7 +104,11 @@ class SRC(commands.Cog, name="src"):
         """Get mcbe run informations from speedrun.com."""
         pass
 
-    @mcbe.command(name="wrs", usage="[category] [seed] [main/ext]")
+    @mcbe.command(
+        name="wrs",
+        usage="[category] [seed] [main/ext]",
+        example='{prefix}mcbe wrs "Any% Glitchless" "Set Seed"',
+    )
     async def mcbe_wrs(
         self,
         ctx,
@@ -112,6 +116,7 @@ class SRC(commands.Cog, name="src"):
         seed: str = "set_seed",
         leaderboard: str = "main",
     ):
+        """Get mcbe world records from speedrun.com"""
         if leaderboard == "main":
             leaderboard = "mcbe"
         elif leaderboard == "ext":
@@ -172,6 +177,12 @@ class SRC(commands.Cog, name="src"):
     #     await self.get_subcats(data[0]["id"], category)
     #     # await ctx.send(data['names']['international'])
     #     pass
+
+    @commands.command()
+    async def wr(self, ctx, game, category: str = None):
+        game = await self.get_game(game)
+        game = game[0]
+        print(game)
 
     @commands.command(aliases=["cats"])
     async def categories(self, ctx, game):
