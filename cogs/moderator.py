@@ -187,7 +187,7 @@ class Admin(commands.Cog, name="moderation"):
 
     @commands.command(aliases=["cc"], usage="[amount of chat]", hidden=True)
     @checks.is_mod()
-    async def clearchat(self, ctx, numb: int = 100):
+    async def clearchat(self, ctx, numb):
         """Clear the chat."""
         deleted_msg = await ctx.message.channel.purge(
             limit=int(numb) + 1,
