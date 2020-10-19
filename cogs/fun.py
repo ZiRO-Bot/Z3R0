@@ -442,7 +442,7 @@ class Fun(commands.Cog, name="fun"):
                 return
             await ctx.send(embed=embed)
     
-    @commands.command()
+    @commands.command(aliases=["findhusbando"])
     async def findwaifu(self, ctx):
         """Get a random waifu."""
         async with self.bot.session.get("https://mywaifulist.moe/random") as page:
