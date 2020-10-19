@@ -407,36 +407,23 @@ class Fun(commands.Cog, name="fun"):
             except UnboundLocalError:
                 pass
 
-@commands.command()
-    @is_reddit()
+    @commands.command()
     async def findanime(self, ctx):
         """Find a random anime picture."""
         reddit = self.reddit
-        self.bot.c.execute(
-            "SELECT meme_ch FROM servers WHERE id=?", (str(ctx.guild.id),)
-        )
-        meme_channel = self.bot.get_channel(int(self.bot.c.fetchone()[0] or 0))
-        if not meme_channel:
-            meme_channel = ctx.channel
 
-        findanime_subreddits = ["animereactionimages"]
         reg_img = r".*/(i)\.redd\.it"
 
-        if ctx.channel != meme_channel:
-            async with ctx.typing():
-                await ctx.send(f"Please do this command in {meme_channel.mention}")
-                return
-        async with meme_channel.typing():
-            selected_subreddit = animereactionimages[randint(0, len(animereactionimages) - 1)]
-            findanime_submissions = reddit.subreddit(selected_subreddit).hot()
+        async with ctx.channel.typing():
+            findanime_submissions = reddit.subreddit('animereactionimages').hot()
             post_to_pick = randint(1, 50)
             for i in range(0, post_to_pick):
                 submission = next(x for x in findanime_submissions if not x.stickied)
             if submission.over_18:
-                return
+                return await ctx.send("18+ Submission detected, please try again.")
             embed = discord.Embed(
-                title=f"r/{selected_subreddit} " + f"- {submission.title}",
-                colour=discord.Colour(00F),
+                title=f"r/animereactionimages " + f"- {submission.title}",
+                colour=discord.Colour(0xFFFFF0),
             )
             embed.set_author(
                 name="Reddit",
@@ -449,10 +436,10 @@ class Fun(commands.Cog, name="fun"):
             if match:
                 embed.set_image(url=submission.url)
             else:
-                await meme_channel.send(embed=embed)
-                await meme_channel.send(submission.url)
+                await ctx.send(embed=embed)
+                await ctx.send(submission.url)
                 return
-            await meme_channel.send(embed=embed)
+            await ctx.send(embed=embed)
 
 def setup(bot):
     bot.add_cog(Fun(bot))
