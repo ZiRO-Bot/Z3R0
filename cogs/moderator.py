@@ -185,7 +185,7 @@ class Admin(commands.Cog, name="moderation"):
             await ctx.send(f"{ext} failed to load! Check the log for details.")
             self.bot.logger.exception(f"Failed to reload extension {ext}:")
 
-    @commands.command(aliases=["cc"], usage="[amount of chat]", hidden=True)
+    @commands.command(aliases=["cc"], usage="(amount of chat)", hidden=True)
     @checks.is_mod()
     async def clearchat(self, ctx, numb):
         """Clear the chat."""
