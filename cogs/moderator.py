@@ -606,20 +606,6 @@ class Admin(commands.Cog, name="moderation"):
 
         await ctx.send(f"```{clean_bytes(proc.stdout.readlines())}```")
 
-    @commands.command(usage="(command)")
-    @checks.is_botmaster()
-    async def sudo(self, ctx: commands.Context, *, command_string: str):
-        """
-        Run a command bypassing all checks and cooldowns.
-        """
-
-        alt_ctx = await copy_context_with(ctx, content=ctx.prefix + command_string)
-
-        if alt_ctx.command is None:
-            return await ctx.send(f'Command "{alt_ctx.invoked_with}" is not found')
-
-        return await alt_ctx.command.reinvoke(alt_ctx)
-
     @commands.group()
     @checks.is_mod()
     async def role(self, ctx):
