@@ -6,6 +6,7 @@ import os
 import praw
 import re
 
+from bs4 import BeautifulSoup
 from cogs.errors.fun import DiceTooBig
 from cogs.utilities.embed_formatting import em_ctx_send_error
 from discord.ext import commands
@@ -440,6 +441,19 @@ class Fun(commands.Cog, name="fun"):
                 await ctx.send(submission.url)
                 return
             await ctx.send(embed=embed)
+    
+    @commands.command()
+    async def findwaifu(self, ctx):
+        """Get a random waifu."""
+        async with self.bot.session.get("https://mywaifulist.moe/random") as page:
+            page = await page.text()
+            soup = BeautifulSoup(page, 'html.parser')
+            waifu = json.loads(soup.find('script', {"type": "application/ld+json"}).string)
+        if not waifu:
+            return
+        e = discord.Embed(title=waifu['name'])
+        e.set_image(url=waifu['image'])
+        await ctx.send(embed=e)
 
 def setup(bot):
     bot.add_cog(Fun(bot))
