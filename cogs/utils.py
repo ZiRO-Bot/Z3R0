@@ -3,6 +3,7 @@ import bot
 import datetime
 import discord
 import logging
+import re
 import time
 
 from aiogoogletrans import Translator
@@ -16,6 +17,14 @@ class Utils(commands.Cog, name="utils"):
     def __init__(self, bot):
         self.bot = bot
         self.logger = logging.getLogger("discord")
+        self.spoilers = re.compile(r"\|\|(.+?)\|\|")
+
+    def is_url_spoiler(self, text, url):
+        spoilers = self.spoilers.findall(text)
+        for spoiler in spoilers:
+            if url in spoiler:
+                return True
+        return False
 
     def get_disabled(self, ctx):
         self.bot.c.execute(
@@ -146,6 +155,14 @@ class Utils(commands.Cog, name="utils"):
             name=f"{message.author.name}#{message.author.discriminator}",
             icon_url=message.author.avatar_url,
         )
+
+        if message.embeds:
+            data = message.embeds[0]
+            if data.type == "image" and not self.is_url_spoiler(
+                message.content, data.url
+            ):
+                embed.set_image(url=data.url)
+
         if message.attachments:
             _file = message.attachments[0]
             spoiler = _file.is_spoiler()
@@ -193,6 +210,14 @@ class Utils(commands.Cog, name="utils"):
             name="**Original Message**", value=message.content or "\u200b", inline=False
         )
         embed.add_field(name="**New Message**", value=after.content, inline=False)
+
+        if message.embeds:
+            data = message.embeds[0]
+            if data.type == "image" and not self.is_url_spoiler(
+                message.content, data.url
+            ):
+                embed.set_image(url=data.url)
+
         if message.attachments:
             _file = message.attachments[0]
             spoiler = _file.is_spoiler()

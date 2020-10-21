@@ -17,6 +17,11 @@ class ErrorHandler(commands.Cog):
         if isinstance(error, commands.CommandNotFound):
             return
 
+        if isinstance(error, commands.MissingRequiredArgument):
+            return await ctx.send(
+                f"Usage: `{ctx.prefix}{ctx.command.qualified_name} {ctx.command.signature}`"
+            )
+
         if isinstance(error, commands.CommandOnCooldown):
             bot_msg = await ctx.send(
                 f"{ctx.message.author.mention}," + f" slowdown bud!"

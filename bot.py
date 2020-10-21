@@ -1,3 +1,4 @@
+import asyncio
 import aiohttp
 import copy
 import discord
@@ -54,34 +55,44 @@ start_time = time.time()
 
 def get_prefix(bot, message):
     """A callable Prefix for our bot. This could be edited to allow per server prefixes."""
-
-    bot.c.execute("SELECT * FROM servers WHERE (id=?)", (str(message.guild.id),))
-    servers_row = bot.c.fetchall()
-    pre = {k[0]: k[1] or ">" for k in servers_row}
-    prefixes = {int(k): v.split(",") for (k, v) in pre.items()}
-
-    return prefixes[message.guild.id]
+    base = []
+    if not message.guild:
+        base.append(">")
+    else:
+        base.extend(bot.prefixes.get(message.guild.id, [">"]))
+    return base
 
 
 class ziBot(commands.Bot):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self):
+        super().__init__(
+            command_prefix=get_prefix,
+            case_insensitive=True,
+            allowed_mentions=discord.AllowedMentions(users=True, roles=False),
+            intents=discord.Intents.all(),
+        )
+
+        # Init database
+        self.conn = sqlite3.connect("data/database.db")
+        self.c = self.conn.cursor()
+
+        self.c.execute("SELECT * FROM servers WHERE 1")
+        servers_row = self.c.fetchall()
+        pre = {k[0]: k[1] or ">" for k in servers_row}
+        self.prefixes = {int(k): v.split(",") for (k, v) in pre.items()}
 
         self.logger = logging.getLogger("discord")
-        self.session = aiohttp.ClientSession()
+        self.session = aiohttp.ClientSession(loop=self.loop)
         self.def_prefix = ">"
         self.norules = [758764126679072788, 747984453585993808, 745481731133669476]
 
         with open("config.json", "r") as f:
             self.config = json.load(f)
 
-        if not self.config['bot_token']:
+        if not self.config["bot_token"]:
             self.logger.error("No token found. Please add it to config.json!")
             raise AttributeError("No token found!")
 
-        # Init database
-        self.conn = sqlite3.connect("data/database.db")
-        self.c = self.conn.cursor()
         # Create "servers" table if its not exists
         self.c.execute(
             """CREATE TABLE IF NOT EXISTS servers
@@ -106,6 +117,21 @@ class ziBot(commands.Bot):
 
         self.master = [186713080841895936]
 
+    def set_guild_prefixes(self, guild, prefixes):
+        if not prefixes:
+            self.c.execute("UPDATE servers SET prefix=? WHERE id=?", (None, guild.id))
+            self.conn.commit()
+            self.prefixes[guild.id] = prefixes
+        elif len(prefixes) > 15:
+            raise RuntimeError("You can only add up to 15 prefixes.")
+        else:
+            self.c.execute(
+                "UPDATE servers SET prefixes = ? WHERE id = ?",
+                (",".join(sorted(prefixes)), str(guild.id)),
+            )
+            self.conn.commit()
+            self.prefixes[guild.id] = sorted(set(prefixes))
+
     def add_empty_data(self, guild):
         # guild_id, prefix, anime_ch, greeting_ch, meme_ch, purge_ch
         self.c.execute(
@@ -129,7 +155,14 @@ class ziBot(commands.Bot):
         self.c.execute(
             """INSERT OR IGNORE INTO settings
             VALUES (?, ?, ?, ?, ?, ?)""",
-            (str(guild.id), 0, None, None, None, "command add,command edit,command remove"),
+            (
+                str(guild.id),
+                0,
+                None,
+                None,
+                None,
+                "command add,command edit,command remove",
+            ),
         )
         self.conn.commit()
 
@@ -203,4 +236,4 @@ class ziBot(commands.Bot):
         await self.session.close()
 
     def run(self):
-        super().run(self.config['bot_token'], reconnect=True)
+        super().run(self.config["bot_token"], reconnect=True)

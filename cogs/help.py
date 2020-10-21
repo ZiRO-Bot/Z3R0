@@ -25,7 +25,7 @@ class CustomHelp(commands.HelpCommand):
         return desc
 
     def get_ending_note(self):
-        return "Use {0}{1} [command] for more info on a command.".format(
+        return "Use {0}{1} [command] for more info on a command, or {0}{1} [category] for more info on a category".format(
             self.clean_prefix, self.invoked_with
         )
 
@@ -41,7 +41,7 @@ class CustomHelp(commands.HelpCommand):
         return f"Command `{command.qualified_name}` has no subcommands"
 
     def cmd_and_alias(self, command):
-        cmd = " | ".join([str(command.qualified_name), *command.aliases])
+        cmd = "|".join([str(command.qualified_name), *command.aliases])
         return cmd
 
     async def send_error_message(self, error):
@@ -54,7 +54,12 @@ class CustomHelp(commands.HelpCommand):
     async def send_bot_help(self, mapping):
         destination = self.get_destination()
         embed = discord.Embed(
-            title="Bot Commands", description=self.get_desc(), colour=self.COLOUR
+            title="Categories",
+            description=self.get_desc()
+            + "\n"
+            + "`()` = Required\n"
+            + "`[]` = Optional",
+            colour=self.COLOUR,
         )
         for cog, commands in mapping.items():
 
@@ -115,11 +120,8 @@ class CustomHelp(commands.HelpCommand):
 
     async def send_group_help(self, group):
         embed = discord.Embed(
-            title=group.qualified_name,
-            description=self.get_desc()
-            + "\n"
-            + "`()` = Required\n"
-            + "`[]` = Optional",
+            title=self.clean_prefix + self.get_command_signature(group),
+            description=self.get_desc(),
             colour=self.COLOUR,
         )
         if group.help:
@@ -127,34 +129,37 @@ class CustomHelp(commands.HelpCommand):
 
         if isinstance(group, commands.Group):
             filtered = await self.filter_commands(group.commands, sort=True)
+            subcmds = "```"
             for command in filtered:
                 if command.brief:
                     value = command.brief
                 else:
                     value = command.short_doc
-                embed.add_field(
-                    name=self.get_command_signature(command),
-                    value=value or "No description.",
-                    inline=False,
-                )
+                subcmds += f"{self.clean_prefix}{self.get_command_signature(command)}\n{value}\n\n"
+                # embed.add_field(
+                #     name=self.get_command_signature(command),
+                #     value=value or "No description.",
+                #     inline=False,
+                # )
+            subcmds += "```"
+            embed.add_field(name="Subcommands", value=subcmds)
+            if command.example:
+                value = "```" + str(group.example).replace("{prefix}", self.clean_prefix) + "```"
+                if value != "``````":
+                    embed.add_field(name="Example", value=value)
 
         embed.set_footer(text=self.get_ending_note())
         await self.get_destination().send(embed=embed)
 
     async def send_command_help(self, command):
         embed = discord.Embed(
-            title=f"Help with {command.qualified_name} command",
-            description=self.get_desc()
-            + "\n\
-                                 `()` = Required\n\
-                                 `[]` = Optional",
+            title=self.clean_prefix + self.get_command_signature(command),
+            description=command.help or "No description.",
             colour=self.COLOUR,
         )
-        if command.help:
-            value = command.help
-        embed.add_field(
-            name=self.get_command_signature(command), value=value or "No description."
-        )
+        if command.example:
+            value = str(command.example).replace("{prefix}", self.clean_prefix)
+            embed.add_field(name="Example", value=f"```{value}```")
 
         await self.get_destination().send(embed=embed)
 

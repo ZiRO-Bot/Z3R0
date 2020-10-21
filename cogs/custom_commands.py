@@ -7,12 +7,16 @@ import logging
 import os
 import time
 
+from .utilities.tse_blocks import RandomBlock
+from .utilities.embed_formatting import em_ctx_send_error
+from .utilities.formatting import realtime
+from .utilities.stringparamadapter import StringParamAdapter
 from bot import get_cogs
-from cogs.utilities.embed_formatting import em_ctx_send_error
 from discord.errors import Forbidden
 from discord.ext import commands
 from pytz import timezone
-from utilities.formatting import realtime
+from TagScriptEngine import Verb, Interpreter, adapter, block
+from blocks import zibot
 
 
 class CustomCommands(commands.Cog, name="customcommands"):
@@ -23,16 +27,38 @@ class CustomCommands(commands.Cog, name="customcommands"):
             """CREATE TABLE IF NOT EXISTS tags
                 (id text, name text, content text, created int, updated int, uses real, author text)"""
         )
+        self.blocks = [RandomBlock(), block.StrictVariableGetterBlock()]
+        self.engine = Interpreter(self.blocks)
 
     def clean_tag_content(self, content):
         return content.replace("@everyone", "@\u200beveryone").replace(
             "@here", "@\u200bhere"
         )
 
+    def fetch_tags(self, ctx, message):
+        # TSE's documentation is pretty bad so this is my workaround for now
+        special_vals = {
+            "mention": adapter.StringAdapter(ctx.author.mention),
+            "user": StringParamAdapter(
+                ctx.author.name,
+                {
+                    "id": str(ctx.author.id),
+                    "proper": f"{ctx.author.name}#{ctx.author.discriminator}",
+                    "mention": ctx.author.mention,
+                },
+            ),
+            "server": StringParamAdapter(
+                ctx.guild.name,
+                {
+                    "members": str(len(ctx.guild.members)),
+                },
+            ),
+            "unix": adapter.IntAdapter(int(datetime.datetime.utcnow().timestamp())),
+        }
+        return self.clean_tag_content(self.engine.process(message, special_vals).body)
+
     async def send_tag_content(self, ctx, name):
         lookup = name.lower().strip()
-        if ctx.prefix == "@" and (lookup == "everyone" or lookup == "here"):
-            return
         self.bot.c.execute(
             "SELECT * FROM tags WHERE (name = ? AND id = ?)",
             (lookup, str(ctx.guild.id)),
@@ -44,7 +70,9 @@ class CustomCommands(commands.Cog, name="customcommands"):
         )
         send_err = self.bot.c.fetchone()
         if not a:
-            if send_err[0] == 0:
+            if send_err[0] == 0 or (
+                ctx.prefix == "@" and (lookup == "everyone" or lookup == "here")
+            ):
                 return
             return await em_ctx_send_error(ctx, f"No command called `{name}`")
         self.bot.c.execute(
@@ -52,9 +80,9 @@ class CustomCommands(commands.Cog, name="customcommands"):
             (lookup, str(ctx.guild.id)),
         )
         self.bot.conn.commit()
-        content = self.clean_tag_content(a[2])
+        content = self.fetch_tags(ctx, a[2])
         await ctx.send(content)
-    
+
     def is_mod():
         def predicate(ctx):
             return ctx.author.guild_permissions.manage_channels
@@ -63,7 +91,7 @@ class CustomCommands(commands.Cog, name="customcommands"):
 
     @commands.group(
         name="command",
-        aliases=["tag", "customcommand"],
+        aliases=["tag", "customcommand", "cmd"],
         invoke_without_command=True,
         usage="(command name)",
     )
@@ -166,20 +194,20 @@ class CustomCommands(commands.Cog, name="customcommands"):
     async def command_list(self, ctx):
         """Show all custom commands."""
         tags = self.bot.c.execute(
-            "SELECT name FROM tags WHERE id=? ORDER BY uses DESC", (str(ctx.guild.id),)
+            "SELECT * FROM tags WHERE id=? ORDER BY uses DESC", (str(ctx.guild.id),)
         )
         tags = tags.fetchall()
-        tags = [x[0] for x in tags]
+        tags = {x[1]: {"uses": x[5]} for x in tags}
         if tags:
             e = discord.Embed(title="Custom Commands")
             e.description = ""
-            for tag in tags:
-                e.description += f"{tags.index(tag) + 1}. {tag}\n"
+            for key, val in tags.items():
+                e.description += f"{list(tags.keys()).index(key) + 1}. {key} **[{int(val['uses'])} uses]**\n"
             await ctx.send(embed=e)
         else:
             await ctx.send("This server doesn't have custom command")
 
-    @custom.command(name="info", aliases=['?'], usage="(command name)")
+    @custom.command(name="info", aliases=["?"], usage="(command name)")
     async def command_info(self, ctx, name: str):
         """Show information of a custom command."""
         jakarta = timezone("Asia/Jakarta")

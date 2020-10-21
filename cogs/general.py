@@ -135,11 +135,11 @@ class General(commands.Cog, name="general"):
     def __init__(self, bot):
         self.bot = bot
         self.logger = logging.getLogger("discord")
-        self.weather_key = self.bot.config['openweather_apikey']
+        self.weather_key = self.bot.config["openweather_apikey"]
 
     def is_weather():
         def predicate(ctx):
-            if ctx.bot.config['openweather_apikey']:
+            if ctx.bot.config["openweather_apikey"]:
                 return True
 
         return commands.check(predicate)
@@ -400,6 +400,7 @@ class General(commands.Cog, name="general"):
     @commands.command(aliases=["bi", "about", "info", "uptime", "up", "invite"])
     async def botinfo(self, ctx):
         """Show bot information."""
+        bot_ver = "2.1.S"
         start = time.perf_counter()
         invite_link = discord.utils.oauth_url(
             self.bot.user.id, permissions=None, guild=None, redirect_uri=None
@@ -417,13 +418,14 @@ class General(commands.Cog, name="general"):
         )
         embed.add_field(
             name="discord.py",
-            value=f"[{discord.__version__}](https://github.com/Rapptz/discord.py)",
+            value=f"[{discord.__version__}-modified](https://github.com/null2264/discord.py)",
         )
         embed.add_field(
             name="Links",
             value=f"[Invitation]({invite_link})\n"
             + "[Donate](https://www.patreon.com/ziro2264)\n"
             + "[GitHub Repo](https://github.com/null2264/ziBot)\n"
+            + "[Documentation](https://ziro-bot.github.io)\n"
             + "[Support Server](https://discord.gg/sP9xRy6)\n",
         )
         embed.add_field(
@@ -439,7 +441,7 @@ class General(commands.Cog, name="general"):
             value="**ziBot** is an open source bot, "
             + "a fork of [mcbeDiscordBot](https://github.com/AnInternetTroll/mcbeDiscordBot) "
             + "(Steve the Bot) created by [AnInternetTroll](https://github.com/AnInternetTroll), "
-            + "but rewritten a bit.\n\n**Bot Version**: 2.0",
+            + f"but rewritten a bit.\n\n**Bot Version**: {bot_ver}",
             inline=False,
         )
         embed.set_footer(
@@ -502,7 +504,7 @@ class General(commands.Cog, name="general"):
             )
             await ctx.send(embed=embed)
 
-    @commands.command()
+    @commands.command(usage="(words)", example="{prefix}morse SOS")
     async def morse(self, ctx, *msg):
         """Encode message into morse code."""
         encoded = encode(" ".join([*msg]))
@@ -514,7 +516,9 @@ class General(commands.Cog, name="general"):
         )
         await ctx.send(embed=e)
 
-    @commands.command(aliases=["demorse"])
+    @commands.command(
+        usage="(morse code)", aliases=["demorse"], example="{prefix}unmorse ... --- ..."
+    )
     async def unmorse(self, ctx, *msg):
         """Decode morse code."""
         decoded = decode(str(" ".join([*msg])))
@@ -586,7 +590,9 @@ class General(commands.Cog, name="general"):
         )
         await ctx.send(embed=e)
 
-    @commands.group(usage="(city)", invoke_without_command=True)
+    @commands.group(
+        usage="(city)", invoke_without_command=True, example="{prefix}weather Palembang"
+    )
     @is_weather()
     async def weather(self, ctx, *city):
         """Show weather report."""
@@ -618,7 +624,9 @@ class General(commands.Cog, name="general"):
         )
         await ctx.send(embed=e)
 
-    @weather.command(name="city")
+    @weather.command(
+        name="city", usage="(city)", example="{prefix}weather city Palembang"
+    )
     async def weather_city(self, ctx, *city):
         """Show weather report from a city."""
         try:
@@ -649,7 +657,9 @@ class General(commands.Cog, name="general"):
         )
         await ctx.send(embed=e)
 
-    @weather.command(name="zip")
+    @weather.command(
+        name="zip", usage="(zip code)", example="{prefix}weather zip 10404"
+    )
     async def weather_zip(self, ctx, *city):
         """Show weather report from a zip code."""
         try:

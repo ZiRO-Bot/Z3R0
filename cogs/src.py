@@ -1,6 +1,7 @@
 import aiohttp
 import discord
 import json
+import re
 
 from discord.ext import commands
 from cogs.utilities.formatting import pformat, realtime, hformat
@@ -42,7 +43,7 @@ class SRC(commands.Cog, name="src"):
                 and i["category"] == cat_id
             ):
                 for e in i["values"]["values"]:
-                    subcategory[i["values"]["values"][e]["label"]] = {
+                    subcategory[pformat(i["values"]["values"][e]["label"])] = {
                         "name": i["values"]["values"][e]["label"],
                         "subcat_id": i["id"],
                         "id": e,
@@ -53,15 +54,25 @@ class SRC(commands.Cog, name="src"):
                 and not i["category"]
             ):
                 for e in i["values"]["values"]:
-                    subcategory[i["values"]["values"][e]["label"]] = {
+                    subcategory[pformat(i["values"]["values"][e]["label"])] = {
                         "name": i["values"]["values"][e]["label"],
                         "subcat_id": i["id"],
                         "id": e,
                     }
-        return subcategory
+        return {
+            category: {
+                "id": cat_id,
+                "name": catdict[category]["name"],
+                "sub_cats": subcategory,
+            }
+        }
 
     async def get_game(self, game):
         """Get game data without abbreviation."""
+        regex = r".*:\/\/.*\.speedrun\..*\/([a-zA-Z0-9]*)(.*)"
+        match = re.match(regex, game)
+        if match and match[1]:
+            game = match[1]
         data = await self.get(f"games/{game}")
         bulk = False
         try:
@@ -99,7 +110,11 @@ class SRC(commands.Cog, name="src"):
         """Get mcbe run informations from speedrun.com."""
         pass
 
-    @mcbe.command(name="wrs", usage="[category] [seed] [main/ext]")
+    @mcbe.command(
+        name="wrs",
+        usage="[category] [seed] [main/ext]",
+        example='{prefix}mcbe wrs "Any% Glitchless" "Set Seed"',
+    )
     async def mcbe_wrs(
         self,
         ctx,
@@ -107,6 +122,8 @@ class SRC(commands.Cog, name="src"):
         seed: str = "set_seed",
         leaderboard: str = "main",
     ):
+        """Get mcbe world records from speedrun.com"""
+
         if leaderboard == "main":
             leaderboard = "mcbe"
         elif leaderboard == "ext":
@@ -114,71 +131,147 @@ class SRC(commands.Cog, name="src"):
         else:
             await ctx.send(f"Usage: {ctx.prefix}mcbe wrs [category] [seed] [main/ext]")
             return
+
+        # preparation
         game = await self.get_game(leaderboard)
         game = game[0]
+
+        # fetch subcats
+        category = pformat(category)
         subcats = await self.get_subcats(game["id"], category)
-        cat_name = await self.get_cats(game["id"])
-        cat_name = cat_name[pformat(category)]["name"]
-        seeds = []
-        platforms = []
+
+        # get category id and display_name also separate subcats
+        cat_name = subcats[category]["name"]
+        cat_id = subcats[category]["id"]
+        subcats = subcats[category]["sub_cats"]
+
+        # separate seeds and platforms
+        seeds = {}
+        platforms = {}
         for i in subcats:
             if "seed" in i.lower():
-                seeds.append({pformat(i): subcats[i]})
+                seeds[pformat(i)] = subcats[i]
+                # seeds.append({pformat(i): subcats[i]})
             else:
-                platforms.append({pformat(i): subcats[i]})
-        for types in seeds:
-            for i in types:
-                if pformat(seed) == i:
-                    seed_name = types[i]["name"]
-                    seed_id = types[i]["id"]
-                    seed_subcat_id = types[i]["subcat_id"]
-        varlink = f"&var-{seed_subcat_id}={seed_id}"
+                platforms[pformat(i)] = subcats[i]
+                # platforms.append({pformat(i): subcats[i]})
+
+        # get the right seed type
+        sel_seed = ""
+        if seed in seeds:
+            sel_seed = seed
+        varlink = f"&var-{seeds[sel_seed]['subcat_id']}={seeds[sel_seed]['id']}"
+
+        # init embed
         e = discord.Embed(title="World Records", colour=discord.Colour.gold())
         e.set_thumbnail(
             url="https://raw.githubusercontent.com/null2264/null2264/master/assets/mcbe.png"
         )
-        for i in platforms:
-            for platform in i:
-                pf_varlink = f"&var-{i[platform]['subcat_id']}={i[platform]['id']}"
-                data = await self.get(
-                    f"leaderboards/{game['id']}/category/{category}?top=1&embed=players{varlink}{pf_varlink}"
-                )
-                data = data["data"]
-                rundata = data["runs"]
-                runners = []
-                for _runners in data["players"]["data"]:
-                    runners.append(_runners["names"]["international"])
-                runners = ", ".join(runners)
-                platform_name = i[platform]["name"]
-                e.add_field(
-                    name=platform_name,
-                    value=f"{runners} (**[{realtime(rundata[0]['run']['times']['realtime_t'])}]({rundata[0]['run']['weblink']})**)",
-                    inline=False
-                )
+
+        # get all platform wrs
+        for platform in platforms:
+            pf_varlink = (
+                f"&var-{platforms[platform]['subcat_id']}={platforms[platform]['id']}"
+            )
+            data = await self.get(
+                f"leaderboards/{game['id']}/category/{category}?top=1&embed=players{varlink}{pf_varlink}"
+            )
+            data = data["data"]
+            rundata = data["runs"]
+            runners = []
+            for _runners in data["players"]["data"]:
+                runners.append(_runners["names"]["international"])
+            runners = ", ".join(runners)
+            e.add_field(
+                name=platforms[platform]["name"],
+                value=f"{runners} (**[{realtime(rundata[0]['run']['times']['realtime_t'])}]({rundata[0]['run']['weblink']})**)",
+                inline=False,
+            )
+
+        # finalize embed the send it
         e.set_author(
-            name=f"MCBE - {cat_name} - {seed_name}",
+            name=f"MCBE - {cat_name} - {seeds[sel_seed]['name']}",
             icon_url="https://www.speedrun.com/themes/Default/1st.png",
         )
         await ctx.send(embed=e)
 
-    # @commands.command()
-    # async def lb(self, ctx, game, category):
-    #     data = await self.get_game(game)
-    #     await self.get_subcats(data[0]["id"], category)
-    #     # await ctx.send(data['names']['international'])
-    #     pass
+    @commands.command()
+    async def leaderboard(self, ctx, game="mc", category="any%"):
+        """Get leaderboard for a specific game. [Not available yet.]"""
+        await ctx.send("Coming Soon.")
 
-    # @commands.command()
-    # async def categories(self, ctx, game):
-    #     game = await self.get_game(game)
-    #     game = game[0]
-    #     catdict = await self.get_cats(game["id"])
-    #     e = discord.Embed(title=f"{game['name']} Categories")
-    #     for i in catdict:
-    #         e.add_field(
-    #             name=catdict[i]["name"], value=pformat(catdict[i]["name"]), inline=False
-    #         )
-    #     await ctx.send(embed=e)
+    @commands.command(aliases=["wr"], usage="(game) (category) [sub category]", example="{prefix}worldrecord mc \"Any% Glitchless\" \"Random Seed\"\n" + "{prefix}wr Celeste")
+    async def worldrecord(self, ctx, game, category: str = None, sub_category: str = None):
+        """Get the world record for a specific game."""
+        game = await self.get_game(game)
+        game = game[0]
+        link = f"games/{game['id']}/records?miscellaneous=no&scope=full-game&top=1"
+        if category:
+            cat_dict = await self.get_subcats(game["id"], pformat(category))
+            link = f"leaderboards/{game['id']}/category/{cat_dict[pformat(category)]['id']}?top=1"
+        var_link = ""
+        if (
+            sub_category
+            and pformat(sub_category) in cat_dict[pformat(category)]["sub_cats"]
+        ):
+            sub_cats = cat_dict[pformat(category)]["sub_cats"]
+            var_link = (
+                "&var-"
+                + sub_cats[pformat(sub_category)]["subcat_id"]
+                + "="
+                + sub_cats[pformat(sub_category)]["id"]
+            )
+
+        # Get data from speedrun.com api
+        data = await self.get(link + var_link + "&embed=game,category,players,platforms,regions")
+        data = data["data"]
+        if not category:
+            data = data[0]
+            category = data['category']['data']['name']
+            cat_dict = await self.get_subcats(game["id"], pformat(category))
+        if not data:
+            return
+
+        players = []
+        for i in data["players"]["data"]:
+            try:
+                players.append(i["names"]["international"])
+            except KeyError:
+                players.append(i['name'])
+
+        e = discord.Embed(
+            title=realtime(data["runs"][0]["run"]["times"]["primary_t"])
+            + " by "
+            + ", ".join(players),
+            colour=discord.Colour.gold(),
+        )
+        e.set_thumbnail(url=data['game']['data']['assets']['cover-large']['uri'])
+        e.set_author(
+            name=f"{game['name']} - {cat_dict[pformat(category)]['name']}",
+            icon_url="https://www.speedrun.com/themes/Default/1st.png",
+        )
+        e.add_field(name="Date Played", value=data['runs'][0]['run']['date'], inline=False)
+        e.add_field(name="Played On", value=data['platforms']['data'][0]['name'], inline=False)
+        await ctx.send(embed=e)
+
+    @commands.command(aliases=["cats"])
+    async def categories(self, ctx, game):
+        """Get speedrun categories for a specific game."""
+        game = await self.get_game(game)
+        game = game[0]
+        catdict = await self.get_cats(game["id"])
+        e = discord.Embed(
+            title=f"{game['name']} Categories", colour=discord.Colour.gold()
+        )
+        e.set_author(
+            name=f"speedrun.com",
+            icon_url="https://www.speedrun.com/themes/Default/1st.png",
+        )
+        for i in catdict:
+            e.add_field(
+                name=catdict[i]["name"], value=pformat(catdict[i]["name"]), inline=False
+            )
+        await ctx.send(embed=e)
 
 
 def setup(bot):

@@ -40,7 +40,7 @@ py -3 -m pip install -r requirements.txt
     "openweather_apikey": ""
 }
 ```
-- Launch the bot with ```python3 zibot.py```
+- Launch the bot with ```python3 main.py```
 
 ## TODOs
 [Click here](https://github.com/null2264/ziBot/projects) to see all the plan i have for this project.

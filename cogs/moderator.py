@@ -439,16 +439,11 @@ class Admin(commands.Cog, name="moderation"):
             else:
                 added.append(prefix)
         prefixes = ori_prefixes + prefixes
-        if len(prefixes) > 15:
-            await em_ctx_send_error(ctx, "You can only add up to 15 prefixes!")
+        try:
+            self.bot.set_guild_prefixes(ctx.guild, prefixes)
+        except RuntimeError as err:
+            await em_ctx_send_error(ctx, err)
             return
-        # database stuff
-        up_prefixes = ",".join(sorted([*prefixes]))
-        self.bot.c.execute(
-            "UPDATE servers SET prefixes = ? WHERE id = ?",
-            (up_prefixes, str(ctx.guild.id)),
-        )
-        self.bot.conn.commit()
         # inform the user
         if len(added) > 0:
             await ctx.send(f"`{', '.join(added)}` successfully added to prefix")
@@ -468,13 +463,11 @@ class Admin(commands.Cog, name="moderation"):
                 ori_prefixes.remove(prefix)
             else:
                 pass
-        # database stuff
-        up_prefixes = ",".join(sorted(ori_prefixes))
-        self.bot.c.execute(
-            "UPDATE servers SET prefixes = ? WHERE id = ?",
-            (up_prefixes, str(ctx.guild.id)),
-        )
-        self.bot.conn.commit()
+        try:
+            self.bot.set_guild_prefixes(ctx.guild, ori_prefixes)
+        except RuntimeError as err:
+            await em_ctx_send_error(ctx, err)
+            return
         # inform the user
         if len(removed) > 0:
             await ctx.send(f"`{', '.join(removed)}` successfully removed from prefix")
@@ -737,11 +730,31 @@ class Admin(commands.Cog, name="moderation"):
 
     @emoji.command(name="add", aliases=["+"], usage="(name)")
     @checks.has_guild_permissions(manage_emojis=True)
-    async def emoji_add(self, ctx, name: Optional[str], emote_pic: Optional[str]):
+    async def emoji_add(self, ctx, name: Optional[str], emote_pic: Optional[discord.PartialEmoji]):
         """Add emoji to a server."""
+        # Get emote_pic from an emote
+        if emote_pic and isinstance(emote_pic, discord.PartialEmoji):
+            async with self.bot.session.get(str(emote_pic.url)) as f:
+                emote_pic = await f.read()
+        # Get emote_pic from embeds
+        elif ctx.message.embeds:
+            data = ctx.message.embeds[0]
+            if data.type == "image":
+                async with self.bot.session.get(data.url) as f:
+                    emote_pic = await f.read()
+            else:
+                return await em_ctx_send_error(
+                    ctx, "Emoji only supports `.png`, `.jpg`, and `.gif` filetype"
+                )
+        else:
+            emote_pic = None
+
+        # Check if it has attachments
         if ctx.message.attachments and not emote_pic:
             for attachment in ctx.message.attachments:
                 emote_pic = await attachment.read()
+
+        # This look ugly but sure why not
         if not emote_pic:
             await ctx.send("You need to attach an image of the emoji!")
             return
@@ -753,13 +766,24 @@ class Admin(commands.Cog, name="moderation"):
                 "The name of the emoji needs to be at least 2 characters long!"
             )
             return
+
+        # Try to add new emoji, if fails send error
         try:
             added_emote = await ctx.guild.create_custom_emoji(
                 name=name, image=emote_pic
             )
         except Forbidden:
-            await ctx.send("Bot need **Manage Emojis** permission for this command!")
+            await em_ctx_send_error(
+                ctx, "Bot need **Manage Emojis** permission for this command!"
+            )
             return
+        except discord.InvalidArgument as err:
+            if err == "Unsupported image type given":
+                return await em_ctx_send_error(
+                    ctx, "Emoji only supports `.png`, `.jpg`, and `.gif` filetype"
+                )
+
+        # Just embed stuff to give user info that the bot successfully added an emoji
         embed = discord.Embed(
             title="New emote has been added!",
             description=f"{str(added_emote)} `:{added_emote.name}:`",
@@ -865,7 +889,9 @@ class Admin(commands.Cog, name="moderation"):
         if not message:
             return
         if len(message) > 512:
-            return await em_ctx_send_error(ctx, "`welcome_msg` can't be longer than 512 characters!")
+            return await em_ctx_send_error(
+                ctx, "`welcome_msg` can't be longer than 512 characters!"
+            )
         if message == "{clear}":
             set_welcome_msg(ctx, None)
             await em_ctx_send_success(ctx, "`welcome_msg` has been cleared")
@@ -895,7 +921,9 @@ class Admin(commands.Cog, name="moderation"):
         if not message:
             return
         if len(message) > 512:
-            return await em_ctx_send_error(ctx, "`farewell_msg` can't be longer than 512 characters!")
+            return await em_ctx_send_error(
+                ctx, "`farewell_msg` can't be longer than 512 characters!"
+            )
         if message == "{clear}":
             set_farewell_msg(ctx, None)
             await em_ctx_send_success(ctx, "`farewell_msg` has been cleared")

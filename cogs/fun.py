@@ -21,9 +21,9 @@ class Fun(commands.Cog, name="fun"):
         self.bot = bot
         praw.Reddit
         self.reddit = praw.Reddit(
-            client_id = self.bot.config["reddit"]["id"],
-            client_secret = self.bot.config["reddit"]["secret"],
-            user_agent = self.bot.config["reddit"]["user_agent"],
+            client_id=self.bot.config["reddit"]["id"],
+            client_secret=self.bot.config["reddit"]["secret"],
+            user_agent=self.bot.config["reddit"]["user_agent"],
         )
 
     def is_reddit():
@@ -152,12 +152,15 @@ class Fun(commands.Cog, name="fun"):
                 return
             await meme_channel.send(embed=embed)
 
-    @commands.command(usage="(choice)", brief="Rock Paper Scissors with the bot.")
+    @commands.command(
+        usage="(choice)",
+        brief="Rock Paper Scissors with the bot.",
+        example="{prefix}rps rock",
+    )
     @commands.cooldown(1, 5)
-    async def rps(self, ctx, choice):
-        """Rock Paper Scissors with the bot.\n\
-           **Example**
-           ``>rps rock``"""
+    async def rps(self, ctx, choice: str):
+        """Rock Paper Scissors with the bot."""
+        choice = choice.lower()
         rps = ["rock", "paper", "scissors"]
         bot_choice = rps[randint(0, len(rps) - 1)]
 
@@ -254,32 +257,31 @@ class Fun(commands.Cog, name="fun"):
         """Test your luck in Minecraft but visual."""
         if ctx.guild.id in self.bot.norules:
             ctx.command.reset_cooldown(ctx)
+
         emojis = {
             "{air}": "<:empty:754550188269633556>",
             "{frame}": "<:portal:754550231017979995>",
             "{eye}": "<:eye:754550267382333441>",
         }
+
         eyes = ["{eye}" if randint(1, 10) == 1 else "{frame}" for i in range(12)]
-        rows = {
-            0: [eyes[0], eyes[1], eyes[2]],
-            1: [eyes[3], eyes[4], eyes[5]],
-            2: [eyes[6], eyes[7], eyes[8]],
-            3: [eyes[9], eyes[10], eyes[11]],
-        }
+        sel_eye = 0
         portalframe = ""
-        for i in range(4):
-            if i == 0 or i == 3:
-                portalframe += "{air}" + f"{rows[i][0]}{rows[i][1]}{rows[i][2]}\n"
-            else:
-                if i == 2:
-                    pass
+        for row in range(5):
+            for col in range(5):
+                if ((col == 0 or col == 4) and (row != 0 and row != 4)) or (
+                    (row == 0 or row == 4) and (col > 0 and col < 4)
+                ):
+                    sel_eye += 1
+                    portalframe += eyes[sel_eye - 1]
                 else:
-                    for e in range(3):
-                        portalframe += (
-                            f"{rows[i][e]}" + "{air}{air}{air}" + f"{rows[i+1][e]}\n"
-                        )
+                    portalframe += "{air}"
+            portalframe += "\n"
+
+        # replace placeholder with portal frame emoji
         for placeholder in emojis.keys():
             portalframe = portalframe.replace(placeholder, emojis[placeholder])
+
         e = discord.Embed(
             title="findseed but visual",
             description=f"Your seed looks like: \n\n{portalframe}",

@@ -500,7 +500,10 @@ class AniList(commands.Cog, name="anilist"):
         self.bot = bot
         self.handle_schedule.start()
         self.logger = logging.getLogger("discord")
-        self.watchlist = {}
+        self.bot.c.execute("SELECT * FROM ani_watchlist WHERE 1")
+        server_row = self.bot.c.fetchall()
+        pre = {k[0]: k[1] or None for k in server_row}
+        self.watchlist = {int(k): v.split(",") if v else None for (k, v) in pre.items()}
 
     def get_watchlist(self):
         """
@@ -509,17 +512,20 @@ class AniList(commands.Cog, name="anilist"):
             <guild_id>: [anime_ids, anime_ids]
         }
         """
-        ids = [guild.id for guild in self.bot.guilds]
-        self.bot.c.execute(
-            "SELECT * FROM ani_watchlist WHERE id in ({0})".format(
-                ", ".join("?" for _ in ids)
-            ),
-            ids,
-        )
-        server_row = self.bot.c.fetchall()
-        pre = {k[0]: k[1] or None for k in server_row}
-        watchlist = {int(k): v.split(",") if v else None for (k, v) in pre.items()}
-        return watchlist
+        return self.watchlist
+
+    def set_guild_watchlist(self, guild, watchlist):
+        if not watchlist:
+            self.bot.c.execute(
+                "UPDATE ani_watchlist SET anime_id=? WHERE id=?", (None, guild.id)
+            )
+            self.bot.conn.commit()
+            self.watchlist[guild.id] = watchlist
+        else:
+            self.bot.c.execute(
+                "UPDATE ani_watchlist SET anime_id=? WHERE id=?",
+                (",".join(sorted(watchlist)), str(guild.id)),
+            )
 
     def cog_unload(self):
         self.handle_schedule.cancel()
@@ -538,13 +544,13 @@ class AniList(commands.Cog, name="anilist"):
         pass
 
     @anime.command(
-        name="info", usage="(anime) [format]", brief="Get information about an anime."
+        name="info",
+        usage="(anime) [format]",
+        brief="Get information about an anime.",
+        example='{prefix}anime info Kimi_no_Na_Wa\n{prefix}anime info "Koe no Katachi" Movie',
     )
     async def animeinfo(self, ctx, anime, _format: str = None):
-        """Get information about an anime.\n\
-           **Example**\n\
-           `>anime info Kimi_no_Na_Wa`\n\
-           `>anime info "Koe no Katachi" Movie`"""
+        """Get information about an anime."""
         if not anime:
             await ctx.send("Please specify the anime!")
         async with ctx.typing():
@@ -701,11 +707,7 @@ class AniList(commands.Cog, name="anilist"):
 
             new_watchlist = ",".join(watchlist[int(ctx.guild.id)])
 
-            self.bot.c.execute(
-                "UPDATE ani_watchlist SET anime_id = ? WHERE id = ?",
-                (new_watchlist, str(ctx.guild.id)),
-            )
-            self.bot.conn.commit()
+            self.set_guild_watchlist(ctx.guild, new_watchlist)
 
             embed = discord.Embed(
                 title="New anime just added!",
@@ -744,17 +746,9 @@ class AniList(commands.Cog, name="anilist"):
             watchlist[int(ctx.guild.id)].remove(str(_id_))
             new_watchlist = ",".join(watchlist[int(ctx.guild.id)])
             if len(watchlist) >= 2:
-                self.bot.c.execute(
-                    "UPDATE ani_watchlist SET anime_id = ? WHERE id = ?",
-                    (new_watchlist, str(ctx.guild.id)),
-                )
-                self.bot.conn.commit()
+                self.set_guild_watchlist(ctx.guild, new_watchlist)
             else:
-                self.bot.c.execute(
-                    "UPDATE ani_watchlist SET anime_id = ? WHERE id = ?",
-                    (None, str(ctx.guild.id)),
-                )
-                self.bot.conn.commit()
+                self.set_guild_watchlist(ctx.guild, None)
 
             embed = discord.Embed(
                 title="An anime just removed!",
