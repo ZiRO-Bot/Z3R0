@@ -43,7 +43,7 @@ class SRC(commands.Cog, name="src"):
                 and i["category"] == cat_id
             ):
                 for e in i["values"]["values"]:
-                    subcategory[i["values"]["values"][e]["label"]] = {
+                    subcategory[pformat(i["values"]["values"][e]["label"])] = {
                         "name": i["values"]["values"][e]["label"],
                         "subcat_id": i["id"],
                         "id": e,
@@ -54,12 +54,18 @@ class SRC(commands.Cog, name="src"):
                 and not i["category"]
             ):
                 for e in i["values"]["values"]:
-                    subcategory[i["values"]["values"][e]["label"]] = {
+                    subcategory[pformat(i["values"]["values"][e]["label"])] = {
                         "name": i["values"]["values"][e]["label"],
                         "subcat_id": i["id"],
                         "id": e,
                     }
-        return {category: {"id": cat_id, "name": catdict[category]['name'], "sub_cats": subcategory}}
+        return {
+            category: {
+                "id": cat_id,
+                "name": catdict[category]["name"],
+                "sub_cats": subcategory,
+            }
+        }
 
     async def get_game(self, game):
         """Get game data without abbreviation."""
@@ -125,20 +131,20 @@ class SRC(commands.Cog, name="src"):
         else:
             await ctx.send(f"Usage: {ctx.prefix}mcbe wrs [category] [seed] [main/ext]")
             return
-        
+
         # preparation
         game = await self.get_game(leaderboard)
         game = game[0]
-        
+
         # fetch subcats
         category = pformat(category)
         subcats = await self.get_subcats(game["id"], category)
-        
-        # get category id and display_name also separate subcats
-        cat_name = subcats[category]['name']
-        cat_id = subcats[category]['id']
-        subcats = subcats[category]['sub_cats']
 
+        # get category id and display_name also separate subcats
+        cat_name = subcats[category]["name"]
+        cat_id = subcats[category]["id"]
+        subcats = subcats[category]["sub_cats"]
+            
         # separate seeds and platforms
         seeds = {}
         platforms = {}
@@ -151,9 +157,9 @@ class SRC(commands.Cog, name="src"):
                 # platforms.append({pformat(i): subcats[i]})
 
         # get the right seed type
-        for types in seeds:
-            if types == pformat(seed):
-                sel_seed = types
+        sel_seed = ""
+        if seed in seeds:
+            sel_seed = seed
         varlink = f"&var-{seeds[sel_seed]['subcat_id']}={seeds[sel_seed]['id']}"
 
         # init embed
@@ -161,10 +167,12 @@ class SRC(commands.Cog, name="src"):
         e.set_thumbnail(
             url="https://raw.githubusercontent.com/null2264/null2264/master/assets/mcbe.png"
         )
-        
-        # get the right platform
+
+        # get all platform wrs
         for platform in platforms:
-            pf_varlink = f"&var-{platforms[platform]['subcat_id']}={platforms[platform]['id']}"
+            pf_varlink = (
+                f"&var-{platforms[platform]['subcat_id']}={platforms[platform]['id']}"
+            )
             data = await self.get(
                 f"leaderboards/{game['id']}/category/{category}?top=1&embed=players{varlink}{pf_varlink}"
             )
