@@ -6,6 +6,7 @@ import os
 import praw
 import re
 
+from bs4 import BeautifulSoup
 from cogs.errors.fun import DiceTooBig
 from cogs.utilities.embed_formatting import em_ctx_send_error
 from discord.ext import commands
@@ -43,8 +44,7 @@ class Fun(commands.Cog, name="fun"):
     @commands.cooldown(1, 5)
     async def flip(self, ctx):
         """Flip a coin."""
-        coin_side = ["heads", "tails"]
-        await ctx.send(f"{ctx.message.author.mention} {coin_side[randint(0, 1)]}")
+        await ctx.send(f"{ctx.message.author.mention} {choice(['heads', 'tails'])}")
 
     @flip.error
     async def flip_handler(self, ctx, error):
@@ -122,7 +122,7 @@ class Fun(commands.Cog, name="fun"):
 
         if ctx.channel != meme_channel:
             async with ctx.typing():
-                await ctx.send(f"Please do this command on {meme_channel.mention}")
+                await ctx.send(f"Please do this command in {meme_channel.mention}")
                 return
         async with meme_channel.typing():
             selected_subreddit = meme_subreddits[randint(0, len(meme_subreddits) - 1)]
@@ -230,7 +230,7 @@ class Fun(commands.Cog, name="fun"):
         if ctx.guild.id in self.bot.norules:
             ctx.command.reset_cooldown(ctx)
 
-        rigged = {186713080841895936: 9000}
+        rigged = {186713080841895936: 9000, 518154918276628490: 12}
 
         if ctx.author.id in rigged:
             totalEyes = rigged[ctx.author.id]
@@ -410,6 +410,52 @@ class Fun(commands.Cog, name="fun"):
             except UnboundLocalError:
                 pass
 
+    @commands.command()
+    async def findanime(self, ctx):
+        """Find a random anime picture."""
+        reddit = self.reddit
+
+        reg_img = r".*/(i)\.redd\.it"
+
+        async with ctx.channel.typing():
+            findanime_submissions = reddit.subreddit('animereactionimages').hot()
+            post_to_pick = randint(1, 50)
+            for i in range(0, post_to_pick):
+                submission = next(x for x in findanime_submissions if not x.stickied)
+            if submission.over_18:
+                return await ctx.send("18+ Submission detected, please try again.")
+            embed = discord.Embed(
+                title=f"r/animereactionimages " + f"- {submission.title}",
+                colour=discord.Colour(0xFFFFF0),
+            )
+            embed.set_author(
+                name="Reddit",
+                icon_url="https://www.redditstatic.com/desktop2x/"
+                + "img/favicon/android-icon-192x192.png",
+            )
+            match = re.search(reg_img, submission.url)
+            embed.add_field(name="Upvotes", value=submission.score)
+            embed.add_field(name="Comments", value=submission.num_comments)
+            if match:
+                embed.set_image(url=submission.url)
+            else:
+                await ctx.send(embed=embed)
+                await ctx.send(submission.url)
+                return
+            await ctx.send(embed=embed)
+    
+    @commands.command(aliases=["findhusbando"])
+    async def findwaifu(self, ctx):
+        """Get a random waifu."""
+        async with self.bot.session.get("https://mywaifulist.moe/random") as page:
+            page = await page.text()
+            soup = BeautifulSoup(page, 'html.parser')
+            waifu = json.loads(soup.find('script', {"type": "application/ld+json"}).string)
+        if not waifu:
+            return
+        e = discord.Embed(title=waifu['name'])
+        e.set_image(url=waifu['image'])
+        await ctx.send(embed=e)
 
 def setup(bot):
     bot.add_cog(Fun(bot))
