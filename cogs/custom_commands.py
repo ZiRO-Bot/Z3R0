@@ -16,7 +16,6 @@ from discord.errors import Forbidden
 from discord.ext import commands
 from pytz import timezone
 from TagScriptEngine import Verb, Interpreter, adapter, block
-from blocks import zibot
 
 
 class CustomCommands(commands.Cog, name="customcommands"):
