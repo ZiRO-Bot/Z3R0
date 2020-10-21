@@ -997,10 +997,10 @@ class Admin(commands.Cog, name="moderation"):
         self.bot.conn.commit()
         if enabled:
             await em_ctx_send_success(
-                ctx, f"`{', '.join(disabled)}` is no longer mods only!"
+                ctx, f"`{', '.join(enabled)}` is no longer mods only!"
             )
         if disabled:
-            await em_ctx_send_success(ctx, f"`{', '.join(enabled)}` is now mods only!")
+            await em_ctx_send_success(ctx, f"`{', '.join(disabled)}` is now mods only!")
 
 
 def setup(bot):
