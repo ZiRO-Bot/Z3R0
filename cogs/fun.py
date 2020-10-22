@@ -403,7 +403,7 @@ class Fun(commands.Cog, name="fun"):
         for word in bad_words:
             if word in message.content.lower().replace(" ", ""):
                 fair += f"{word.title()} "
-        if message.guild.id in fair_guilds:
+        if message.guild.id in fair_guilds and fair:
             try:
                 await message.channel.send(fair)
             except UnboundLocalError:
