@@ -5,6 +5,7 @@ import git
 import json
 import logging
 import os
+import random
 import time
 
 from .utilities.tse_blocks import RandomBlock
@@ -34,6 +35,10 @@ class CustomCommands(commands.Cog, name="customcommands"):
             "@here", "@\u200bhere"
         )
 
+    def proper_user(self, user: discord.User):
+        """Print user properly (ex: user#6969)."""
+        return f"{user.name}#{user.discriminator}"
+
     def fetch_tags(self, ctx, message):
         # TSE's documentation is pretty bad so this is my workaround for now
         special_vals = {
@@ -49,9 +54,14 @@ class CustomCommands(commands.Cog, name="customcommands"):
             "server": StringParamAdapter(
                 ctx.guild.name,
                 {
+                    "id": str(ctx.guild.id),
+                    "members": str(len(ctx.guild.members)),
                     "bots": str(len([x for x in ctx.guild.members if x.bot])),
                     "humans": str(len([x for x in ctx.guild.members if not x.bot])),
-                    "members": str(len(ctx.guild.members)),
+                    "random": str(self.proper_user(random.choice(ctx.guild.members))),
+                    "owner": str(self.proper_user(ctx.guild.owner)),
+                    "roles": str(len(ctx.guild.roles)),
+                    "channels": str(len(ctx.guild.channels)),
                 },
             ),
             "unix": adapter.IntAdapter(int(datetime.datetime.utcnow().timestamp())),
