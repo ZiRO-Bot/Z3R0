@@ -220,10 +220,18 @@ class ziBot(commands.Bot):
         await self.process_commands(message)
 
         ctx = await self.get_context(message)
+        # See if user can run the command (if exists)
+        can_run = False
+        if ctx.command:
+            try:
+                can_run = await ctx.command.can_run(ctx)
+            except commands.CheckFailure:
+                can_run = False
+
         if (
             ctx.invoked_with
             and ctx.invoked_with.lower() not in self.commands
-            and ctx.command is None
+            and (not ctx.command or not can_run)
         ):
             msg = copy.copy(message)
             if ctx.prefix:
