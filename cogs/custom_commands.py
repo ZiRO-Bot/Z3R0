@@ -89,7 +89,7 @@ class CustomCommands(commands.Cog, name="customcommands"):
                 ctx.prefix == "@" and (lookup == "everyone" or lookup == "here")
             ):
                 return
-            return await em_ctx_send_error(ctx, f"No command called `{name}`")
+            return await em_ctx_send_error(ctx, f"No command called `{name}` or you don't have a permission to use it")
         self.bot.c.execute(
             "UPDATE tags SET uses = uses + 1 WHERE (name=? AND id=?)",
             (lookup, str(ctx.guild.id)),
