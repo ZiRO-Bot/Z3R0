@@ -354,7 +354,7 @@ class Admin(commands.Cog, name="moderation"):
                     )
                 await ctx.guild.ban(member, reason=reason, delete_message_days=0)
                 duration = ""
-                if min_muted > 0:
+                if min_ban > 0:
                     duration = f" ({min_ban} minutes)"
                 await ctx.send(
                     f"{member.mention} has been banned by {ctx.author.mention} for {reason}!{duration}"
