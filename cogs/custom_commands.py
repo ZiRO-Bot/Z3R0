@@ -27,7 +27,11 @@ class CustomCommands(commands.Cog, name="customcommands"):
             """CREATE TABLE IF NOT EXISTS tags
                 (id text, name text, content text, created int, updated int, uses real, author text)"""
         )
-        self.blocks = [RandomBlock(), block.StrictVariableGetterBlock()]
+        self.blocks = [
+            RandomBlock(), 
+            block.StrictVariableGetterBlock(), 
+            block.MathBlock(),
+        ]
         self.engine = Interpreter(self.blocks)
 
     def clean_tag_content(self, content):
