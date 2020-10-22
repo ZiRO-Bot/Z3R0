@@ -398,12 +398,12 @@ class Fun(commands.Cog, name="fun"):
             return
 
         fair_guilds = [759073367767908375, 758764126679072788, 745481731133669476]
-        bad_words = ["fair", "ⓕⓐⓘⓡ", "ɹıɐɟ"]
+        bad_words = ["fair", "ⓕⓐⓘⓡ", "ɹıɐɟ", "justo"]
         count = 0
         for word in bad_words:
             if word in message.content.lower().replace(" ", ""):
                 count += 1
-                fair = "Fair " * count
+                fair = f"{word.title()} " * count
         if message.guild.id in fair_guilds:
             try:
                 await message.channel.send(fair)
