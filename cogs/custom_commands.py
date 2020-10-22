@@ -49,6 +49,8 @@ class CustomCommands(commands.Cog, name="customcommands"):
             "server": StringParamAdapter(
                 ctx.guild.name,
                 {
+                    "bots": str(len([x for x in ctx.guild.members if x.bot])),
+                    "humans": str(len([x for x in ctx.guild.members if not x.bot])),
                     "members": str(len(ctx.guild.members)),
                 },
             ),
