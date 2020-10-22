@@ -418,7 +418,7 @@ class Fun(commands.Cog, name="fun"):
         reg_img = r".*/(i)\.redd\.it"
 
         async with ctx.channel.typing():
-            findanime_submissions = reddit.subreddit('animereactionimages').hot()
+            findanime_submissions = reddit.subreddit("animereactionimages").hot()
             post_to_pick = randint(1, 50)
             for i in range(0, post_to_pick):
                 submission = next(x for x in findanime_submissions if not x.stickied)
@@ -443,19 +443,22 @@ class Fun(commands.Cog, name="fun"):
                 await ctx.send(submission.url)
                 return
             await ctx.send(embed=embed)
-    
+
     @commands.command(aliases=["findhusbando"])
     async def findwaifu(self, ctx):
         """Get a random waifu."""
         async with self.bot.session.get("https://mywaifulist.moe/random") as page:
             page = await page.text()
-            soup = BeautifulSoup(page, 'html.parser')
-            waifu = json.loads(soup.find('script', {"type": "application/ld+json"}).string)
+            soup = BeautifulSoup(page, "html.parser")
+            waifu = json.loads(
+                soup.find("script", {"type": "application/ld+json"}).string
+            )
         if not waifu:
             return
-        e = discord.Embed(title=waifu['name'])
-        e.set_image(url=waifu['image'])
+        e = discord.Embed(title=waifu["name"])
+        e.set_image(url=waifu["image"])
         await ctx.send(embed=e)
+
 
 def setup(bot):
     bot.add_cog(Fun(bot))

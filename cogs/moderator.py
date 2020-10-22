@@ -730,7 +730,9 @@ class Admin(commands.Cog, name="moderation"):
 
     @emoji.command(name="add", aliases=["+"], usage="(name)")
     @checks.has_guild_permissions(manage_emojis=True)
-    async def emoji_add(self, ctx, name: Optional[str], emote_pic: Optional[discord.PartialEmoji]):
+    async def emoji_add(
+        self, ctx, name: Optional[str], emote_pic: Optional[discord.PartialEmoji]
+    ):
         """Add emoji to a server."""
         # Get emote_pic from an emote
         if emote_pic and isinstance(emote_pic, discord.PartialEmoji):

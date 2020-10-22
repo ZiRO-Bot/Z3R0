@@ -200,8 +200,15 @@ class SRC(commands.Cog, name="src"):
         """Get leaderboard for a specific game. [Not available yet.]"""
         await ctx.send("Coming Soon.")
 
-    @commands.command(aliases=["wr"], usage="(game) (category) [sub category]", example="{prefix}worldrecord mc \"Any% Glitchless\" \"Random Seed\"\n" + "{prefix}wr Celeste")
-    async def worldrecord(self, ctx, game, category: str = None, sub_category: str = None):
+    @commands.command(
+        aliases=["wr"],
+        usage="(game) (category) [sub category]",
+        example='{prefix}worldrecord mc "Any% Glitchless" "Random Seed"\n'
+        + "{prefix}wr Celeste",
+    )
+    async def worldrecord(
+        self, ctx, game, category: str = None, sub_category: str = None
+    ):
         """Get the world record for a specific game."""
         game = await self.get_game(game)
         game = game[0]
@@ -223,11 +230,13 @@ class SRC(commands.Cog, name="src"):
             )
 
         # Get data from speedrun.com api
-        data = await self.get(link + var_link + "&embed=game,category,players,platforms,regions")
+        data = await self.get(
+            link + var_link + "&embed=game,category,players,platforms,regions"
+        )
         data = data["data"]
         if not category:
             data = data[0]
-            category = data['category']['data']['name']
+            category = data["category"]["data"]["name"]
             cat_dict = await self.get_subcats(game["id"], pformat(category))
         if not data:
             return
@@ -237,21 +246,26 @@ class SRC(commands.Cog, name="src"):
             try:
                 players.append(i["names"]["international"])
             except KeyError:
-                players.append(i['name'])
+                players.append(i["name"])
 
         e = discord.Embed(
             title=realtime(data["runs"][0]["run"]["times"]["primary_t"])
             + " by "
             + ", ".join(players),
             colour=discord.Colour.gold(),
+            url=data["runs"][0]["run"]["weblink"],
         )
-        e.set_thumbnail(url=data['game']['data']['assets']['cover-large']['uri'])
+        e.set_thumbnail(url=data["game"]["data"]["assets"]["cover-large"]["uri"])
         e.set_author(
             name=f"{game['name']} - {cat_dict[pformat(category)]['name']}",
             icon_url="https://www.speedrun.com/themes/Default/1st.png",
         )
-        e.add_field(name="Date Played", value=data['runs'][0]['run']['date'], inline=False)
-        e.add_field(name="Played On", value=data['platforms']['data'][0]['name'], inline=False)
+        e.add_field(
+            name="Date Played", value=data["runs"][0]["run"]["date"], inline=False
+        )
+        e.add_field(
+            name="Played On", value=data["platforms"]["data"][0]["name"], inline=False
+        )
         await ctx.send(embed=e)
 
     @commands.command(aliases=["cats"])
@@ -261,7 +275,8 @@ class SRC(commands.Cog, name="src"):
         game = game[0]
         catdict = await self.get_cats(game["id"])
         e = discord.Embed(
-            title=f"{game['name']} Categories", colour=discord.Colour.gold()
+            title=f"{game['name']} Categories",
+            colour=discord.Colour.gold(),
         )
         e.set_author(
             name=f"speedrun.com",
