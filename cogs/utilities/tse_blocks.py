@@ -40,11 +40,11 @@ class RandomBlock(Block):
                     pre[0] = None
             
             if len(pre) > 1 and isinstance(pre[0], int):
-                spl.append((pre[0], pre[1]))
+                spl.append((pre[0], str(pre[1])))
             elif len(pre) > 1:
-                spl.append((1, i))
+                spl.append((1, str(i)))
             else:
-                spl.append((1, pre[0]))
+                spl.append((1, str(pre[0])))
 
         random.seed(ctx.verb.parameter)
 
