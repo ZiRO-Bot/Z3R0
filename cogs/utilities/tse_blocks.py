@@ -33,7 +33,7 @@ class RandomBlock(Block):
             # Convert weight to int if possible
             try:
                 pre[0] = int(pre[0])
-                if pre[0] < 0:
+                if pre[0] < 0 and len(pre) > 1:
                     pre[0] = None
             except ValueError:
                 if len(pre) > 1:
