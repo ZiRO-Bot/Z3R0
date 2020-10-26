@@ -31,6 +31,7 @@ class CustomCommands(commands.Cog, name="customcommands"):
             RandomBlock(), 
             block.StrictVariableGetterBlock(), 
             block.MathBlock(),
+            block.RangeBlock(),
         ]
         self.engine = Interpreter(self.blocks)
 
