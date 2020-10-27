@@ -316,7 +316,12 @@ class Admin(commands.Cog, name="moderation"):
                     )
                 except discord.errors.HTTPException:
                     pass
-                await ctx.guild.kick(member, reason=reason)
+
+                try:
+                    await ctx.guild.kick(member, reason=reason)
+                except Forbidden:
+                    await ctx.send(f"I can't kick {member.mention} (No permission or the member is higher than me on the hierarchy)")
+                    return
                 await ctx.send(
                     f"{member.mention} has been kicked by {ctx.author.mention} for {reason}!"
                 )
@@ -352,7 +357,12 @@ class Admin(commands.Cog, name="moderation"):
                     self.logger.error(
                         "discord.errors.Forbidden: Can't send DM to member"
                     )
-                await ctx.guild.ban(member, reason=reason, delete_message_days=0)
+
+                try:
+                    await ctx.guild.ban(member, reason=reason, delete_message_days=0)
+                except Forbidden:
+                    await ctx.send(f"I can't ban {member.mention} (No permission or the member is higher than me on the hierarchy)")
+                    return
                 duration = ""
                 if min_ban > 0:
                     duration = f" ({min_ban} minutes)"
@@ -382,10 +392,10 @@ class Admin(commands.Cog, name="moderation"):
                 await ctx.guild.unban(member)
             except NotFound:
                 await ctx.send(f"{member.mention} is not banned!")
-                continue
-            await ctx.send(
-                f"{member.mention} has been unbanned by {ctx.author.mention}!"
-            )
+            else:
+                await ctx.send(
+                    f"{member.mention} has been unbanned by {ctx.author.mention}!"
+                )
 
     @commands.command(hidden=True)
     @checks.is_botmaster()
