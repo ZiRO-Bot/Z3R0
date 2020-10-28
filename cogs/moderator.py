@@ -231,7 +231,9 @@ class Admin(commands.Cog, name="moderation"):
         min_muted = int(r_and_d[1])
 
         if not members:
-            return await ctx.send("Please specify the member you want to mute.")
+            return await ctx.send(
+                f"Usage: `{ctx.prefix}{ctx.command.qualified_name} {ctx.command.signature}`"
+            )
 
         self.bot.c.execute(
             "SELECT mute_role FROM roles WHERE id=?", (str(ctx.guild.id),)
@@ -270,7 +272,9 @@ class Admin(commands.Cog, name="moderation"):
     async def unmute(self, ctx, members: commands.Greedy[discord.Member]):
         """Unmute members."""
         if not members:
-            return await ctx.send("Please specify the member you want to unmute.")
+            return await ctx.send(
+                f"Usage: `{ctx.prefix}{ctx.command.qualified_name} {ctx.command.signature}`"
+            )
 
         self.bot.c.execute(
             "SELECT mute_role FROM roles WHERE id=?", (str(ctx.guild.id),)
@@ -304,7 +308,9 @@ class Admin(commands.Cog, name="moderation"):
     ):
         """Kick a member."""
         if not members:
-            return await ctx.send("Please specify the member you want to kick.")
+            return await ctx.send(
+                f"Usage: `{ctx.prefix}{ctx.command.qualified_name} {ctx.command.signature}`"
+            )
 
         for member in members:
             if self.bot.user == member:  # Just why would you want to mute him?
@@ -343,7 +349,9 @@ class Admin(commands.Cog, name="moderation"):
         min_ban = int(r_and_d[1])
 
         if not members:
-            return await ctx.send("Please specify the member you want to ban.")
+            return await ctx.send(
+                f"Usage: `{ctx.prefix}{ctx.command.qualified_name} {ctx.command.signature}`"
+            )
 
         for member in members:
             if self.bot.user == member:  # Just why would you want to mute him?
@@ -379,7 +387,9 @@ class Admin(commands.Cog, name="moderation"):
     async def unban(self, ctx, members: commands.Greedy[discord.User]):
         """Unban a member."""
         if not members:
-            return await ctx.send("Please specify the member you want to unban.")
+            return await ctx.send(
+                f"Usage: `{ctx.prefix}{ctx.command.qualified_name} {ctx.command.signature}`"
+            )
 
         for member in members:
             # try:
