@@ -234,7 +234,7 @@ class General(commands.Cog, name="general"):
     async def source(self, ctx):
         """Show link to ziBot's source code."""
         git_link = "https://github.com/null2264/ziBot"
-        await ctx.send(f"ziBot's source code: \n {git_link}")
+        await ctx.send(f"ziBot's source code: \n{git_link}")
 
     @commands.command(aliases=["ui"], usage="[member]")
     async def userinfo(self, ctx, *, user: discord.Member = None):
@@ -269,11 +269,12 @@ class General(commands.Cog, name="general"):
 
         def activity(x):
             return {
-                "playing": "Playing",
-                "watching": "Watching",
-                "listening": "Listening to",
-                "streaming": "Streaming",
-            }.get(x, "None")
+                "playing": "Playing ",
+                "watching": "Watching ",
+                "listening": "Listening to ",
+                "streaming": "Streaming ",
+                "custom": "",
+            }.get(x, "None ")
 
         badges = []
         for x in list(member.public_flags.all()):
@@ -301,7 +302,7 @@ class General(commands.Cog, name="general"):
             + (
                 "<:activity:748091280227041281>"
                 + activity(str(member.activity.type).replace("ActivityType.", ""))
-                + f" **{member.activity.name}**"
+                + f"**{member.activity.name}**"
                 if member and member.activity
                 else ""
             ),
@@ -309,7 +310,7 @@ class General(commands.Cog, name="general"):
             timestamp=ctx.message.created_at,
         )
         embed.set_author(
-            name=f"{member.name}#{member.discriminator}", icon_url=member.avatar_url
+            name=f"{member}", icon_url=member.avatar_url
         )
         embed.set_thumbnail(url=member.avatar_url)
         embed.add_field(name="ID", value=member.id)
