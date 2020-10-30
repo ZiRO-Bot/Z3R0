@@ -6,9 +6,40 @@ import logging
 import re
 
 from bot import get_prefix
-from discord.ext import commands
+from discord.ext import commands, menus
 from typing import Optional
 
+
+class BotHelpPageSources(menus.ListPageSource):
+    def __init__(self, help_command, commands):
+        super().__init__(entries=sorted(commands.keys(), key=lambda c: c.qualified_name), per_page=6)
+        self.commands = commands
+        self.help_command = help_command
+        self.prefix = help_command.clean_prefix
+
+    def format_commands(self, cog, commands):
+        return ", ".join([f"`{c.qualified_name}`" for c in commands])
+
+    def format_page(self, menu, cogs):
+        e = discord.Embed(title="Categories")
+        print(cogs)
+        for cog in cogs:
+            commands = self.commands.get(cog)
+            if commands:
+                value = self.format_commands(cogs, commands)
+                e.add_field(name=cog.qualified_name, value=value, inline=True)
+
+        return e
+
+class HelpPages(menus.MenuPages):
+    def __init__(self, source):
+        super().__init__(source=source, check_embeds=True)
+
+    async def finalize(self, timed_out):
+        try:
+            await self.message.clear_reactions()
+        except discord.HTTPException:
+            pass
 
 class CustomHelp(commands.HelpCommand):
     COLOUR = discord.Colour.blue()
@@ -52,44 +83,58 @@ class CustomHelp(commands.HelpCommand):
         await self.get_destination().send(embed=embed)
 
     async def send_bot_help(self, mapping):
-        destination = self.get_destination()
-        embed = discord.Embed(
-            title="Categories",
-            description=self.get_desc()
-            + "\n"
-            + "`()` = Required\n"
-            + "`[]` = Optional",
-            colour=self.COLOUR,
-        )
-        for cog, commands in mapping.items():
+        bot = self.context.bot
+        entries = await self.filter_commands(bot.commands, sort=True)
 
-            def f(x):
-                return {
-                    "src": "<:src:757467110564954172>",
-                    "moderation": "🔨",
-                    "customcommands": "❗",
-                    "help": "❓",
-                    "utils": "🔧",
-                    "anilist": "<:anilist:757473769101983784>",
-                    "fun": "🎉",
-                    "general": "🗨️",
-                }.get(x.lower(), "​")
+        all_commands = {}
+        for command in entries:
+            if command.cog is None:
+                continue
+            try:
+                all_commands[command.cog].append(command)
+            except KeyError:
+                all_commands[command.cog] = [command]
 
-            name = (
-                "No Category"
-                if cog is None
-                else f"{f(cog.qualified_name)} {cog.qualified_name}".title()
-            )
-            value = f"```{self.clean_prefix}help {'No Category' if cog is None else cog.qualified_name}```"
-            filtered = await self.filter_commands(commands, sort=True)
-            if filtered:
-                #     value = ", ".join(f"`{c.name}`" for c in commands)
-                #     if cog and cog.description:
-                #         value = f"{cog.description}\n{value}"
-                if cog.qualified_name.lower() not in ["help", "pingloop"]:
-                    embed.add_field(name=name, value=value, inline=True)
-        embed.set_footer(text=self.get_ending_note())
-        await destination.send(embed=embed)
+        menu = HelpPages(BotHelpPageSources(self, all_commands))
+        await menu.start(self.context)
+        # destination = self.get_destination()
+        # embed = discord.Embed(
+        #     title="Categories",
+        #     description=self.get_desc()
+        #     + "\n"
+        #     + "`()` = Required\n"
+        #     + "`[]` = Optional",
+        #     colour=self.COLOUR,
+        # )
+        # for cog, commands in mapping.items():
+
+        #     def f(x):
+        #         return {
+        #             "src": "<:src:757467110564954172>",
+        #             "moderation": "🔨",
+        #             "customcommands": "❗",
+        #             "help": "❓",
+        #             "utils": "🔧",
+        #             "anilist": "<:anilist:757473769101983784>",
+        #             "fun": "🎉",
+        #             "general": "🗨️",
+        #         }.get(x.lower(), "​")
+
+        #     name = (
+        #         "No Category"
+        #         if cog is None
+        #         else f"{f(cog.qualified_name)} {cog.qualified_name}".title()
+        #     )
+        #     value = f"```{self.clean_prefix}help {'No Category' if cog is None else cog.qualified_name}```"
+        #     filtered = await self.filter_commands(commands, sort=True)
+        #     if filtered:
+        #         #     value = ", ".join(f"`{c.name}`" for c in commands)
+        #         #     if cog and cog.description:
+        #         #         value = f"{cog.description}\n{value}"
+        #         if cog.qualified_name.lower() not in ["help", "pingloop"]:
+        #             embed.add_field(name=name, value=value, inline=True)
+        # embed.set_footer(text=self.get_ending_note())
+        # await destination.send(embed=embed)
 
     async def send_cog_help(self, cog):
         embed = discord.Embed(
