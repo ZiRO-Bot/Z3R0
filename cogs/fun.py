@@ -223,7 +223,7 @@ class Fun(commands.Cog, name="fun"):
                 break
         await msg.delete()
 
-    @commands.cooldown(1, 25, commands.BucketType.guild)
+    @commands.cooldown(1, 25, commands.BucketType.user)
     @commands.command()
     async def findseed(self, ctx):
         """Test your luck in Minecraft."""
@@ -251,7 +251,7 @@ class Fun(commands.Cog, name="fun"):
             await asyncio.sleep(round(error.retry_after))
             await bot_msg.delete()
 
-    @commands.cooldown(1, 25, commands.BucketType.guild)
+    @commands.cooldown(1, 25, commands.BucketType.user)
     @commands.command(aliases=["vfindseed", "visualfindseed", "vfs"])
     async def findseedbutvisual(self, ctx):
         """Test your luck in Minecraft but visual."""
