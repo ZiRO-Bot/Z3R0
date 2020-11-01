@@ -88,14 +88,10 @@ class SRC(commands.Cog, name="src"):
         try:
             data = data["data"]
         except:
-            # If data is empty try getting it from abbv or name
-            data = await self.get(f"games?abbreviation={game}")
+            # If data is empty try getting it from name
+            data = await self.get(f"games?name={game}")
             data = data["data"]
             bulk = True
-            if not data:
-                data = await self.get(f"games?name={game}")
-                data = data["data"]
-                bulk = True
         game_info = []
 
         if bulk:
