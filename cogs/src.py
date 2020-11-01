@@ -13,6 +13,13 @@ class SRC(commands.Cog, name="src"):
         self.API_URL = "https://www.speedrun.com/api/v1/"
         self.session = self.bot.session
 
+    async def generate_tinyUrl(self, long_url: str):
+        async with self.session.get(
+            "https://tinyurl.com/api-create.php?url=" + long_url
+        ) as url:
+            data = await url.text()
+        return data
+
     async def get(self, _type, **kwargs):
         async with self.session.get(self.API_URL + _type, **kwargs) as url:
             data = json.loads(await url.text())
@@ -32,7 +39,10 @@ class SRC(commands.Cog, name="src"):
 
     async def get_subcats(self, game_id, category):
         catdict = await self.get_cats(game_id)
-        cat_id = catdict[pformat(category)]["id"]
+        try:
+            cat_id = catdict[pformat(category)]["id"]
+        except KeyError:
+            return
         data = await self.get(f"games/{game_id}/variables")
         data = data["data"]
         subcategory = {}
@@ -195,10 +205,96 @@ class SRC(commands.Cog, name="src"):
         )
         await ctx.send(embed=e)
 
-    @commands.command()
-    async def leaderboard(self, ctx, game="mc", category="any%"):
-        """Get leaderboard for a specific game. [Not available yet.]"""
-        await ctx.send("Coming Soon.")
+    @commands.command(aliases=["lb"])
+    async def leaderboard(
+        self, ctx, game: str, category: str = None, sub_category: str = None
+    ):
+        """Get leaderboard for a specific game."""
+        game = await self.get_game(game)
+        game = game[0]
+        link = f"games/{game['id']}/records?miscellaneous=no&scope=full-game&top=10"
+        if category:
+            cat_dict = await self.get_subcats(game["id"], pformat(category))
+            if not cat_dict:
+                return await ctx.send(
+                    f"This game doesn't have a category called {category}"
+                )
+            link = f"leaderboards/{game['id']}/category/{cat_dict[pformat(category)]['id']}?top=10"
+        var_link = ""
+        if (
+            sub_category
+            and pformat(sub_category) in cat_dict[pformat(category)]["sub_cats"]
+        ):
+            sub_cats = cat_dict[pformat(category)]["sub_cats"]
+            var_link = (
+                "&var-"
+                + sub_cats[pformat(sub_category)]["subcat_id"]
+                + "="
+                + sub_cats[pformat(sub_category)]["id"]
+            )
+
+        # Get data from speedrun.com api
+        data = await self.get(
+            link + var_link + "&embed=game,category,players,platforms,regions"
+        )
+        data = data["data"]
+        if not category:
+            data = data[0]
+            category = data["category"]["data"]["name"]
+            cat_dict = await self.get_subcats(game["id"], pformat(category))
+        cat_name = data["category"]["data"]["name"]
+        if not data:
+            return
+
+        # Get all players
+        players = {}
+        for player in data["players"]["data"]:
+            try:
+                players[player["id"]] = player["names"]["international"]
+            except KeyError:
+                players[player["name"]] = player["name"]
+
+        # Get all platforms
+        platforms = {}
+        for platform in data["platforms"]["data"]:
+            platforms[platform["id"]] = platform["name"]
+
+        # Init discord Embed
+        e = discord.Embed(
+            title="Leaderboard",
+            colour=discord.Colour.gold(),
+            url=data["runs"][0]["run"]["weblink"],
+        )
+
+        e.set_author(
+            name=cat_name,
+            url=data["category"]["data"]["weblink"],
+            icon_url="https://www.speedrun.com/themes/Default/1st.png",
+        )
+
+        for run in data["runs"]:
+            # Get run's players
+            run_players = []
+            for player in run["run"]["players"]:
+                if player["rel"] == "user":
+                    run_players.append(players[player["id"]])
+                elif player["rel"] == "guest":
+                    run_players.append(players[player["name"]])
+                else:
+                    # Something is wrong, lets just return None D:
+                    return
+            e.add_field(
+                name=f"{run['place']}. "
+                + ", ".join(run_players)
+                + " in "
+                + realtime(run["run"]["times"]["primary_t"]),
+                value=f"Played on `{platforms[run['run']['system']['platform']]}` | "
+                + f"[Watch the run]({await self.generate_tinyUrl(run['run']['weblink'])})",
+                inline=False,
+            )
+
+        e.set_thumbnail(url=data["game"]["data"]["assets"]["cover-large"]["uri"])
+        await ctx.send(embed=e)
 
     @commands.command(
         aliases=["wr"],
@@ -215,6 +311,10 @@ class SRC(commands.Cog, name="src"):
         link = f"games/{game['id']}/records?miscellaneous=no&scope=full-game&top=1"
         if category:
             cat_dict = await self.get_subcats(game["id"], pformat(category))
+            if not cat_dict:
+                return await ctx.send(
+                    f"This game doesn't have a category called {category}"
+                )
             link = f"leaderboards/{game['id']}/category/{cat_dict[pformat(category)]['id']}?top=1"
         var_link = ""
         if (
