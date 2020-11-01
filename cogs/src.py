@@ -93,17 +93,17 @@ class SRC(commands.Cog, name="src"):
             data = data["data"]
             bulk = True
             if not data:
-                data = await self.get("games", params={"name": game})
+                data = await self.get(f"games?name={game}")
                 data = data["data"]
                 bulk = True
         game_info = []
 
         if bulk:
-            for i in range(len(data) - 1):
+            for i in data:
                 game_info.append(
                     {
-                        "id": data[i]["id"],
-                        "name": data[i]["names"]["international"],
+                        "id": i["id"],
+                        "name": i["names"]["international"],
                     }
                 )
         else:
@@ -210,7 +210,10 @@ class SRC(commands.Cog, name="src"):
         self, ctx, game: str, category: str = None, sub_category: str = None
     ):
         """Get leaderboard for a specific game."""
+        _ = game
         game = await self.get_game(game)
+        if not game:
+            return await ctx.send("There's no game called `{}`".format(_))
         game = game[0]
         link = f"games/{game['id']}/records?miscellaneous=no&scope=full-game&top=10"
         if category:
@@ -288,7 +291,8 @@ class SRC(commands.Cog, name="src"):
                 + ", ".join(run_players)
                 + " in "
                 + realtime(run["run"]["times"]["primary_t"]),
-                value=f"Played on `{platforms[run['run']['system']['platform']]}` | "
+                value= f"Date Played `{run['run']['date']}` | "
+                + f"Played on `{platforms[run['run']['system']['platform']]}` | "
                 + f"[Watch the run]({await self.generate_tinyUrl(run['run']['weblink'])})",
                 inline=False,
             )
@@ -306,7 +310,10 @@ class SRC(commands.Cog, name="src"):
         self, ctx, game, category: str = None, sub_category: str = None
     ):
         """Get the world record for a specific game."""
+        _ = game
         game = await self.get_game(game)
+        if not game:
+            return await ctx.send("There's no game called `{}`".format(_))
         game = game[0]
         link = f"games/{game['id']}/records?miscellaneous=no&scope=full-game&top=1"
         if category:
