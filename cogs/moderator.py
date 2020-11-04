@@ -255,7 +255,10 @@ class Admin(commands.Cog, name="moderation"):
                 if muted_role in member.roles:
                     await ctx.send(f"{member.mention} is already muted.")
                 else:
-                    await member.add_roles(muted_role)
+                    try:
+                        await member.add_roles(muted_role)
+                    except Forbidden:
+                        return await ctx.send("I need `Manage Role` permission to mute a member!")
                     duration = ""
                     if min_muted > 0:
                         duration = f" ({min_muted} minutes)"
