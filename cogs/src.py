@@ -24,6 +24,16 @@ class SRC(commands.Cog, name="src"):
         async with self.session.get(self.API_URL + _type, **kwargs) as url:
             data = json.loads(await url.text())
         return data
+    
+    async def get_user_id(self, username):
+        data = await self.get(f"users/{username}")
+        data = data['data']
+        return data['id']
+
+    async def get_username(self, user_id):
+        data = await self.get(f"users/{user_id}")
+        data = data['data']
+        return data['names']['international']
 
     async def get_cats(self, game_id):
         categories = {}
@@ -201,7 +211,34 @@ class SRC(commands.Cog, name="src"):
         )
         await ctx.send(embed=e)
 
-    @commands.command(aliases=["lb"])
+    @commands.command(usage = "(username)")
+    async def wrcount(self, ctx, user: str):
+        """Count how many world records a user have"""
+        link = f"users/{user}/personal-bests"
+        data = await self.get(link)
+        try:
+            data = data['data']
+        except KeyError:
+            return await ctx.send(f"There's no user called `{user}`")
+        fullgame_wr = 0
+        ils_wr = 0
+        for pb in data:
+            if pb['place'] > 1:
+                continue
+
+            if pb['run']['level']:
+                ils_wr += 1
+            elif not pb['run']['level']:
+                fullgame_wr += 1
+            else:
+                # Uh oh!
+                continue
+        await ctx.send(f"{await self.get_username(await self.get_user_id(user))} has " 
+                    + f"**{fullgame_wr + ils_wr}** world records, **{fullgame_wr}** full game " 
+                    + f"record{'s' if fullgame_wr > 1 else ''} and "
+                    + f"**{ils_wr}** IL record{'s' if ils_wr > 1 else ''}")
+
+    @commands.command(aliases=["lb"], usage="(game) [category] [sub category]")
     async def leaderboard(
         self, ctx, game: str, category: str = None, sub_category: str = None
     ):
