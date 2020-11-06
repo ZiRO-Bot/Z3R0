@@ -36,7 +36,7 @@ def get_cogs():
         "cogs.src",
         "cogs.anilist",
         "cogs.utils",
-        "cogs.custom_commands",
+        "cogs.commands",
         # "cogs.music",
     ]
     return extensions
@@ -65,6 +65,7 @@ class ziBot(commands.Bot):
             allowed_mentions=discord.AllowedMentions(users=True, roles=False),
             intents=discord.Intents.all(),
         )
+        self._BotBase__cogs = commands.core._CaseInsensitiveDict()
 
         # Init database
         self.conn = sqlite3.connect("data/database.db")
@@ -238,7 +239,6 @@ class ziBot(commands.Bot):
         if message.author.bot:
             return
         await self.process_commands(message)
-
 
     async def close(self):
         await super().close()

@@ -19,14 +19,13 @@ from pytz import timezone
 from TagScriptEngine import Verb, Interpreter, adapter, block
 
 
-class Customcommands(commands.Cog):
+class Commands(commands.Cog, name="Custom"):
+    """All about custom commands."""
     def __init__(self, bot):
         self.logger = logging.getLogger("discord")
         self.bot = bot
-        self.bot.c.execute(
-            """CREATE TABLE IF NOT EXISTS tags
-                (id text, name text, content text, created int, updated int, uses real, author text)"""
-        )
+        self.db = self.bot.pool
+        bot.loop.create_task(self.create_table())
         self.blocks = [
             RandomBlock(), 
             block.StrictVariableGetterBlock(), 
@@ -34,6 +33,17 @@ class Customcommands(commands.Cog):
             block.RangeBlock(),
         ]
         self.engine = Interpreter(self.blocks)
+
+    async def create_table(self):
+        """
+        Try to create empty table on init.
+        """
+        async with self.db.acquire() as conn:
+            async with conn.transaction():
+                await conn.execute(
+                    """CREATE TABLE IF NOT EXISTS tags
+                    (id SERIAL, guild_id text, name text, content text, created int, modified int, uses real, author text)"""
+                )
 
     def clean_tag_content(self, content):
         return content.replace("@everyone", "@\u200beveryone").replace(
@@ -275,4 +285,4 @@ class Customcommands(commands.Cog):
 
 
 def setup(bot):
-    bot.add_cog(Customcommands(bot))
+    bot.add_cog(Commands(bot))
