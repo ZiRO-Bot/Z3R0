@@ -75,6 +75,7 @@ def init_bot():
         return
 
     bot = ziBot()
+    bot.pool = pool
     bot.run()
 
 

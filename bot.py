@@ -209,6 +209,7 @@ class ziBot(commands.Bot):
     async def process_commands(self, message):
         ctx = await self.get_context(message, cls=context.Context)
         can_run = False
+        # See if user can run the command (if exists)
         if ctx.command:
             try:
                 can_run = await ctx.command.can_run(ctx)
@@ -224,17 +225,20 @@ class ziBot(commands.Bot):
             if ctx.prefix:
                 new_content = msg.content[len(ctx.prefix) :]
                 msg.content = "{}tag get {}".format(ctx.prefix, new_content)
-                await self.process_commands(msg)
+                return await self.process_commands(msg)
+        
+        try:
+            await self.invoke(ctx)
+        finally:
+            # Just in case we have any outstanding DB connections
+            await ctx.release() 
 
     async def on_message(self, message):
         # dont accept commands from bot
         if message.author.bot:
             return
-
         await self.process_commands(message)
 
-        # ctx = await self.get_context(message)
-        # See if user can run the command (if exists)
 
     async def close(self):
         await super().close()
