@@ -1,5 +1,6 @@
 import asyncio
 import aiohttp
+import cogs.utilities.context as context
 import copy
 import discord
 import json
@@ -14,21 +15,13 @@ from discord.errors import NotFound
 from discord.ext import commands
 from dotenv import load_dotenv
 
+import config
+
 # Create data directory if its not exist
 try:
     os.makedirs("data")
 except FileExistsError:
     pass
-
-try:
-    token = os.environ("TOKEN")
-except:
-    load_dotenv()
-    token = os.getenv("TOKEN")
-
-shard = os.getenv("SHARD") or 0
-shard_count = os.getenv("SHARD_COUNT") or 1
-
 
 def get_cogs():
     """callable extensions"""
@@ -37,6 +30,7 @@ def get_cogs():
         "cogs.error_handler",
         "cogs.help",
         "cogs.general",
+        "cogs.info",
         "cogs.moderator",
         "cogs.fun",
         "cogs.src",
@@ -86,12 +80,12 @@ class ziBot(commands.Bot):
         self.def_prefix = ">"
         self.norules = [758764126679072788, 747984453585993808, 745481731133669476]
 
-        with open("config.json", "r") as f:
-            self.config = json.load(f)
+        # with open("config.json", "r") as f:
+        #     self.config = json.load(f)
 
-        if not self.config["bot_token"]:
-            self.logger.error("No token found. Please add it to config.json!")
-            raise AttributeError("No token found!")
+        # if not self.config["bot_token"]:
+        #     self.logger.error("No token found. Please add it to config.json!")
+        #     raise AttributeError("No token found!")
 
         # Create "servers" table if its not exists
         self.c.execute(
@@ -212,15 +206,8 @@ class ziBot(commands.Bot):
         for server in self.guilds:
             self.add_empty_data(server)
 
-    async def on_message(self, message):
-        # dont accept commands from bot
-        if message.author.bot:
-            return
-
-        await self.process_commands(message)
-
-        ctx = await self.get_context(message)
-        # See if user can run the command (if exists)
+    async def process_commands(self, message):
+        ctx = await self.get_context(message, cls=context.Context)
         can_run = False
         if ctx.command:
             try:
@@ -239,9 +226,23 @@ class ziBot(commands.Bot):
                 msg.content = "{}tag get {}".format(ctx.prefix, new_content)
                 await self.process_commands(msg)
 
+    async def on_message(self, message):
+        # dont accept commands from bot
+        if message.author.bot:
+            return
+
+        await self.process_commands(message)
+
+        # ctx = await self.get_context(message)
+        # See if user can run the command (if exists)
+
     async def close(self):
         await super().close()
         await self.session.close()
 
     def run(self):
-        super().run(self.config["bot_token"], reconnect=True)
+        super().run(config.token, reconnect=True)
+
+    @property
+    def config(self):
+        return __import__('config')

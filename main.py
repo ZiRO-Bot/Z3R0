@@ -1,11 +1,15 @@
 import asyncio
+import asyncpg
 import click
 import contextlib
 import discord
 import json
 import logging
+import sys
 
 from bot import ziBot
+
+import config
 
 
 @contextlib.contextmanager
@@ -58,7 +62,17 @@ def init_bot():
     loop = asyncio.get_event_loop()
     logger = logging.getLogger()
 
-    check_json()
+    kwargs = {
+        'command_timeout': 60,
+        'max_size': 20,
+        'min_size': 20,
+    }
+    try:
+        pool = loop.run_until_complete(Table.create_pool(config.postgresql, **kwargs))
+    except Exception as e:
+        click.echo('Could not set up PostgreSQL. Exiting.', file=sys.stderr)
+        logger.exception('Could not set up PostgreSQL. Exiting.')
+        return
 
     bot = ziBot()
     bot.run()

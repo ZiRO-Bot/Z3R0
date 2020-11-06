@@ -495,7 +495,7 @@ async def search_ani_new(self, ctx, anime, page):
     return
 
 
-class AniList(commands.Cog, name="anilist"):
+class AniList(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.handle_schedule.start()

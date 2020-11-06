@@ -8,7 +8,7 @@ from random import randint
 from TagScriptEngine import Verb, Interpreter, adapter, block
 
 
-class Welcome(commands.Cog, name="welcome"):
+class Welcome(commands.Cog):
     # Welcome message + set roles when new member joined
     def __init__(self, bot):
         self.bot = bot

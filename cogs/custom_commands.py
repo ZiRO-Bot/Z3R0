@@ -19,7 +19,7 @@ from pytz import timezone
 from TagScriptEngine import Verb, Interpreter, adapter, block
 
 
-class CustomCommands(commands.Cog, name="customcommands"):
+class Customcommands(commands.Cog):
     def __init__(self, bot):
         self.logger = logging.getLogger("discord")
         self.bot = bot
@@ -275,4 +275,4 @@ class CustomCommands(commands.Cog, name="customcommands"):
 
 
 def setup(bot):
-    bot.add_cog(CustomCommands(bot))
+    bot.add_cog(Customcommands(bot))

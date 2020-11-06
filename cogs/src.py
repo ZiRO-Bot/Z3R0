@@ -7,7 +7,7 @@ from discord.ext import commands
 from cogs.utilities.formatting import pformat, realtime, hformat
 
 
-class SRC(commands.Cog, name="src"):
+class SRC(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.API_URL = "https://www.speedrun.com/api/v1/"

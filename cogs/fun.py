@@ -16,21 +16,21 @@ from random import choice, randint, random
 from typing import Optional
 
 
-class Fun(commands.Cog, name="fun"):
+class Fun(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         praw.Reddit
         self.reddit = praw.Reddit(
-            client_id=self.bot.config["reddit"]["id"],
-            client_secret=self.bot.config["reddit"]["secret"],
-            user_agent=self.bot.config["reddit"]["user_agent"],
+            client_id=self.bot.config.reddit["id"],
+            client_secret=self.bot.config.reddit["secret"],
+            user_agent=self.bot.config.reddit["user_agent"],
         )
 
     def is_reddit():
         def predicate(ctx):
-            reddit_id = ctx.bot.config["reddit"]["id"]
-            reddit_secret = ctx.bot.config["reddit"]["secret"]
-            reddit_user_agent = ctx.bot.config["reddit"]["user_agent"]
+            reddit_id = ctx.bot.config.reddit["id"]
+            reddit_secret = ctx.bot.config.reddit["secret"]
+            reddit_user_agent = ctx.bot.config.reddit["user_agent"]
             if reddit_id and reddit_secret and reddit_user_agent:
                 return True
             return False
