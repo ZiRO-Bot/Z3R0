@@ -19,7 +19,7 @@ from pytz import timezone
 from TagScriptEngine import Verb, Interpreter, adapter, block
 
 
-class Commands(commands.Cog, name="Custom"):
+class Custom(commands.Cog):
     """All about custom commands."""
     def __init__(self, bot):
         self.logger = logging.getLogger("discord")
@@ -115,14 +115,14 @@ class Commands(commands.Cog, name="Custom"):
 
         return commands.check(predicate)
     
-    @commands.command()
-    async def commands(self):
+    @commands.command(name="commands", aliases=["tags", "cmds"])
+    async def _commands(self, ctx):
         """Alias for command list."""
-        pass
+        await ctx.invoke(self.bot.get_command("command list"))
 
     @commands.group(
         name="command",
-        aliases=["tag", "customcommand", "cmd"],
+        aliases=["tag", "cmd"],
         invoke_without_command=True,
         usage="(command name)",
     )
@@ -290,4 +290,4 @@ class Commands(commands.Cog, name="Custom"):
 
 
 def setup(bot):
-    bot.add_cog(Commands(bot))
+    bot.add_cog(Custom(bot))
