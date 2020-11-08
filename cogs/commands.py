@@ -114,6 +114,11 @@ class Commands(commands.Cog, name="Custom"):
             return ctx.author.guild_permissions.manage_channels
 
         return commands.check(predicate)
+    
+    @commands.command()
+    async def commands(self):
+        """Alias for command list."""
+        pass
 
     @commands.group(
         name="command",
