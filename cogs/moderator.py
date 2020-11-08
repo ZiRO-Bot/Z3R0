@@ -189,8 +189,12 @@ class Moderation(commands.Cog):
     @checks.is_mod()
     async def clearchat(self, ctx, numb):
         """Clear the chat."""
+        try:
+            numb = int(numb)
+        except ValueError:
+            return await ctx.send(f"{numb} is not a valid number!")
         deleted_msg = await ctx.message.channel.purge(
-            limit=int(numb) + 1,
+            limit=numb + 1,
             check=None,
             before=None,
             after=None,
@@ -228,7 +232,11 @@ class Moderation(commands.Cog):
         if len(r_and_d) < 2:
             r_and_d.append("0")
         reason = r_and_d[0] or "No Reason"
-        min_muted = int(r_and_d[1])
+        try:
+            min_muted = int(r_and_d[1])
+        except ValueError:
+            await ctx.send(f"**WARNING**: {r_and_d[1]} is not a valid number, value `0` is used instead.")
+            min_muted = 0
 
         if not members:
             return await ctx.send(
@@ -349,7 +357,11 @@ class Moderation(commands.Cog):
         if len(r_and_d) < 2:
             r_and_d.append("0")
         reason = r_and_d[0] or "No Reason"
-        min_ban = int(r_and_d[1])
+        try:
+            min_ban = int(r_and_d[1])
+        except ValueError:
+            await ctx.send(f"**WARNING**: {r_and_d[1]} is not a valid number, value `0` is used instead.")
+            min_ban = 0
 
         if not members:
             return await ctx.send(
