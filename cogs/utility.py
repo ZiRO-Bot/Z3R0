@@ -6,14 +6,14 @@ import logging
 import re
 import time
 
+from .utils.formatting import realtime
 from aiogoogletrans import Translator
 from discord.ext import commands
-from utilities.formatting import realtime
 
 translator = Translator()
 
 
-class Utils(commands.Cog):
+class Utility(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.logger = logging.getLogger("discord")
@@ -295,4 +295,4 @@ class Utils(commands.Cog):
 
 
 def setup(bot):
-    bot.add_cog(Utils(bot))
+    bot.add_cog(Utility(bot))

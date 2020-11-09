@@ -24,21 +24,19 @@ py -3 -m pip install -r requirements.txt
 
 ### Host (Full Control)
 - Create folder called `data` (to prevent error)
-- Create a file named `config.json` with this format:
-```json
-{
-    "bot_token": "YOUR-TOKEN-HERE",
-    "twitch": {
-        "id": "",
-        "secret": ""
-    },
-    "reddit": {
-        "id": "",
-        "secret": "",
-        "user_agent": "ziBot/0.4"
-    },
-    "openweather_apikey": ""
+- Create a file named `config.py` with this format:
+```python
+token = "TOKEN_GOES_HERE!"
+twitch = {
+    "id": "", "secret": ""
 }
+reddit = {
+    "id": "",
+    "secret": "",
+    "user_agent": "ziBot/0.1",
+}
+openweather_apikey = ""
+postgresql = "postgresql://username:password!@hostname/database"
 ```
 - Launch the bot with ```python3 main.py```
 

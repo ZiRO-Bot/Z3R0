@@ -2,7 +2,7 @@ import asyncio
 import discord
 import logging
 
-from .utilities.stringparamadapter import StringParamAdapter
+from .utils.stringparamadapter import StringParamAdapter
 from discord.ext import commands
 from random import randint
 from TagScriptEngine import Verb, Interpreter, adapter, block

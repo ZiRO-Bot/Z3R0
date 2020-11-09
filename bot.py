@@ -1,6 +1,6 @@
 import asyncio
 import aiohttp
-import cogs.utilities.context as context
+import cogs.utils.context as context
 import copy
 import discord
 import json
@@ -35,7 +35,7 @@ def get_cogs():
         "cogs.fun",
         "cogs.src",
         "cogs.anilist",
-        "cogs.utils",
+        "cogs.utility",
         "cogs.commands",
         # "cogs.music",
     ]

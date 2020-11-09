@@ -9,7 +9,7 @@ import textwrap
 import time
 
 from .errors.weather import CityNotFound
-from .utilities.formatting import bar_make, realtime
+from .utils.formatting import bar_make, realtime
 from discord.ext import commands
 from pytz import timezone
 

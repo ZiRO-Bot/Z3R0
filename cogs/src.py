@@ -3,8 +3,8 @@ import discord
 import json
 import re
 
+from .utils.formatting import pformat, realtime, hformat
 from discord.ext import commands
-from cogs.utilities.formatting import pformat, realtime, hformat
 
 
 class SRC(commands.Cog):

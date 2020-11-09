@@ -8,10 +8,10 @@ import os
 import random
 import time
 
-from .utilities.tse_blocks import RandomBlock
-from .utilities.embed_formatting import em_ctx_send_error
-from .utilities.formatting import realtime
-from .utilities.stringparamadapter import StringParamAdapter
+from .utils.tse_blocks import RandomBlock
+from .utils.embed_formatting import em_ctx_send_error
+from .utils.formatting import realtime
+from .utils.stringparamadapter import StringParamAdapter
 from bot import get_cogs
 from discord.errors import Forbidden
 from discord.ext import commands

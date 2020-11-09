@@ -7,7 +7,7 @@ import requests
 
 from discord.ext import commands, tasks
 from discord.utils import get
-from utilities.formatting import pformat, realtime
+from .utils.formatting import pformat, realtime
 
 session = aiohttp.ClientSession()
 

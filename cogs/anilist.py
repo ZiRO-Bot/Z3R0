@@ -8,11 +8,11 @@ import pytz
 import re
 import time
 
-from cogs.errors.anilist import NameNotFound, NameTypeNotFound, IdNotFound
+from .errors.anilist import NameNotFound, NameTypeNotFound, IdNotFound
+from .utils.formatting import hformat, realtime
 from discord.ext import tasks, commands
 from pytz import timezone
 from typing import Optional
-from utilities.formatting import hformat, realtime
 
 session = aiohttp.ClientSession()
 

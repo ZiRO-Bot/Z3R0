@@ -6,9 +6,9 @@ import os
 import praw
 import re
 
+from .errors.fun import DiceTooBig
+from .utils.embed_formatting import em_ctx_send_error
 from bs4 import BeautifulSoup
-from cogs.errors.fun import DiceTooBig
-from cogs.utilities.embed_formatting import em_ctx_send_error
 from discord.ext import commands
 from discord.errors import Forbidden
 from dotenv import load_dotenv
