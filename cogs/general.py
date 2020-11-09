@@ -398,13 +398,32 @@ class General(commands.Cog, name="general"):
         embed.set_footer(text=f"ID: {ctx.guild.id}")
         await ctx.send(embed=embed)
 
-    @commands.command(aliases=["bi", "about", "info", "uptime", "up", "invite"])
+    @commands.command()
+    async def invite(self, ctx):
+        """Get bot's invite link."""
+        e = discord.Embed(
+            title="Want to invite ziBot?",
+            description="[Invite with necessary premissions ***recommended**](" 
+                + discord.utils.oauth_url(
+                    self.bot.user.id, permissions=discord.Permissions(1879571542), guild=None, redirect_uri=None
+                ) 
+                + ")\n"
+                + "[Invite with no permissions]("
+                + discord.utils.oauth_url(
+                    self.bot.user.id, permissions=None, guild=None, redirect_uri=None
+                )
+                + ")\n",
+            colour=discord.Colour(0xFFFFF0),
+        )
+        await ctx.send(embed=e)
+
+    @commands.command(aliases=["bi", "about", "info", "uptime", "up"])
     async def botinfo(self, ctx):
         """Show bot information."""
         bot_ver = "2.1.S"
         start = time.perf_counter()
         invite_link = discord.utils.oauth_url(
-            self.bot.user.id, permissions=None, guild=None, redirect_uri=None
+            self.bot.user.id, permissions=1879571542, guild=None, redirect_uri=None
         )
         embed = discord.Embed(
             title="About ziBot",
@@ -423,7 +442,7 @@ class General(commands.Cog, name="general"):
         )
         embed.add_field(
             name="Links",
-            value=f"[Invitation]({invite_link})\n"
+            value=f"[Invite]({invite_link})\n"
             + "[Donate](https://www.patreon.com/ziro2264)\n"
             + "[GitHub Repo](https://github.com/null2264/ziBot)\n"
             + "[Documentation](https://ziro-bot.github.io)\n"
