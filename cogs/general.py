@@ -423,7 +423,7 @@ class General(commands.Cog, name="general"):
         bot_ver = "2.1.S"
         start = time.perf_counter()
         invite_link = discord.utils.oauth_url(
-            self.bot.user.id, permissions=1879571542, guild=None, redirect_uri=None
+            self.bot.user.id, permissions=discord.Permissions(1879571542), guild=None, redirect_uri=None
         )
         embed = discord.Embed(
             title="About ziBot",
