@@ -75,10 +75,15 @@ class ErrorHandler(commands.Cog):
                 await msg.edit(embed=e)
                 await msg.clear_reactions()
             else:
-                bot_owner = self.bot.get_user(self.bot.master[0])
-                await bot_owner.send(
-                    f"An error occured: `{error}`\nctx.message: `{ctx.message}`\nctx.message.content: `{ctx.message.content}`"
+                e_owner = discord.Embed(
+                    title="Something went wrong!",
+                    description=f"An error occured: `{error}`",
+                    colour=discord.Colour(0x2F3136),
                 )
+                e_owner.add_field(name="Message", value=ctx.message.content)
+                e_owner.add_field(name="Guild", value=ctx.message.guild)
+                bot_owner = self.bot.get_user(self.bot.master[0])
+                await bot_owner.send(embed=e_owner)
                 e.set_footer(
                     text=f"Error has been reported to {bot_owner}", icon_url=ctx.author.avatar_url
                 )

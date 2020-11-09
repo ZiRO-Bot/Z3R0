@@ -14,21 +14,60 @@ from .utils.formatting import realtime
 from .utils.stringparamadapter import StringParamAdapter
 from bot import get_cogs
 from discord.errors import Forbidden
-from discord.ext import commands
+from discord.ext import commands, menus
 from pytz import timezone
 from TagScriptEngine import Verb, Interpreter, adapter, block
 
 
+class CommandsPageSource(menus.ListPageSource):
+    def __init__(self, ctx, commands):
+        super().__init__(entries=list(commands.keys()), per_page=12)
+        self.commands = commands
+        self.ctx = ctx
+
+    def format_page(self, menu, commands):
+        _list = ""
+        for cmd in commands:
+            places = {1: "🥇", 2: "🥈", 3: "🥉"}
+            pos = self.commands[cmd]["pos"]
+            if pos in places:
+                pos = places[pos]
+            else:
+                pos = f"{pos}."
+            _list += f"{pos} {cmd} **[{int(self.commands[cmd]['uses'])} uses]**\n"
+        e = discord.Embed(
+            title="Custom Commands", color=discord.Colour(0xFFFFF0), description=_list
+        )
+        maximum = self.get_max_pages()
+        e.set_footer(
+            text=f"Requested by {self.ctx.author} - Page {menu.current_page + 1}/{maximum}",
+            icon_url=self.ctx.author.avatar_url,
+        )
+        return e
+
+
+class HelpPages(menus.MenuPages):
+    def __init__(self, source):
+        super().__init__(source=source, check_embeds=True)
+
+    async def finalize(self, timed_out):
+        try:
+            await self.message.clear_reactions()
+        except discord.HTTPException:
+            pass
+
+
 class Custom(commands.Cog):
     """All about custom commands."""
+
     def __init__(self, bot):
         self.logger = logging.getLogger("discord")
         self.bot = bot
         self.db = self.bot.pool
         bot.loop.create_task(self.create_table())
         self.blocks = [
-            RandomBlock(), 
-            block.StrictVariableGetterBlock(), 
+            RandomBlock(),
+            block.StrictVariableGetterBlock(),
             block.MathBlock(),
             block.RangeBlock(),
         ]
@@ -100,7 +139,10 @@ class Custom(commands.Cog):
                 ctx.prefix == "@" and (lookup == "everyone" or lookup == "here")
             ):
                 return
-            return await em_ctx_send_error(ctx, f"No command called `{name}` or you don't have a permission to use it")
+            return await em_ctx_send_error(
+                ctx,
+                f"No command called `{name}` or you don't have a permission to use it",
+            )
         self.bot.c.execute(
             "UPDATE tags SET uses = uses + 1 WHERE (name=? AND id=?)",
             (lookup, str(ctx.guild.id)),
@@ -114,7 +156,7 @@ class Custom(commands.Cog):
             return ctx.author.guild_permissions.manage_channels
 
         return commands.check(predicate)
-    
+
     @commands.command(name="commands", aliases=["tags", "cmds"])
     async def _commands(self, ctx):
         """Alias for command list."""
@@ -228,15 +270,12 @@ class Custom(commands.Cog):
             "SELECT * FROM tags WHERE id=? ORDER BY uses DESC", (str(ctx.guild.id),)
         )
         tags = tags.fetchall()
-        tags = {x[1]: {"uses": x[5]} for x in tags}
-        if tags:
-            e = discord.Embed(title="Custom Commands")
-            e.description = ""
-            for key, val in tags.items():
-                e.description += f"{list(tags.keys()).index(key) + 1}. {key} **[{int(val['uses'])} uses]**\n"
-            await ctx.send(embed=e)
-        else:
+        if not tags:
             await ctx.send("This server doesn't have custom command")
+            return
+        tags = {x[1]: {"uses": x[5], "pos": tags.index(x) + 1} for x in tags}
+        menu = HelpPages(CommandsPageSource(ctx, tags))
+        await menu.start(ctx)
 
     @custom.command(name="info", aliases=["?"], usage="(command name)")
     async def command_info(self, ctx, name: str):
