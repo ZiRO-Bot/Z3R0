@@ -397,8 +397,8 @@ class Fun(commands.Cog, name="fun"):
         if message.author.bot:
             return
 
-        fair_guilds = [759073367767908375, 758764126679072788, 745481731133669476]
-        bad_words = ["fair", "ⓕⓐⓘⓡ", "ɹıɐɟ", "justo"]
+        fair_guilds = [759073367767908375, 758764126679072788, 745481731133669476, 690032983817846859]
+        bad_words = ["fair", "ⓕⓐⓘⓡ", "ɹıɐɟ", "justo", "adil"]
         fair = ""
         for word in bad_words:
             if word in message.content.lower().replace(" ", ""):
