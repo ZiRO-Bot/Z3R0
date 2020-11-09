@@ -81,7 +81,7 @@ class Custom(commands.Cog):
             async with conn.transaction():
                 await conn.execute(
                     """CREATE TABLE IF NOT EXISTS tags
-                    (id SERIAL, guild_id text, name text, content text, created int, modified int, uses real, author text)"""
+                    (id SERIAL, guild_id text, name text, content text, created int, modified int, uses real DEFAULT 0, author text)"""
                 )
 
     def clean_tag_content(self, content):
@@ -188,29 +188,31 @@ class Custom(commands.Cog):
             self.verify_lookup(lookup)
         except RuntimeError as e:
             return await em_ctx_send_error(ctx, e)
+        
+        await ctx.acquire()
 
-        self.bot.c.execute(
-            "SELECT * FROM tags WHERE (name = ? AND id = ?)",
-            (lookup, str(ctx.guild.id)),
+        a = await ctx.db.fetch(
+            "SELECT * FROM tags WHERE (name = $1 AND guild_id = $2)",
+            lookup, str(ctx.guild.id),
         )
-        a = self.bot.c.fetchone()
         if a:
             await em_ctx_send_error(ctx, "Command already exists!")
+            await ctx.release()
             return
         content = self.clean_tag_content(content)
-        self.bot.c.execute(
-            "INSERT INTO tags VALUES (?, ?, ?, ?, ?, ?, ?)",
-            (
+        async with ctx.db.transaction():
+            await ctx.db.execute(
+                """INSERT INTO tags 
+                (guild_id, name, content, created, modified, author) 
+                VALUES ($1, $2, $3, $4, $5, $6)""",
                 str(ctx.guild.id),
-                lookup,
-                content,
+                str(lookup),
+                str(content),
                 datetime.datetime.utcnow().timestamp(),
                 datetime.datetime.utcnow().timestamp(),
-                0,
-                ctx.message.author.id,
-            ),
-        )
-        self.bot.conn.commit()
+                str(ctx.message.author.id),
+            )
+        await ctx.release()
         await ctx.send(f"Command `{name}` has been created")
 
     @custom.command(name="edit", aliases=["&", "ed"], usage="(command name) (content)")
