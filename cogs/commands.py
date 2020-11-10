@@ -93,6 +93,10 @@ class Custom(commands.Cog):
         """Print user properly (ex: user#6969)."""
         return f"{user.name}#{user.discriminator}"
 
+    def clean_nick(self, user):
+        nick = str(user.nick or user.name)
+        return nick.replace("<@", "<@\u200b")
+
     def fetch_tags(self, ctx, message):
         # TSE's documentation is pretty bad so this is my workaround for now
         special_vals = {
@@ -101,8 +105,9 @@ class Custom(commands.Cog):
                 ctx.author.name,
                 {
                     "id": str(ctx.author.id),
-                    "proper": f"{ctx.author.name}#{ctx.author.discriminator}",
+                    "proper": str(ctx.author),
                     "mention": ctx.author.mention,
+                    "nick": self.clean_nick(ctx.author), 
                 },
             ),
             "server": StringParamAdapter(
@@ -112,8 +117,8 @@ class Custom(commands.Cog):
                     "members": str(len(ctx.guild.members)),
                     "bots": str(len([x for x in ctx.guild.members if x.bot])),
                     "humans": str(len([x for x in ctx.guild.members if not x.bot])),
-                    "random": str(self.proper_user(random.choice(ctx.guild.members))),
-                    "owner": str(self.proper_user(ctx.guild.owner)),
+                    "random": str(random.choice(ctx.guild.members)),
+                    "owner": str(ctx.guild.owner),
                     "roles": str(len(ctx.guild.roles)),
                     "channels": str(len(ctx.guild.channels)),
                 },
