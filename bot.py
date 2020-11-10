@@ -62,7 +62,6 @@ class ziBot(commands.Bot):
         super().__init__(
             command_prefix=get_prefix,
             case_insensitive=True,
-            allowed_mentions=discord.AllowedMentions(users=True, roles=False),
             intents=discord.Intents.all(),
         )
         self._BotBase__cogs = commands.core._CaseInsensitiveDict()
