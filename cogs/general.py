@@ -403,7 +403,12 @@ class General(commands.Cog, name="general"):
         """Get bot's invite link."""
         e = discord.Embed(
             title="Want to invite ziBot?",
-            description="[Invite with necessary premissions ***recommended**](" 
+            description="[Invite with administrator permission](" 
+                + discord.utils.oauth_url(
+                    self.bot.user.id, permissions=discord.Permissions(8), guild=None, redirect_uri=None
+                ) 
+                + ")\n"
+                + "[Invite with necessary premissions ***recommended**](" 
                 + discord.utils.oauth_url(
                     self.bot.user.id, permissions=discord.Permissions(1879571542), guild=None, redirect_uri=None
                 ) 
