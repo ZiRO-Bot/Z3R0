@@ -125,7 +125,7 @@ class Custom(commands.Cog):
             ),
             "unix": adapter.IntAdapter(int(datetime.datetime.utcnow().timestamp())),
         }
-        return self.clean_tag_content(self.engine.process(message, special_vals).body)
+        return self.engine.process(message, special_vals).body
 
     async def send_tag_content(self, ctx, name):
         lookup = name.lower().strip()
@@ -154,7 +154,7 @@ class Custom(commands.Cog):
         )
         self.bot.conn.commit()
         content = self.fetch_tags(ctx, a[2])
-        await ctx.send(content)
+        await ctx.send(content, allowed_mentions=discord.AllowedMentions.none())
 
     def is_mod():
         def predicate(ctx):
@@ -204,7 +204,7 @@ class Custom(commands.Cog):
             await em_ctx_send_error(ctx, "Command already exists!")
             await ctx.release()
             return
-        content = self.clean_tag_content(content)
+        # content = self.clean_tag_content(content)
         async with ctx.db.transaction():
             await ctx.db.execute(
                 """INSERT INTO tags 
@@ -238,7 +238,7 @@ class Custom(commands.Cog):
         a = self.bot.c.fetchall()
         if not a:
             return await em_ctx_send_error(ctx, f"There's no command called `{name}`")
-        content = self.clean_tag_content(content)
+        # content = self.clean_tag_content(content)
         self.bot.c.execute(
             "UPDATE tags SET content = ?, updated = ? WHERE (name = ? AND id = ?)",
             (
