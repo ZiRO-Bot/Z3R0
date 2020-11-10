@@ -4,3 +4,6 @@ class Error(Exception):
 
 class CityNotFound(Error):
     pass
+
+class PlaceParamEmpty(Error):
+    pass

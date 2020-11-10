@@ -8,7 +8,7 @@ import platform
 import textwrap
 import time
 
-from .errors.weather import CityNotFound
+from .errors.weather import CityNotFound, PlaceParamEmpty
 from .utils.formatting import bar_make, realtime
 from discord.ext import commands
 from pytz import timezone
@@ -27,6 +27,8 @@ def temperature(temp, unit: str, number_only=False):
 
 async def get_weather_data(key, *place: str, _type="city"):
     place = " ".join([*place])
+    if not place:
+        raise PlaceParamEmpty
     if _type == "city":
         q = "q"
     elif _type == "zip":

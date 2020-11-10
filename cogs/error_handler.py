@@ -3,6 +3,7 @@ import discord
 import sys
 import traceback
 
+from .errors.weather import PlaceParamEmpty
 from discord.ext import commands
 
 
@@ -17,6 +18,9 @@ class ErrorHandler(commands.Cog):
     async def on_command_error(self, ctx, error):
         if isinstance(error, commands.CommandNotFound):
             return
+
+        if isinstance(error, PlaceParamEmpty):
+            return await ctx.send("You need specify the place!")
 
         if isinstance(error, commands.MissingRequiredArgument):
             return await ctx.send(
