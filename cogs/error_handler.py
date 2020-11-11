@@ -4,6 +4,7 @@ import sys
 import traceback
 
 from .errors.weather import PlaceParamEmpty
+from .errors.fun import DiceTooBig
 from discord.ext import commands
 
 
