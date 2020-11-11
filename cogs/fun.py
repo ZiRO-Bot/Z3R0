@@ -46,20 +46,14 @@ class Fun(commands.Cog, name="fun"):
         """Flip a coin."""
         await ctx.send(f"{ctx.message.author.mention} {choice(['heads', 'tails'])}")
 
-    @flip.error
-    async def flip_handler(self, ctx, error):
-        if isinstance(error, commands.CommandOnCooldown):
-            bot_msg = await ctx.send(f"{ctx.message.author.mention}, slowdown bud!")
-            await asyncio.sleep(round(error.retry_after))
-            await bot_msg.delete()
-
     @commands.command(usage="[dice size] [number of dice]", brief="Roll the dice.")
     @commands.cooldown(1, 5)
-    async def roll(self, ctx, arg1: Optional[str] = 1, arg2: Optional[int] = None):
+    async def roll(self, ctx, arg1: Optional[str] = "1", arg2: Optional[int] = None):
         """Roll the dice.\n\
            **Example**\n\
            ``>roll 2``\n``>roll d12 4``"""
         dice = []
+        dice_dict = {}
         if arg1.startswith("d"):
             dice_size = int(arg1.split("d")[1])
             dice_number = arg2
@@ -68,23 +62,26 @@ class Fun(commands.Cog, name="fun"):
         else:
             dice_size = 6
             dice_number = int(arg1)
-        if dice_number > 100:
-            raise DiceTooBig
-        for i in range(dice_number):
-            dice.append(int(randint(1, dice_size)))
-        dice = ", ".join(str(i) for i in dice)
+        if dice_number > 500:
+            return await ctx.send("You can only roll up to 500 dices!")
+        elif dice_number > 10:
+            for i in range(dice_number):
+                dice_res = int(randint(1, dice_size))
+                try:
+                    dice_dict[dice_res] += 1
+                except KeyError:
+                    dice_dict[dice_res] = 1
+        else:
+            for i in range(dice_number):
+                dice.append(int(randint(1, dice_size)))
+            dice = ", ".join(str(i) for i in dice)
+        if dice_dict:
+            msg = f"{ctx.author.mention} just rolled:\n```"
+            for key, value in dice_dict.items():
+                msg += f"{key}: {value}\n"
+            msg += "```"
+            return await ctx.send(msg)
         await ctx.send(f"{ctx.message.author.mention} just rolled {dice}!")
-
-    @roll.error
-    async def roll_handler(self, ctx, error):
-        if isinstance(error, commands.CommandOnCooldown):
-            bot_msg = await ctx.send(
-                f"{ctx.message.author.mention}," + " slowdown bud!"
-            )
-            await asyncio.sleep(round(error.retry_after))
-            await bot_msg.delete()
-        if isinstance(error, DiceTooBig):
-            await ctx.send("You can only roll up to 100 dices!")
 
     @commands.command(aliases=["r", "sroll"], usage="(number of roll)")
     @commands.cooldown(1, 5)
@@ -95,15 +92,6 @@ class Fun(commands.Cog, name="fun"):
         await ctx.send(
             f"{ctx.message.author.mention} just rolled {randint(0, int(pool))}"
         )
-
-    @steveroll.error
-    async def steveroll_handler(self, ctx, error):
-        if isinstance(error, commands.CommandOnCooldown):
-            bot_msg = await ctx.send(
-                f"{ctx.message.author.mention}," + " slowdown bud!"
-            )
-            await asyncio.sleep(round(error.retry_after))
-            await bot_msg.delete()
 
     @commands.command()
     @is_reddit()
@@ -244,13 +232,6 @@ class Fun(commands.Cog, name="fun"):
             f"{ctx.message.author.mention} -> your seed is a {totalEyes} eye"
         )
 
-    @findseed.error
-    async def findseed_handler(self, ctx, error):
-        if isinstance(error, commands.CommandOnCooldown):
-            bot_msg = await ctx.send(f"{ctx.message.author.mention}, slowdown bud!")
-            await asyncio.sleep(round(error.retry_after))
-            await bot_msg.delete()
-
     @commands.cooldown(1, 25, commands.BucketType.user)
     @commands.command(aliases=["vfindseed", "visualfindseed", "vfs"])
     async def findseedbutvisual(self, ctx):
@@ -293,13 +274,6 @@ class Fun(commands.Cog, name="fun"):
         )
         await ctx.send(embed=e)
 
-    @findseedbutvisual.error
-    async def findseedbutvisual_handler(self, ctx, error):
-        if isinstance(error, commands.CommandOnCooldown):
-            bot_msg = await ctx.send(f"{ctx.message.author.mention}, slowdown bud!")
-            await asyncio.sleep(round(error.retry_after))
-            await bot_msg.delete()
-
     @commands.cooldown(1, 25, commands.BucketType.guild)
     @commands.command()
     async def findsleep(self, ctx):
@@ -340,13 +314,6 @@ class Fun(commands.Cog, name="fun"):
                 f"{ctx.author.mention} -> your sleep is {sleepHrs} hours long - {moreSleepMsg[randint(0, len(moreSleepMsg) - 1)]}"
             )
 
-    @findsleep.error
-    async def findsleep_handler(self, ctx, error):
-        if isinstance(error, commands.CommandOnCooldown):
-            bot_msg = await ctx.send(f"{ctx.message.author.mention}, slowdown bud!")
-            await asyncio.sleep(round(error.retry_after))
-            await bot_msg.delete()
-
     @commands.command()
     @commands.check(is_redarmy)
     async def someone(self, ctx):
@@ -382,13 +349,6 @@ class Fun(commands.Cog, name="fun"):
             await ctx.send(f"{ctx.author.mention}, you're a crewmate!")
         else:
             await ctx.send(f"{ctx.author.mention}, you're an impostor!")
-
-    @isimpostor.error
-    async def isimpostor_handler(self, ctx, error):
-        if isinstance(error, commands.CommandOnCooldown):
-            bot_msg = await ctx.send(f"{ctx.message.author.mention}, slowdown bud!")
-            await asyncio.sleep(round(error.retry_after))
-            await bot_msg.delete()
 
     @commands.Cog.listener()
     async def on_message(self, message):

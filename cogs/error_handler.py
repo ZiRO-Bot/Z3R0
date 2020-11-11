@@ -3,6 +3,7 @@ import discord
 import sys
 import traceback
 
+from .errors.fun import DiceTooBig
 from discord.ext import commands
 
 
