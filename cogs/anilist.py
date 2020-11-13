@@ -10,8 +10,9 @@ import time
 
 from .errors.anilist import NameNotFound, NameTypeNotFound, IdNotFound
 from .utils.formatting import hformat, realtime
-from .utils.api.anilist_query import * 
-from discord.ext import tasks, commands
+from .utils.api import anilist
+from .utils.api.anilist_query import *
+from discord.ext import tasks, commands, menus
 from pytz import timezone
 from typing import Optional
 
@@ -28,6 +29,117 @@ streamingSites = [
     "Viz",
     "VRV",
 ]
+
+class AniSearchPage(menus.PageSource):
+    """
+    Workaround to make `>anime search` work with ext.menus
+    Might have better way to do this, but for now this will do.
+    """
+    def __init__(self, ctx, keyword, *, per_page, api = None):
+        self.ctx = ctx
+        self.api = api or anilist.AniList()
+        self.per_page = per_page
+        self.keyword = keyword
+        self.cache = {}
+
+    async def prepare(self):
+        """
+        Get necessary info to start.
+
+        Also cache the result as first page.
+        """
+        q = await self.api.get_anime(self.keyword, 1)
+        self.cache["1"] = q["Page"]
+        self.last_page = q['Page']['pageInfo']['lastPage']
+    
+    def is_paginating(self):
+        return self.last_page > self.per_page
+
+    def get_max_pages(self):
+        return self.last_page 
+
+    async def get_page(self, page_number):
+        # Since the website index don't start from 0 lets just add 1 to page_number
+        page_number += 1
+        # if Nth page exist in self.cache, return the it instead of getting a new one
+        if str(page_number) in self.cache:
+            return self.cache[str(page_number)]
+        q = await self.api.get_anime(self.keyword, page_number)
+        if q:
+            self.cache[str(page_number)] = q["Page"]
+            return self.cache[str(page_number)]
+
+    async def format_page(self, menu, page):
+        data = page["media"][0]
+        # Messy and Ugly ratingEmoji system
+        rating = data["averageScore"] or -1
+        if rating >= 90:
+            ratingEmoji = "😃"
+        elif rating >= 75:
+            ratingEmoji = "🙂"
+        elif rating >= 50:
+            ratingEmoji = "😐"
+        elif rating >= 0:
+            ratingEmoji = "😦"
+        else:
+            ratingEmoji = "🤔"
+        e = discord.Embed(
+            title=data["title"]["romaji"],
+            url=f"https://anilist.co/anime/{data['id']}",
+            description=f"**{data['title']['english'] or 'No english title'} ({data['id']})**\n"
+                    + f"`{self.ctx.prefix}anime info {data['id']} for more info`",
+            colour=discord.Colour(0x02A9FF),
+        )
+        maximum = self.get_max_pages()
+        e.set_author(
+            name=f"AniList - "
+            + f"Page {menu.current_page + 1}/{maximum} - "
+            + f"{ratingEmoji} {rating}%",
+            icon_url="https://gblobscdn.gitbook.com/spaces%2F-LHizcWWtVphqU90YAXO%2Favatar.png",
+        )
+        
+        # -- Filter NSFW images
+        if "Hentai" in data["genres"] and self.ctx.channel.is_nsfw() is False:
+            e.set_thumbnail(
+                url="https://raw.githubusercontent.com/null2264/null2264/master/NSFW.png"
+            )
+        else:
+            e.set_thumbnail(url=data["coverImage"]["large"])
+
+        if data["bannerImage"]:
+            if "Hentai" in data["genres"] and self.ctx.channel.is_nsfw() is False:
+                e.set_image(
+                    url="https://raw.githubusercontent.com/null2264/null2264/master/nsfw_banner.jpg"
+                )
+            else:
+                e.set_image(url=data["bannerImage"])
+        else:
+            e.set_image(
+                url="https://raw.githubusercontent.com/null2264/null2264/master/21519-1ayMXgNlmByb.jpg"
+            )
+        # ------
+        studios = []
+        for studio in data["studios"]["nodes"]:
+            studios.append(studio["name"])
+        e.add_field(
+            name="Studios", value=", ".join(studios) or "Unknown", inline=False
+        )
+        e.add_field(name="Format", value=data["format"].replace("_", " "))
+        if str(data["format"]).lower() in ["movie", "music"]:
+            if data["duration"]:
+                e.add_field(
+                    name="Duration", value=realtime(data["duration"] * 60)
+                )
+            else:
+                e.add_field(name="Duration", value=realtime(0))
+        else:
+            e.add_field(name="Episodes", value=data["episodes"] or "0")
+        e.add_field(name="Status", value=hformat(data["status"]))
+        genres = ", ".join(data["genres"])
+        e.add_field(name="Genres", value=genres or "Unknown", inline=False)
+
+        return e
+
 
 async def query(query: str, variables: Optional[str]):
     if not query:
@@ -373,6 +485,12 @@ class AniList(commands.Cog):
         server_row = self.bot.c.fetchall()
         pre = {k[0]: k[1] or None for k in server_row}
         self.watchlist = {int(k): v.split(",") if v else None for (k, v) in pre.items()}
+        self.anilist = anilist.AniList()
+    
+    @commands.command()
+    async def git(self, ctx, name):
+        q = await self.anilist.fetch_id(name)
+        print(q)
 
     def get_watchlist(self):
         """
@@ -427,128 +545,14 @@ class AniList(commands.Cog):
         return
 
     @anime.command(aliases=["find"], usage="(anime) [format]")
-    async def search(self, ctx, anime, _format: str = None):
+    async def search(self, ctx, anime: str, _format: str = None):
         """Find an anime."""
         if not anime:
             await ctx.send("Please specify the anime!")
             return
-
-        page = 1
-        embed_reactions = ["◀️", "▶️", "⏹️"]
-
-        def check_reactions(reaction, user):
-            if user == ctx.author and str(reaction.emoji) in embed_reactions:
-                return str(reaction.emoji)
-            else:
-                return False
-
-        def create_embed(ctx, data, pageData):
-            embed = None
-            data = data["media"][0]
-            rating = data["averageScore"] or 0
-            if rating >= 90:
-                ratingEmoji = "😃"
-            elif rating >= 75:
-                ratingEmoji = "🙂"
-            elif rating >= 50:
-                ratingEmoji = "😐"
-            else:
-                ratingEmoji = "😦"
-            embed = discord.Embed(
-                title=data["title"]["romaji"],
-                url=f"https://anilist.co/anime/{data['id']}",
-                description=f"**{data['title']['english'] or 'No english title'} ({data['id']})**\n\
-                                                `{ctx.prefix}anime info {data['id']} for more info`",
-                colour=discord.Colour(0x02A9FF),
-            )
-            embed.set_author(
-                name=f"AniList - "
-                + f"Page {pageData['currentPage']}/{pageData['lastPage']} - "
-                + f"{ratingEmoji} {rating}%",
-                icon_url="https://gblobscdn.gitbook.com/spaces%2F-LHizcWWtVphqU90YAXO%2Favatar.png",
-            )
-
-            if "Hentai" in data["genres"] and ctx.channel.is_nsfw() is False:
-                embed.set_thumbnail(
-                    url="https://raw.githubusercontent.com/null2264/null2264/master/NSFW.png"
-                )
-            else:
-                embed.set_thumbnail(url=data["coverImage"]["large"])
-
-            if data["bannerImage"]:
-                if "Hentai" in data["genres"] and ctx.channel.is_nsfw() is False:
-                    embed.set_image(
-                        url="https://raw.githubusercontent.com/null2264/null2264/master/nsfw_banner.jpg"
-                    )
-                else:
-                    embed.set_image(url=data["bannerImage"])
-            else:
-                embed.set_image(
-                    url="https://raw.githubusercontent.com/null2264/null2264/master/21519-1ayMXgNlmByb.jpg"
-                )
-
-            studios = []
-            for studio in data["studios"]["nodes"]:
-                studios.append(studio["name"])
-            embed.add_field(
-                name="Studios", value=", ".join(studios) or "Unknown", inline=False
-            )
-            embed.add_field(name="Format", value=data["format"].replace("_", " "))
-            if str(data["format"]).lower() in ["movie", "music"]:
-                if data["duration"]:
-                    embed.add_field(
-                        name="Duration", value=realtime(data["duration"] * 60)
-                    )
-                else:
-                    embed.add_field(name="Duration", value=realtime(0))
-            else:
-                embed.add_field(name="Episodes", value=data["episodes"] or "0")
-            embed.add_field(name="Status", value=hformat(data["status"]))
-            genres = ", ".join(data["genres"])
-            embed.add_field(name="Genres", value=genres or "Unknown", inline=False)
-            return embed
-
-        q = await search_ani_new(self, ctx, anime, 1)
-        if not q:
-            await ctx.send(f"No anime with keyword '{anime}' not found.")
-            return
-        e = create_embed(ctx, q["Page"], q["Page"]["pageInfo"])
-        msg = await ctx.send(embed=e)
-        for emoji in embed_reactions:
-            await msg.add_reaction(emoji)
-
-        while True:
-            try:
-                reaction, user = await self.bot.wait_for(
-                    "reaction_add", check=check_reactions, timeout=60.0
-                )
-            except asyncio.TimeoutError:
-                break
-            else:
-                emoji = check_reactions(reaction, user)
-                try:
-                    await msg.remove_reaction(reaction.emoji, user)
-                except discord.Forbidden:
-                    pass
-                if emoji == "◀️" and page != 1:
-                    page -= 1
-                    q = await search_ani_new(self, ctx, anime, page)
-                    if not q:
-                        pass
-                    e = create_embed(ctx, q["Page"], q["Page"]["pageInfo"])
-                    await msg.edit(embed=e)
-                if emoji == "▶️" and q["Page"]["pageInfo"]["hasNextPage"]:
-                    page += 1
-                    q = await search_ani_new(self, ctx, anime, page)
-                    if not q:
-                        pass
-                    e = create_embed(ctx, q["Page"], q["Page"]["pageInfo"])
-                    await msg.edit(embed=e)
-                if emoji == "⏹️":
-                    # await msg.clear_reactions()
-                    break
-
-        return
+        
+        menu = menus.MenuPages(AniSearchPage(ctx, anime, per_page=1, api=self.anilist))
+        await menu.start(ctx)
 
     # TODO: Make watchlist per server
     @anime.command(usage="(anime) [format]")
