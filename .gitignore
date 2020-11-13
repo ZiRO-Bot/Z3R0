@@ -1,14 +1,23 @@
+# directory
 .vscode/
 __pycache__/
 downloads/
 zibot.egg-info/
+
+# config
 api_keys.json
 config.json
 config.py
+.env
+
+# data
+prefixes.json
 blacklist.json
 runs_blacklist.json
+
+# log file
 discord.log
-leaderboard.png
-.env
+
+# things similar to requirements.txt
 pyproject.toml
 poetry.lock
