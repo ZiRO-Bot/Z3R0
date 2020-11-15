@@ -46,27 +46,45 @@ query($name:String,$aniformat:MediaFormat,$page:Int,$amount:Int=5){
     Page(perPage:$amount,page:$page){
         pageInfo{hasNextPage, currentPage, lastPage}
         media(search:$name,type:ANIME,format:$aniformat){
+            id,
+            format,
             title {
                 romaji, 
                 english
-            },
-            id,
-            format,
+            }, 
             episodes, 
             duration,
             status, 
+            startDate {
+                year, 
+                month, 
+                day
+            }, 
+            endDate {
+                year, 
+                month, 
+                day
+            }, 
             genres, 
+            coverImage {
+                large
+            }, 
+            bannerImage,
+            description, 
             averageScore, 
-            siteUrl,
             studios{nodes{name}}, 
-            coverImage {large},
-            bannerImage
+            seasonYear, 
+            externalLinks {
+                site, 
+                url
+            },
+            isAdult
         }
     } 
 }
 """
 
-generalQ = """
+animeInfo = """
 query($mediaId: Int){
     Media(id:$mediaId, type:ANIME){
         id,
@@ -100,10 +118,14 @@ query($mediaId: Int){
         externalLinks {
             site, 
             url
-        } 
-    } 
+        },
+        isAdult
+    }
 }
 """
+
+# Backwards compatibility
+generalQ = animeInfo
 
 listQ = """
 query($page: Int = 0, $amount: Int = 50, $mediaId: [Int!]!) {

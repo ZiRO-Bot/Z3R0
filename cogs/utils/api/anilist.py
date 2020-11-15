@@ -1,9 +1,11 @@
 import aiohttp
-import cogs.utils.api.anilist_query as query
 import asyncio
+import cogs.utils.api.anilist_query as query
+import difflib
 import json
 import re
 
+from ..formatting import pformat
 from discord.ext import menus
 
 
@@ -11,6 +13,23 @@ class AniList:
     def __init__(self, session = None):
         self.api_url = "https://graphql.anilist.co"
         self.session = session or aiohttp.ClientSession()
+        # All known anime format (MediaFormat)
+        self.format = {
+            "anime": [
+                "tv",
+                "tv_short",
+                "movie",
+                "special",
+                "ova",
+                "ona",
+                "music",
+            ],
+            "manga": [
+                "manga",
+                "novel",
+                "one_shot",
+            ],
+        }
 
     async def request(self, query: str, variables: str):
         """
@@ -77,18 +96,35 @@ class AniList:
             raise ValueError("Anime not found!")
         return int(q["data"]["Media"]["id"])
     
-    async def get_anime(self, keyword: str, page: int, amount: int = 1):
+    async def get_anime(self, keyword: str, page: int, amount: int = 1, _format: str = None):
         """
         Get anime from anilist, was called `search_ani`
 
         keyword: str -> Name/ID of an anime.
-        _type: str   -> Type of the anime, MOVIE, TV Show, etc. [-]
+        _format: str   -> MediaFormat, format of the anime, MOVIE, TV Show, etc. [-]
         page: int    -> Number of selected page.
         amount: int  -> Anime per page. (default: 1)
-
-        [-] -> Not yet implemented.
+        
+        [-] -> Only for `>anime search` or `query.animeInfo`
         """
+        _id = None
+        try:
+            _id = int(keyword)
+        except ValueError:
+            pass
+        
+        if _id:
+            checked_id = await self.fetch_id(_id)
+            q = await self.request(query.animeInfo, {"mediaId": checked_id})
+            # maybe it's not id afterall?
+            if not q:
+                pass
+            return q["data"]
+
         var = {"name": keyword, "page": page, "amount": amount}
+        # Add aniformat if _type is not empty/None
+        if _format:
+            var["aniformat"] = str(difflib.get_close_matches(pformat(_format), self.format["anime"])[0]).upper()
         q = await self.request(query.searchAni, var)
         if not q:
             return

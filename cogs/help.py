@@ -5,6 +5,7 @@ import json
 import logging
 import re
 
+from .utils.paginator import ZiMenu
 from bot import get_prefix
 from discord.ext import commands, menus
 from typing import Optional
@@ -95,7 +96,7 @@ class CustomHelp(commands.HelpCommand):
             except KeyError:
                 all_commands[command.cog] = [command]
 
-        menu = HelpPages(BotHelpPageSources(self, all_commands))
+        menu = ZiMenu(BotHelpPageSources(self, all_commands))
         await menu.start(self.context)
         # destination = self.get_destination()
         # embed = discord.Embed(

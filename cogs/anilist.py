@@ -10,6 +10,7 @@ import time
 
 from .errors.anilist import NameNotFound, NameTypeNotFound, IdNotFound
 from .utils.formatting import hformat, realtime
+from .utils.paginator import ZiMenu
 from .utils.api import anilist
 from .utils.api.anilist_query import *
 from discord.ext import tasks, commands, menus
@@ -30,47 +31,47 @@ streamingSites = [
     "VRV",
 ]
 
+
 class AniSearchPage(menus.PageSource):
     """
     Workaround to make `>anime search` work with ext.menus
     Might have better way to do this, but for now this will do.
     """
-    def __init__(self, ctx, keyword, *, per_page, api = None):
+
+    def __init__(self, ctx, keyword, *, _type=None, api=None):
         self.ctx = ctx
+        self._type = _type
         self.api = api or anilist.AniList()
-        self.per_page = per_page
+        self.per_page = 1
         self.keyword = keyword
         self.cache = {}
 
-    async def prepare(self):
+    def format_anime_info(self, menu, data, is_paged=False) -> discord.Embed:
         """
-        Get necessary info to start.
+        Make a discord.Embed for `>anime info|search`.
 
-        Also cache the result as first page.
+        Parameter
+        ---------
+        menu
+            discord.ext.menus data, containing page info (such as current page number)
+        data: dict
+            Anime data from AniList, it should formatted dict
+        is_paged: bool (default: False)
+            Whether or not the result is paged
         """
-        q = await self.api.get_anime(self.keyword, 1)
-        self.cache["1"] = q["Page"]
-        self.last_page = q['Page']['pageInfo']['lastPage']
+        # Year its aired/released
+        seasonYear = data["seasonYear"]
+        if seasonYear is None:
+            seasonYear = "Unknown"
     
-    def is_paginating(self):
-        return self.last_page > self.per_page
+        # Description
+        desc = data["description"]
+        if desc is not None:
+            for d in ["</i>", "<i>", "<br>"]:
+                desc = desc.replace(d, "")
+        else:
+            desc = "No description."
 
-    def get_max_pages(self):
-        return self.last_page 
-
-    async def get_page(self, page_number):
-        # Since the website index don't start from 0 lets just add 1 to page_number
-        page_number += 1
-        # if Nth page exist in self.cache, return the it instead of getting a new one
-        if str(page_number) in self.cache:
-            return self.cache[str(page_number)]
-        q = await self.api.get_anime(self.keyword, page_number)
-        if q:
-            self.cache[str(page_number)] = q["Page"]
-            return self.cache[str(page_number)]
-
-    async def format_page(self, menu, page):
-        data = page["media"][0]
         # Messy and Ugly ratingEmoji system
         rating = data["averageScore"] or -1
         if rating >= 90:
@@ -84,52 +85,46 @@ class AniSearchPage(menus.PageSource):
         else:
             ratingEmoji = "🤔"
         e = discord.Embed(
-            title=data["title"]["romaji"],
+            title=data["title"]["romaji"] + f" ({seasonYear})",
             url=f"https://anilist.co/anime/{data['id']}",
-            description=f"**{data['title']['english'] or 'No english title'} ({data['id']})**\n"
-                    + f"`{self.ctx.prefix}anime info {data['id']} for more info`",
+            description=f"**{data['title']['english'] or 'No english title'} (ID: `{data['id']}`)**\n"
+            + desc,
             colour=discord.Colour(0x02A9FF),
         )
         maximum = self.get_max_pages()
         e.set_author(
             name=f"AniList - "
-            + f"Page {menu.current_page + 1}/{maximum} - "
+            + (f"Page {menu.current_page + 1}/{maximum} - " if is_paged else "")
             + f"{ratingEmoji} {rating}%",
             icon_url="https://gblobscdn.gitbook.com/spaces%2F-LHizcWWtVphqU90YAXO%2Favatar.png",
         )
-        
+
         # -- Filter NSFW images
-        if "Hentai" in data["genres"] and self.ctx.channel.is_nsfw() is False:
+        if data["isAdult"]:
             e.set_thumbnail(
                 url="https://raw.githubusercontent.com/null2264/null2264/master/NSFW.png"
             )
+            e.set_image(
+                url="https://raw.githubusercontent.com/null2264/null2264/master/nsfw_banner.jpg"
+            )
         else:
             e.set_thumbnail(url=data["coverImage"]["large"])
-
-        if data["bannerImage"]:
-            if "Hentai" in data["genres"] and self.ctx.channel.is_nsfw() is False:
-                e.set_image(
-                    url="https://raw.githubusercontent.com/null2264/null2264/master/nsfw_banner.jpg"
-                )
-            else:
+            if data["bannerImage"]:
                 e.set_image(url=data["bannerImage"])
-        else:
-            e.set_image(
-                url="https://raw.githubusercontent.com/null2264/null2264/master/21519-1ayMXgNlmByb.jpg"
-            )
+            else:
+                e.set_image(
+                    url="https://raw.githubusercontent.com/null2264/null2264/master/21519-1ayMXgNlmByb.jpg"
+                )
         # ------
+
         studios = []
         for studio in data["studios"]["nodes"]:
             studios.append(studio["name"])
-        e.add_field(
-            name="Studios", value=", ".join(studios) or "Unknown", inline=False
-        )
+        e.add_field(name="Studios", value=", ".join(studios) or "Unknown", inline=False)
         e.add_field(name="Format", value=data["format"].replace("_", " "))
         if str(data["format"]).lower() in ["movie", "music"]:
             if data["duration"]:
-                e.add_field(
-                    name="Duration", value=realtime(data["duration"] * 60)
-                )
+                e.add_field(name="Duration", value=realtime(data["duration"] * 60))
             else:
                 e.add_field(name="Duration", value=realtime(0))
         else:
@@ -139,6 +134,51 @@ class AniSearchPage(menus.PageSource):
         e.add_field(name="Genres", value=genres or "Unknown", inline=False)
 
         return e
+
+    async def prepare(self):
+        """
+        Get necessary info to start.
+
+        Also cache the result as first page.
+        """
+        q = await self.api.get_anime(self.keyword, 1, _format=self._type)
+        if "Page" in q:
+            self.cache["1"] = q["Page"]
+            self.last_page = q["Page"]["pageInfo"]["lastPage"]
+            self.is_paged = True
+        else:
+            self.cache["1"] = q
+            self.is_paged = False
+            self.last_page = 1
+
+    def is_paginating(self):
+        return self.last_page > self.per_page
+
+    def get_max_pages(self):
+        return self.last_page
+
+    async def get_page(self, page_number):
+        # Since the website index don't start from 0 lets just add 1 to page_number
+        page_number += 1
+        # if Nth page exist in self.cache, return the it instead of getting a new one
+        if str(page_number) in self.cache:
+            return self.cache[str(page_number)]
+        q = await self.api.get_anime(self.keyword, page_number)
+        if q:
+            self.cache[str(page_number)] = q["Page"]
+            return self.cache[str(page_number)]
+
+    async def format_page(self, menu, page):
+        if self.is_paged is True:
+            data = page["media"][0]
+        else:
+            data = page["Media"]
+
+        return self.format_anime_info(
+            menu,
+            data,
+            is_paged=True if (self.is_paged and self.is_paginating()) else False,
+        )
 
 
 async def query(query: str, variables: Optional[str]):
@@ -486,7 +526,7 @@ class AniList(commands.Cog):
         pre = {k[0]: k[1] or None for k in server_row}
         self.watchlist = {int(k): v.split(",") if v else None for (k, v) in pre.items()}
         self.anilist = anilist.AniList()
-    
+
     @commands.command()
     async def git(self, ctx, name):
         q = await self.anilist.fetch_id(name)
@@ -544,14 +584,18 @@ class AniList(commands.Cog):
             await send_info(self, ctx, anime, _format)
         return
 
-    @anime.command(aliases=["find"], usage="(anime) [format]")
+    @anime.command(
+        aliases=["find"],
+        usage="(anime) [format]",
+        example='{prefix}anime search "Kimi no Na Wa" Movie',
+    )
     async def search(self, ctx, anime: str, _format: str = None):
         """Find an anime."""
         if not anime:
             await ctx.send("Please specify the anime!")
             return
-        
-        menu = menus.MenuPages(AniSearchPage(ctx, anime, per_page=1, api=self.anilist))
+
+        menu = ZiMenu(AniSearchPage(ctx, anime, api=self.anilist, _type=_format))
         await menu.start(ctx)
 
     # TODO: Make watchlist per server
