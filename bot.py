@@ -65,11 +65,6 @@ class ziBot(commands.Bot):
         self.conn = sqlite3.connect("data/database.db")
         self.c = self.conn.cursor()
 
-        self.c.execute("SELECT * FROM servers WHERE 1")
-        servers_row = self.c.fetchall()
-        pre = {k[0]: k[1] or ">" for k in servers_row}
-        self.prefixes = {int(k): v.split(",") for (k, v) in pre.items()}
-
         self.logger = logging.getLogger("discord")
         self.session = aiohttp.ClientSession(loop=self.loop)
         self.def_prefix = ">"
@@ -82,13 +77,18 @@ class ziBot(commands.Bot):
             self.logger.error("No token found. Please add it to config.json!")
             raise AttributeError("No token found!")
 
-        # Create "servers" table if its not exists
+        # Create tables
         self.c.execute(
             """CREATE TABLE IF NOT EXISTS servers
                 (id text unique, prefixes text, anime_ch int, 
                 greeting_ch int, meme_ch int, purge_ch int,
                 pingme_ch int, announcement_ch int)"""
         )
+        self.c.execute("SELECT * FROM servers WHERE 1")
+        servers_row = self.c.fetchall()
+        pre = {k[0]: k[1] or ">" for k in servers_row}
+        self.prefixes = {int(k): v.split(",") for (k, v) in pre.items()}
+
         self.c.execute(
             """CREATE TABLE IF NOT EXISTS ani_watchlist
                 (id text unique, anime_id text)"""
