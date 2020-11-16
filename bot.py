@@ -150,71 +150,35 @@ class ziBot(commands.Bot):
             self.conn.commit()
             self.prefixes[guild.id] = sorted(set(prefixes))
 
-    def add_empty_data(self, guild):
-        # guild_id, prefix, anime_ch, greeting_ch, meme_ch, purge_ch
-        self.c.execute(
-            """INSERT OR IGNORE INTO servers
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
-            (str(guild.id), self.def_prefix, None, None, None, None, None, None),
-        )
-        self.conn.commit()
-        self.c.execute(
-            """INSERT OR IGNORE INTO ani_watchlist
-            VALUES (?, ?)""",
-            (str(guild.id), None),
-        )
-        self.conn.commit()
-        self.c.execute(
-            """INSERT OR IGNORE INTO roles
-            VALUES (?, ?, ?)""",
-            (str(guild.id), None, None),
-        )
-        self.conn.commit()
-        self.c.execute(
-            """INSERT OR IGNORE INTO settings
-            VALUES (?, ?, ?, ?, ?, ?)""",
-            (
-                str(guild.id),
-                0,
-                None,
-                None,
-                None,
-                "command add,command edit,command remove",
-            ),
-        )
-        self.conn.commit()
+    async def add_guild_id(self, connection, guild):
+        try:
+            async with connection.transaction():
+                await connection.execute(
+                    """INSERT INTO guilds 
+                    VALUES ($1)""", guild.id
+                )
+        except asyncpg.UniqueViolationError:
+            return
 
-    def remove_guild_data(self, guild):
-        self.c.execute(
-            """DELETE FROM servers 
-            WHERE id=?""",
-            (str(guild.id),),
-        )
-        self.conn.commit()
-        self.c.execute(
-            """DELETE FROM ani_watchlist
-            WHERE id=?""",
-            (str(guild.id),),
-        )
-        self.conn.commit()
-        self.c.execute(
-            """DELETE FROM roles
-            WHERE id=?""",
-            (str(guild.id),),
-        )
-        self.conn.commit()
-        self.c.execute(
-            """DELETE FROM settings
-            WHERE id=?""",
-            (str(guild.id),),
-        )
-        self.conn.commit()
+    async def remove_guild_id(self, connection, guild):
+        try:
+            async with connection.transaction():
+                await connection.execute(
+                    """DELETE FROM guilds 
+                    WHERE guild_id=$1""", guild.id
+                )
+        except asyncpg.UniqueViolationError:
+            return
 
     async def on_guild_join(self, guild):
-        self.add_empty_data(guild)
+        conn = await self.pool.acquire()
+        await self.add_guild_id(conn, guild)
+        await self.pool.release(conn)
 
     async def on_guild_remove(self, guild):
-        self.remove_guild_data(guild)
+        conn = await self.pool.acquire()
+        await self.remove_guild_id(conn, guild)
+        await self.pool.release(conn)
 
     async def on_ready(self):
         activity = discord.Activity(
@@ -226,17 +190,10 @@ class ziBot(commands.Bot):
             self.load_extension(extension)
 
         self.logger.warning(f"Online: {self.user} (ID: {self.user.id})")
-
+        
         conn = await self.pool.acquire()
         for guild in self.guilds:
-            try:
-                async with conn.transaction():
-                    await conn.execute(
-                        """INSERT INTO guilds 
-                        VALUES ($1)""", guild.id
-                    )
-            except asyncpg.UniqueViolationError:
-                pass
+            await self.add_guild_id(conn, guild)
         await self.pool.release(conn)
             # self.add_empty_data(server)
 
