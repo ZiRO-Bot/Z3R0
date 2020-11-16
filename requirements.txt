@@ -10,8 +10,6 @@ epicstore_api == 0.0.4
 numexpr == 2.7.1
 praw == 7.1.0
 python_dateutil == 2.8.1
-python_dotenv == 0.14.0
 pytz == 2020.1
 requests == 2.24.0
 TagScriptEngine == 2.3.0
-youtube_dl == 2020.9.20
