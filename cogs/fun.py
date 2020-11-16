@@ -11,7 +11,6 @@ from .utils.embed_formatting import em_ctx_send_error
 from bs4 import BeautifulSoup
 from discord.ext import commands
 from discord.errors import Forbidden
-from dotenv import load_dotenv
 from random import choice, randint, random
 from typing import Optional
 
