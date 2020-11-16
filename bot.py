@@ -1,4 +1,5 @@
 import asyncio
+import asyncpg
 import aiohttp
 import cogs.utils.context as context
 import copy
@@ -111,6 +112,29 @@ class ziBot(commands.Bot):
 
         self.master = [186713080841895936]
 
+        self.loop.create_task(self.async_init())
+
+    async def async_init(self):
+        async with self.pool.acquire() as conn:
+            async with conn.transaction():
+                # Create table to store guild_id
+                await conn.execute(
+                    """CREATE TABLE IF NOT EXISTS 
+                    guilds (guild_id bigint PRIMARY KEY)"""
+                )
+
+    def get_guild_prefixes(self, guild, *, local_inject=_callable_prefix):
+        proxy_msg = discord.Object(id=0)
+        proxy_msg.guild = guild
+        return local_inject(self, proxy_msg)
+
+    def get_raw_guild_prefixes(self, guild_id):
+        self.bot.c.execute(
+            "SELECT prefix FROM servers WHERE (id=?)", (str(guild_id),)
+        )
+        prefixes = self.bot.c.fetchone()
+        return prefixes.split(",")
+
     def set_guild_prefixes(self, guild, prefixes):
         if not prefixes:
             self.c.execute("UPDATE servers SET prefix=? WHERE id=?", (None, guild.id))
@@ -203,8 +227,18 @@ class ziBot(commands.Bot):
 
         self.logger.warning(f"Online: {self.user} (ID: {self.user.id})")
 
-        for server in self.guilds:
-            self.add_empty_data(server)
+        conn = await self.pool.acquire()
+        for guild in self.guilds:
+            try:
+                async with conn.transaction():
+                    await conn.execute(
+                        """INSERT INTO guilds 
+                        VALUES ($1)""", guild.id
+                    )
+            except asyncpg.UniqueViolationError:
+                pass
+        await self.pool.release(conn)
+            # self.add_empty_data(server)
 
     async def process_commands(self, message):
         ctx = await self.get_context(message, cls=context.Context)

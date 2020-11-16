@@ -397,127 +397,6 @@ async def getinfo(self, ctx, other, _format_: str = None):
     return a
 
 
-async def send_info(self, ctx, other, _format_: str = None):
-    embed = discord.Embed(title="404", colour=discord.Colour(0x02A9FF))
-    embed.set_author(
-        name="AniList",
-        icon_url="https://gblobscdn.gitbook.com/spaces%2F-LHizcWWtVphqU90YAXO%2Favatar.png",
-    )
-    try:
-        a = await getinfo(self, ctx, other, _format_)
-    except NameNotFound:
-        embed.description = f"**{other}** not found"
-        await ctx.send(embed=embed)
-        return None
-    except NameTypeNotFound:
-        embed.description = f"**{other}** with format {_format_} not found"
-        await ctx.send(embed=embed)
-        return None
-    except IdNotFound:
-        embed.description = f"Anime with id **{other}** not found"
-        await ctx.send(embed=embed)
-        return None
-
-    # Streaming Site
-    sites = []
-    for each in a["Media"]["externalLinks"]:
-        if str(each["site"]) in streamingSites:
-            sites.append(f"[{each['site']}]({each['url']})")
-    sites = " | ".join(sites)
-
-    # Description
-    desc = a["Media"]["description"]
-    if desc is not None:
-        for d in ["</i>", "<i>", "<br>"]:
-            desc = desc.replace(d, "")
-    else:
-        desc = "No description."
-
-    # English Title
-    engTitle = a["Media"]["title"]["english"]
-    if engTitle is None:
-        engTitle = a["Media"]["title"]["romaji"]
-
-    # Studio Name
-    studios = []
-    for studio in a["Media"]["studios"]["nodes"]:
-        studios.append(studio["name"])
-    studio = ", ".join(studios)
-
-    # Year its aired/released
-    seasonYear = a["Media"]["seasonYear"]
-    if seasonYear is None:
-        seasonYear = "Unknown"
-
-    # Rating
-    rating = a["Media"]["averageScore"] or 0
-    if rating >= 90:
-        ratingEmoji = "😃"
-    elif rating >= 75:
-        ratingEmoji = "🙂"
-    elif rating >= 50:
-        ratingEmoji = "😐"
-    else:
-        ratingEmoji = "😦"
-
-    # Episodes / Duration
-    eps = a["Media"]["episodes"]
-    if eps is None:
-        eps = "0"
-
-    if a["Media"]["duration"]:
-        dur = realtime(a["Media"]["duration"] * 60)
-    else:
-        dur = realtime(0)
-
-    # Status
-    stat = hformat(a["Media"]["status"])
-
-    embed = discord.Embed(
-        title=f"{a['Media']['title']['romaji']}",
-        url=f"https://anilist.co/anime/{a['Media']['id']}",
-        description=f"**{engTitle} ({seasonYear})**\n{desc}",
-        colour=discord.Colour(0x02A9FF),
-    )
-    embed.set_author(
-        name=f"AniList - {ratingEmoji} {rating}%",
-        icon_url="https://gblobscdn.gitbook.com/spaces%2F-LHizcWWtVphqU90YAXO%2Favatar.png",
-    )
-
-    if "Hentai" in a["Media"]["genres"] and ctx.channel.is_nsfw() is False:
-        embed.set_thumbnail(
-            url="https://raw.githubusercontent.com/null2264/null2264/master/NSFW.png"
-        )
-    else:
-        embed.set_thumbnail(url=a["Media"]["coverImage"]["large"])
-
-    if a["Media"]["bannerImage"]:
-        if "Hentai" in a["Media"]["genres"] and ctx.channel.is_nsfw() is False:
-            embed.set_image(
-                url="https://raw.githubusercontent.com/null2264/null2264/master/nsfw_banner.jpg"
-            )
-        else:
-            embed.set_image(url=a["Media"]["bannerImage"])
-    else:
-        embed.set_image(
-            url="https://raw.githubusercontent.com/null2264/null2264/master/21519-1ayMXgNlmByb.jpg"
-        )
-
-    embed.add_field(name="Studios", value=studio, inline=False)
-    if str(a["Media"]["format"]).lower() in ["movie", "music"]:
-        embed.add_field(name="Duration", value=f"{dur}")
-    else:
-        embed.add_field(name="Episodes", value=f"{eps}")
-    embed.add_field(name="Status", value=f"{stat}")
-    embed.add_field(name="Format", value=a["Media"]["format"].replace("_", " "))
-    genres = ", ".join(a["Media"]["genres"])
-    embed.add_field(name="Genres", value=genres, inline=False)
-    if sites:
-        embed.add_field(name="Streaming Sites", value=sites, inline=False)
-    await ctx.send(embed=embed)
-    return
-
-
 async def search_ani_new(self, ctx, anime, page):
     q = await query(searchAni, {"name": anime, "page": page, "amount": 1})
     if q:
@@ -580,23 +459,9 @@ class AniList(commands.Cog):
         pass
 
     @anime.command(
-        name="info",
+        aliases=["find", "info"],
         usage="(anime) [format]",
-        brief="Get information about an anime.",
-        example='{prefix}anime info Kimi_no_Na_Wa\n{prefix}anime info "Koe no Katachi" Movie',
-    )
-    async def animeinfo(self, ctx, anime, _format: str = None):
-        """Get information about an anime."""
-        if not anime:
-            await ctx.send("Please specify the anime!")
-        async with ctx.typing():
-            await send_info(self, ctx, anime, _format)
-        return
-
-    @anime.command(
-        aliases=["find"],
-        usage="(anime) [format]",
-        example='{prefix}anime search "Kimi no Na Wa" Movie',
+        example='{prefix}anime search "Kimi no Na Wa" Movie\n{prefix}anime info 97731',
     )
     async def search(self, ctx, anime: str, _format: str = None):
         """Find an anime."""
