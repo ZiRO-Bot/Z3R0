@@ -17,7 +17,6 @@ from cogs.errors.weather import CityNotFound
 from cogs.utilities.formatting import bar_make, realtime
 from discord.errors import Forbidden
 from discord.ext import commands
-from dotenv import load_dotenv
 from pytz import timezone
 from typing import Optional
 
