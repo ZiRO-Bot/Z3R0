@@ -11,4 +11,5 @@ epicstore_api == 0.0.4
 praw == 7.1.0
 python_dateutil == 2.8.1
 pytz == 2020.1
+pyparsing == 2.4.7
 TagScriptEngine == 2.3.0
