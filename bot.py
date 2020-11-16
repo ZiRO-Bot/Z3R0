@@ -46,9 +46,10 @@ extensions = get_cogs()
 start_time = time.time()
 
 
-def get_prefix(bot, message):
-    """A callable Prefix for the bot."""
-    base = []
+def _callable_prefix(bot, message):
+    """Callable Prefix for the bot."""
+    user_id = bot.user.id
+    base = [f'<@!{user_id}> ', f'<@{user_id}> ']
     if not message.guild:
         base.append(">")
     else:
@@ -59,7 +60,7 @@ def get_prefix(bot, message):
 class ziBot(commands.Bot):
     def __init__(self):
         super().__init__(
-            command_prefix=get_prefix,
+            command_prefix=_callable_prefix,
             case_insensitive=True,
             intents=discord.Intents.all(),
         )

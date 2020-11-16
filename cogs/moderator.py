@@ -16,7 +16,7 @@ import time
 
 from .utils.embed_formatting import em_ctx_send_error, em_ctx_send_success
 from .utils.formatting import realtime
-from bot import get_cogs, get_prefix
+from bot import get_cogs, _callable_prefix
 from discord.errors import Forbidden, NotFound
 from discord.ext import commands
 from typing import Optional
@@ -447,7 +447,7 @@ class Moderation(commands.Cog):
     @prefix.command(name="list")
     async def prefix_list(self, ctx):
         """List bot's prefixes."""
-        prefix = bot.get_prefix(self.bot, ctx.message)
+        prefix = bot._callable_prefix(self.bot, ctx.message)
         if self.bot.user.mention in prefix:
             prefix.pop(0)
         prefixes = ", ".join([f"`{i}`" for i in prefix])
@@ -465,7 +465,7 @@ class Moderation(commands.Cog):
         g = ctx.guild
         added = []
         prefixes = list([*prefixes])
-        ori_prefixes = list(bot.get_prefix(self.bot, ctx.message))
+        ori_prefixes = list(bot._callable_prefix(self.bot, ctx.message))
         # Filter whitespaces and prefix that already exist from *prefixes
         for prefix in prefixes:
             match = re.match(r"^\s+", prefix)
@@ -491,7 +491,7 @@ class Moderation(commands.Cog):
         """Remove a prefix from bot."""
         g = ctx.guild
         removed = []
-        ori_prefixes = list(bot.get_prefix(self.bot, ctx.message))
+        ori_prefixes = list(bot._callable_prefix(self.bot, ctx.message))
         for prefix in prefixes:
             if prefix in ori_prefixes and len(ori_prefixes) - 1 >= 1:
                 removed.append(prefix)

@@ -59,6 +59,13 @@ class AniSearchPage(menus.PageSource):
         is_paged: bool (default: False)
             Whether or not the result is paged
         """
+        # Streaming Site
+        sites = []
+        for each in data["externalLinks"]:
+            if str(each["site"]) in streamingSites:
+                sites.append(f"[{each['site']}]({each['url']})")
+        sites = " | ".join(sites)
+
         # Year its aired/released
         seasonYear = data["seasonYear"]
         if seasonYear is None:
@@ -100,7 +107,7 @@ class AniSearchPage(menus.PageSource):
         )
 
         # -- Filter NSFW images
-        if data["isAdult"]:
+        if data["isAdult"] and not self.ctx.channel.is_nsfw():
             e.set_thumbnail(
                 url="https://raw.githubusercontent.com/null2264/null2264/master/NSFW.png"
             )
@@ -132,6 +139,8 @@ class AniSearchPage(menus.PageSource):
         e.add_field(name="Status", value=hformat(data["status"]))
         genres = ", ".join(data["genres"])
         e.add_field(name="Genres", value=genres or "Unknown", inline=False)
+        if sites:
+            e.add_field(name="Streaming Sites", value=sites, inline=False)
 
         return e
 

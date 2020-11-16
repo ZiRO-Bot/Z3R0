@@ -6,7 +6,7 @@ import logging
 import re
 
 from .utils.paginator import ZiMenu
-from bot import get_prefix
+from bot import _callable_prefix
 from discord.ext import commands, menus
 from typing import Optional
 
@@ -46,7 +46,7 @@ class CustomHelp(commands.HelpCommand):
     COLOUR = discord.Colour.blue()
 
     def get_desc(self):
-        prefixes = bot.get_prefix(self.context.bot, self.context.message)
+        prefixes = bot._callable_prefix(self.context.bot, self.context.message)
         if len(prefixes) > 1:
             s = "are"
         else:
