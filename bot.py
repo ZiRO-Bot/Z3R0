@@ -48,7 +48,7 @@ start_time = time.time()
 
 
 def get_prefix(bot, message):
-    """A callable Prefix for our bot. This could be edited to allow per server prefixes."""
+    """A callable Prefix for the bot."""
     base = []
     if not message.guild:
         base.append(">")
