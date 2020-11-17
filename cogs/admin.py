@@ -5,8 +5,24 @@ import cogs.utils.checks as checks
 import discord
 import re
 
-from discord.ext import commands
+from .utils.paginator import ZiMenu
+from discord.ext import commands, menus
 
+class PrefixPageSource(menus.ListPageSource):
+    def __init__(self, prefixes):
+        super().__init__(entries=prefixes, per_page=5)
+        self.prefixes = prefixes
+    
+    async def format_page(self, menu, prefixes):
+        desc = [f"{self.prefixes.index(prefix) + 1}. {prefix}" for prefix in prefixes]
+        e = discord.Embed(
+            title = "Prefixes", 
+            colour = discord.Colour(0xFFFFF0),
+            description = "\n".join(desc)
+        )
+        maximum = self.get_max_pages()
+        e.set_footer(text="{0} prefixes{1}".format(len(self.prefixes), f" - Page {menu.current_page + 1}/{maximum}" if maximum > 1 else ""))
+        return e
 
 class Admin(commands.Cog):
     def __init__(self, bot):
@@ -23,15 +39,9 @@ class Admin(commands.Cog):
     async def prefix_list(self, ctx):
         """List bot's prefixes."""
         prefix = bot._callable_prefix(self.bot, ctx.message)
-        if self.bot.user.mention in prefix:
-            prefix.pop(0)
-        prefixes = ", ".join([f"`{i}`" for i in prefix])
-        prefixes = re.sub(r"`<\S*[0-9]+(..)`", self.bot.user.mention, prefixes)
-        if len(prefix) > 1:
-            s = "es are"
-        else:
-            s = " is"
-        await ctx.send(f"My prefix{s} {prefixes}")
+        del prefix[1]
+        menus = ZiMenu(PrefixPageSource(prefix))
+        await menus.start(ctx)
 
     @prefix.command(name="add", usage="(prefix)")
     @checks.is_mod()
