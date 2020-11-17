@@ -31,6 +31,7 @@ def get_cogs():
         "cogs.help",
         "cogs.general",
         "cogs.info",
+        "cogs.admin",
         "cogs.moderator",
         "cogs.fun",
         "cogs.src",
@@ -54,7 +55,7 @@ def _callable_prefix(bot, message):
     if not message.guild:
         base.append(">")
     else:
-        base.extend(bot.prefixes.get(message.guild.id, [">"]))
+        base.extend(sorted(bot.prefixes.get(message.guild.id, [bot.def_prefix])))
     return base
 
 
@@ -90,10 +91,9 @@ class ziBot(commands.Bot):
                 greeting_ch int, meme_ch int, purge_ch int,
                 pingme_ch int, announcement_ch int)"""
         )
-        self.c.execute("SELECT * FROM servers WHERE 1")
-        servers_row = self.c.fetchall()
-        pre = {k[0]: k[1] or ">" for k in servers_row}
-        self.prefixes = {int(k): v.split(",") for (k, v) in pre.items()}
+        
+        # Prefix cache
+        self.prefixes = {}
 
         self.c.execute(
             """CREATE TABLE IF NOT EXISTS ani_watchlist
@@ -115,40 +115,89 @@ class ziBot(commands.Bot):
         self.loop.create_task(self.async_init())
 
     async def async_init(self):
+        """
+        Do database stuff upon init, just incase a table went missing 
+        or doesn't exist yet.
+
+        Also cache prefix if there's any.
+        """
+
+        # Create table if they aren't exists.
         async with self.pool.acquire() as conn:
             async with conn.transaction():
                 # Create table to store guild_id
                 await conn.execute(
-                    """CREATE TABLE IF NOT EXISTS 
-                    guilds (guild_id bigint PRIMARY KEY)"""
+                    """
+                    CREATE TABLE IF NOT EXISTS 
+                    guilds (
+                        id BIGINT PRIMARY KEY
+                    )
+                    """
                 )
+                # Table for prefixes, will no longer use ',' separator
+                await conn.execute(
+                    """
+                    CREATE TABLE IF NOT EXISTS 
+                    prefixes (
+                        guild_id BIGINT REFERENCES guilds(id) ON DELETE CASCADE,
+                        prefix TEXT
+                    )
+                    """
+                )
+
+                # Prefix cache
+                pre = [
+                    (i, p) for i, p in await conn.fetch(
+                        """
+                        SELECT * FROM prefixes
+                        """
+                    )
+                ]
+                for k, v in pre:
+                    self.prefixes[k] = self.prefixes.get(k, []) + [v,]
 
     def get_guild_prefixes(self, guild, *, local_inject=_callable_prefix):
         proxy_msg = discord.Object(id=0)
         proxy_msg.guild = guild
         return local_inject(self, proxy_msg)
 
-    def get_raw_guild_prefixes(self, guild_id):
-        self.bot.c.execute(
-            "SELECT prefix FROM servers WHERE (id=?)", (str(guild_id),)
-        )
-        prefixes = self.bot.c.fetchone()
-        return prefixes.split(",")
+    async def get_raw_guild_prefixes(self, connection, guild_id: int):
+        prefixes = [pre for pre, in await connection.fetch(
+            "SELECT prefix FROM prefixes WHERE (guild_id=$1)", guild_id
+        )]
+        return prefixes
 
-    def set_guild_prefixes(self, guild, prefixes):
-        if not prefixes:
-            self.c.execute("UPDATE servers SET prefix=? WHERE id=?", (None, guild.id))
-            self.conn.commit()
-            self.prefixes[guild.id] = prefixes
-        elif len(prefixes) > 15:
-            raise RuntimeError("You can only add up to 15 prefixes.")
-        else:
-            self.c.execute(
-                "UPDATE servers SET prefixes = ? WHERE id = ?",
-                (",".join(sorted(prefixes)), str(guild.id)),
+    async def bulk_remove_guild_prefixes(self, connection, guild_id, prefixes):
+        async with connection.transaction():
+            await connection.executemany(
+                "DELETE FROM prefixes WHERE guild_id=$1 AND prefix=$2",
+                [(guild_id, p) for p in prefixes]
             )
-            self.conn.commit()
-            self.prefixes[guild.id] = sorted(set(prefixes))
+        if guild_id in self.prefixes:
+            for p in prefixes:
+                self.prefixes[guild_id].remove(p)
+    
+    async def add_guild_prefix(self, connection, guild_id, prefix):
+        async with connection.transaction():
+            await connection.execute(
+                "INSERT INTO prefixes VALUES($1, $2)",
+                guild_id, prefix
+            )
+        if guild_id in self.prefixes:
+            self.prefixes[guild_id] += [prefix]
+        else:
+            self.prefixes[guild_id] = [prefix]
+
+    async def bulk_add_guild_prefixes(self, connection, guild_id, prefixes):
+        async with connection.transaction():
+            await connection.executemany(
+                "INSERT INTO prefixes VALUES($1, $2)",
+                [(guild_id, p) for p in prefixes]
+            )
+        if guild_id in self.prefixes:
+            self.prefixes[guild_id] += prefixes
+        else:
+            self.prefixes[guild_id] = prefixes
 
     async def add_guild_id(self, connection, guild):
         try:
@@ -173,6 +222,8 @@ class ziBot(commands.Bot):
     async def on_guild_join(self, guild):
         conn = await self.pool.acquire()
         await self.add_guild_id(conn, guild)
+        if guild.id not in self.prefixes:
+            await self.add_guild_prefix(conn, guild.id, self.def_prefix)
         await self.pool.release(conn)
 
     async def on_guild_remove(self, guild):
@@ -194,8 +245,9 @@ class ziBot(commands.Bot):
         conn = await self.pool.acquire()
         for guild in self.guilds:
             await self.add_guild_id(conn, guild)
+            if guild.id not in self.prefixes:
+                await self.add_guild_prefix(conn, guild.id, self.def_prefix)
         await self.pool.release(conn)
-            # self.add_empty_data(server)
 
     async def process_commands(self, message):
         ctx = await self.get_context(message, cls=context.Context)

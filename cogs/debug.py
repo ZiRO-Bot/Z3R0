@@ -8,6 +8,12 @@ class Debug(commands.Cog):
     async def cog_check(self, ctx):
         """Only bot master able to use debug cogs."""
         return await ctx.bot.is_owner(ctx.author)
+    
+    @commands.command()
+    async def get_prefix(self, ctx):
+        prefixes = await self.bot.get_raw_guild_prefixes(ctx.guild.id)
+        await ctx.send(prefixes)
+
 
 
 def setup(bot):
