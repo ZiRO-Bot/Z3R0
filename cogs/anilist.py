@@ -70,7 +70,7 @@ class AniSearchPage(menus.PageSource):
         seasonYear = data["seasonYear"]
         if seasonYear is None:
             seasonYear = "Unknown"
-    
+
         # Description
         desc = data["description"]
         if desc is not None:
@@ -409,16 +409,35 @@ class AniList(commands.Cog):
         self.bot = bot
         self.handle_schedule.start()
         self.logger = logging.getLogger("discord")
-        self.bot.c.execute("SELECT * FROM ani_watchlist WHERE 1")
-        server_row = self.bot.c.fetchall()
-        pre = {k[0]: k[1] or None for k in server_row}
-        self.watchlist = {int(k): v.split(",") if v else None for (k, v) in pre.items()}
+        self.watchlist = {}
         self.anilist = anilist.AniList()
 
-    @commands.command()
-    async def git(self, ctx, name):
-        q = await self.anilist.fetch_id(name)
-        print(q)
+        self.bot.loop.create_task(self.async_init())
+
+    async def async_init(self):
+        """
+        Create table for anilist if its not exist
+        and cache all the data for later.
+        """
+
+        async with self.bot.pool.acquire() as conn:
+            async with conn.transaction():
+                # Table for anime watchlist, just like prefixes it will no longer use ',' separator
+                await conn.execute(
+                    """
+                    CREATE TABLE IF NOT EXISTS 
+                    anime_watchlist (
+                        guild_id BIGINT REFERENCES guilds(id) ON DELETE CASCADE,
+                        anime_id BIGINT
+                    )
+                    """
+                )
+
+                pre = [
+                    (i, a) for i, a in await conn.fetch("SELECT * FROM anime_watchlist")
+                ]
+                for k, v in pre:
+                    self.watchlist[k] = self.prefixes.get(k, []) + [v]
 
     def get_watchlist(self):
         """
@@ -428,6 +447,15 @@ class AniList(commands.Cog):
         }
         """
         return self.watchlist
+
+    def get_guild_watchlist(self, guild_id):
+        """
+        Get schedule from database for a specific guild.
+        {
+            <guild_id>: [anime_ids, anime_ids]
+        }
+        """
+        return self.watchlist[guild_id]
 
     def set_guild_watchlist(self, guild, watchlist):
         if not watchlist:

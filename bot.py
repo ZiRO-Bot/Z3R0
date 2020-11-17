@@ -23,6 +23,7 @@ try:
 except FileExistsError:
     pass
 
+
 def get_cogs():
     """callable extensions"""
     extensions = [
@@ -51,7 +52,7 @@ start_time = time.time()
 def _callable_prefix(bot, message):
     """Callable Prefix for the bot."""
     user_id = bot.user.id
-    base = [f'<@!{user_id}> ', f'<@{user_id}> ']
+    base = [f"<@!{user_id}> ", f"<@{user_id}> "]
     if not message.guild:
         base.append(">")
     else:
@@ -91,7 +92,7 @@ class ziBot(commands.Bot):
                 greeting_ch int, meme_ch int, purge_ch int,
                 pingme_ch int, announcement_ch int)"""
         )
-        
+
         # Prefix cache
         self.prefixes = {}
 
@@ -116,7 +117,7 @@ class ziBot(commands.Bot):
 
     async def async_init(self):
         """
-        Do database stuff upon init, just incase a table went missing 
+        Do database stuff upon init, just incase a table went missing
         or doesn't exist yet.
 
         Also cache prefix if there's any.
@@ -146,15 +147,9 @@ class ziBot(commands.Bot):
                 )
 
                 # Prefix cache
-                pre = [
-                    (i, p) for i, p in await conn.fetch(
-                        """
-                        SELECT * FROM prefixes
-                        """
-                    )
-                ]
+                pre = [(i, p) for i, p in await conn.fetch("SELECT * FROM prefixes")]
                 for k, v in pre:
-                    self.prefixes[k] = self.prefixes.get(k, []) + [v,]
+                    self.prefixes[k] = self.prefixes.get(k, []) + [v]
 
     def get_guild_prefixes(self, guild, *, local_inject=_callable_prefix):
         proxy_msg = discord.Object(id=0)
@@ -162,26 +157,28 @@ class ziBot(commands.Bot):
         return local_inject(self, proxy_msg)
 
     async def get_raw_guild_prefixes(self, connection, guild_id: int):
-        prefixes = [pre for pre, in await connection.fetch(
-            "SELECT prefix FROM prefixes WHERE (guild_id=$1)", guild_id
-        )]
+        prefixes = [
+            pre
+            for pre, in await connection.fetch(
+                "SELECT prefix FROM prefixes WHERE (guild_id=$1)", guild_id
+            )
+        ]
         return prefixes
 
     async def bulk_remove_guild_prefixes(self, connection, guild_id, prefixes):
         async with connection.transaction():
             await connection.executemany(
                 "DELETE FROM prefixes WHERE guild_id=$1 AND prefix=$2",
-                [(guild_id, p) for p in prefixes]
+                [(guild_id, p) for p in prefixes],
             )
         if guild_id in self.prefixes:
             for p in prefixes:
                 self.prefixes[guild_id].remove(p)
-    
+
     async def add_guild_prefix(self, connection, guild_id, prefix):
         async with connection.transaction():
             await connection.execute(
-                "INSERT INTO prefixes VALUES($1, $2)",
-                guild_id, prefix
+                "INSERT INTO prefixes VALUES($1, $2)", guild_id, prefix
             )
         if guild_id in self.prefixes:
             self.prefixes[guild_id] += [prefix]
@@ -191,8 +188,7 @@ class ziBot(commands.Bot):
     async def bulk_add_guild_prefixes(self, connection, guild_id, prefixes):
         async with connection.transaction():
             await connection.executemany(
-                "INSERT INTO prefixes VALUES($1, $2)",
-                [(guild_id, p) for p in prefixes]
+                "INSERT INTO prefixes VALUES($1, $2)", [(guild_id, p) for p in prefixes]
             )
         if guild_id in self.prefixes:
             self.prefixes[guild_id] += prefixes
@@ -204,7 +200,8 @@ class ziBot(commands.Bot):
             async with connection.transaction():
                 await connection.execute(
                     """INSERT INTO guilds 
-                    VALUES ($1)""", guild.id
+                    VALUES ($1)""",
+                    guild.id,
                 )
         except asyncpg.UniqueViolationError:
             return
@@ -214,7 +211,8 @@ class ziBot(commands.Bot):
             async with connection.transaction():
                 await connection.execute(
                     """DELETE FROM guilds 
-                    WHERE guild_id=$1""", guild.id
+                    WHERE guild_id=$1""",
+                    guild.id,
                 )
         except asyncpg.UniqueViolationError:
             return
@@ -241,7 +239,7 @@ class ziBot(commands.Bot):
             self.load_extension(extension)
 
         self.logger.warning(f"Online: {self.user} (ID: {self.user.id})")
-        
+
         conn = await self.pool.acquire()
         for guild in self.guilds:
             await self.add_guild_id(conn, guild)
@@ -269,12 +267,12 @@ class ziBot(commands.Bot):
                 new_content = msg.content[len(ctx.prefix) :]
                 msg.content = "{}tag get {}".format(ctx.prefix, new_content)
                 return await self.process_commands(msg)
-        
+
         try:
             await self.invoke(ctx)
         finally:
             # Just in case we have any outstanding DB connections
-            await ctx.release() 
+            await ctx.release()
 
     async def on_message(self, message):
         # dont accept commands from bot
@@ -291,4 +289,4 @@ class ziBot(commands.Bot):
 
     @property
     def config(self):
-        return __import__('config')
+        return __import__("config")
