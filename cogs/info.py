@@ -225,7 +225,7 @@ class Info(commands.Cog):
                     self.bot.user.id, permissions=discord.Permissions(8), guild=None, redirect_uri=None
                 ) 
                 + ")\n"
-                + "[Invite with necessary premissions ***recommended**](" 
+                + "[Invite with necessary premissions (**recommended**)](" 
                 + discord.utils.oauth_url(
                     self.bot.user.id, permissions=discord.Permissions(1879571542), guild=None, redirect_uri=None
                 ) 
