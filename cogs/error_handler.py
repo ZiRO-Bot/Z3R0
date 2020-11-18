@@ -5,7 +5,6 @@ import traceback
 
 from .errors.weather import PlaceParamEmpty
 from .errors.fun import DiceTooBig
-from .utils.api.anilist import AnimeNotFound
 from discord.ext import commands
 
 

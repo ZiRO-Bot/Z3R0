@@ -31,7 +31,6 @@ streamingSites = [
     "VRV",
 ]
 
-
 class AniSearchPage(menus.PageSource):
     """
     Workaround to make `>anime search` work with ext.menus
@@ -457,9 +456,22 @@ class AniList(commands.Cog):
         """
         return self.watchlist[guild_id]
 
-    async def add_anime_guild(self, connection, guild_id, anime_ids):
+    async def add_anime_guild(self, connection, guild_id, anime_id):
         """
         Add anime to a guild's watchlist
+        """
+        async with connection.transaction():
+            await connection.execute(
+                "INSERT INTO anime_watchlist VALUES($1, $2)", guild_id, anime_id
+            )
+        if guild_id in self.watchlist:
+            self.watchlist[guild_id] += [anime_id]
+        else:
+            self.watchlist[guild_id] = [anime_id]
+            
+    async def bulk_add_anime_guild(self, connection, guild_id, anime_ids):
+        """
+        Add many anime to a guild's watchlist
         """
         async with connection.transaction():
             await connection.executemany(
@@ -525,25 +537,33 @@ class AniList(commands.Cog):
             )
             return await ctx.send(embed=embed)
 
-    # TODO: Make watchlist per server
     @anime.command(usage="(anime id|url)")
     # @commands.check(is_mainserver)
-    async def watch(self, ctx, *anime_id):
+    async def watch(self, ctx, anime_id):
         """Add anime to watchlist."""
-        filt_id = []
-        for _id in anime_id:
-            fetched_id = await self.anilist.fetch_id(_id)
-            if ctx.guild.id not in self.watchlist or fetched_id not in self.watchlist[ctx.guild.id]:
-                filt_id.append(fetched_id)
-        if not filt_id:
-            return await ctx.send("No valid Anime's Link/ID found, please use `>anime search (anime name) [format]` to find the ID!\n"
-                    + "Also make sure that anime is not already exist in the watchlist")
+        try:
+            fetched_id = await self.anilist.fetch_id(anime_id)
+        except anilist.AnimeNotFound:
+            embed = discord.Embed(
+                title="404 - Not Found",
+                colour=discord.Colour(0x02A9FF),
+                description="Anime not found!"
+            )
+            embed.set_author(
+                name="AniList",
+                icon_url="https://gblobscdn.gitbook.com/spaces%2F-LHizcWWtVphqU90YAXO%2Favatar.png",
+            )
+            return await ctx.send(embed=embed)
         
-        print(filt_id)
+        added = False 
         conn = await ctx.acquire()
-        await self.add_anime_guild(conn, ctx.guild.id, filt_id)
+        if ctx.guild.id not in self.watchlist or fetched_id not in self.watchlist[ctx.guild.id]:
+            await self.add_anime_guild(conn, ctx.guild.id, fetched_id)
+            added = True
         await ctx.release()
-        return await ctx.send(f"anime has been added")
+
+        if added:
+            await ctx.send(f"Anime has been added")
         # if not anime:
         #     return
         # _id_ = await find_id(self, ctx, anime, _format)
