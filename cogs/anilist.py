@@ -408,10 +408,10 @@ class AniList(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.handle_schedule.start()
-        self.logger = logging.getLogger("discord")
+        self.logger = self.bot.logger
         self.watchlist = {}
-        self.anilist = anilist.AniList()
-
+        self.anilist = anilist.AniList(session=self.bot.session)
+        # Init but async.
         self.bot.loop.create_task(self.async_init())
 
     async def async_init(self):
