@@ -480,7 +480,7 @@ class General(commands.Cog, name="general"):
         if spotify := discord.utils.find(
             lambda a: isinstance(a, discord.Spotify), user.activities
         ):
-            offset = 27  # Sometime it wont line up on some server, this is the only solution i could come up with
+            offset = 0  # Sometime it wont line up on some server, this is the only solution i could come up with
             (
                 duration,
                 current,
