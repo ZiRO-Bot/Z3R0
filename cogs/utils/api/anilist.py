@@ -8,6 +8,14 @@ import re
 from ..formatting import pformat
 from discord.ext import menus
 
+class AniListException(Exception):
+    """Base exception class for AniList"""
+    pass
+
+class AnimeNotFound(AniListException):
+    def __init__(self, message: str = "Anime not found!"):
+        self.message = message
+        super().__init__(self.message)
 
 class AniList:
     def __init__(self, session = None):
@@ -45,7 +53,7 @@ class AniList:
         ) as req:
             _json = json.loads(await req.text())
             if "errors" in _json:
-                raise ValueError("AniList: " + str(_json['errors'][0]['message']))
+                raise AnimeNotFound
             else:
                 return _json
     
@@ -62,14 +70,19 @@ class AniList:
             return q['data']
         return None
 
-    async def fetch_id(self, url: str, _type_: str = None) -> int:
+    async def fetch_id(self, url: str) -> int:
         """
         Get id from url.
         """
         # If url is an ID, just return it
         try:
-            _id_ = int(url)
-            return _id_
+            _id = int(url)
+            q = await self.request(
+                "query($mediaId: Int){Media(id:$mediaId){id}}", {"mediaId": _id}
+            )
+            if q:
+                return _id
+            return None
         except ValueError:
             pass
     
@@ -78,22 +91,24 @@ class AniList:
         regexMAL = r"/myanimelist\.net\/anime\/(.\d*)"
 
         # if AL link then return the id
-        match = re.search(regexAL, url)
+        match = re.search(regexAL, str(url))
         if match:
             return int(match.group(1))
     
         # if MAL link get the id, find AL id out of MAL id then return the AL id
-        match = re.search(regexMAL, url)
+        match = re.search(regexMAL, str(url))
         if not match:
-            _id_ = await self.fetch_id_with_name(url, _type_)
-            return int(_id_["Media"]["id"])
+            return None
+        #     _id_ = await self.fetch_id_with_name(url, _type_)
+        #     return int(_id_["Media"]["id"])
     
         # getting ID from MAL ID
         q = await self.request(
             "query($malId: Int){Media(idMal:$malId){id}}", {"malId": match.group(1)}
         )
         if not q:
-            raise ValueError("Anime not found!")
+            return None
+            # raise ValueError("Anime not found!")
         return int(q["data"]["Media"]["id"])
     
     async def get_anime(self, keyword: str, page: int, amount: int = 1, _format: str = None):

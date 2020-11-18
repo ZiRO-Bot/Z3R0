@@ -5,6 +5,7 @@ import traceback
 
 from .errors.weather import PlaceParamEmpty
 from .errors.fun import DiceTooBig
+from .utils.api.anilist import AnimeNotFound
 from discord.ext import commands
 
 
@@ -19,7 +20,7 @@ class ErrorHandler(commands.Cog):
     async def on_command_error(self, ctx, error):
         if isinstance(error, commands.CommandNotFound):
             return
-
+        
         if isinstance(error, PlaceParamEmpty):
             return await ctx.send("You need specify the place!")
 

@@ -437,7 +437,7 @@ class AniList(commands.Cog):
                     (i, a) for i, a in await conn.fetch("SELECT * FROM anime_watchlist")
                 ]
                 for k, v in pre:
-                    self.watchlist[k] = self.prefixes.get(k, []) + [v]
+                    self.watchlist[k] = self.watchlist.get(k, []) + [v]
 
     def get_watchlist(self):
         """
@@ -456,6 +456,19 @@ class AniList(commands.Cog):
         }
         """
         return self.watchlist[guild_id]
+
+    async def add_anime_guild(self, connection, guild_id, anime_ids):
+        """
+        Add anime to a guild's watchlist
+        """
+        async with connection.transaction():
+            await connection.executemany(
+                "INSERT INTO anime_watchlist VALUES($1, $2)", [(guild_id, _id) for _id in anime_ids]
+            )
+        if guild_id in self.watchlist:
+            self.watchlist[guild_id] += anime_ids
+        else:
+            self.watchlist[guild_id] = anime_ids
 
     def set_guild_watchlist(self, guild, watchlist):
         if not watchlist:
@@ -496,56 +509,82 @@ class AniList(commands.Cog):
         if not anime:
             await ctx.send("Please specify the anime!")
             return
-
-        menu = ZiMenu(AniSearchPage(ctx, anime, api=self.anilist, _type=_format))
-        await menu.start(ctx)
+        
+        try:
+            menu = ZiMenu(AniSearchPage(ctx, anime, api=self.anilist, _type=_format))
+            await menu.start(ctx)
+        except:
+            embed = discord.Embed(
+                title="404 - Not Found",
+                colour=discord.Colour(0x02A9FF),
+                description="Anime not found!"
+            )
+            embed.set_author(
+                name="AniList",
+                icon_url="https://gblobscdn.gitbook.com/spaces%2F-LHizcWWtVphqU90YAXO%2Favatar.png",
+            )
+            return await ctx.send(embed=embed)
 
     # TODO: Make watchlist per server
-    @anime.command(usage="(anime) [format]")
+    @anime.command(usage="(anime id|url)")
     # @commands.check(is_mainserver)
-    async def watch(self, ctx, anime, _format: str = None):
+    async def watch(self, ctx, *anime_id):
         """Add anime to watchlist."""
-        if not anime:
-            return
-        _id_ = await find_id(self, ctx, anime, _format)
+        filt_id = []
+        for _id in anime_id:
+            fetched_id = await self.anilist.fetch_id(_id)
+            if ctx.guild.id not in self.watchlist or fetched_id not in self.watchlist[ctx.guild.id]:
+                filt_id.append(fetched_id)
+        if not filt_id:
+            return await ctx.send("No valid Anime's Link/ID found, please use `>anime search (anime name) [format]` to find the ID!\n"
+                    + "Also make sure that anime is not already exist in the watchlist")
+        
+        print(filt_id)
+        conn = await ctx.acquire()
+        await self.add_anime_guild(conn, ctx.guild.id, filt_id)
+        await ctx.release()
+        return await ctx.send(f"anime has been added")
+        # if not anime:
+        #     return
+        # _id_ = await find_id(self, ctx, anime, _format)
 
-        # Get info from API
-        q = await getinfo(self, ctx, anime, _format)
+        # # Get info from API
+        # q = await getinfo(self, ctx, anime, _format)
 
-        title = q["Media"]["title"]["romaji"]
+        # title = q["Media"]["title"]["romaji"]
 
-        watchlist = self.get_watchlist()
-        if (
-            not watchlist[int(ctx.guild.id)]
-            or str(_id_) not in watchlist[int(ctx.guild.id)]
-        ):
-            try:
-                watchlist[int(ctx.guild.id)].append(str(_id_))
-            except AttributeError:
-                watchlist[int(ctx.guild.id)] = [str(_id_)]
+        # watchlist = self.get_watchlist()
+        # if (
+        #     not watchlist[int(ctx.guild.id)]
+        #     or str(_id_) not in watchlist[int(ctx.guild.id)]
+        # ):
+        #     try:
+        #         watchlist[int(ctx.guild.id)].append(str(_id_))
+        #     except AttributeError:
+        #         watchlist[int(ctx.guild.id)] = [str(_id_)]
 
-            new_watchlist = ",".join(watchlist[int(ctx.guild.id)])
+        #     new_watchlist = ",".join(watchlist[int(ctx.guild.id)])
 
-            self.set_guild_watchlist(ctx.guild, new_watchlist)
+        #     self.set_guild_watchlist(ctx.guild, new_watchlist)
 
-            embed = discord.Embed(
-                title="New anime just added!",
-                description=f"**{title}** ({_id_}) has been added to the watchlist!",
-                colour=discord.Colour(0x02A9FF),
-            )
-        else:
-            embed = discord.Embed(
-                title="Failed to add anime!",
-                description=f"**{title}** ({_id_}) already in the watchlist!",
-                colour=discord.Colour(0x02A9FF),
-            )
-        embed.set_author(
-            name="AniList",
-            icon_url="https://gblobscdn.gitbook.com/spaces%2F-LHizcWWtVphqU90YAXO%2Favatar.png",
-        )
-        embed.set_thumbnail(url=q["Media"]["coverImage"]["large"])
-        await ctx.send(embed=embed)
-        return
+        #     embed = discord.Embed(
+        #         title="New anime just added!",
+        #         description=f"**{title}** ({_id_}) has been added to the watchlist!",
+        #         colour=discord.Colour(0x02A9FF),
+        #     )
+        # else:
+        #     embed = discord.Embed(
+        #         title="Failed to add anime!",
+        #         description=f"**{title}** ({_id_}) already in the watchlist!",
+        #         colour=discord.Colour(0x02A9FF),
+        #     )
+        # embed.set_author(
+        #     name="AniList",
+        #     icon_url="https://gblobscdn.gitbook.com/spaces%2F-LHizcWWtVphqU90YAXO%2Favatar.png",
+        # )
+        # embed.set_thumbnail(url=q["Media"]["coverImage"]["large"])
+        # await ctx.send(embed=embed)
+        # return
 
     @anime.command(usage="(anime) [format]")
     # @commands.check(is_mainserver)
