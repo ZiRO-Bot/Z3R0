@@ -402,20 +402,6 @@ class Fun(commands.Cog):
                 return
             await ctx.send(embed=embed)
 
-    @commands.command(aliases=["findhusbando"])
-    async def findwaifu(self, ctx):
-        """Get a random waifu."""
-        async with self.bot.session.get("https://mywaifulist.moe/random") as page:
-            page = await page.text()
-            soup = BeautifulSoup(page, "html.parser")
-            waifu = json.loads(
-                soup.find("script", {"type": "application/ld+json"}).string
-            )
-        if not waifu:
-            return
-        e = discord.Embed(title=waifu["name"])
-        e.set_image(url=waifu["image"])
-        await ctx.send(embed=e)
 
 
 def setup(bot):
