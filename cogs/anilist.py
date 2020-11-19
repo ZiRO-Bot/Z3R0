@@ -576,7 +576,9 @@ class AniList(commands.Cog):
     async def watch(self, ctx, anime_id):
         """Add anime to watchlist."""
         try:
-            fetched_id = await self.anilist.fetch_id(anime_id)
+            q = await self.anilist.get_basic_info(anime_id)
+            fetched_id = q["Media"]["id"]
+            # fetched_id = await self.anilist.fetch_id(anime_id)
         except anilist.AnimeNotFound:
             embed = discord.Embed(
                 title="404 - Not Found",
@@ -601,7 +603,6 @@ class AniList(commands.Cog):
         
         # This is stupid, but for readablity sake
         if added:
-            q = await self.anilist.get_basic_info(fetched_id)
             title = q["Media"]["title"]["romaji"]
             embed = discord.Embed(
                 title="New anime just added!",

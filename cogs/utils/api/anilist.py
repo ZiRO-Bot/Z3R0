@@ -150,8 +150,7 @@ class AniList:
             pass
         
         if _id:
-            checked_id = await self.fetch_id(_id)
-            q = await self.request(query.animeInfo, {"mediaId": checked_id})
+            q = await self.request(query.animeInfo, {"mediaId": _id})
             # maybe it's not id afterall?
             if not q:
                 pass
