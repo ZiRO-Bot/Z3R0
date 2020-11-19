@@ -93,10 +93,6 @@ class Custom(commands.Cog):
         """Print user properly (ex: user#6969)."""
         return f"{user.name}#{user.discriminator}"
 
-    def clean_nick(self, user):
-        nick = str(user.nick or user.name)
-        return nick.replace("<@", "<@\u200b")
-
     def fetch_tags(self, ctx, message):
         # TSE's documentation is pretty bad so this is my workaround for now
         special_vals = {
@@ -107,7 +103,7 @@ class Custom(commands.Cog):
                     "id": str(ctx.author.id),
                     "proper": str(ctx.author),
                     "mention": ctx.author.mention,
-                    "nick": self.clean_nick(ctx.author), 
+                    "nick": ctx.author.nick or ctx.author.name, 
                 },
             ),
             "server": StringParamAdapter(
@@ -154,7 +150,7 @@ class Custom(commands.Cog):
         )
         self.bot.conn.commit()
         content = self.fetch_tags(ctx, a[2])
-        await ctx.send(content, allowed_mentions=discord.AllowedMentions.none())
+        await ctx.safe_send(content)
 
     def is_mod():
         def predicate(ctx):
