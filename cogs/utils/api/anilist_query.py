@@ -84,6 +84,18 @@ query($name:String,$aniformat:MediaFormat,$page:Int,$amount:Int=5){
 }
 """
 
+animeBasicInfo = """
+query($mediaId: Int){
+    Media(id:$mediaId, type:ANIME){
+        id,
+        format,
+        title {romaji},
+        coverImage {large},
+        isAdult
+    }
+}
+"""
+
 animeInfo = """
 query($mediaId: Int){
     Media(id:$mediaId, type:ANIME){

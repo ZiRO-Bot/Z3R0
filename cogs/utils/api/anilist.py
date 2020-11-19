@@ -87,8 +87,8 @@ class AniList:
             pass
     
         # regex for AniList and MyAnimeList
-        regexAL = r"/anilist\.co\/anime\/(.\d*)/"
-        regexMAL = r"/myanimelist\.net\/anime\/(.\d*)"
+        regexAL = r"/anilist\.co\/anime\/(.\d*)/?"
+        regexMAL = r"/myanimelist\.net\/anime\/(.\d*)/?"
 
         # if AL link then return the id
         match = re.search(regexAL, str(url))
@@ -111,21 +111,42 @@ class AniList:
             # raise ValueError("Anime not found!")
         return int(q["data"]["Media"]["id"])
     
+    async def get_basic_info(self, _id):
+        """
+        Get basic information an anime, such as title, id, and cover
+
+        Parameter
+        ---------
+        _id
+            ID of an anime
+        """
+        checked_id = await self.fetch_id(_id)
+        q = await self.request(query.animeInfo, {"mediaId": checked_id})
+        return q["data"]
+
     async def get_anime(self, keyword: str, page: int, amount: int = 1, _format: str = None):
         """
         Get anime from anilist, was called `search_ani`
 
-        keyword: str -> Name/ID of an anime.
-        _format: str   -> MediaFormat, format of the anime, MOVIE, TV Show, etc. [-]
-        page: int    -> Number of selected page.
-        amount: int  -> Anime per page. (default: 1)
+        Parameter
+        ---------
+        keyword: str
+            Name/ID of an anime.
+        _format: str
+            MediaFormat, format of the anime, MOVIE, TV Show, etc. [-]
+        page: int
+            Number of selected page.
+        amount: int
+            Anime per page. (default: 1)
         
+        Note
+        ----
         [-] -> Only for `>anime search` or `query.animeInfo`
         """
         _id = None
         try:
-            _id = int(keyword)
-        except ValueError:
+            _id = await self.fetch_id(keyword)
+        except AnimeNotFound:
             pass
         
         if _id:

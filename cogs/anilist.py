@@ -31,6 +31,44 @@ streamingSites = [
     "VRV",
 ]
 
+
+def filter_image(channel, is_adult: bool, image_url: str, _type: str = "cover"):
+    """
+    Filter NSFW image (banner/cover)
+
+    Parameter
+    ---------
+    channel
+        To get discord channel info (such as is_nsfw)
+    is_adult: bool
+        Boolean from anilist (media.isAdult)
+    image_url: str
+        Url of the image (banner/cover)
+    _type: str
+        Type of the image, whether its banner or cover (default: "cover")
+    """
+    types = ["cover", "banner"]
+    _type = _type.lower()
+    if _type not in types:
+        raise ValueError("Invalid type")
+    result = ""
+    if not channel.is_nsfw() and is_adult:
+        result = (
+            "https://raw.githubusercontent.com/null2264/null2264/master/NSFW.png"
+            if _type == "cover"
+            else "https://raw.githubusercontent.com/null2264/null2264/master/nsfw_banner.jpg"
+        )
+    else:
+        if _type == "cover":
+            result = image_url
+        else:
+            result = (
+                image_url
+                or "https://raw.githubusercontent.com/null2264/null2264/master/21519-1ayMXgNlmByb.jpg"
+            )
+    return result
+
+
 class AniSearchPage(menus.PageSource):
     """
     Workaround to make `>anime search` work with ext.menus
@@ -106,21 +144,16 @@ class AniSearchPage(menus.PageSource):
         )
 
         # -- Filter NSFW images
-        if data["isAdult"] and not self.ctx.channel.is_nsfw():
-            e.set_thumbnail(
-                url="https://raw.githubusercontent.com/null2264/null2264/master/NSFW.png"
+        e.set_thumbnail(
+            url=filter_image(
+                self.ctx.channel, data["isAdult"], data["coverImage"]["large"]
             )
-            e.set_image(
-                url="https://raw.githubusercontent.com/null2264/null2264/master/nsfw_banner.jpg"
+        )
+        e.set_image(
+            url=filter_image(
+                self.ctx.channel, data["isAdult"], data["bannerImage"], _type="banner"
             )
-        else:
-            e.set_thumbnail(url=data["coverImage"]["large"])
-            if data["bannerImage"]:
-                e.set_image(url=data["bannerImage"])
-            else:
-                e.set_image(
-                    url="https://raw.githubusercontent.com/null2264/null2264/master/21519-1ayMXgNlmByb.jpg"
-                )
+        )
         # ------
 
         studios = []
@@ -468,14 +501,15 @@ class AniList(commands.Cog):
             self.watchlist[guild_id] += [anime_id]
         else:
             self.watchlist[guild_id] = [anime_id]
-            
+
     async def bulk_add_anime_guild(self, connection, guild_id, anime_ids):
         """
         Add many anime to a guild's watchlist
         """
         async with connection.transaction():
             await connection.executemany(
-                "INSERT INTO anime_watchlist VALUES($1, $2)", [(guild_id, _id) for _id in anime_ids]
+                "INSERT INTO anime_watchlist VALUES($1, $2)",
+                [(guild_id, _id) for _id in anime_ids],
             )
         if guild_id in self.watchlist:
             self.watchlist[guild_id] += anime_ids
@@ -521,15 +555,15 @@ class AniList(commands.Cog):
         if not anime:
             await ctx.send("Please specify the anime!")
             return
-        
+
         try:
             menu = ZiMenu(AniSearchPage(ctx, anime, api=self.anilist, _type=_format))
             await menu.start(ctx)
-        except:
+        except anilist.AnimeNotFound:
             embed = discord.Embed(
                 title="404 - Not Found",
                 colour=discord.Colour(0x02A9FF),
-                description="Anime not found!"
+                description="Anime not found!",
             )
             embed.set_author(
                 name="AniList",
@@ -547,7 +581,7 @@ class AniList(commands.Cog):
             embed = discord.Embed(
                 title="404 - Not Found",
                 colour=discord.Colour(0x02A9FF),
-                description="Anime not found!"
+                description="Anime not found!",
             )
             embed.set_author(
                 name="AniList",
@@ -555,57 +589,48 @@ class AniList(commands.Cog):
             )
             return await ctx.send(embed=embed)
         
-        added = False 
+        added = False
         conn = await ctx.acquire()
-        if ctx.guild.id not in self.watchlist or fetched_id not in self.watchlist[ctx.guild.id]:
+        if (
+            ctx.guild.id not in self.watchlist
+            or fetched_id not in self.watchlist[ctx.guild.id]
+        ):
             await self.add_anime_guild(conn, ctx.guild.id, fetched_id)
             added = True
         await ctx.release()
-
+        
+        # This is stupid, but for readablity sake
         if added:
-            await ctx.send(f"Anime has been added")
-        # if not anime:
-        #     return
-        # _id_ = await find_id(self, ctx, anime, _format)
-
-        # # Get info from API
-        # q = await getinfo(self, ctx, anime, _format)
-
-        # title = q["Media"]["title"]["romaji"]
-
-        # watchlist = self.get_watchlist()
-        # if (
-        #     not watchlist[int(ctx.guild.id)]
-        #     or str(_id_) not in watchlist[int(ctx.guild.id)]
-        # ):
-        #     try:
-        #         watchlist[int(ctx.guild.id)].append(str(_id_))
-        #     except AttributeError:
-        #         watchlist[int(ctx.guild.id)] = [str(_id_)]
-
-        #     new_watchlist = ",".join(watchlist[int(ctx.guild.id)])
-
-        #     self.set_guild_watchlist(ctx.guild, new_watchlist)
-
-        #     embed = discord.Embed(
-        #         title="New anime just added!",
-        #         description=f"**{title}** ({_id_}) has been added to the watchlist!",
-        #         colour=discord.Colour(0x02A9FF),
-        #     )
-        # else:
-        #     embed = discord.Embed(
-        #         title="Failed to add anime!",
-        #         description=f"**{title}** ({_id_}) already in the watchlist!",
-        #         colour=discord.Colour(0x02A9FF),
-        #     )
-        # embed.set_author(
-        #     name="AniList",
-        #     icon_url="https://gblobscdn.gitbook.com/spaces%2F-LHizcWWtVphqU90YAXO%2Favatar.png",
-        # )
-        # embed.set_thumbnail(url=q["Media"]["coverImage"]["large"])
-        # await ctx.send(embed=embed)
-        # return
-
+            q = await self.anilist.get_basic_info(fetched_id)
+            title = q["Media"]["title"]["romaji"]
+            embed = discord.Embed(
+                title="New anime just added!",
+                description=f"**{title}** ({fetched_id}) has been added to the watchlist!",
+                colour=discord.Colour(0x02A9FF),
+            )
+            embed.set_author(
+                name="AniList",
+                icon_url="https://gblobscdn.gitbook.com/spaces%2F-LHizcWWtVphqU90YAXO%2Favatar.png",
+            )
+            embed.set_thumbnail(url=filter_image(ctx.channel, q["Media"]["isAdult"], q["Media"]["coverImage"]["large"]))
+            await ctx.send(embed=embed)
+        elif not added:
+            q = await self.anilist.get_basic_info(fetched_id)
+            title = q["Media"]["title"]["romaji"]
+            embed = discord.Embed(
+                title="Failed to add anime!",
+                description=f"**{title}** ({fetched_id}) already in the watchlist!",
+                colour=discord.Colour(0x02A9FF),
+            )
+            embed.set_author(
+                name="AniList",
+                icon_url="https://gblobscdn.gitbook.com/spaces%2F-LHizcWWtVphqU90YAXO%2Favatar.png",
+            )
+            embed.set_thumbnail(url=filter_image(ctx.channel, q["Media"]["isAdult"], q["Media"]["coverImage"]["large"]))
+            await ctx.send(embed=embed)
+        else:
+            return
+    
     @anime.command(usage="(anime) [format]")
     # @commands.check(is_mainserver)
     async def unwatch(self, ctx, anime, _format: str = None):
