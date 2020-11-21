@@ -140,8 +140,8 @@ class ziBot(commands.Bot):
                     """
                     CREATE TABLE IF NOT EXISTS 
                     prefixes (
-                        guild_id BIGINT REFERENCES guilds(id) ON DELETE CASCADE,
-                        prefix TEXT
+                        guild_id BIGINT REFERENCES guilds(id) ON DELETE CASCADE NOT NULL,
+                        prefix TEXT NOT NULL
                     )
                     """
                 )

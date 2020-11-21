@@ -210,10 +210,13 @@ class AniSearchPage(menus.PageSource):
             return self.cache[str(page_number)]
 
     async def format_page(self, menu, page):
-        if self.is_paged is True:
-            data = page["media"][0]
-        else:
-            data = page["Media"]
+        try:
+            if self.is_paged is True:
+                data = page["media"][0]
+            else:
+                data = page["Media"]
+        except IndexError:
+            raise anilist.AnimeNotFound
 
         return self.format_anime_info(
             menu,
@@ -459,8 +462,8 @@ class AniList(commands.Cog):
                     """
                     CREATE TABLE IF NOT EXISTS 
                     anime_watchlist (
-                        guild_id BIGINT REFERENCES guilds(id) ON DELETE CASCADE,
-                        anime_id BIGINT
+                        guild_id BIGINT REFERENCES guilds(id) ON DELETE CASCADE NOT NULL,
+                        anime_id BIGINT NOT NULL
                     )
                     """
                 )
@@ -488,6 +491,19 @@ class AniList(commands.Cog):
         }
         """
         return self.watchlist[guild_id]
+
+    async def remove_anime_guild(self, connection, guild_id, anime_id):
+        """
+        Remove anime from a guild's watchlist
+        """
+        async with connection.transaction():
+            await connection.execute(
+                "DELETE FROM anime_watchlist WHERE guild_id=$1 AND anime_id=$2",
+                guild_id,
+                anime_id,
+            )
+        if guild_id in self.watchlist:
+            self.watchlist[guild_id].remove(anime_id)
 
     async def add_anime_guild(self, connection, guild_id, anime_id):
         """
@@ -590,7 +606,7 @@ class AniList(commands.Cog):
                 icon_url="https://gblobscdn.gitbook.com/spaces%2F-LHizcWWtVphqU90YAXO%2Favatar.png",
             )
             return await ctx.send(embed=embed)
-        
+
         added = False
         conn = await ctx.acquire()
         if (
@@ -600,7 +616,7 @@ class AniList(commands.Cog):
             await self.add_anime_guild(conn, ctx.guild.id, fetched_id)
             added = True
         await ctx.release()
-        
+
         # This is stupid, but for readablity sake
         if added:
             title = q["Media"]["title"]["romaji"]
@@ -613,7 +629,13 @@ class AniList(commands.Cog):
                 name="AniList",
                 icon_url="https://gblobscdn.gitbook.com/spaces%2F-LHizcWWtVphqU90YAXO%2Favatar.png",
             )
-            embed.set_thumbnail(url=filter_image(ctx.channel, q["Media"]["isAdult"], q["Media"]["coverImage"]["large"]))
+            embed.set_thumbnail(
+                url=filter_image(
+                    ctx.channel,
+                    q["Media"]["isAdult"],
+                    q["Media"]["coverImage"]["large"],
+                )
+            )
             await ctx.send(embed=embed)
         elif not added:
             q = await self.anilist.get_basic_info(fetched_id)
@@ -627,51 +649,89 @@ class AniList(commands.Cog):
                 name="AniList",
                 icon_url="https://gblobscdn.gitbook.com/spaces%2F-LHizcWWtVphqU90YAXO%2Favatar.png",
             )
-            embed.set_thumbnail(url=filter_image(ctx.channel, q["Media"]["isAdult"], q["Media"]["coverImage"]["large"]))
+            embed.set_thumbnail(
+                url=filter_image(
+                    ctx.channel,
+                    q["Media"]["isAdult"],
+                    q["Media"]["coverImage"]["large"],
+                )
+            )
             await ctx.send(embed=embed)
         else:
             return
-    
-    @anime.command(usage="(anime) [format]")
+
+    @anime.command(usage="(anime id|url)")
     # @commands.check(is_mainserver)
-    async def unwatch(self, ctx, anime, _format: str = None):
+    async def unwatch(self, ctx, anime_id):
         """Remove anime to watchlist."""
-        if not anime:
-            return
-        _id_ = await find_id(self, ctx, anime)
+        try:
+            q = await self.anilist.get_basic_info(anime_id)
+            fetched_id = q["Media"]["id"]
+            # fetched_id = await self.anilist.fetch_id(anime_id)
+        except anilist.AnimeNotFound:
+            embed = discord.Embed(
+                title="404 - Not Found",
+                colour=discord.Colour(0x02A9FF),
+                description="Anime not found!",
+            )
+            embed.set_author(
+                name="AniList",
+                icon_url="https://gblobscdn.gitbook.com/spaces%2F-LHizcWWtVphqU90YAXO%2Favatar.png",
+            )
+            return await ctx.send(embed=embed)
 
-        # Get info from API
-        q = await getinfo(self, ctx, anime, _format)
-
-        title = q["Media"]["title"]["romaji"]
-
-        watchlist = self.get_watchlist()
-        if str(_id_) in watchlist[int(ctx.guild.id)]:
-            watchlist[int(ctx.guild.id)].remove(str(_id_))
-            new_watchlist = ",".join(watchlist[int(ctx.guild.id)])
-            if len(watchlist) >= 2:
-                self.set_guild_watchlist(ctx.guild, new_watchlist)
-            else:
-                self.set_guild_watchlist(ctx.guild, None)
-
+        removed = False
+        conn = await ctx.acquire()
+        if (
+            ctx.guild.id in self.watchlist
+            and fetched_id in self.watchlist[ctx.guild.id]
+        ):
+            await self.remove_anime_guild(conn, ctx.guild.id, fetched_id)
+            removed = True
+        await ctx.release()
+        
+        # This is stupid, but for readablity sake
+        if removed:
+            title = q["Media"]["title"]["romaji"]
             embed = discord.Embed(
                 title="An anime just removed!",
-                description=f"**{title}** ({_id_}) has been removed from the watchlist!",
+                description=f"**{title}** ({fetched_id}) has been removed from watchlist!",
                 colour=discord.Colour(0x02A9FF),
             )
-        else:
+            embed.set_author(
+                name="AniList",
+                icon_url="https://gblobscdn.gitbook.com/spaces%2F-LHizcWWtVphqU90YAXO%2Favatar.png",
+            )
+            embed.set_thumbnail(
+                url=filter_image(
+                    ctx.channel,
+                    q["Media"]["isAdult"],
+                    q["Media"]["coverImage"]["large"],
+                )
+            )
+            await ctx.send(embed=embed)
+        elif not removed:
+            q = await self.anilist.get_basic_info(fetched_id)
+            title = q["Media"]["title"]["romaji"]
             embed = discord.Embed(
-                title="Failed to remove anime!",
-                description=f"**{title}** ({_id_}) is not in the watchlist!",
+                title="Failed to add anime!",
+                description=f"**{title}** ({fetched_id}) is not exist in the watchlist!",
                 colour=discord.Colour(0x02A9FF),
             )
-        embed.set_author(
-            name="AniList",
-            icon_url="https://gblobscdn.gitbook.com/spaces%2F-LHizcWWtVphqU90YAXO%2Favatar.png",
-        )
-        embed.set_thumbnail(url=q["Media"]["coverImage"]["large"])
-        await ctx.send(embed=embed)
-        return
+            embed.set_author(
+                name="AniList",
+                icon_url="https://gblobscdn.gitbook.com/spaces%2F-LHizcWWtVphqU90YAXO%2Favatar.png",
+            )
+            embed.set_thumbnail(
+                url=filter_image(
+                    ctx.channel,
+                    q["Media"]["isAdult"],
+                    q["Media"]["coverImage"]["large"],
+                )
+            )
+            await ctx.send(embed=embed)
+        else:
+            return
 
     @anime.command(aliases=["wl", "list"])
     # @commands.check(is_mainserver)
