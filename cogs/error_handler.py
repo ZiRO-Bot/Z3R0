@@ -82,7 +82,7 @@ class ErrorHandler(commands.Cog):
             else:
                 e_owner = discord.Embed(
                     title="Something went wrong!",
-                    description=f"An error occured: `{error}`",
+                    description=f"An error occured:\n```{error}```",
                     colour=discord.Colour(0x2F3136),
                 )
                 e_owner.add_field(name="Message", value=ctx.message.content)
