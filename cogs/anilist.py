@@ -238,49 +238,6 @@ async def query(query: str, variables: Optional[str]):
             return json.loads(await req.text())
 
 
-async def send_watchlist(self, ctx):
-    embed = discord.Embed(title="Anime Watchlist", colour=discord.Colour(0x02A9FF))
-    embed.set_author(
-        name="AniList",
-        icon_url="https://gblobscdn.gitbook.com/spaces%2F-LHizcWWtVphqU90YAXO%2Favatar.png",
-    )
-    watchlist = self.get_watchlist()
-    a = await query(listQ, {"mediaId": watchlist[ctx.guild.id]})
-    if not a:
-        embed.description = "No anime in watchlist."
-        await ctx.send(embed=embed)
-        return
-    a = a["data"]
-    jakarta = timezone("Asia/Jakarta")
-    if not a["Page"]["media"]:
-        embed.description = "No anime in watchlist."
-    for e in a["Page"]["media"]:
-        if e["nextAiringEpisode"]:
-            status = "AIRING"
-            _time_ = str(
-                datetime.datetime.fromtimestamp(
-                    e["nextAiringEpisode"]["airingAt"], tz=jakarta
-                ).strftime("%d %b %Y - %H:%M WIB")
-            )
-            _timeTillAired_ = str(
-                datetime.timedelta(seconds=e["nextAiringEpisode"]["timeUntilAiring"])
-            )
-            embed.add_field(
-                name=f"{e['title']['romaji']} ({e['id']})",
-                value=f"Episode {e['nextAiringEpisode']['episode']} will be aired at"
-                + f" **{_time_}** (**{_timeTillAired_}**)",
-                inline=False,
-            )
-        else:
-            status = "FINISHED"
-            embed.add_field(
-                name=f"{e['title']['romaji']} ({e['id']})",
-                value=status or "...",
-                inline=False,
-            )
-    await ctx.send(embed=embed)
-
-
 async def getschedule(self, _time_, page):
     watchlist = self.get_watchlist()
     if not watchlist:
@@ -348,12 +305,12 @@ async def getschedule(self, _time_, page):
                         )
                     await channel.send(embed=embed)
 
-            if self.bot.user.id == 733622032901603388:
-                # ---- For testing only
-                await asyncio.sleep(5)
-            else:
-                await asyncio.sleep(e["timeUntilAiring"])
-            await queueSchedule(self)
+                if self.bot.user.id == 733622032901603388:
+                    # ---- For testing only
+                    await asyncio.sleep(5)
+                else:
+                    await asyncio.sleep(e["timeUntilAiring"])
+                await queueSchedule(self)
 
         if q["Page"]["pageInfo"]["hasNextPage"]:
             await getschedule(
@@ -361,88 +318,9 @@ async def getschedule(self, _time_, page):
             )
 
 
-async def find_with_name(self, ctx, anime, _type_):
-    if not _type_:
-        q = await query(
-            "query($name:String){Media(search:$name,type:ANIME){id,"
-            + "title {romaji,english}, coverImage {large}, status, episodes, averageScore, seasonYear  } }",
-            {"name": anime},
-        )
-    else:
-        _type_ = str(_type_.upper())
-        q = await query(
-            "query($name:String,$atype:MediaFormat){Media(search:$name,type:ANIME,format:$atype){id,"
-            + "title {romaji,english}, coverImage {large}, status, episodes, averageScore, seasonYear  } }",
-            {"name": anime, "atype": _type_},
-        )
-    try:
-        return q["data"]
-    except TypeError:
-        if not _type_:
-            raise NameNotFound
-            # return "NameNotFound"
-        raise NameTypeNotFound
-        # return "NameTypeNotFound"
-
-
-async def find_id(self, ctx, url, _type_: str = None):
-    # if input is ID, just return it, else find id via name (string)
-    try:
-        _id_ = int(url)
-        return _id_
-    except ValueError:
-        pass
-
-    # regex for AniList and MyAnimeList
-    regexAL = r"/anilist\.co\/anime\/(.\d*)/"
-    regexMAL = r"/myanimelist\.net\/anime\/(.\d*)"
-
-    # if AL link then return the id
-    match = re.search(regexAL, url)
-    if match:
-        return int(match.group(1))
-
-    # if MAL link get the id, find AL id out of MAL id then return the AL id
-    match = re.search(regexMAL, url)
-    if not match:
-        _id_ = await find_with_name(self, ctx, url, _type_)
-        return int(_id_["Media"]["id"])
-
-    # getting ID from MAL ID
-    q = await query(
-        "query($malId: Int){Media(idMal:$malId){id}}", {"malId": match.group(1)}
-    )
-    if q is None:
-        print("Error")
-        await ctx.send(f"Anime with id **{url}** can't be found.")
-        return None
-    return int(q["data"]["Media"]["id"])
-
-
-async def getinfo(self, ctx, other, _format_: str = None):
-    mediaId = await find_id(self, ctx, other, _format_)
-    if not mediaId:
-        raise IdNotFound
-
-    a = await query(generalQ, {"mediaId": mediaId})
-    if not a:
-        raise IdNotFound
-
-    a = a["data"]
-    return a
-
-
-async def search_ani_new(self, ctx, anime, page):
-    q = await query(searchAni, {"name": anime, "page": page, "amount": 1})
-    if q:
-        return q["data"]
-    return
-
-
 class AniList(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.handle_schedule.start()
         self.logger = self.bot.logger
         self.watchlist = {}
         self.anilist = anilist.AniList(session=self.bot.session)
@@ -473,6 +351,87 @@ class AniList(commands.Cog):
                 ]
                 for k, v in pre:
                     self.watchlist[k] = self.watchlist.get(k, []) + [v]
+        self.handle_schedule.start()
+    
+    @tasks.loop(hours=24)
+    async def handle_schedule(self):
+        """
+        Handle anime schedule
+        """
+        self.logger.warning("Checking for new releases on AniList...")
+        await self.scheduler(int(time.time() + (24 * 60 * 60)), 1)
+
+    async def scheduler(self, timestamp, page):
+        """
+        Get anime episode that about to air and schedule it
+        """
+        for server in self.watchlist:
+            # Get episode that about to air
+            q = await query(
+                scheduleQuery,
+                {
+                    "page": 1,
+                    "amount": 50,
+                    "watched": self.watchlist[server],
+                    "nextDay": timestamp,
+                },
+            )
+            if not q:
+                continue
+            q = q["data"]
+
+            # TODO: Properly implement channel setting
+            channel = self.bot.get_channel(777742553041862666)
+
+            # Schedule the episodes if there's any
+            if q and q["Page"]["airingSchedules"]:
+                for e in q["Page"]["airingSchedules"]:
+                    self.bot.loop.create_task(self.handle_announcement(channel, e))
+
+                    # if self.bot.user.id == 733622032901603388:
+                    #     # ---- For testing only
+                    #     await asyncio.sleep(10)
+                    #     print(e)
+                    # else:
+                    #     await asyncio.sleep(e["timeUntilAiring"])
+                    # await queueSchedule(self)
+            
+            # Schedule the next page if it has more than 1 page (pageInfo.hasNextPage)
+            if q["Page"]["pageInfo"]["hasNextPage"]:
+                await self.scheduler(
+                    int(time.time() + (24 * 60 * 60), page + 1)
+                )
+    
+    async def handle_announcement(self, channel, data):
+        """
+        Format and send anime announcement's embed.
+        """
+        anime = data["media"]["title"]["romaji"]
+        _id = data["media"]["id"]
+        eps = data["episode"]
+        sites = []
+        for site in data["media"]["externalLinks"]:
+            if str(site["site"]) in streamingSites:
+                sites.append(f"[{site['site']}]({site['url']})")
+        sites = " | ".join(sites)
+
+        e = discord.Embed(
+            title = "New Release!", 
+            description = f"Episode {eps} of [{anime}]({data['media']['siteUrl']}) (**ID:** {_id}) has just aired.",
+            colour = discord.Colour(0x02A9FF),
+            timestamp = datetime.datetime.fromtimestamp(data["airingAt"]),
+        )
+        e.set_thumbnail(url=filter_image(channel, is_adult=data["media"]["isAdult"], image_url=data["media"]["coverImage"]["large"]))
+        e.set_author(name="AnilList", icon_url="https://gblobscdn.gitbook.com/spaces%2F-LHizcWWtVphqU90YAXO%2Favatar.png")
+        e.add_field(
+            name="Streaming Sites", value=sites or "No official stream links available", inline=False
+        )
+        if self.bot.user.id == 733622032901603388:
+            # ---- For testing only
+            await asyncio.sleep(5)
+        else:
+            await asyncio.sleep(e["timeUntilAiring"])
+        await channel.send(embed=e)
 
     def get_watchlist(self):
         """
@@ -550,11 +509,6 @@ class AniList(commands.Cog):
 
     async def is_mainserver(ctx):
         return ctx.guild.id == 645074407244562444
-
-    @tasks.loop(hours=24)
-    async def handle_schedule(self):
-        self.logger.warning("Checking for new releases on AniList...")
-        await getschedule(self, int(time.time() + (24 * 60 * 60 * 1000 * 1) / 1000), 1)
 
     @commands.group(brief="Get information about anime from AniList.")
     async def anime(self, ctx):
@@ -737,7 +691,48 @@ class AniList(commands.Cog):
     # @commands.check(is_mainserver)
     async def watchlist(self, ctx):
         """Get list of anime that added to watchlist."""
-        await send_watchlist(self, ctx)
+        embed = discord.Embed(title="Anime Watchlist", colour=discord.Colour(0x02A9FF))
+        embed.set_author(
+            name="AniList",
+            icon_url="https://gblobscdn.gitbook.com/spaces%2F-LHizcWWtVphqU90YAXO%2Favatar.png",
+        )
+        if ctx.guild.id not in self.watchlist:
+            embed.description = "No anime in watchlist."
+            return await ctx.send(embed=embed)
+        a = await query(listQ, {"mediaId": self.watchlist[ctx.guild.id]})
+        if not a:
+            return
+        a = a["data"]
+        jakarta = timezone("Asia/Jakarta")
+        if not a["Page"]["media"]:
+            embed.description = "No anime in watchlist."
+        for e in a["Page"]["media"]:
+            if e["nextAiringEpisode"]:
+                status = "AIRING"
+                _time_ = str(
+                    datetime.datetime.fromtimestamp(
+                        e["nextAiringEpisode"]["airingAt"], tz=jakarta
+                    ).strftime("%d %b %Y - %H:%M WIB")
+                )
+                _timeTillAired_ = str(
+                    datetime.timedelta(seconds=e["nextAiringEpisode"]["timeUntilAiring"])
+                )
+                embed.add_field(
+                    name=f"{e['title']['romaji']} ({e['id']})",
+                    value=f"Episode {e['nextAiringEpisode']['episode']} will be aired at"
+                    + f" **{_time_}** (**{_timeTillAired_}**)",
+                    inline=False,
+                )
+            else:
+                status = "FINISHED"
+                embed.add_field(
+                    name=f"{e['title']['romaji']} ({e['id']})",
+                    value=status or "...",
+                    inline=False,
+                )
+        await ctx.send(embed=embed)
+
+        # await send_watchlist(self, ctx)
         return
 
 

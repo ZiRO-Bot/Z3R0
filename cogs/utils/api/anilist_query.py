@@ -31,6 +31,7 @@ query($page: Int = 0, $amount: Int = 50, $watched: [Int!]!, $nextDay: Int!) {
             }
           }
         }
+        isAdult
       }
       episode
       airingAt
