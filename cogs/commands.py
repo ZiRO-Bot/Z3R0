@@ -115,6 +115,7 @@ class Custom(commands.Cog):
                     "proper": str(ctx.author),
                     "mention": ctx.author.mention,
                     "nick": ctx.author.nick or ctx.author.name,
+                    "random": str(random.choice(ctx.guild.members)),
                 },
             ),
             "server": StringParamAdapter(
@@ -277,16 +278,30 @@ class Custom(commands.Cog):
     async def command_rm(self, ctx, name: str):
         """Remove a custom command."""
         lookup = name.lower()
-        a = await ctx.db.fetch(
-            "SELECT * FROM tags WHERE guild_id = $1 AND name = $2",
-            ctx.guild.id, lookup
+        bypass_owner_check = ctx.author.id == self.bot.owner_id or ctx.author.guild_permissions.manage_guild
+
+        clause = "guild_id=$1 AND LOWER(name)=$2"
+        
+        if bypass_owner_check:
+            args = [ctx.guild.id, lookup]
+        else:
+            clause += " author=$3"
+            args = [ctx.guild.id, lookup, ctx.author.id]
+
+        q = await ctx.db.fetch(
+            f"SELECT * FROM tags WHERE {clause}",
+            *args
         )
-        if not a:
-            return await em_ctx_send_error(ctx, f"There's no command called `{name}`")
-        await ctx.db.execute(
+        if not q:
+            return await em_ctx_send_error(ctx, "Could not delete command. Either it does not exist or you do not have permissions to do so.")
+
+        a = await ctx.db.execute(
             "DELETE FROM tags WHERE guild_id = $1 AND name = $2", ctx.guild.id, lookup
         )
-        await ctx.send(f"Command `{name}` has been deleted")
+        if a[-1] == "0":
+            return await em_ctx_send_error(ctx, f"Failed to delete `{name}`.")
+            # return await em_ctx_send_error(ctx, f"There's no command called `{name}`")
+        await ctx.send(f"Command `{name}` has been deleted.")
 
     @custom.command(name="list", aliases=["ls"])
     async def command_list(self, ctx):
@@ -295,7 +310,7 @@ class Custom(commands.Cog):
             "SELECT * FROM tags WHERE guild_id=$1 ORDER BY uses DESC", ctx.guild.id,
         )
         if not tags:
-            await ctx.send("This server doesn't have custom command")
+            await ctx.send("This server doesn't have custom command!")
             return
         tags = {x['name']: {"uses": x['uses'], "pos": tags.index(x) + 1} for x in tags}
         menu = HelpPages(CommandsPageSource(ctx, tags))
