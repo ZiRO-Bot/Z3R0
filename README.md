@@ -1,5 +1,7 @@
 # ziBot
 
+[![Discord Bots](https://top.gg/api/widget/status/740122842988937286.svg)](https://top.gg/bot/740122842988937286)
+
 **Python 3.8.x or higher is required!** 
 
 A multi-purpose customizable open-source discord bot.
