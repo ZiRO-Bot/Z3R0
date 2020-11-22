@@ -80,8 +80,19 @@ class Custom(commands.Cog):
         async with self.db.acquire() as conn:
             async with conn.transaction():
                 await conn.execute(
-                    """CREATE TABLE IF NOT EXISTS tags
-                    (id SERIAL, guild_id text, name text, content text, created int, modified int, uses real DEFAULT 0, author text)"""
+                    """
+                    CREATE TABLE IF NOT EXISTS 
+                    tags (
+                        id SERIAL PRIMARY KEY,
+                        guild_id BIGINT REFERENCES guilds(id) ON DELETE CASCADE NOT NULL,
+                        name TEXT NOT NULL,
+                        content TEXT NOT NULL,
+                        created TIMESTAMP WITH TIME ZONE,
+                        modified TIMESTAMP WITH TIME ZONE,
+                        uses INT DEFAULT 0,
+                        author BIGINT
+                    )
+                    """
                 )
 
     def clean_tag_content(self, content):
@@ -103,7 +114,7 @@ class Custom(commands.Cog):
                     "id": str(ctx.author.id),
                     "proper": str(ctx.author),
                     "mention": ctx.author.mention,
-                    "nick": ctx.author.nick or ctx.author.name, 
+                    "nick": ctx.author.nick or ctx.author.name,
                 },
             ),
             "server": StringParamAdapter(
@@ -125,16 +136,28 @@ class Custom(commands.Cog):
 
     async def send_tag_content(self, ctx, name):
         lookup = name.lower().strip()
-        self.bot.c.execute(
-            "SELECT * FROM tags WHERE (name = ? AND id = ?)",
-            (lookup, str(ctx.guild.id)),
+        a = await ctx.db.fetchrow(
+            """
+            SELECT name, content
+            FROM tags
+            WHERE guild_id=$1 AND LOWER(name)=$2
+            """,
+            ctx.guild.id,
+            lookup,
         )
-        a = self.bot.c.fetchone()
+
+        # -- Legacy stuff, delete later
+        # self.bot.c.execute(
+        #     "SELECT * FROM tags WHERE (name = ? AND id = ?)",
+        #     (lookup, str(ctx.guild.id)),
+        # )
+        # a = self.bot.c.fetchone()
         self.bot.c.execute(
             "SELECT send_error_msg FROM settings WHERE (id = ?)",
             (str(ctx.guild.id),),
         )
         send_err = self.bot.c.fetchone()
+
         if not a:
             if send_err[0] == 0 or (
                 ctx.prefix == "@" and (lookup == "everyone" or lookup == "here")
@@ -144,13 +167,13 @@ class Custom(commands.Cog):
                 ctx,
                 f"No command called `{name}` or you don't have a permission to use it",
             )
-        self.bot.c.execute(
-            "UPDATE tags SET uses = uses + 1 WHERE (name=? AND id=?)",
-            (lookup, str(ctx.guild.id)),
-        )
-        self.bot.conn.commit()
-        content = self.fetch_tags(ctx, a[2])
+        content = self.fetch_tags(ctx, a["content"])
         await ctx.safe_send(content)
+        await ctx.db.execute(
+            "UPDATE tags SET uses = uses + 1 WHERE guild_id=$1 AND name=$2",
+            ctx.guild.id,
+            a["name"],
+        )
 
     def is_mod():
         def predicate(ctx):
@@ -189,12 +212,13 @@ class Custom(commands.Cog):
             self.verify_lookup(lookup)
         except RuntimeError as e:
             return await em_ctx_send_error(ctx, e)
-        
+
         await ctx.acquire()
 
         a = await ctx.db.fetch(
             "SELECT * FROM tags WHERE (name = $1 AND guild_id = $2)",
-            lookup, str(ctx.guild.id),
+            lookup,
+            ctx.guild.id,
         )
         if a:
             await em_ctx_send_error(ctx, "Command already exists!")
@@ -206,12 +230,12 @@ class Custom(commands.Cog):
                 """INSERT INTO tags 
                 (guild_id, name, content, created, modified, author) 
                 VALUES ($1, $2, $3, $4, $5, $6)""",
-                str(ctx.guild.id),
-                str(lookup),
-                str(content),
-                datetime.datetime.utcnow().timestamp(),
-                datetime.datetime.utcnow().timestamp(),
-                str(ctx.message.author.id),
+                ctx.guild.id,
+                lookup,
+                content,
+                datetime.datetime.now(),
+                datetime.datetime.now(),
+                ctx.message.author.id,
             )
         await ctx.release()
         await ctx.send(f"Command `{name}` has been created")
@@ -253,30 +277,27 @@ class Custom(commands.Cog):
     async def command_rm(self, ctx, name: str):
         """Remove a custom command."""
         lookup = name.lower()
-        self.bot.c.execute(
-            "SELECT * FROM tags WHERE (name = ? AND id = ?)",
-            (lookup, str(ctx.guild.id)),
+        a = await ctx.db.fetch(
+            "SELECT * FROM tags WHERE guild_id = $1 AND name = $2",
+            ctx.guild.id, lookup
         )
-        a = self.bot.c.fetchone()
         if not a:
             return await em_ctx_send_error(ctx, f"There's no command called `{name}`")
-        self.bot.c.execute(
-            "DELETE FROM tags WHERE (name = ? AND id = ?)", (lookup, str(ctx.guild.id))
+        await ctx.db.execute(
+            "DELETE FROM tags WHERE guild_id = $1 AND name = $2", ctx.guild.id, lookup
         )
-        self.bot.conn.commit()
         await ctx.send(f"Command `{name}` has been deleted")
 
     @custom.command(name="list", aliases=["ls"])
     async def command_list(self, ctx):
         """Show all custom commands."""
-        tags = self.bot.c.execute(
-            "SELECT * FROM tags WHERE id=? ORDER BY uses DESC", (str(ctx.guild.id),)
+        tags = await ctx.db.fetch(
+            "SELECT * FROM tags WHERE guild_id=$1 ORDER BY uses DESC", ctx.guild.id,
         )
-        tags = tags.fetchall()
         if not tags:
             await ctx.send("This server doesn't have custom command")
             return
-        tags = {x[1]: {"uses": x[5], "pos": tags.index(x) + 1} for x in tags}
+        tags = {x['name']: {"uses": x['uses'], "pos": tags.index(x) + 1} for x in tags}
         menu = HelpPages(CommandsPageSource(ctx, tags))
         await menu.start(ctx)
 
@@ -285,39 +306,53 @@ class Custom(commands.Cog):
         """Show information of a custom command."""
         jakarta = timezone("Asia/Jakarta")
         lookup = name.lower()
-        self.bot.c.execute(
-            "SELECT * FROM tags WHERE (name = ? AND id = ?)",
-            (lookup, str(ctx.guild.id)),
+        
+        a = await ctx.db.fetchrow(
+            """
+            SELECT name, created, modified, uses, author
+            FROM tags
+            WHERE guild_id = $1 AND name = $2
+            """,
+            ctx.guild.id,
+            lookup
         )
-        _, name, _, created, updated, uses, author = self.bot.c.fetchone()
-        if not name:
+        if not a:
             return
-        self.bot.c.execute("SELECT uses FROM tags WHERE id=?", (str(ctx.guild.id),))
-        rc = self.bot.c.fetchall()
-        rank = sorted([x[0] for x in rc], reverse=True).index(uses) + 1
-        e = discord.Embed(
-            title=f"Custom Command - {name}", color=discord.Colour(0xFFFFF0)
+        
+        rc = await ctx.db.fetch(
+            """
+            SELECT uses
+            FROM tags
+            WHERE guild_id = $1
+            """,
+            ctx.guild.id
         )
-        e.add_field(name="Owner", value=f"<@{author}>")
-        e.add_field(name="Uses", value=int(uses))
+        rank = sorted([x[0] for x in rc], reverse=True).index(a['uses']) + 1
+
+        e = discord.Embed(
+            title=f"Custom Command - {a['name']}", color=discord.Colour(0xFFFFF0)
+        )
+
+        e.add_field(name="Owner", value=f"<@{a['author']}>")
+        e.add_field(name="Uses", value=int(a['uses']))
         e.add_field(name="Rank", value=rank)
         e.add_field(
             name="Created at",
-            value=datetime.datetime.fromtimestamp(created)
-            .replace(tzinfo=timezone("UTC"))
+            value=a['created'].replace(tzinfo=timezone("UTC"))
             .astimezone(jakarta)
             .strftime("%a, %#d %B %Y, %H:%M WIB"),
         )
         e.add_field(
-            name="Last updated",
-            value=datetime.datetime.fromtimestamp(updated)
-            .replace(tzinfo=timezone("UTC"))
+            name="Last modified",
+            value=a['modified'].replace(tzinfo=timezone("UTC"))
             .astimezone(jakarta)
             .strftime("%a, %#d %B %Y, %H:%M WIB"),
         )
+
         e.set_footer(
             text=f"Requested by {ctx.message.author.name}#{ctx.message.author.discriminator}"
         )
+
         await ctx.send(embed=e)
 
     def verify_lookup(self, lookup):
