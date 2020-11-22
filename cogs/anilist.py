@@ -225,19 +225,6 @@ class AniSearchPage(menus.PageSource):
         )
 
 
-async def query(query: str, variables: Optional[str]):
-    if not query:
-        return None
-    async with session.post(
-        "https://graphql.anilist.co", json={"query": query, "variables": variables}
-    ) as req:
-        try:
-            if json.loads(await req.text())["errors"]:
-                return None
-        except KeyError:
-            return json.loads(await req.text())
-
-
 class AniList(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -287,7 +274,7 @@ class AniList(commands.Cog):
         """
         for server in self.watchlist:
             # Get episode that about to air
-            q = await query(
+            q = await self.anilist.request(
                 scheduleQuery,
                 {
                     "page": 1,
@@ -622,7 +609,7 @@ class AniList(commands.Cog):
         if ctx.guild.id not in self.watchlist:
             embed.description = "No anime in watchlist."
             return await ctx.send(embed=embed)
-        a = await query(listQ, {"mediaId": self.watchlist[ctx.guild.id]})
+        a = await self.anilist.request(listQ, {"mediaId": self.watchlist[ctx.guild.id]})
         if not a:
             return
         a = a["data"]
