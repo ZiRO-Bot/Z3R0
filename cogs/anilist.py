@@ -386,6 +386,8 @@ class AniList(commands.Cog):
             # Schedule the episodes if there's any
             if q and q["Page"]["airingSchedules"]:
                 for e in q["Page"]["airingSchedules"]:
+                    # prevent ratelimit
+                    await asyncio.sleep(2)
                     self.bot.loop.create_task(self.handle_announcement(channel, e))
 
                     # if self.bot.user.id == 733622032901603388:
