@@ -13,7 +13,7 @@ import traceback
 import time
 
 from discord.errors import NotFound
-from discord.ext import commands
+from discord.ext import commands, tasks
 
 import config
 
@@ -150,6 +150,14 @@ class ziBot(commands.Bot):
                 pre = [(i, p) for i, p in await conn.fetch("SELECT * FROM prefixes")]
                 for k, v in pre:
                     self.prefixes[k] = self.prefixes.get(k, []) + [v]
+    
+    @tasks.loop(minutes=2)
+    async def changing_presence(self):
+        activity = discord.Activity(
+            name=f"over {len(self.guilds)} servers", type=discord.ActivityType.watching
+        )
+        await self.change_presence(activity=activity)
+
 
     def get_guild_prefixes(self, guild, *, local_inject=_callable_prefix):
         proxy_msg = discord.Object(id=0)
@@ -230,11 +238,7 @@ class ziBot(commands.Bot):
         await self.pool.release(conn)
 
     async def on_ready(self):
-        activity = discord.Activity(
-            name="over your shoulder", type=discord.ActivityType.watching
-        )
-        await self.change_presence(activity=activity)
-
+        self.changing_presence.start()
         for extension in extensions:
             self.load_extension(extension)
 
