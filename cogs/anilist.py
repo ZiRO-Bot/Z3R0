@@ -238,86 +238,6 @@ async def query(query: str, variables: Optional[str]):
             return json.loads(await req.text())
 
 
-async def getschedule(self, _time_, page):
-    watchlist = self.get_watchlist()
-    if not watchlist:
-        return
-    for server in watchlist:
-        # Get data from anilist for every anime that listed on watchlist
-        q = await query(
-            scheduleQuery,
-            {
-                "page": 1,
-                "amount": 50,
-                "watched": watchlist[int(server)],
-                "nextDay": _time_,
-            },
-        )
-        if not q:
-            continue
-        q = q["data"]
-
-        # Get channel to send the releases
-        self.bot.c.execute("SELECT anime_ch FROM servers WHERE id=?", (str(server),))
-        channel = self.bot.get_channel(int(self.bot.c.fetchone()[0] or 0))
-        if not channel:
-            continue
-
-        # If q is not empty and airingSchedules are exist, do stuff
-        if q and q["Page"]["airingSchedules"]:
-            # For every anime in here get the information and schedule it
-            for e in q["Page"]["airingSchedules"]:
-                anime = e["media"]["title"]["romaji"]
-                _id = e["media"]["id"]
-                eps = e["episode"]
-                sites = []
-                for site in e["media"]["externalLinks"]:
-                    if str(site["site"]) in streamingSites:
-                        sites.append(f"[{site['site']}]({site['url']})")
-                sites = " | ".join(sites)
-                self.logger.info(
-                    f"Scheduling {e['media']['title']['romaji']} episode {e['episode']} (about to air in {str(datetime.timedelta(seconds=e['timeUntilAiring']))})"
-                )
-                embed_dict = {
-                    "title": "New Release!",
-                    "description": f"Episode {eps} of [{anime}]({e['media']['siteUrl']}) ({_id}) has just aired!",
-                    "timestamp": datetime.datetime.fromtimestamp(
-                        e["airingAt"]
-                    ).isoformat(),
-                    "color": 0x02A9FF,
-                    "thumbnail": {"url": e["media"]["coverImage"]["large"]},
-                    "author": {
-                        "name": "AniList",
-                        "icon_url": "https://gblobscdn.gitbook.com/spaces%2F-LHizcWWtVphqU90YAXO%2Favatar.png",
-                    },
-                }
-
-                async def queueSchedule(self):
-                    embed = discord.Embed.from_dict(embed_dict)
-                    if sites:
-                        embed.add_field(
-                            name="Streaming Sites", value=sites, inline=False
-                        )
-                    else:
-                        embed.add_field(
-                            name="Streaming Sites",
-                            value="No official stream links available",
-                        )
-                    await channel.send(embed=embed)
-
-                if self.bot.user.id == 733622032901603388:
-                    # ---- For testing only
-                    await asyncio.sleep(5)
-                else:
-                    await asyncio.sleep(e["timeUntilAiring"])
-                await queueSchedule(self)
-
-        if q["Page"]["pageInfo"]["hasNextPage"]:
-            await getschedule(
-                self, int(time.time() + (24 * 60 * 60 * 1000 * 1) / 1000), page + 1
-            )
-
-
 class AniList(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -382,6 +302,10 @@ class AniList(commands.Cog):
 
             # TODO: Properly implement channel setting
             channel = self.bot.get_channel(777742553041862666)
+            # self.bot.c.execute("SELECT anime_ch FROM servers WHERE id=?", (str(server),))
+            # channel = self.bot.get_channel(int(self.bot.c.fetchone()[0] or 0))
+            # if not channel:
+            #     continue
 
             # Schedule the episodes if there's any
             if q and q["Page"]["airingSchedules"]:
@@ -544,7 +468,6 @@ class AniList(commands.Cog):
             return await ctx.send(embed=embed)
 
     @anime.command(usage="(anime id|url)")
-    # @commands.check(is_mainserver)
     async def watch(self, ctx, anime_id):
         """Add anime to watchlist."""
         try:
@@ -617,7 +540,6 @@ class AniList(commands.Cog):
             return
 
     @anime.command(usage="(anime id|url)")
-    # @commands.check(is_mainserver)
     async def unwatch(self, ctx, anime_id):
         """Remove anime to watchlist."""
         try:
@@ -690,7 +612,6 @@ class AniList(commands.Cog):
             return
 
     @anime.command(aliases=["wl", "list"])
-    # @commands.check(is_mainserver)
     async def watchlist(self, ctx):
         """Get list of anime that added to watchlist."""
         embed = discord.Embed(title="Anime Watchlist", colour=discord.Colour(0x02A9FF))

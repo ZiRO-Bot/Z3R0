@@ -10,7 +10,7 @@ import textwrap
 import time
 
 from .errors.weather import CityNotFound, PlaceParamEmpty
-from .utils.formatting import bar_make, realtime
+from .utils.formatting import bar_make, realtime, general_time
 from discord.ext import commands
 from pytz import timezone
 
@@ -239,6 +239,9 @@ class Info(commands.Cog):
         )
         await ctx.send(embed=e)
 
+    def get_bot_uptime(self):
+        return general_time(self.bot.start_time, accuracy=None, brief=True, suffix=False)
+
     @commands.command(aliases=["bi", "about", "info", "uptime", "up"])
     async def botinfo(self, ctx):
         """Show bot information."""
@@ -272,7 +275,7 @@ class Info(commands.Cog):
         )
         embed.add_field(
             name="Stats",
-            value=f"**Uptime**: {realtime(int(time.time() - bot.start_time))}\n**Servers**: {len(self.bot.guilds)}",
+            value=f"**Uptime**: {self.get_bot_uptime()}\n**Servers**: {len(self.bot.guilds)}",
         )
         embed.add_field(
             name="License",

@@ -3,6 +3,7 @@ import asyncpg
 import aiohttp
 import cogs.utils.context as context
 import copy
+import datetime
 import discord
 import json
 import logging
@@ -10,7 +11,6 @@ import os
 import sqlite3
 import sys
 import traceback
-import time
 
 from discord.errors import NotFound
 from discord.ext import commands, tasks
@@ -46,7 +46,6 @@ def get_cogs():
 
 extensions = get_cogs()
 
-start_time = time.time()
 
 
 def _callable_prefix(bot, message):
@@ -68,6 +67,8 @@ class ziBot(commands.Bot):
             intents=discord.Intents.all(),
         )
         self._BotBase__cogs = commands.core._CaseInsensitiveDict()
+
+        self.start_time = datetime.datetime.utcnow()
 
         # Init database
         self.conn = sqlite3.connect("data/database.db")
