@@ -226,11 +226,14 @@ class ziBot(commands.Bot):
         except asyncpg.UniqueViolationError:
             return
 
-    async def on_guild_join(self, guild):
-        conn = await self.pool.acquire()
+    async def add_guild_info(self, conn, guild):
         await self.add_guild_id(conn, guild)
         if guild.id not in self.prefixes:
             await self.add_guild_prefix(conn, guild.id, self.def_prefix)
+
+    async def on_guild_join(self, guild):
+        conn = await self.pool.acquire()
+        await self.add_guild_info(conn, guild)
         await self.pool.release(conn)
 
     async def on_guild_remove(self, guild):
@@ -247,9 +250,10 @@ class ziBot(commands.Bot):
 
         conn = await self.pool.acquire()
         for guild in self.guilds:
-            await self.add_guild_id(conn, guild)
-            if guild.id not in self.prefixes:
-                await self.add_guild_prefix(conn, guild.id, self.def_prefix)
+            await self.add_guild_info(conn, guild)
+            # await self.add_guild_id(conn, guild)
+            # if guild.id not in self.prefixes:
+            #     await self.add_guild_prefix(conn, guild.id, self.def_prefix)
         await self.pool.release(conn)
 
     async def process_commands(self, message):
