@@ -11,6 +11,7 @@ import time
 from .utils.tse_blocks import RandomBlock
 from .utils.embed_formatting import em_ctx_send_error
 from .utils.formatting import realtime
+from .utils.paginator import ZiMenu
 from .utils.stringparamadapter import StringParamAdapter
 from bot import get_cogs
 from discord.errors import Forbidden
@@ -46,15 +47,15 @@ class CommandsPageSource(menus.ListPageSource):
         return e
 
 
-class HelpPages(menus.MenuPages):
-    def __init__(self, source):
-        super().__init__(source=source, check_embeds=True)
+# class HelpPages(menus.MenuPages):
+#     def __init__(self, source):
+#         super().__init__(source=source, check_embeds=True)
 
-    async def finalize(self, timed_out):
-        try:
-            await self.message.clear_reactions()
-        except discord.HTTPException:
-            pass
+#     async def finalize(self, timed_out):
+#         try:
+#             await self.message.clear_reactions()
+#         except discord.HTTPException:
+#             pass
 
 
 class Custom(commands.Cog):
@@ -313,7 +314,7 @@ class Custom(commands.Cog):
             await ctx.send("This server doesn't have custom command!")
             return
         tags = {x['name']: {"uses": x['uses'], "pos": tags.index(x) + 1} for x in tags}
-        menu = HelpPages(CommandsPageSource(ctx, tags))
+        menu = ZiMenu(CommandsPageSource(ctx, tags))
         await menu.start(ctx)
 
     @custom.command(name="info", aliases=["?"], usage="(command name)")

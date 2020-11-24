@@ -146,6 +146,24 @@ class ziBot(commands.Bot):
                     )
                     """
                 )
+                await conn.execute(
+                    """
+                    CREATE TABLE IF NOT EXISTS 
+                    disabled (
+                        guild_id BIGINT REFERENCES guilds(id) ON DELETE CASCADE NOT NULL,
+                        command TEXT
+                    )
+                    """
+                )
+                await conn.execute(
+                    """
+                    CREATE TABLE IF NOT EXISTS 
+                    mods_only (
+                        guild_id BIGINT REFERENCES guilds(id) ON DELETE CASCADE NOT NULL,
+                        command TEXT
+                    )
+                    """
+                )
 
                 # Prefix cache
                 pre = [(i, p) for i, p in await conn.fetch("SELECT * FROM prefixes")]

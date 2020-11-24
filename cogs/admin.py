@@ -28,6 +28,28 @@ class Admin(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.logger = self.bot.logger
+        self.bot.loop.create_task(self.async_init())
+    
+    async def async_init(self):
+        """
+        Create table for anilist if its not exist
+        and cache all the data for later.
+        """
+
+        async with self.bot.pool.acquire() as conn:
+            async with conn.transaction():
+                # Table for guilds' settings
+                await conn.execute(
+                    """
+                    CREATE TABLE IF NOT EXISTS 
+                    configs (
+                        guild_id BIGINT REFERENCES guilds(id) ON DELETE CASCADE NOT NULL,
+                        send_error BOOL NOT NULL,
+                        msg_welcome TEXT,
+                        msg_farewell TEXT
+                    )
+                    """
+                )
 
     @commands.group(invoke_without_command=True)
     async def prefix(self, ctx):
