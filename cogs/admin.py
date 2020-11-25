@@ -28,36 +28,14 @@ class Admin(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.logger = self.bot.logger
-        self.bot.loop.create_task(self.async_init())
     
-    async def async_init(self):
-        """
-        Create table for anilist if its not exist
-        and cache all the data for later.
-        """
-
-        async with self.bot.pool.acquire() as conn:
-            async with conn.transaction():
-                # Table for guilds' settings
-                await conn.execute(
-                    """
-                    CREATE TABLE IF NOT EXISTS 
-                    configs (
-                        guild_id BIGINT REFERENCES guilds(id) ON DELETE CASCADE NOT NULL,
-                        send_error BOOL NOT NULL,
-                        msg_welcome TEXT,
-                        msg_farewell TEXT
-                    )
-                    """
-                )
-
     @commands.group(invoke_without_command=True)
     async def prefix(self, ctx):
         """Manage bot's prefix."""
         await ctx.invoke(self.bot.get_command("prefix list"))
         pass
 
-    @prefix.command(name="list")
+    @prefix.command(name="list", aliases=["ls"])
     async def prefix_list(self, ctx):
         """List bot's prefixes."""
         prefix = bot._callable_prefix(self.bot, ctx.message)
@@ -65,7 +43,7 @@ class Admin(commands.Cog):
         menus = ZiMenu(PrefixPageSource(prefix))
         await menus.start(ctx)
 
-    @prefix.command(name="add", usage="(prefix)")
+    @prefix.command(name="add", aliases=["+"], usage="(prefix)")
     @checks.is_mod()
     async def prefix_add(self, ctx, *prefixes):
         """Add a new prefix to bot."""
@@ -106,7 +84,7 @@ class Admin(commands.Cog):
             + " has been added!"
         )
 
-    @prefix.command(name="remove", aliases=["rm"], usage="(prefix)")
+    @prefix.command(name="remove", aliases=["-", "rm"], usage="(prefix)")
     @checks.is_mod()
     async def prefix_rm(self, ctx, *prefixes):
         """Remove a prefix from bot."""

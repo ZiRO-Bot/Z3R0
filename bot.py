@@ -55,7 +55,7 @@ def _callable_prefix(bot, message):
     if not message.guild:
         base.append(">")
     else:
-        base.extend(sorted(bot.prefixes.get(message.guild.id, [bot.def_prefix])))
+        base.extend(sorted(bot.cache[message.guild.id].get("prefixes", [bot.def_prefix])))
     return base
 
 
@@ -95,7 +95,8 @@ class ziBot(commands.Bot):
         )
 
         # Prefix cache
-        self.prefixes = {}
+        self.cache = {}
+        # self.prefixes = {}
 
         self.c.execute(
             """CREATE TABLE IF NOT EXISTS ani_watchlist
@@ -149,6 +150,17 @@ class ziBot(commands.Bot):
                 await conn.execute(
                     """
                     CREATE TABLE IF NOT EXISTS 
+                    configs (
+                        guild_id BIGINT REFERENCES guilds(id) ON DELETE CASCADE NOT NULL,
+                        send_error BOOL NOT NULL,
+                        msg_welcome TEXT,
+                        msg_farewell TEXT
+                    )
+                    """
+                )
+                await conn.execute(
+                    """
+                    CREATE TABLE IF NOT EXISTS 
                     disabled (
                         guild_id BIGINT REFERENCES guilds(id) ON DELETE CASCADE NOT NULL,
                         command TEXT
@@ -167,8 +179,11 @@ class ziBot(commands.Bot):
 
                 # Prefix cache
                 pre = [(i, p) for i, p in await conn.fetch("SELECT * FROM prefixes")]
+                prefixes = {}
                 for k, v in pre:
-                    self.prefixes[k] = self.prefixes.get(k, []) + [v]
+                    prefixes[k] = prefixes.get(k, []) + [v]
+                for guild in prefixes:
+                    self.cache[guild] = {"prefixes": prefixes[guild]}
     
     @tasks.loop(minutes=2)
     async def changing_presence(self):
@@ -198,9 +213,9 @@ class ziBot(commands.Bot):
                 "DELETE FROM prefixes WHERE guild_id=$1 AND prefix=$2",
                 [(guild_id, p) for p in prefixes],
             )
-        if guild_id in self.prefixes:
+        if guild_id in self.cache:
             for p in prefixes:
-                self.prefixes[guild_id].remove(p)
+                self.cache[guild_id]['prefixes'].remove(p)
 
     async def add_guild_prefix(self, connection, guild_id, prefix):
         async with connection.transaction():
@@ -208,19 +223,19 @@ class ziBot(commands.Bot):
                 "INSERT INTO prefixes VALUES($1, $2)", guild_id, prefix
             )
         if guild_id in self.prefixes:
-            self.prefixes[guild_id] += [prefix]
+            self.cache[guild_id]['prefixes'] += [prefix]
         else:
-            self.prefixes[guild_id] = [prefix]
+            self.cache[guild_id] = {"prefixes": [prefix]}
 
     async def bulk_add_guild_prefixes(self, connection, guild_id, prefixes):
         async with connection.transaction():
             await connection.executemany(
                 "INSERT INTO prefixes VALUES($1, $2)", [(guild_id, p) for p in prefixes]
             )
-        if guild_id in self.prefixes:
-            self.prefixes[guild_id] += prefixes
+        if guild_id in self.cache:
+            self.cache[guild_id]['prefixes'] += prefixes
         else:
-            self.prefixes[guild_id] = prefixes
+            self.cache[guild_id] = {"prefixes": prefixes}
 
     async def add_guild_id(self, connection, guild):
         try:
@@ -246,7 +261,16 @@ class ziBot(commands.Bot):
 
     async def add_guild_info(self, conn, guild):
         await self.add_guild_id(conn, guild)
-        if guild.id not in self.prefixes:
+        try:
+            async with conn.transaction():
+                await conn.execute(
+                    """INSERT INTO configs (guild_id, send_error)
+                    VALUES ($1, $2)""",
+                    guild.id, False
+                )
+        except asyncpg.UniqueViolationError:
+            pass
+        if guild.id not in self.cache:
             await self.add_guild_prefix(conn, guild.id, self.def_prefix)
 
     async def on_guild_join(self, guild):
