@@ -820,7 +820,7 @@ class General(commands.Cog, name="general"):
                     break
         return
 
-    @commands.command(aliases=["userpfp"], usage="(member)")
+    @commands.command(aliases=["userpfp"], usage="[member]")
     async def avatar(self, ctx, member: discord.Member = None):
         """Show member's avatar image."""
         if not member:
