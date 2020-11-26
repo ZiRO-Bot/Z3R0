@@ -828,7 +828,7 @@ class General(commands.Cog, name="general"):
         e = discord.Embed(
             title="Avatar", 
             colour=discord.Colour(0xFFFFF0),
-            description=f"[jpeg]({member.avatar_url_as(format='jpg')}) | [png]({member.avatar_url_as(format='png')}) | [webp]({member.avatar_url_as(format='webp')}) " + ("| [gif]({member.avatar_url_as(format='gif')})" if member.is_avatar_animated() else "")
+            description=f"[jpeg]({member.avatar_url_as(format='jpg')}) | [png]({member.avatar_url_as(format='png')}) | [webp]({member.avatar_url_as(format='webp')}) " + (f"| [gif]({member.avatar_url_as(format='gif')})" if member.is_avatar_animated() else "")
         )
         e.set_image(url=member.avatar_url_as(size=1024))
         e.set_author(name=member, icon_url=member.avatar_url)
