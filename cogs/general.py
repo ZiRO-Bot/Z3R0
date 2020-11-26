@@ -820,6 +820,20 @@ class General(commands.Cog, name="general"):
                     break
         return
 
+    @commands.command(aliases=["userpfp"], usage="(member)")
+    async def avatar(self, ctx, member: discord.Member = None):
+        """Show member's avatar image."""
+        if not member:
+            member = ctx.author
+        e = discord.Embed(
+            title="Avatar", 
+            colour=discord.Colour(0xFFFFF0),
+            description=f"[jpeg]({member.avatar_url_as(format='jpg')}) | [png]({member.avatar_url_as(format='png')}) | [webp]({member.avatar_url_as(format='webp')}) " + ("| [gif]({member.avatar_url_as(format='gif')})" if member.is_avatar_animated() else "")
+        )
+        e.set_image(url=member.avatar_url_as(size=256))
+        e.set_author(name=member, icon_url=member.avatar_url)
+        await ctx.send(embed=e)
+
 
 def setup(bot):
     bot.add_cog(General(bot))
