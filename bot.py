@@ -151,7 +151,7 @@ class ziBot(commands.Bot):
                     """
                     CREATE TABLE IF NOT EXISTS 
                     configs (
-                        guild_id BIGINT REFERENCES guilds(id) ON DELETE CASCADE NOT NULL,
+                        guild_id BIGINT REFERENCES guilds(id) ON DELETE CASCADE NOT NULL UNIQUE,
                         send_error BOOL NOT NULL,
                         msg_welcome TEXT,
                         msg_farewell TEXT
