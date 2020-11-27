@@ -44,7 +44,7 @@ class Fun(commands.Cog, name="fun"):
     @commands.cooldown(1, 5)
     async def flip(self, ctx):
         """Flip a coin."""
-        await ctx.send(f"{ctx.message.author.mention} {choice(['heads', 'tails'])}")
+        await ctx.reply(f"You got {choice(['heads', 'tails'])}!")
 
     @commands.command(usage="[dice size] [number of dice]", brief="Roll the dice.")
     @commands.cooldown(1, 5)
@@ -81,7 +81,7 @@ class Fun(commands.Cog, name="fun"):
                 msg += f"{key}: {value}\n"
             msg += "```"
             return await ctx.send(msg)
-        await ctx.send(f"{ctx.message.author.mention} just rolled {dice}!")
+        await ctx.reply(f"You just rolled {dice}!")
 
     @commands.command(aliases=["r", "sroll"], usage="(number of roll)")
     @commands.cooldown(1, 5)
@@ -89,8 +89,8 @@ class Fun(commands.Cog, name="fun"):
         """Roll the dice in steve's style."""
         if ctx.guild.id in self.bot.norules:
             ctx.command.reset_cooldown(ctx)
-        await ctx.send(
-            f"{ctx.message.author.mention} just rolled {randint(0, int(pool))}"
+        await ctx.reply(
+            f"You just rolled {randint(0, int(pool))}"
         )
 
     @commands.command()
