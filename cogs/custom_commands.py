@@ -237,8 +237,10 @@ class CustomCommands(commands.Cog, name="customcommands"):
             "SELECT * FROM tags WHERE (name = ? AND id = ?)",
             (lookup, str(ctx.guild.id)),
         )
-        _, name, _, created, updated, uses, author = self.bot.c.fetchone()
-        if not name:
+        try:
+            _, name, _, created, updated, uses, author = self.bot.c.fetchone()
+        except TypeError:
+            await em_ctx_send_error(ctx, f"There's no command called `{lookup}`")
             return
         self.bot.c.execute("SELECT uses FROM tags WHERE id=?", (str(ctx.guild.id),))
         rc = self.bot.c.fetchall()
