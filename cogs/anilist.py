@@ -229,7 +229,6 @@ class AniList(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.logger = self.bot.logger
-        self.watchlist = {}
         self.anilist = anilist.AniList(session=self.bot.session)
         # Init but async.
         self.bot.loop.create_task(self.async_init())
@@ -256,10 +255,14 @@ class AniList(commands.Cog):
                 pre = [
                     (i, a) for i, a in await conn.fetch("SELECT * FROM anime_watchlist")
                 ]
+                watchlist = {}
                 for k, v in pre:
-                    self.watchlist[k] = self.watchlist.get(k, []) + [v]
+                    watchlist[k] = watchlist.get(k, []) + [v]
+                for guild in watchlist:
+                    self.bot.cache[guild]["watchlist"] = watchlist[guild]
+                print(self.bot.cache)
         self.handle_schedule.start()
-    
+
     @tasks.loop(hours=24)
     async def handle_schedule(self):
         """
@@ -272,14 +275,16 @@ class AniList(commands.Cog):
         """
         Get anime episode that about to air and schedule it
         """
-        for server in self.watchlist:
+        for server in self.bot.cache:
+            if "watchlist" not in self.bot.cache[server]:
+                continue
             # Get episode that about to air
             q = await self.anilist.request(
                 scheduleQuery,
                 {
                     "page": 1,
                     "amount": 50,
-                    "watched": self.watchlist[server],
+                    "watched": self.bot.cache[server]["watchlist"],
                     "nextDay": timestamp,
                 },
             )
@@ -308,13 +313,11 @@ class AniList(commands.Cog):
                     # else:
                     #     await asyncio.sleep(e["timeUntilAiring"])
                     # await queueSchedule(self)
-            
+
             # Schedule the next page if it has more than 1 page (pageInfo.hasNextPage)
             if q["Page"]["pageInfo"]["hasNextPage"]:
-                await self.scheduler(
-                    int(time.time() + (24 * 60 * 60), page + 1)
-                )
-    
+                await self.scheduler(int(time.time() + (24 * 60 * 60), page + 1))
+
     async def handle_announcement(self, channel, data):
         """
         Format and send anime announcement's embed.
@@ -329,15 +332,26 @@ class AniList(commands.Cog):
         sites = " | ".join(sites)
 
         e = discord.Embed(
-            title = "New Release!", 
-            description = f"Episode {eps} of [{anime}]({data['media']['siteUrl']}) (**ID:** {_id}) has just aired.",
-            colour = discord.Colour(0x02A9FF),
-            timestamp = datetime.datetime.fromtimestamp(data["airingAt"]),
+            title="New Release!",
+            description=f"Episode {eps} of [{anime}]({data['media']['siteUrl']}) (**ID:** {_id}) has just aired.",
+            colour=discord.Colour(0x02A9FF),
+            timestamp=datetime.datetime.fromtimestamp(data["airingAt"]),
         )
-        e.set_thumbnail(url=filter_image(channel, is_adult=data["media"]["isAdult"], image_url=data["media"]["coverImage"]["large"]))
-        e.set_author(name="AnilList", icon_url="https://gblobscdn.gitbook.com/spaces%2F-LHizcWWtVphqU90YAXO%2Favatar.png")
+        e.set_thumbnail(
+            url=filter_image(
+                channel,
+                is_adult=data["media"]["isAdult"],
+                image_url=data["media"]["coverImage"]["large"],
+            )
+        )
+        e.set_author(
+            name="AnilList",
+            icon_url="https://gblobscdn.gitbook.com/spaces%2F-LHizcWWtVphqU90YAXO%2Favatar.png",
+        )
         e.add_field(
-            name="Streaming Sites", value=sites or "No official stream links available", inline=False
+            name="Streaming Sites",
+            value=sites or "No official stream links available",
+            inline=False,
         )
         if self.bot.user.id == 733622032901603388:
             # ---- For testing only
@@ -345,24 +359,6 @@ class AniList(commands.Cog):
         else:
             await asyncio.sleep(e["timeUntilAiring"])
         await channel.send(embed=e)
-
-    def get_watchlist(self):
-        """
-        Get schedule from database.
-        {
-            <guild_id>: [anime_ids, anime_ids]
-        }
-        """
-        return self.watchlist
-
-    def get_guild_watchlist(self, guild_id):
-        """
-        Get schedule from database for a specific guild.
-        {
-            <guild_id>: [anime_ids, anime_ids]
-        }
-        """
-        return self.watchlist[guild_id]
 
     async def remove_anime_guild(self, connection, guild_id, anime_id):
         """
@@ -374,8 +370,8 @@ class AniList(commands.Cog):
                 guild_id,
                 anime_id,
             )
-        if guild_id in self.watchlist:
-            self.watchlist[guild_id].remove(anime_id)
+        if guild_id in self.bot.cache and "watchlist" in self.bot.cache[guild_id]:
+            self.bot.cache[guild_id]["watchlist"].remove(anime_id)
 
     async def add_anime_guild(self, connection, guild_id, anime_id):
         """
@@ -385,10 +381,10 @@ class AniList(commands.Cog):
             await connection.execute(
                 "INSERT INTO anime_watchlist VALUES($1, $2)", guild_id, anime_id
             )
-        if guild_id in self.watchlist:
-            self.watchlist[guild_id] += [anime_id]
+        if guild_id in self.bot.cache and "watchlist" in self.bot.cache[guild_id]:
+            self.bot.cache[guild_id]["watchlist"] += [anime_id]
         else:
-            self.watchlist[guild_id] = [anime_id]
+            self.bot.cache[guild_id]["watchlist"] = [anime_id]
 
     async def bulk_add_anime_guild(self, connection, guild_id, anime_ids):
         """
@@ -399,10 +395,10 @@ class AniList(commands.Cog):
                 "INSERT INTO anime_watchlist VALUES($1, $2)",
                 [(guild_id, _id) for _id in anime_ids],
             )
-        if guild_id in self.watchlist:
-            self.watchlist[guild_id] += anime_ids
+        if guild_id in self.bot.cache and "watchlist" in self.bot.cache[guild_id]:
+            self.bot.cache[guild_id]["watchlist"] += anime_ids
         else:
-            self.watchlist[guild_id] = anime_ids
+            self.bot.cache[guild_id]["watchlist"] = anime_ids
 
     def set_guild_watchlist(self, guild, watchlist):
         if not watchlist:
@@ -410,7 +406,7 @@ class AniList(commands.Cog):
                 "UPDATE ani_watchlist SET anime_id=? WHERE id=?", (None, guild.id)
             )
             self.bot.conn.commit()
-            self.watchlist[guild.id] = watchlist
+            self.bot.cache[guild.id]["watchlist"] = watchlist
         else:
             self.bot.c.execute(
                 "UPDATE ani_watchlist SET anime_id=? WHERE id=?",
@@ -476,9 +472,9 @@ class AniList(commands.Cog):
         added = False
         conn = await ctx.acquire()
         if (
-            ctx.guild.id not in self.watchlist
-            or fetched_id not in self.watchlist[ctx.guild.id]
-        ):
+            ctx.guild.id not in self.bot.cache
+            or "watchlist" not in self.bot.cache[ctx.guild.id]
+        ) or fetched_id not in self.bot.cache[ctx.guild.id]["watchlist"]:
             await self.add_anime_guild(conn, ctx.guild.id, fetched_id)
             added = True
         await ctx.release()
@@ -548,13 +544,13 @@ class AniList(commands.Cog):
         removed = False
         conn = await ctx.acquire()
         if (
-            ctx.guild.id in self.watchlist
-            and fetched_id in self.watchlist[ctx.guild.id]
-        ):
+            ctx.guild.id in self.bot.cache
+            and "watchlist" in self.bot.cache[ctx.guild.id]
+        ) and fetched_id in self.bot.cache[ctx.guild.id]["watchlist"]:
             await self.remove_anime_guild(conn, ctx.guild.id, fetched_id)
             removed = True
         await ctx.release()
-        
+
         # This is stupid, but for readablity sake
         if removed:
             title = q["Media"]["title"]["romaji"]
@@ -606,10 +602,10 @@ class AniList(commands.Cog):
             name="AniList",
             icon_url="https://gblobscdn.gitbook.com/spaces%2F-LHizcWWtVphqU90YAXO%2Favatar.png",
         )
-        if ctx.guild.id not in self.watchlist:
+        if ctx.guild.id not in self.bot.cache or "watchlist" not in self.bot.cache[ctx.guild.id]:
             embed.description = "No anime in watchlist."
             return await ctx.send(embed=embed)
-        a = await self.anilist.request(listQ, {"mediaId": self.watchlist[ctx.guild.id]})
+        a = await self.anilist.request(listQ, {"mediaId": self.bot.cache[ctx.guild.id]["watchlist"]})
         if not a:
             return
         a = a["data"]
@@ -625,7 +621,9 @@ class AniList(commands.Cog):
                     ).strftime("%d %b %Y - %H:%M WIB")
                 )
                 _timeTillAired_ = str(
-                    datetime.timedelta(seconds=e["nextAiringEpisode"]["timeUntilAiring"])
+                    datetime.timedelta(
+                        seconds=e["nextAiringEpisode"]["timeUntilAiring"]
+                    )
                 )
                 embed.add_field(
                     name=f"{e['title']['romaji']} ({e['id']})",
