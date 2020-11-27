@@ -403,19 +403,28 @@ class Fun(commands.Cog, name="fun"):
                 return
             await ctx.send(embed=embed)
 
-    @commands.command()
+    @commands.command(usage="(member)")
     @commands.cooldown(5, 25, type=commands.BucketType.user)
     @commands.max_concurrency(1, per=commands.BucketType.guild)
     async def triggered(self, ctx, member: discord.Member=None):
+        """Make your or someone else's avatar triggered."""
         if "dagpi_token" not in self.bot.config:
             return
         if not member:
             member = ctx.author
         url = "https://api.dagpi.xyz/image/triggered/?url=" + str(member.avatar_url_as(format="png", size=1024))
-        async with self.bot.session.request(method="GET", url=url, headers={"Authorization": self.bot.config["dagpi_token"]}) as res:
+        async with self.bot.session.get(url=url, headers={"Authorization": self.bot.config["dagpi_token"]}) as res:
             image = io.BytesIO(await res.read())
             img = discord.File(fp=image, filename="triggered.gif")
             await ctx.send(file=img)
+
+    @commands.command(usage="(status code)")
+    async def httpcat(self, ctx, status_code):
+        """Get http status code with cat in it."""
+        async with self.bot.session.get(url=f"https://http.cat/{status_code}") as res:
+            image = io.BytesIO(await res.read())
+            img = discord.File(fp=image, filename="httpcat.jpg")
+            await ctx.reply(file=img)
 
 
 def setup(bot):
