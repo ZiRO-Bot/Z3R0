@@ -260,7 +260,6 @@ class AniList(commands.Cog):
                     watchlist[k] = watchlist.get(k, []) + [v]
                 for guild in watchlist:
                     self.bot.cache[guild]["watchlist"] = watchlist[guild]
-                print(self.bot.cache)
         self.handle_schedule.start()
 
     @tasks.loop(hours=24)
