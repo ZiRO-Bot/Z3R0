@@ -5,30 +5,38 @@ import cogs.utils.checks as checks
 import discord
 import re
 
+from .utils.embed_formatting import em_ctx_send_error, em_ctx_send_success
 from .utils.paginator import ZiMenu
 from discord.ext import commands, menus
+
 
 class PrefixPageSource(menus.ListPageSource):
     def __init__(self, prefixes):
         super().__init__(entries=prefixes, per_page=5)
         self.prefixes = prefixes
-    
+
     async def format_page(self, menu, prefixes):
         desc = [f"{self.prefixes.index(prefix) + 1}. {prefix}" for prefix in prefixes]
         e = discord.Embed(
-            title = "Prefixes", 
-            colour = discord.Colour(0xFFFFF0),
-            description = "\n".join(desc)
+            title="Prefixes",
+            colour=discord.Colour(0xFFFFF0),
+            description="\n".join(desc),
         )
         maximum = self.get_max_pages()
-        e.set_footer(text="{0} prefixes{1}".format(len(self.prefixes), f" - Page {menu.current_page + 1}/{maximum}" if maximum > 1 else ""))
+        e.set_footer(
+            text="{0} prefixes{1}".format(
+                len(self.prefixes),
+                f" - Page {menu.current_page + 1}/{maximum}" if maximum > 1 else "",
+            )
+        )
         return e
+
 
 class Admin(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.logger = self.bot.logger
-    
+
     @commands.group(invoke_without_command=True)
     async def prefix(self, ctx):
         """Manage bot's prefix."""
@@ -73,14 +81,7 @@ class Admin(commands.Cog):
 
         await ctx.release()
         return await ctx.send(
-            (
-                ", ".join(
-                    f"`{i}`"
-                    for i in new_prefixes
-                    if new_prefixes 
-                )
-                or "No prefix"
-            )
+            (", ".join(f"`{i}`" for i in new_prefixes if new_prefixes) or "No prefix")
             + " has been added!"
         )
 
@@ -96,7 +97,7 @@ class Admin(commands.Cog):
             return
 
         await ctx.acquire()
-        
+
         # get current prefix list
         cur_prefixes = await self.bot.get_raw_guild_prefixes(ctx.db, ctx.guild.id)
         # fetch prefixes that can be added
@@ -118,11 +119,13 @@ class Admin(commands.Cog):
             (", ".join(f"`{i}`" for i in new_prefixes) or "No prefix")
             + " has been removed!"
         )
-    
+
     async def get_async_settings(self, ctx, data: str = "*"):
         conn = await ctx.acquire()
         async with conn.transaction():
-            data = await conn.fetch("SELECT * FROM configs WHERE guild_id=$1", ctx.guild.id)
+            data = await conn.fetch(
+                "SELECT * FROM configs WHERE guild_id=$1", ctx.guild.id
+            )
         return data[0]
 
     def get_settings(self, ctx, data: str = "*"):
@@ -131,7 +134,7 @@ class Admin(commands.Cog):
         )
         settings = self.bot.c.fetchone()
         return settings
-    
+
     @commands.group()
     @checks.is_mod()
     async def settings(self, ctx):
@@ -142,11 +145,12 @@ class Admin(commands.Cog):
     async def print(self, ctx):
         """Show current bot settings."""
         settings = await self.get_async_settings(ctx)
-        print(settings)
         e = discord.Embed(title="Bot's Settings")
         e.add_field(
             name="send_error_msg",
-            value=f"`Send error message if command doesn't exist`\nValue: **{settings['send_error']}**"
+            value=f"`Send error message if command doesn't exist`\nValue: **"
+            + str(self.bot.cache[ctx.guild.id]["configs"]["send_error"])
+            + "**",
         )
         # e.add_field(
         #     name="disabled_cmds",
@@ -177,23 +181,23 @@ class Admin(commands.Cog):
     @settings.command(aliases=["send_error"])
     async def send_error_msg(self, ctx):
         """Toggle send_error_msg."""
-        settings = self.get_settings(ctx, data="send_error_msg")[0]
-
-        def set_send_error(ctx, value):
-            self.bot.c.execute(
-                "UPDATE settings SET send_error_msg = ? WHERE id = ?",
-                (value, str(ctx.guild.id)),
-            )
-            self.bot.conn.commit()
-
-        if settings > 0:
-            set_send_error(ctx, 0)
+        async def set_send_error(conn, guild_id, value):
+            async with conn.transaction():
+                await conn.execute(
+                    "UPDATE configs SET send_error = $1 WHERE guild_id = $2",
+                    value,
+                    guild_id
+                )
+                self.bot.cache[guild_id]["configs"]["send_error"] = value
+        
+        conn = await ctx.db.acquire()
+        if self.bot.cache[ctx.guild.id]["configs"]["send_error"]:
+            await set_send_error(conn, ctx.guild.id, False)
             await em_ctx_send_success(ctx, "`send_error_msg` has been set to **False**")
-        elif settings < 1:
-            set_send_error(ctx, 1)
+        elif not self.bot.cache[ctx.guild.id]["configs"]["send_error"]:
+            await set_send_error(conn, ctx.guild.id, True)
             await em_ctx_send_success(ctx, "`send_error_msg` has been set to **True**")
-        else:
-            return
+        await ctx.db.release(conn)
 
     @settings.command(aliases=["welcome"], brief="Change welcome_msg")
     async def welcome_msg(self, ctx, *, message: str = None):

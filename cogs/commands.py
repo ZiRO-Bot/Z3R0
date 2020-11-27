@@ -154,14 +154,8 @@ class Custom(commands.Cog):
         #     (lookup, str(ctx.guild.id)),
         # )
         # a = self.bot.c.fetchone()
-        self.bot.c.execute(
-            "SELECT send_error_msg FROM settings WHERE (id = ?)",
-            (str(ctx.guild.id),),
-        )
-        send_err = self.bot.c.fetchone()
-
         if not a:
-            if send_err[0] == 0 or (
+            if not self.bot.cache[ctx.guild.id]["configs"]["send_error"] or (
                 ctx.prefix == "@" and (lookup == "everyone" or lookup == "here")
             ):
                 return
