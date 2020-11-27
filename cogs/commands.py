@@ -327,6 +327,7 @@ class Custom(commands.Cog):
             lookup
         )
         if not a:
+            await em_ctx_send_error(ctx, f"There's no command called `{lookup}`")
             return
         
         rc = await ctx.db.fetch(
