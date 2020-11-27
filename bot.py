@@ -184,6 +184,11 @@ class ziBot(commands.Bot):
                     prefixes[k] = prefixes.get(k, []) + [v]
                 for guild in prefixes:
                     self.cache[guild] = {"prefixes": prefixes[guild]}
+
+                # Cache config
+                con = await conn.fetch("SELECT * FROM configs")
+                for x in con:
+                    self.cache[x["guild_id"]]["configs"] = {"send_error": x["send_error"], "msg_welcome": x["msg_welcome"], "msg_farewell": x["msg_farewell"]}
     
     @tasks.loop(minutes=2)
     async def changing_presence(self):
