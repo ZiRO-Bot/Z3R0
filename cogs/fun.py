@@ -44,7 +44,7 @@ class Fun(commands.Cog):
     @commands.cooldown(1, 5)
     async def flip(self, ctx):
         """Flip a coin."""
-        await ctx.send(f"{ctx.message.author.mention} {choice(['heads', 'tails'])}")
+        await ctx.reply(f"You got {choice(['heads', 'tails'])}!")
 
     @commands.command(usage="[dice size] [number of dice]", brief="Roll the dice.")
     @commands.cooldown(1, 5)
@@ -81,7 +81,7 @@ class Fun(commands.Cog):
                 msg += f"{key}: {value}\n"
             msg += "```"
             return await ctx.send(msg)
-        await ctx.send(f"{ctx.message.author.mention} just rolled {dice}!")
+        await ctx.reply(f"You just rolled {dice}!")
 
     @commands.command(aliases=["r", "sroll"], usage="(number of roll)")
     @commands.cooldown(1, 5)
@@ -89,8 +89,8 @@ class Fun(commands.Cog):
         """Roll the dice in steve's style."""
         if ctx.guild.id in self.bot.norules:
             ctx.command.reset_cooldown(ctx)
-        await ctx.send(
-            f"{ctx.message.author.mention} just rolled {randint(0, int(pool))}"
+        await ctx.reply(
+            f"You just rolled {randint(0, int(pool))}"
         )
 
     @commands.command()
@@ -403,10 +403,11 @@ class Fun(commands.Cog):
                 return
             await ctx.send(embed=embed)
 
-    @commands.command()
+    @commands.command(usage="(member)")
     @commands.cooldown(5, 25, type=commands.BucketType.user)
     @commands.max_concurrency(1, per=commands.BucketType.guild)
     async def triggered(self, ctx, member: discord.Member=None):
+        """Make your or someone else's avatar triggered."""
         if not hasattr(self.bot.config, "dagpi_token"):
             return
         if not member:
@@ -416,6 +417,14 @@ class Fun(commands.Cog):
             image = io.BytesIO(await res.read())
             img = discord.File(fp=image, filename="triggered.gif")
             await ctx.send(file=img)
+
+    @commands.command(usage="(status code)")
+    async def httpcat(self, ctx, status_code):
+        """Get http status code with cat in it."""
+        async with self.bot.session.get(url=f"https://http.cat/{status_code}") as res:
+            image = io.BytesIO(await res.read())
+            img = discord.File(fp=image, filename="httpcat.jpg")
+            await ctx.reply(file=img)
 
 
 def setup(bot):
