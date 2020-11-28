@@ -1,7 +1,9 @@
 import asyncio
+import aiohttp
 import bot
 import datetime
 import discord
+import json
 import logging
 import re
 import time
@@ -292,6 +294,47 @@ class Utility(commands.Cog):
             name=f"Translated [{translation.dest}]", value=translated, inline=False
         )
         await ctx.send(embed=embed)
+
+    @commands.command(usage="(project name)")
+    async def pypi(self, ctx, project: str):
+        """Get information of a python project from pypi."""
+        async with self.bot.session.get(f"https://pypi.org/pypi/{project}/json") as res:
+            try:
+                res = await res.json()
+            except aiohttp.client_exceptions.ContentTypeError:
+                e = discord.Embed(
+                    title="404 - Page Not Found",
+                    description="We looked everywhere but couldn't find that project",
+                    colour=discord.Colour(0x0073B7),
+                )
+                e.set_thumbnail(url="https://cdn-images-1.medium.com/max/1200/1%2A2FrV8q6rPdz6w2ShV6y7bw.png")
+                return await ctx.reply(embed=e)
+
+            info = res["info"]
+            e = discord.Embed(
+                title=f"{info['name']} · PyPI",
+                description=info["summary"],
+                colour=discord.Colour(0x0073B7),
+            )
+            e.set_thumbnail(url="https://cdn-images-1.medium.com/max/1200/1%2A2FrV8q6rPdz6w2ShV6y7bw.png")
+            e.add_field(
+                name="Author Info",
+                value=f"**Name**: {info['author']}\n"
+                + f"**Email**: {info['author_email'] or '`Not provided.`'}",
+            )
+            e.add_field(
+                name="Version",
+                value=info["version"]
+            )
+            e.add_field(
+                name="Project Links",
+                value="\n".join([f"[{x}]({y})" for x, y in dict(info["project_urls"]).items()])
+            )
+            e.add_field(
+                name="License",
+                value=info["license"] or "`Not specified.`"
+            )
+            return await ctx.reply(embed=e)
 
 
 def setup(bot):
