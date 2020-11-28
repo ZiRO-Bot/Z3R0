@@ -12,17 +12,19 @@ SHELL = os.getenv("SHELL") or "/bin/bash"
 WINDOWS = sys.platform == "win32"
 
 class TextWrapPageSource(menus.ListPageSource):
-    def __init__(self, raw_text):
+    def __init__(self, prefix, raw_text, max_size: int=1024):
+        size_limit = len(prefix) + max_size
         text = [raw_text]
         n = 0
-        while len(text[n]) > 1024:
-            text.append(text[n][1024:])
-            text[n] = text[n][:1024]
+        while len(text[n]) > size_limit:
+            text.append(text[n][size_limit:])
+            text[n] = text[n][:size_limit]
             n += 1
         super().__init__(entries=text, per_page=1)
+        self.prefix = prefix + "\n"
 
     async def format_page(self, menu, text):
-        e = discord.Embed(title="Shell", description=f"```sh\n{text}```", colour = discord.Colour(0xFFFFF0))
+        e = discord.Embed(title="Shell", description=self.prefix + text + "```", colour = discord.Colour(0xFFFFF0))
         return e
 
 class Developer(commands.Cog):
@@ -139,6 +141,7 @@ class Developer(commands.Cog):
         """Leave the server."""
         await ctx.message.guild.leave()
 
+    # TODO: Find a way to make this shit not blocking (make it async)
     @commands.command(aliases=["sh"], usage="(shell command)", hidden=True)
     async def shell(self, ctx, *command: str):
         """Execute shell command from discord. **Use with caution**"""
@@ -165,7 +168,7 @@ class Developer(commands.Cog):
             return re.sub(r"\x1b[^m]*m", "", text).replace("``", "`\u200b`").strip("\n")
 
         content = clean_bytes(proc.stdout.readlines()) or f"{SHELL}: command not found: {' '.join(command)}"
-        menus = ZiMenu(TextWrapPageSource(content))
+        menus = ZiMenu(TextWrapPageSource("```sh", content))
         return await menus.start(ctx)
 
 
