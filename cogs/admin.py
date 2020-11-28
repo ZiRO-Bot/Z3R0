@@ -12,7 +12,7 @@ from discord.ext import commands, menus
 
 class PrefixPageSource(menus.ListPageSource):
     def __init__(self, prefixes):
-        super().__init__(entries=prefixes, per_page=5)
+        super().__init__(entries=prefixes, per_page=6)
         self.prefixes = prefixes
 
     async def format_page(self, menu, prefixes):
@@ -81,7 +81,7 @@ class Admin(commands.Cog):
 
         await ctx.release()
         return await ctx.send(
-            (", ".join(f"`{i}`" for i in new_prefixes if new_prefixes) or "No prefix")
+            (", ".join(f"`{i}`" for i in new_prefixes if new_prefixes) or "No prefix, it may already exist or prefix slot is full.")
             + " has been added!"
         )
 

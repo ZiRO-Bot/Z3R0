@@ -32,6 +32,7 @@ def get_cogs():
         "cogs.help",
         "cogs.general",
         "cogs.info",
+        "cogs.developer",
         "cogs.admin",
         "cogs.moderator",
         "cogs.fun",
