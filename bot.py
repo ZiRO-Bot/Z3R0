@@ -8,6 +8,7 @@ import discord
 import json
 import logging
 import os
+import re
 import sqlite3
 import sys
 import traceback
@@ -335,6 +336,14 @@ class ziBot(commands.Bot):
         # dont accept commands from bot
         if message.author.bot:
             return
+        pattern = f"<@(!?){self.user.id}>"
+        if re.fullmatch(pattern, message.content):
+            prefixes = _callable_prefix(self, message)
+            prefixes.pop(0)
+            prefixes.pop(0)
+            prefixes = ", ".join([f"`{x}`" for x in prefixes])
+            embed = discord.Embed(title = "", description = f"My prefixes are: {prefixes} or {self.user.mention}")
+            await message.reply(embed = embed)
         await self.process_commands(message)
 
     async def close(self):
