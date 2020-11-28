@@ -76,11 +76,11 @@ class Fun(commands.Cog, name="fun"):
                 dice.append(int(randint(1, dice_size)))
             dice = ", ".join(str(i) for i in dice)
         if dice_dict:
-            msg = f"{ctx.author.mention} just rolled:\n```"
+            msg = f"You just rolled:\n```"
             for key, value in dice_dict.items():
                 msg += f"{key}: {value}\n"
             msg += "```"
-            return await ctx.send(msg)
+            return await ctx.reply(msg)
         await ctx.reply(f"You just rolled {dice}!")
 
     @commands.command(aliases=["r", "sroll"], usage="(number of roll)")
