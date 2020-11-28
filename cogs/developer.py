@@ -16,16 +16,13 @@ class TextWrapPageSource(menus.ListPageSource):
         text = [raw_text]
         n = 0
         while len(text[n]) > 1024:
-            if len(text[n]) > 1024:
-                text.append(text[n][1024:])
-                text[n] = text[n][:1024]
-                n += 1
-            else:
-                break
+            text.append(text[n][1024:])
+            text[n] = text[n][:1024]
+            n += 1
         super().__init__(entries=text, per_page=1)
 
     async def format_page(self, menu, text):
-        e = discord.Embed(title="Shell", description=f"```sh\n{text}```")
+        e = discord.Embed(title="Shell", description=f"```sh\n{text}```", colour = discord.Colour(0xFFFFF0))
         return e
 
 class Developer(commands.Cog):
@@ -170,7 +167,6 @@ class Developer(commands.Cog):
         content = clean_bytes(proc.stdout.readlines()) or f"{SHELL}: command not found: {' '.join(command)}"
         menus = ZiMenu(TextWrapPageSource(content))
         return await menus.start(ctx)
-        await ctx.send(f"```{content}```")
 
 
 def setup(bot):
