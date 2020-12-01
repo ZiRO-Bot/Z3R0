@@ -159,9 +159,9 @@ class Custom(commands.Cog):
             ):
                 return
             return await ctx.send_info(
-                "Error!",
-                f"No command called `{name}` or you don't have a permission to use it",
-                type="warning",
+                title="Error!",
+                content=f"No command called `{name}` or you don't have a permission to use it",
+                type="error",
             )
             # return await em_ctx_send_error(
             #     ctx,

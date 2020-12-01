@@ -24,8 +24,10 @@ class ErrorHandler(commands.Cog):
             return await ctx.send("You need specify the place!")
 
         if isinstance(error, commands.MissingRequiredArgument):
-            return await ctx.send(
-                f"Usage: `{ctx.prefix}{ctx.command.qualified_name} {ctx.command.signature}`"
+            return await ctx.send_info(
+                title="Warning!",
+                content=f"Usage: `{ctx.prefix}{ctx.command.qualified_name} {ctx.command.signature}`",
+                type="warning"
             )
 
         if isinstance(error, commands.CommandOnCooldown):

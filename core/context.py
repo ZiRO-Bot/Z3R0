@@ -250,11 +250,33 @@ class Context(commands.Context):
         else:
             return await self.send(content)
 
-    async def send_info(self, title, content, *, type="info", **kwargs):
-        """Send admonitions. Useful to format error messages."""
-        emoji = {"info": "<:info:783206485051441192>", "warning": "⚠️", "success": "✅"}
-        type = str(type).lower()
-        sel_emoji = emoji.get(type, emoji["info"])
+    async def send_info(self, **kwargs):
+        """Send admonitions. Useful to format error messages.
+        
+        Parameter
+        ---------
+        title: str - Title of admonition (default "Info")
+        content: str - Message
+        type: str - Admonition's type
+
+        Example:
+        ```context.send_info(title="Title Goes Here", content="Content goes here", type="info")```
+        """
+        emoji = {
+            "info": "<:info:783206485051441192>",
+            "warning": "⚠️",
+            "success": "✅",
+            "error": "<:error:783265883228340245>",
+        }
+
+        type = kwargs.pop("type", "info")
+        content = kwargs.pop("content", None)
+        if not content:
+            raise AttributeError
+        title = kwargs.pop("title", "Info")
+
+        sel_emoji = emoji.get(str(type), emoji["info"])
+
         e = discord.Embed(
             title=f"{sel_emoji} {title}",
             description=content,
