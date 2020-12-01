@@ -229,7 +229,7 @@ class Context(commands.Context):
         emoji = {"info": "<:info:783206485051441192>", "warning": "⚠️", "success": "✅"}
         type = str(type).lower()
         sel_emoji = emoji.get(type, emoji["info"])
-        e = discord.Embed(title=f"{sel_emoji} {title}", description=content)
+        e = discord.Embed(title=f"{sel_emoji} {title}", description=content, colour=discord.Colour.rounded())
 
         return await self.send(embed=e, **kwargs)
     
