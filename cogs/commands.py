@@ -159,10 +159,15 @@ class Custom(commands.Cog):
                 ctx.prefix == "@" and (lookup == "everyone" or lookup == "here")
             ):
                 return
-            return await em_ctx_send_error(
-                ctx,
+            return await ctx.send_info(
+                "Error!",
                 f"No command called `{name}` or you don't have a permission to use it",
+                type="warning",
             )
+            # return await em_ctx_send_error(
+            #     ctx,
+            #     f"No command called `{name}` or you don't have a permission to use it",
+            # )
         content = self.fetch_tags(ctx, a["content"])
         await ctx.safe_send(content)
         await ctx.db.execute(
@@ -273,22 +278,25 @@ class Custom(commands.Cog):
     async def command_rm(self, ctx, name: str):
         """Remove a custom command."""
         lookup = name.lower()
-        bypass_owner_check = ctx.author.id == self.bot.owner_id or ctx.author.guild_permissions.manage_guild
+        bypass_owner_check = (
+            ctx.author.id == self.bot.owner_id
+            or ctx.author.guild_permissions.manage_guild
+        )
 
         clause = "guild_id=$1 AND LOWER(name)=$2"
-        
+
         if bypass_owner_check:
             args = [ctx.guild.id, lookup]
         else:
             clause += " author=$3"
             args = [ctx.guild.id, lookup, ctx.author.id]
 
-        q = await ctx.db.fetch(
-            f"SELECT * FROM tags WHERE {clause}",
-            *args
-        )
+        q = await ctx.db.fetch(f"SELECT * FROM tags WHERE {clause}", *args)
         if not q:
-            return await em_ctx_send_error(ctx, "Could not delete command. Either it does not exist or you do not have permissions to do so.")
+            return await em_ctx_send_error(
+                ctx,
+                "Could not delete command. Either it does not exist or you do not have permissions to do so.",
+            )
 
         a = await ctx.db.execute(
             "DELETE FROM tags WHERE guild_id = $1 AND name = $2", ctx.guild.id, lookup
@@ -302,12 +310,13 @@ class Custom(commands.Cog):
     async def command_list(self, ctx):
         """Show all custom commands."""
         tags = await ctx.db.fetch(
-            "SELECT * FROM tags WHERE guild_id=$1 ORDER BY uses DESC", ctx.guild.id,
+            "SELECT * FROM tags WHERE guild_id=$1 ORDER BY uses DESC",
+            ctx.guild.id,
         )
         if not tags:
             await ctx.send("This server doesn't have custom command!")
             return
-        tags = {x['name']: {"uses": x['uses'], "pos": tags.index(x) + 1} for x in tags}
+        tags = {x["name"]: {"uses": x["uses"], "pos": tags.index(x) + 1} for x in tags}
         menu = ZiMenu(CommandsPageSource(ctx, tags))
         await menu.start(ctx)
 
@@ -316,7 +325,7 @@ class Custom(commands.Cog):
         """Show information of a custom command."""
         jakarta = timezone("Asia/Jakarta")
         lookup = name.lower()
-        
+
         a = await ctx.db.fetchrow(
             """
             SELECT name, created, modified, uses, author
@@ -324,38 +333,40 @@ class Custom(commands.Cog):
             WHERE guild_id = $1 AND name = $2
             """,
             ctx.guild.id,
-            lookup
+            lookup,
         )
         if not a:
             await em_ctx_send_error(ctx, f"There's no command called `{lookup}`")
             return
-        
+
         rc = await ctx.db.fetch(
             """
             SELECT uses
             FROM tags
             WHERE guild_id = $1
             """,
-            ctx.guild.id
+            ctx.guild.id,
         )
-        rank = sorted([x[0] for x in rc], reverse=True).index(a['uses']) + 1
+        rank = sorted([x[0] for x in rc], reverse=True).index(a["uses"]) + 1
 
         e = discord.Embed(
             title=f"Custom Command - {a['name']}", color=discord.Colour(0xFFFFF0)
         )
 
         e.add_field(name="Owner", value=f"<@{a['author']}>")
-        e.add_field(name="Uses", value=int(a['uses']))
+        e.add_field(name="Uses", value=int(a["uses"]))
         e.add_field(name="Rank", value=rank)
         e.add_field(
             name="Created at",
-            value=a['created'].replace(tzinfo=timezone("UTC"))
+            value=a["created"]
+            .replace(tzinfo=timezone("UTC"))
             .astimezone(jakarta)
             .strftime("%a, %#d %B %Y, %H:%M WIB"),
         )
         e.add_field(
             name="Last modified",
-            value=a['modified'].replace(tzinfo=timezone("UTC"))
+            value=a["modified"]
+            .replace(tzinfo=timezone("UTC"))
             .astimezone(jakarta)
             .strftime("%a, %#d %B %Y, %H:%M WIB"),
         )

@@ -223,3 +223,14 @@ class Context(commands.Context):
             return await self.send(file=discord.File(fp, filename='message_too_long.txt'), **kwargs)
         else:
             return await self.send(content)
+
+    async def send_info(self, title, content, *, type="info", **kwargs):
+        """Send admonitions. Useful to format error messages."""
+        emoji = {"info": "<:info:783206485051441192>", "warning": "⚠️", "success": "✅"}
+        type = str(type).lower()
+        sel_emoji = emoji.get(type, emoji["info"])
+        e = discord.Embed(title=f"{sel_emoji} {title}", description=content)
+
+        return await self.send(embed=e, **kwargs)
+    
+
