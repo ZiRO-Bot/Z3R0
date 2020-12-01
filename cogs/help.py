@@ -13,7 +13,9 @@ from typing import Optional
 
 class BotHelpPageSources(menus.ListPageSource):
     def __init__(self, help_command, commands):
-        super().__init__(entries=sorted(commands.keys(), key=lambda c: c.qualified_name), per_page=6)
+        super().__init__(
+            entries=sorted(commands.keys(), key=lambda c: c.qualified_name), per_page=6
+        )
         self.commands = commands
         self.help_command = help_command
         self.prefix = help_command.clean_prefix
@@ -32,6 +34,7 @@ class BotHelpPageSources(menus.ListPageSource):
 
         return e
 
+
 class HelpPages(menus.MenuPages):
     def __init__(self, source):
         super().__init__(source=source, check_embeds=True)
@@ -41,6 +44,7 @@ class HelpPages(menus.MenuPages):
             await self.message.clear_reactions()
         except discord.HTTPException:
             pass
+
 
 class CustomHelp(commands.HelpCommand):
     COLOUR = discord.Colour.blue()
@@ -224,14 +228,6 @@ class Help(commands.Cog, name="Help", command_attrs=dict(hidden=True)):
 
     def cog_unload(self):
         self.bot.help_command = self._original_help_command
-
-    @commands.command(aliases=["customcommands", "ccmds"])
-    async def listcommands(self, ctx):
-        """List all custom commands."""
-        await ctx.invoke(self.bot.get_command("custom list"))
-        await ctx.send(
-            f"This command will be removed soon, please use `{ctx.prefix}custom list` instead"
-        )
 
 
 def setup(bot):

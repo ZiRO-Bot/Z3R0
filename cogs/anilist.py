@@ -601,10 +601,15 @@ class AniList(commands.Cog):
             name="AniList",
             icon_url="https://gblobscdn.gitbook.com/spaces%2F-LHizcWWtVphqU90YAXO%2Favatar.png",
         )
-        if ctx.guild.id not in self.bot.cache or "watchlist" not in self.bot.cache[ctx.guild.id]:
+        if (
+            ctx.guild.id not in self.bot.cache
+            or "watchlist" not in self.bot.cache[ctx.guild.id]
+        ):
             embed.description = "No anime in watchlist."
             return await ctx.send(embed=embed)
-        a = await self.anilist.request(listQ, {"mediaId": self.bot.cache[ctx.guild.id]["watchlist"]})
+        a = await self.anilist.request(
+            listQ, {"mediaId": self.bot.cache[ctx.guild.id]["watchlist"]}
+        )
         if not a:
             return
         a = a["data"]

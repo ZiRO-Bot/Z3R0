@@ -63,15 +63,15 @@ def init_bot():
     logger = logging.getLogger()
 
     kwargs = {
-        'command_timeout': 60,
-        'max_size': 20,
-        'min_size': 20,
+        "command_timeout": 60,
+        "max_size": 20,
+        "min_size": 20,
     }
     try:
         pool = loop.run_until_complete(asyncpg.create_pool(config.postgresql, **kwargs))
     except Exception as e:
-        click.echo('Could not set up PostgreSQL. Exiting.', file=sys.stderr)
-        logger.exception('Could not set up PostgreSQL. Exiting.')
+        click.echo("Could not set up PostgreSQL. Exiting.", file=sys.stderr)
+        logger.exception("Could not set up PostgreSQL. Exiting.")
         return
 
     bot = ziBot()

@@ -89,9 +89,7 @@ class Fun(commands.Cog):
         """Roll the dice in steve's style."""
         if ctx.guild.id in self.bot.norules:
             ctx.command.reset_cooldown(ctx)
-        await ctx.reply(
-            f"You just rolled {randint(0, int(pool))}"
-        )
+        await ctx.reply(f"You just rolled {randint(0, int(pool))}")
 
     @commands.command()
     @is_reddit()
@@ -357,7 +355,12 @@ class Fun(commands.Cog):
         if message.author.bot:
             return
 
-        fair_guilds = [759073367767908375, 758764126679072788, 745481731133669476, 690032983817846859]
+        fair_guilds = [
+            759073367767908375,
+            758764126679072788,
+            745481731133669476,
+            690032983817846859,
+        ]
         bad_words = ["fair", "ⓕⓐⓘⓡ", "ɹıɐɟ", "justo", "adil"]
         fair = ""
         for word in bad_words:
@@ -406,14 +409,20 @@ class Fun(commands.Cog):
     @commands.command(usage="(member)")
     @commands.cooldown(5, 25, type=commands.BucketType.user)
     @commands.max_concurrency(1, per=commands.BucketType.guild)
-    async def triggered(self, ctx, member: discord.Member=None):
+    async def triggered(self, ctx, member: discord.Member = None):
         """Make your or someone else's avatar triggered."""
         if not hasattr(self.bot.config, "dagpi_token"):
             return
         if not member:
             member = ctx.author
-        url = "https://api.dagpi.xyz/image/triggered/?url=" + str(member.avatar_url_as(format="png", size=1024))
-        async with self.bot.session.request(method="GET", url=url, headers={"Authorization": self.bot.config.dagpi_token}) as res:
+        url = "https://api.dagpi.xyz/image/triggered/?url=" + str(
+            member.avatar_url_as(format="png", size=1024)
+        )
+        async with self.bot.session.request(
+            method="GET",
+            url=url,
+            headers={"Authorization": self.bot.config.dagpi_token},
+        ) as res:
             image = io.BytesIO(await res.read())
             img = discord.File(fp=image, filename="triggered.gif")
             await ctx.send(file=img)

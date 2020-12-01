@@ -49,7 +49,6 @@ def get_cogs():
 extensions = get_cogs()
 
 
-
 def _callable_prefix(bot, message):
     """Callable Prefix for the bot."""
     user_id = bot.user.id
@@ -57,7 +56,9 @@ def _callable_prefix(bot, message):
     if not message.guild:
         base.append(">")
     else:
-        base.extend(sorted(bot.cache[message.guild.id].get("prefixes", [bot.def_prefix])))
+        base.extend(
+            sorted(bot.cache[message.guild.id].get("prefixes", [bot.def_prefix]))
+        )
     return base
 
 
@@ -190,15 +191,18 @@ class ziBot(commands.Bot):
                 # Cache config
                 con = await conn.fetch("SELECT * FROM configs")
                 for x in con:
-                    self.cache[x["guild_id"]]["configs"] = {"send_error": x["send_error"], "msg_welcome": x["msg_welcome"], "msg_farewell": x["msg_farewell"]}
-    
+                    self.cache[x["guild_id"]]["configs"] = {
+                        "send_error": x["send_error"],
+                        "msg_welcome": x["msg_welcome"],
+                        "msg_farewell": x["msg_farewell"],
+                    }
+
     @tasks.loop(minutes=2)
     async def changing_presence(self):
         activity = discord.Activity(
             name=f"over {len(self.guilds)} servers", type=discord.ActivityType.watching
         )
         await self.change_presence(activity=activity)
-
 
     def get_guild_prefixes(self, guild, *, local_inject=_callable_prefix):
         proxy_msg = discord.Object(id=0)
@@ -222,7 +226,7 @@ class ziBot(commands.Bot):
             )
         if guild_id in self.cache:
             for p in prefixes:
-                self.cache[guild_id]['prefixes'].remove(p)
+                self.cache[guild_id]["prefixes"].remove(p)
 
     async def add_guild_prefix(self, connection, guild_id, prefix):
         async with connection.transaction():
@@ -230,7 +234,7 @@ class ziBot(commands.Bot):
                 "INSERT INTO prefixes VALUES($1, $2)", guild_id, prefix
             )
         if guild_id in self.prefixes:
-            self.cache[guild_id]['prefixes'] += [prefix]
+            self.cache[guild_id]["prefixes"] += [prefix]
         else:
             self.cache[guild_id] = {"prefixes": [prefix]}
 
@@ -240,7 +244,7 @@ class ziBot(commands.Bot):
                 "INSERT INTO prefixes VALUES($1, $2)", [(guild_id, p) for p in prefixes]
             )
         if guild_id in self.cache:
-            self.cache[guild_id]['prefixes'] += prefixes
+            self.cache[guild_id]["prefixes"] += prefixes
         else:
             self.cache[guild_id] = {"prefixes": prefixes}
 
@@ -273,7 +277,8 @@ class ziBot(commands.Bot):
                 await conn.execute(
                     """INSERT INTO configs (guild_id, send_error)
                     VALUES ($1, $2)""",
-                    guild.id, False
+                    guild.id,
+                    False,
                 )
         except asyncpg.UniqueViolationError:
             pass
@@ -342,8 +347,11 @@ class ziBot(commands.Bot):
             prefixes.pop(0)
             prefixes.pop(0)
             prefixes = ", ".join([f"`{x}`" for x in prefixes])
-            embed = discord.Embed(title = "", description = f"My prefixes are: {prefixes} or {self.user.mention}")
-            await message.reply(embed = embed)
+            embed = discord.Embed(
+                title="",
+                description=f"My prefixes are: {prefixes} or {self.user.mention}",
+            )
+            await message.reply(embed=embed)
         await self.process_commands(message)
 
     async def close(self):

@@ -147,7 +147,9 @@ class Moderation(commands.Cog):
         try:
             min_muted = int(r_and_d[1])
         except ValueError:
-            await ctx.send(f"**WARNING**: {r_and_d[1]} is not a valid number, value `0` is used instead.")
+            await ctx.send(
+                f"**WARNING**: {r_and_d[1]} is not a valid number, value `0` is used instead."
+            )
             min_muted = 0
 
         if not members:
@@ -178,7 +180,9 @@ class Moderation(commands.Cog):
                     try:
                         await member.add_roles(muted_role)
                     except Forbidden:
-                        return await ctx.send("I need `Manage Role` permission to mute a member!")
+                        return await ctx.send(
+                            "I need `Manage Role` permission to mute a member!"
+                        )
                     duration = ""
                     if min_muted > 0:
                         duration = f" ({min_muted} minutes)"
@@ -249,7 +253,9 @@ class Moderation(commands.Cog):
                 try:
                     await ctx.guild.kick(member, reason=reason)
                 except Forbidden:
-                    await ctx.send(f"I can't kick {member.mention} (No permission or the member is higher than me on the hierarchy)")
+                    await ctx.send(
+                        f"I can't kick {member.mention} (No permission or the member is higher than me on the hierarchy)"
+                    )
                     return
                 await ctx.send(
                     f"{member.mention} has been kicked by {ctx.author.mention} for {reason}!"
@@ -272,7 +278,9 @@ class Moderation(commands.Cog):
         try:
             min_ban = int(r_and_d[1])
         except ValueError:
-            await ctx.send(f"**WARNING**: {r_and_d[1]} is not a valid number, value `0` is used instead.")
+            await ctx.send(
+                f"**WARNING**: {r_and_d[1]} is not a valid number, value `0` is used instead."
+            )
             min_ban = 0
 
         if not members:
@@ -296,7 +304,9 @@ class Moderation(commands.Cog):
                 try:
                     await ctx.guild.ban(member, reason=reason, delete_message_days=0)
                 except Forbidden:
-                    await ctx.send(f"I can't ban {member.mention} (No permission or the member is higher than me on the hierarchy)")
+                    await ctx.send(
+                        f"I can't ban {member.mention} (No permission or the member is higher than me on the hierarchy)"
+                    )
                     return
                 duration = ""
                 if min_ban > 0:

@@ -19,7 +19,7 @@ class ErrorHandler(commands.Cog):
     async def on_command_error(self, ctx, error):
         if isinstance(error, commands.CommandNotFound):
             return
-        
+
         if isinstance(error, PlaceParamEmpty):
             return await ctx.send("You need specify the place!")
 
@@ -38,7 +38,7 @@ class ErrorHandler(commands.Cog):
 
         if isinstance(error, commands.CommandInvokeError):
             self.bot.logger.error(f"Something went wrong! error: {error}")
-            
+
             # Give details about the error
             print(
                 "Ignoring exception in command {}:".format(ctx.command), file=sys.stderr
@@ -46,7 +46,7 @@ class ErrorHandler(commands.Cog):
             traceback.print_exception(
                 type(error), error, error.__traceback__, file=sys.stderr
             )
-            
+
             # Send embed that when user react withh greenTick bot will send it to bot owner
             desc = (
                 f"The command was unsuccessful because of this reason:\n```{error}```\n"
@@ -57,9 +57,7 @@ class ErrorHandler(commands.Cog):
                 description=desc,
                 colour=discord.Colour(0x2F3136),
             )
-            e.set_footer(
-                text="Waiting for answer...", icon_url=ctx.author.avatar_url
-            )
+            e.set_footer(text="Waiting for answer...", icon_url=ctx.author.avatar_url)
             msg = await ctx.send(embed=e)
             await msg.add_reaction("<:greenTick:767209095090274325>")
 
@@ -90,11 +88,12 @@ class ErrorHandler(commands.Cog):
                 bot_owner = self.bot.get_user(self.bot.master[0])
                 await bot_owner.send(embed=e_owner)
                 e.set_footer(
-                    text=f"Error has been reported to {bot_owner}", icon_url=ctx.author.avatar_url
+                    text=f"Error has been reported to {bot_owner}",
+                    icon_url=ctx.author.avatar_url,
                 )
                 await msg.edit(embed=e)
                 await msg.clear_reactions()
-            
+
             return
 
 

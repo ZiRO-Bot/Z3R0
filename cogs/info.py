@@ -17,6 +17,7 @@ from pytz import timezone
 egs = epicstore_api.EpicGamesStoreAPI()
 session = aiohttp.ClientSession()
 
+
 def temperature(temp, unit: str, number_only=False):
     if unit == "c":
         temp = temp - 273.15
@@ -25,6 +26,7 @@ def temperature(temp, unit: str, number_only=False):
     if number_only:
         return f"{round(temp)}"
     return f"{round(temp)}°{unit.upper()}"
+
 
 async def get_weather_data(key, *place: str, _type="city"):
     place = " ".join([*place])
@@ -41,18 +43,22 @@ async def get_weather_data(key, *place: str, _type="city"):
             raise CityNotFound
         return weatherData
 
+
 class Info(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.weather_apikey = self.bot.config.openweather_apikey
-    
+        try:
+            self.weather_apikey = self.bot.config.openweather_apikey
+        except AttributeError:
+            self.weather_apikey = None
+
     def is_weather():
         def predicate(ctx):
             if ctx.bot.config.openweather_apikey:
                 return True
 
         return commands.check(predicate)
-    
+
     @commands.command(aliases=["ui"], usage="[member]")
     async def userinfo(self, ctx, *, user: discord.Member = None):
         """Show user information."""
@@ -126,9 +132,7 @@ class Info(commands.Cog):
             colour=member.colour if member else discord.Colour(0x000000),
             timestamp=ctx.message.created_at,
         )
-        embed.set_author(
-            name=f"{member}", icon_url=member.avatar_url
-        )
+        embed.set_author(name=f"{member}", icon_url=member.avatar_url)
         embed.set_thumbnail(url=member.avatar_url)
         embed.add_field(name="ID", value=member.id)
         embed.add_field(name="Guild name", value=member.display_name)
@@ -220,27 +224,35 @@ class Info(commands.Cog):
         """Get bot's invite link."""
         e = discord.Embed(
             title="Want to invite ziBot?",
-            description="[Invite with administrator permission](" 
-                + discord.utils.oauth_url(
-                    self.bot.user.id, permissions=discord.Permissions(8), guild=None, redirect_uri=None
-                ) 
-                + ")\n"
-                + "[Invite with necessary premissions (**recommended**)](" 
-                + discord.utils.oauth_url(
-                    self.bot.user.id, permissions=discord.Permissions(1879571542), guild=None, redirect_uri=None
-                ) 
-                + ")\n"
-                + "[Invite with no permissions]("
-                + discord.utils.oauth_url(
-                    self.bot.user.id, permissions=None, guild=None, redirect_uri=None
-                )
-                + ")\n",
+            description="[Invite with administrator permission]("
+            + discord.utils.oauth_url(
+                self.bot.user.id,
+                permissions=discord.Permissions(8),
+                guild=None,
+                redirect_uri=None,
+            )
+            + ")\n"
+            + "[Invite with necessary premissions (**recommended**)]("
+            + discord.utils.oauth_url(
+                self.bot.user.id,
+                permissions=discord.Permissions(1879571542),
+                guild=None,
+                redirect_uri=None,
+            )
+            + ")\n"
+            + "[Invite with no permissions]("
+            + discord.utils.oauth_url(
+                self.bot.user.id, permissions=None, guild=None, redirect_uri=None
+            )
+            + ")\n",
             colour=discord.Colour(0xFFFFF0),
         )
         await ctx.send(embed=e)
 
     def get_bot_uptime(self):
-        return general_time(self.bot.start_time, accuracy=None, brief=True, suffix=False)
+        return general_time(
+            self.bot.start_time, accuracy=None, brief=True, suffix=False
+        )
 
     @commands.command(aliases=["bi", "about", "info", "uptime", "up"])
     async def botinfo(self, ctx):
@@ -248,7 +260,10 @@ class Info(commands.Cog):
         bot_ver = "2.1.S"
         start = time.perf_counter()
         invite_link = discord.utils.oauth_url(
-            self.bot.user.id, permissions=discord.Permissions(1879571542), guild=None, redirect_uri=None
+            self.bot.user.id,
+            permissions=discord.Permissions(1879571542),
+            guild=None,
+            redirect_uri=None,
         )
         embed = discord.Embed(
             title="About ziBot",
@@ -488,13 +503,13 @@ class Info(commands.Cog):
                     # await msg.clear_reactions()
                     break
         return
-    
+
     @commands.command()
     async def source(self, ctx):
         """Show link to ziBot's source code."""
         git_link = "https://github.com/null2264/ziBot"
         await ctx.send(f"ziBot's source code: \n{git_link}")
-    
+
     @commands.group(
         usage="(city)", invoke_without_command=True, example="{prefix}weather Palembang"
     )
@@ -509,7 +524,9 @@ class Info(commands.Cog):
     async def weather_city(self, ctx, *city):
         """Show weather report from a city."""
         try:
-            weatherData = await get_weather_data(self.weather_apikey, *city, _type="city")
+            weatherData = await get_weather_data(
+                self.weather_apikey, *city, _type="city"
+            )
         except CityNotFound:
             await ctx.send("City not found")
             return
@@ -542,7 +559,9 @@ class Info(commands.Cog):
     async def weather_zip(self, ctx, *city):
         """Show weather report from a zip code."""
         try:
-            weatherData = await get_weather_data(self.weather_apikey, *city, _type="city")
+            weatherData = await get_weather_data(
+                self.weather_apikey, *city, _type="city"
+            )
         except CityNotFound:
             await ctx.send("City not found")
             return
@@ -598,19 +617,25 @@ class Info(commands.Cog):
     @commands.command()
     async def license(self, ctx):
         """Show bot's license."""
-        _license = "ziBot is a multi-purpose, customizable, open-source discord bot.\n" \
-                + "Copyright (C) 2020  Ahmad Ansori Palembani\n\n" \
-                + "This program is free software: you can redistribute it and/or modify" \
-                + "it under the terms of the GNU General Public License as published by" \
-                + "the Free Software Foundation, either version 3 of the License, or" \
-                + "(at your option) any later version.\n\n" \
-                + "This program is distributed in the hope that it will be useful," \
-                + "but WITHOUT ANY WARRANTY; without even the implied warranty of" \
-                + "MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the" \
-                + "GNU General Public License for more details.\n\n" \
-                + "You should have received a copy of the GNU General Public License" \
-                + "along with this program.  If not, see <https://www.gnu.org/licenses/>."
-        e = discord.Embed(title="License", colour=discord.Colour(0xFFFFF0), description=f"**GNU GPL-3.0-or-Later**\n```{_license}```")
+        _license = (
+            "ziBot is a multi-purpose, customizable, open-source discord bot.\n"
+            + "Copyright (C) 2020  Ahmad Ansori Palembani\n\n"
+            + "This program is free software: you can redistribute it and/or modify"
+            + "it under the terms of the GNU General Public License as published by"
+            + "the Free Software Foundation, either version 3 of the License, or"
+            + "(at your option) any later version.\n\n"
+            + "This program is distributed in the hope that it will be useful,"
+            + "but WITHOUT ANY WARRANTY; without even the implied warranty of"
+            + "MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the"
+            + "GNU General Public License for more details.\n\n"
+            + "You should have received a copy of the GNU General Public License"
+            + "along with this program.  If not, see <https://www.gnu.org/licenses/>."
+        )
+        e = discord.Embed(
+            title="License",
+            colour=discord.Colour(0xFFFFF0),
+            description=f"**GNU GPL-3.0-or-Later**\n```{_license}```",
+        )
         await ctx.send(embed=e)
 
     @commands.command(aliases=["userpfp"], usage="[member]")
@@ -619,14 +644,19 @@ class Info(commands.Cog):
         if not member:
             member = ctx.author
         e = discord.Embed(
-            title="Avatar", 
+            title="Avatar",
             colour=discord.Colour(0xFFFFF0),
-            description=f"[jpeg]({member.avatar_url_as(format='jpg')}) | [png]({member.avatar_url_as(format='png')}) | [webp]({member.avatar_url_as(format='webp')}) " + (f"| [gif]({member.avatar_url_as(format='gif')})" if member.is_avatar_animated() else "")
+            description=f"[jpeg]({member.avatar_url_as(format='jpg')}) | [png]({member.avatar_url_as(format='png')}) | [webp]({member.avatar_url_as(format='webp')}) "
+            + (
+                f"| [gif]({member.avatar_url_as(format='gif')})"
+                if member.is_avatar_animated()
+                else ""
+            ),
         )
         e.set_image(url=member.avatar_url_as(size=1024))
         e.set_author(name=member, icon_url=member.avatar_url)
         await ctx.send(embed=e)
-    
+
 
 def setup(bot):
     bot.add_cog(Info(bot))

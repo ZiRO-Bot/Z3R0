@@ -11,8 +11,9 @@ from discord.ext import commands, menus
 SHELL = os.getenv("SHELL") or "/bin/bash"
 WINDOWS = sys.platform == "win32"
 
+
 class TextWrapPageSource(menus.ListPageSource):
-    def __init__(self, prefix, raw_text, max_size: int=1024):
+    def __init__(self, prefix, raw_text, max_size: int = 1024):
         size_limit = len(prefix) + max_size
         text = [raw_text]
         n = 0
@@ -24,8 +25,13 @@ class TextWrapPageSource(menus.ListPageSource):
         self.prefix = prefix + "\n"
 
     async def format_page(self, menu, text):
-        e = discord.Embed(title="Shell", description=self.prefix + text + "```", colour = discord.Colour(0xFFFFF0))
+        e = discord.Embed(
+            title="Shell",
+            description=self.prefix + text + "```",
+            colour=discord.Colour(0xFFFFF0),
+        )
         return e
+
 
 class Developer(commands.Cog):
     def __init__(self, bot):
@@ -34,7 +40,7 @@ class Developer(commands.Cog):
     async def cog_check(self, ctx):
         """Only bot master able to use this cogs."""
         return await ctx.bot.is_owner(ctx.author)
-    
+
     @commands.command()
     async def get_prefix(self, ctx):
         prefixes = await self.bot.get_raw_guild_prefixes(ctx.guild.id)
@@ -120,7 +126,7 @@ class Developer(commands.Cog):
         except commands.ExtensionFailed:
             await ctx.send(f"{ext} failed to load! Check the log for details.")
             self.bot.logger.exception(f"Failed to reload extension {ext}:")
-    
+
     @commands.command(hidden=True)
     async def pull(self, ctx):
         """Update the bot from github."""
@@ -167,7 +173,10 @@ class Developer(commands.Cog):
             text = line.replace("\r", "").strip("\n")
             return re.sub(r"\x1b[^m]*m", "", text).replace("``", "`\u200b`").strip("\n")
 
-        content = clean_bytes(proc.stdout.readlines()) or f"{SHELL}: command not found: {' '.join(command)}"
+        content = (
+            clean_bytes(proc.stdout.readlines())
+            or f"{SHELL}: command not found: {' '.join(command)}"
+        )
         menus = ZiMenu(TextWrapPageSource("```sh", content))
         return await menus.start(ctx)
 

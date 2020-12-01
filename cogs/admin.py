@@ -81,7 +81,10 @@ class Admin(commands.Cog):
 
         await ctx.release()
         return await ctx.send(
-            (", ".join(f"`{i}`" for i in new_prefixes if new_prefixes) or "No prefix, it may already exist or prefix slot is full.")
+            (
+                ", ".join(f"`{i}`" for i in new_prefixes if new_prefixes)
+                or "No prefix, it may already exist or prefix slot is full."
+            )
             + " has been added!"
         )
 
@@ -181,15 +184,16 @@ class Admin(commands.Cog):
     @settings.command(aliases=["send_error"])
     async def send_error_msg(self, ctx):
         """Toggle send_error_msg."""
+
         async def set_send_error(conn, guild_id, value):
             async with conn.transaction():
                 await conn.execute(
                     "UPDATE configs SET send_error = $1 WHERE guild_id = $2",
                     value,
-                    guild_id
+                    guild_id,
                 )
                 self.bot.cache[guild_id]["configs"]["send_error"] = value
-        
+
         conn = await ctx.db.acquire()
         if self.bot.cache[ctx.guild.id]["configs"]["send_error"]:
             await set_send_error(conn, ctx.guild.id, False)

@@ -103,6 +103,7 @@ def decode(msg):
                 temp = ""
     return decoded
 
+
 class General(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
