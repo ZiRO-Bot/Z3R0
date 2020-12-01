@@ -1,5 +1,5 @@
 import asyncio
-import bot
+import core.bot as bot
 import cogs.utils.checks as checks
 import copy
 import datetime
@@ -16,7 +16,7 @@ import time
 
 from .utils.embed_formatting import em_ctx_send_error, em_ctx_send_success
 from .utils.formatting import realtime
-from bot import get_cogs, _callable_prefix
+from core.bot import get_cogs, _callable_prefix
 from discord.errors import Forbidden, NotFound
 from discord.ext import commands
 from typing import Optional

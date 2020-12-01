@@ -7,9 +7,9 @@ import json
 import logging
 import sys
 
-from bot import ziBot
+from core.bot import ziBot
 
-import config
+import core.config as config
 
 
 @contextlib.contextmanager

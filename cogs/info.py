@@ -1,6 +1,6 @@
 import aiohttp
 import asyncio
-import bot
+import core.bot as bot
 import datetime
 import discord
 import epicstore_api

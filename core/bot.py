@@ -1,7 +1,7 @@
 import asyncio
 import asyncpg
 import aiohttp
-import cogs.utils.context as context
+import core.context as context
 import copy
 import datetime
 import discord
@@ -16,7 +16,7 @@ import traceback
 from discord.errors import NotFound
 from discord.ext import commands, tasks
 
-import config
+import core.config as config
 
 # Create data directory if its not exist
 try:
@@ -355,4 +355,4 @@ class ziBot(commands.Bot):
 
     @property
     def config(self):
-        return __import__("config")
+        return __import__("core").config

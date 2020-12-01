@@ -13,7 +13,6 @@ from .utils.embed_formatting import em_ctx_send_error
 from .utils.formatting import realtime
 from .utils.paginator import ZiMenu
 from .utils.stringparamadapter import StringParamAdapter
-from bot import get_cogs
 from discord.errors import Forbidden
 from discord.ext import commands, menus
 from pytz import timezone

@@ -1,6 +1,6 @@
 import asyncio
 import asyncpg
-import bot
+import core.bot as bot
 import cogs.utils.checks as checks
 import discord
 import re

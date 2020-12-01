@@ -1,12 +1,12 @@
 import asyncio
-import bot
+import core.bot as bot
 import discord
 import json
 import logging
 import re
 
 from .utils.paginator import ZiMenu, ZiReplyMenu
-from bot import _callable_prefix
+from core.bot import _callable_prefix
 from discord.ext import commands, menus
 from typing import Optional
 
