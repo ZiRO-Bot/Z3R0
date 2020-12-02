@@ -19,6 +19,9 @@ class ErrorHandler(commands.Cog):
         if isinstance(error, commands.CommandNotFound):
             return
 
+        if isinstance(error, commands.BotMissingPermissions):
+            return await ctx.send(f"The bot doesn't have `{missing_perms}` permission to do this command!")
+
         if isinstance(error, commands.MissingRequiredArgument):
             return await ctx.send(
                 f"Usage: `{ctx.prefix}{ctx.command.qualified_name} {ctx.command.signature}`"
