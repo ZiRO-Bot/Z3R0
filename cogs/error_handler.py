@@ -23,6 +23,9 @@ class ErrorHandler(commands.Cog):
         if isinstance(error, PlaceParamEmpty):
             return await ctx.send("You need specify the place!")
 
+        if isinstance(error, commands.BotMissingPermissions):
+            return await ctx.send(f"The bot doesn't have `{missing_perms}` permission to do this command!")
+
         if isinstance(error, commands.MissingRequiredArgument):
             return await ctx.send_info(
                 title="Warning!",

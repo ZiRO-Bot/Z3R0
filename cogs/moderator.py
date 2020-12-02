@@ -98,6 +98,7 @@ class Moderation(commands.Cog):
         return commands.check(predicate)
 
     @commands.command(aliases=["cc"], usage="(amount of chat)", hidden=True)
+    @checks.mod_or_permissions(manage_messages=True)
     @checks.is_mod()
     async def clearchat(self, ctx, numb):
         """Clear the chat."""
@@ -105,15 +106,19 @@ class Moderation(commands.Cog):
             numb = int(numb)
         except ValueError:
             return await ctx.send(f"{numb} is not a valid number!")
-        deleted_msg = await ctx.message.channel.purge(
-            limit=numb + 1,
-            check=None,
-            before=None,
-            after=None,
-            around=None,
-            oldest_first=False,
-            bulk=True,
-        )
+
+        try:
+            deleted_msg = await ctx.message.channel.purge(
+                limit=numb + 1,
+                check=None,
+                before=None,
+                after=None,
+                around=None,
+                oldest_first=False,
+                bulk=True,
+            )
+        except Forbidden:
+            return await ctx.reply("The bot doesn't have `Manage Messages` permission!")
 
         msg_num = max(len(deleted_msg) - 1, 0)
 
