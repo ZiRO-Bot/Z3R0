@@ -118,7 +118,7 @@ class Moderation(commands.Cog):
                 bulk=True,
             )
         except Forbidden:
-            return await ctx.reply("The bot doesn't have `Manage Messages` permission!")
+            return await ctx.send_info(title="Error!", content="The bot doesn't have `Manage Messages` permission!", type="error")
 
         msg_num = max(len(deleted_msg) - 1, 0)
 
