@@ -41,7 +41,6 @@ class Admin(commands.Cog):
     async def prefix(self, ctx):
         """Manage bot's prefix."""
         await ctx.invoke(self.bot.get_command("prefix list"))
-        pass
 
     @prefix.command(name="list", aliases=["ls"])
     async def prefix_list(self, ctx):
