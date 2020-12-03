@@ -13,8 +13,10 @@ import sqlite3
 import sys
 import traceback
 
+from cogs.utils.tse_blocks import DiscordGuildBlock, DiscordMemberBlock
 from discord.errors import NotFound
 from discord.ext import commands, tasks
+from TagScriptEngine import Interpreter, block
 
 import core.config as config
 
