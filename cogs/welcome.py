@@ -1,4 +1,5 @@
 import asyncio
+import datetime
 import discord
 import logging
 
@@ -12,28 +13,14 @@ class Welcome(commands.Cog, name="welcome"):
     # Welcome message + set roles when new member joined
     def __init__(self, bot):
         self.bot = bot
-        self.blocks = [block.RandomBlock(), block.StrictVariableGetterBlock()]
-        self.engine = Interpreter(self.blocks)
-
-    def fetch_special_val(self, member, message: str):
+        # self.engine = Interpreter(self.bot.blocks)
+        
+    def fetch_special_val(self, member, message):
+        engine = self.bot.init_tagscript(self.bot.blocks, member, member.guild)
         special_vals = {
-            "mention": adapter.StringAdapter(member.mention),
-            "user": StringParamAdapter(
-                member.name,
-                {
-                    "id": str(member.id),
-                    "proper": f"{member.name}#{member.discriminator}",
-                },
-            ),
-            "server": StringParamAdapter(
-                member.guild.name,
-                {"id": str(member.guild.id), "members": str(len(member.guild.members))},
-            ),
+            "unix": adapter.IntAdapter(int(datetime.datetime.utcnow().timestamp())),
         }
-        # for key in list(special_vals.keys()):
-        #     message = message.replace(key, str(special_vals[key]))
-        message = self.engine.process(message, special_vals).body
-        return message
+        return engine.process(message, special_vals).body
 
     @commands.Cog.listener()
     async def on_member_remove(self, member):

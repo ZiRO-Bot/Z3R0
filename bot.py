@@ -10,8 +10,10 @@ import sys
 import traceback
 import time
 
+from cogs.utilities.tse_blocks import DiscordMemberBlock, DiscordGuildBlock
 from discord.errors import NotFound
 from discord.ext import commands
+from TagScriptEngine import Interpreter, block
 
 # Create data directory if its not exist
 try:
@@ -61,6 +63,8 @@ class ziBot(commands.Bot):
             intents=discord.Intents.all(),
         )
 
+        self.blocks = [block.RandomBlock(), block.StrictVariableGetterBlock()]
+
         # Init database
         self.conn = sqlite3.connect("data/database.db")
         self.c = self.conn.cursor()
@@ -105,6 +109,15 @@ class ziBot(commands.Bot):
         )
 
         self.master = [186713080841895936]
+
+    def init_tagscript(self, blocks: list=None, member: discord.Member=None, guild: discord.Guild=None, context: commands.Context=None):
+        if not blocks:
+            blocks = self.blocks
+        if member:
+            blocks += [DiscordMemberBlock(member, context)]
+        if guild:
+            blocks += [DiscordGuildBlock(guild, context)]
+        return Interpreter(blocks)
 
     def set_guild_prefixes(self, guild, prefixes):
         if not prefixes:

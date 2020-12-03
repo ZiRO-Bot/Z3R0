@@ -33,7 +33,7 @@ class CustomCommands(commands.Cog, name="customcommands"):
             block.MathBlock(),
             block.RangeBlock(),
         ]
-        self.engine = Interpreter(self.blocks)
+        # self.engine = Interpreter(self.blocks)
 
     def clean_tag_content(self, content):
         return content.replace("@everyone", "@\u200beveryone").replace(
@@ -49,34 +49,11 @@ class CustomCommands(commands.Cog, name="customcommands"):
         return nick.replace("<@", "<@\u200b")
 
     def fetch_tags(self, ctx, message):
-        # TSE's documentation is pretty bad so this is my workaround for now
+        engine = self.bot.init_tagscript(self.blocks, ctx.author, ctx.guild, ctx)
         special_vals = {
-            "mention": adapter.StringAdapter(ctx.author.mention),
-            "user": StringParamAdapter(
-                ctx.author.name,
-                {
-                    "id": str(ctx.author.id),
-                    "proper": str(ctx.author),
-                    "mention": ctx.author.mention,
-                    "nick": self.clean_nick(ctx.author), 
-                },
-            ),
-            "server": StringParamAdapter(
-                ctx.guild.name,
-                {
-                    "id": str(ctx.guild.id),
-                    "members": str(len(ctx.guild.members)),
-                    "bots": str(len([x for x in ctx.guild.members if x.bot])),
-                    "humans": str(len([x for x in ctx.guild.members if not x.bot])),
-                    "random": str(random.choice(ctx.guild.members)),
-                    "owner": str(ctx.guild.owner),
-                    "roles": str(len(ctx.guild.roles)),
-                    "channels": str(len(ctx.guild.channels)),
-                },
-            ),
             "unix": adapter.IntAdapter(int(datetime.datetime.utcnow().timestamp())),
         }
-        return self.engine.process(message, special_vals).body
+        return engine.process(message, special_vals).body
 
     async def send_tag_content(self, ctx, name):
         lookup = name.lower().strip()
