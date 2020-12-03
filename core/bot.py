@@ -70,6 +70,8 @@ class ziBot(commands.Bot):
             intents=discord.Intents.all(),
         )
         self._BotBase__cogs = commands.core._CaseInsensitiveDict()
+        
+        self.blocks = [block.RandomBlock(), block.StrictVariableGetterBlock()]
 
         self.start_time = datetime.datetime.utcnow()
 
@@ -196,6 +198,15 @@ class ziBot(commands.Bot):
                         "msg_welcome": x["msg_welcome"],
                         "msg_farewell": x["msg_farewell"],
                     }
+
+    def init_tagscript(self, blocks: list=None, member: discord.Member=None, guild: discord.Guild=None, context: commands.Context=None):
+        if not blocks:
+            blocks = self.blocks
+        if member:
+            blocks += [DiscordMemberBlock(member, context)]
+        if guild:
+            blocks += [DiscordGuildBlock(guild, context)]
+        return Interpreter(blocks)
 
     @tasks.loop(minutes=2)
     async def changing_presence(self):
