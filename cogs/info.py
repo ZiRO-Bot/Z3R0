@@ -639,7 +639,7 @@ class Info(commands.Cog):
         await ctx.send(embed=e)
 
     @commands.command(aliases=["userpfp"], usage="[member]")
-    async def avatar(self, ctx, member: discord.Member = None):
+    async def avatar(self, ctx, member: discord.User = None):
         """Show member's avatar image."""
         if not member:
             member = ctx.author
