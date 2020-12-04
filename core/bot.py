@@ -404,8 +404,8 @@ class ziBot(commands.Bot):
             prefixes.pop(0)
             prefixes = ", ".join([f"`{x}`" for x in prefixes])
             embed = discord.Embed(
-                title="",
                 description=f"My prefixes are: {prefixes} or {self.user.mention}",
+                colour=discord.Colour.rounded(),
             )
             await message.reply(embed=embed)
         await self.process_commands(message)
