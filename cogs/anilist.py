@@ -274,29 +274,33 @@ class AniList(commands.Cog):
         """
         Get anime episode that about to air and schedule it
         """
-        for server in self.bot.cache:
-            if "watchlist" not in self.bot.cache[server]:
+        for guild in self.bot.cache:
+            if "watchlist" not in self.bot.cache[guild]:
                 continue
+
+            # Get channel to announce the anime
+            conn = await self.bot.pool.acquire()
+            channel = await conn.fetch("SELECT anime_ch FROM channels WHERE guild_id=$1", guild)
+            await self.bot.pool.release(conn)
+
+            channel = self.bot.get_channel(channel[0].get("anime_ch", None))
+            # If channel not found (removed or not exist) then skip
+            if not channel:
+                continue
+            
             # Get episode that about to air
             q = await self.anilist.request(
                 scheduleQuery,
                 {
                     "page": 1,
                     "amount": 50,
-                    "watched": self.bot.cache[server]["watchlist"],
+                    "watched": self.bot.cache[guild]["watchlist"],
                     "nextDay": timestamp,
                 },
             )
             if not q:
                 continue
             q = q["data"]
-
-            # TODO: Properly implement channel setting
-            channel = self.bot.get_channel(777742553041862666)
-            # self.bot.c.execute("SELECT anime_ch FROM servers WHERE id=?", (str(server),))
-            # channel = self.bot.get_channel(int(self.bot.c.fetchone()[0] or 0))
-            # if not channel:
-            #     continue
 
             # Schedule the episodes if there's any
             if q and q["Page"]["airingSchedules"]:

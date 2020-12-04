@@ -183,6 +183,19 @@ class ziBot(commands.Bot):
                     )
                     """
                 )
+                await conn.execute(
+                    """
+                    CREATE TABLE IF NOT EXISTS 
+                    channels (
+                        guild_id BIGINT REFERENCES guilds(id) ON DELETE CASCADE NOT NULL,
+                        anime_ch BIGINT,
+                        greetings_ch BIGINT,
+                        modlog_ch BIGINT,
+                        purgatory_ch BIGINT,
+                        meme_ch BIGINT
+                    )
+                    """
+                )
 
                 # Prefix cache
                 pre = [(i, p) for i, p in await conn.fetch("SELECT * FROM prefixes")]
@@ -285,16 +298,21 @@ class ziBot(commands.Bot):
 
     async def add_guild_info(self, conn, guild):
         await self.add_guild_id(conn, guild)
-        try:
-            async with conn.transaction():
+        async with conn.transaction():
+            if not await conn.fetch("SELECT guild_id FROM configs WHERE guild_id=$1", guild.id):
                 await conn.execute(
                     """INSERT INTO configs (guild_id, send_error)
                     VALUES ($1, $2)""",
                     guild.id,
                     False,
                 )
-        except asyncpg.UniqueViolationError:
-            pass
+
+            if not await conn.fetch("SELECT guild_id FROM channels WHERE guild_id=$1", guild.id):
+                await conn.execute(
+                    """INSERT INTO channels (guild_id)
+                    VALUES ($1)""",
+                    guild.id,
+                )
         if guild.id not in self.cache:
             await self.add_guild_prefix(conn, guild.id, self.def_prefix)
 
