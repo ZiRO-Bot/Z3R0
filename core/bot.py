@@ -187,7 +187,7 @@ class ziBot(commands.Bot):
                     """
                     CREATE TABLE IF NOT EXISTS 
                     channels (
-                        guild_id BIGINT REFERENCES guilds(id) ON DELETE CASCADE NOT NULL,
+                        guild_id BIGINT REFERENCES guilds(id) ON DELETE CASCADE NOT NULL UNIQUE,
                         anime_ch BIGINT,
                         greetings_ch BIGINT,
                         modlog_ch BIGINT,
@@ -259,7 +259,7 @@ class ziBot(commands.Bot):
             await connection.execute(
                 "INSERT INTO prefixes VALUES($1, $2)", guild_id, prefix
             )
-        if guild_id in self.prefixes:
+        if guild_id in self.cache:
             self.cache[guild_id]["prefixes"] += [prefix]
         else:
             self.cache[guild_id] = {"prefixes": [prefix]}
@@ -298,21 +298,46 @@ class ziBot(commands.Bot):
 
     async def add_guild_info(self, conn, guild):
         await self.add_guild_id(conn, guild)
-        async with conn.transaction():
-            if not await conn.fetch("SELECT guild_id FROM configs WHERE guild_id=$1", guild.id):
+        version = conn.get_server_version()
+
+        if version[0] == 8:
+            raise RuntimeError("PostgreSQL version 8.X is not supported!")
+        elif version[0] == 9 and version[1] < 5:
+            # Since ON CONFLICT haven't introduced till 9.5 this is the only reliable i can think of
+            async with conn.transaction():
+                if not await conn.fetch("SELECT guild_id FROM configs WHERE guild_id=$1", guild.id):
+                    await conn.execute(
+                        """INSERT INTO configs (guild_id, send_error)
+                        VALUES ($1, $2)""",
+                        guild.id,
+                        False,
+                    )
+
+                if not await conn.fetch("SELECT guild_id FROM channels WHERE guild_id=$1", guild.id):
+                    await conn.execute(
+                        """INSERT INTO channels (guild_id)
+                        VALUES ($1)""",
+                        guild.id,
+                    )
+        else:
+            async with conn.transaction():
                 await conn.execute(
                     """INSERT INTO configs (guild_id, send_error)
-                    VALUES ($1, $2)""",
+                    VALUES ($1, $2)
+                    ON CONFLICT ON CONSTRAINT configs_guild_id_key 
+                    DO NOTHING""",
                     guild.id,
                     False,
                 )
 
-            if not await conn.fetch("SELECT guild_id FROM channels WHERE guild_id=$1", guild.id):
                 await conn.execute(
                     """INSERT INTO channels (guild_id)
-                    VALUES ($1)""",
+                    VALUES ($1)
+                    ON CONFLICT ON CONSTRAINT channels_guild_id_key
+                    DO NOTHING""",
                     guild.id,
                 )
+
         if guild.id not in self.cache:
             await self.add_guild_prefix(conn, guild.id, self.def_prefix)
 
