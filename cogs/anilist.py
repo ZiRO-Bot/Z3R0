@@ -116,12 +116,12 @@ class AniSearchPage(menus.PageSource):
         else:
             desc = "No description."
         
-        max_size = 500
+        max_size = 250
         if len(desc) > max_size:
             orig_size = len(desc)
             desc,_ = desc[:max_size], desc
             new_size = orig_size - len(desc)
-            desc += f"... +{new_size} hidden"
+            desc += f"... **+{new_size} hidden**"
 
         # Messy and Ugly ratingEmoji system
         rating = data["averageScore"] or -1
