@@ -115,6 +115,13 @@ class AniSearchPage(menus.PageSource):
                 desc = desc.replace(d, "")
         else:
             desc = "No description."
+        
+        max_size = 500
+        if len(desc) > max_size:
+            orig_size = len(desc)
+            desc,_ = desc[:max_size], desc
+            new_size = orig_size - len(desc)
+            desc += f"... +{new_size} hidden"
 
         # Messy and Ugly ratingEmoji system
         rating = data["averageScore"] or -1
@@ -426,7 +433,9 @@ class AniList(commands.Cog):
             return
 
         try:
-            menu = ZiMenu(AniSearchPage(ctx, anime, api=self.anilist, _type=_format))
+            e = discord.Embed(title=f"{self.bot.get_emoji(776255339716673566)} Loading...", colour=discord.Colour.rounded())
+            init_msg = await ctx.send(embed=e)
+            menu = ZiMenu(AniSearchPage(ctx, anime, api=self.anilist, _type=_format), init_msg=init_msg)
             await menu.start(ctx)
         except anilist.AnimeNotFound:
             embed = discord.Embed(

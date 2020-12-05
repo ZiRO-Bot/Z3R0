@@ -118,17 +118,27 @@ class Developer(commands.Cog):
             )
             await ctx.send(embed=embed)
             return
-        msg = await ctx.send(f"{self.bot.get_emoji(776255339716673566)} Reloading {ext}...")
+        
+        info = f"{self.bot.get_emoji(776255339716673566)} Reloading `{ext}`..."
+        e = discord.Embed(title=info, colour=discord.Colour.rounded())
+        
+        msg = await ctx.send(embed=e)
         try:
+            info = f"`{ext}` has been reloaded."
             self.bot.reload_extension(f"cogs.{ext}")
-            await msg.edit(content=f"{ext} has been reloaded.")
+            # await msg.edit(content=f"{ext} has been reloaded.")
         except commands.ExtensionNotFound:
-            await msg.edit(content=f"{ext} doesn't exist!")
+            info = f"`{ext}` doesn't exist!"
+            # await msg.edit(content=f"{ext} doesn't exist!")
         except commands.ExtensionNotLoaded:
-            await msg.edit(content=f"{ext} is not loaded!")
+            info = f"`{ext}` is not loaded!"
+            # await msg.edit(content=f"{ext} is not loaded!")
         except commands.ExtensionFailed:
-            await msg.edit(content=f"{ext} failed to reload! Check the log for details.")
+            info = f"`{ext}` failed to reload! Check the log for details."
+            # await msg.edit(content=f"{ext} failed to reload! Check the log for details.")
             self.bot.logger.exception(f"Failed to reload extension {ext}:")
+        e = discord.Embed(title=info, colour=discord.Colour.rounded())
+        await msg.edit(embed=e)
 
     @commands.command(usage="(extension)")
     async def load(self, ctx, ext):
