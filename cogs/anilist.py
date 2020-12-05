@@ -403,19 +403,6 @@ class AniList(commands.Cog):
         else:
             self.bot.cache[guild_id]["watchlist"] = anime_ids
 
-    def set_guild_watchlist(self, guild, watchlist):
-        if not watchlist:
-            self.bot.c.execute(
-                "UPDATE ani_watchlist SET anime_id=? WHERE id=?", (None, guild.id)
-            )
-            self.bot.conn.commit()
-            self.bot.cache[guild.id]["watchlist"] = watchlist
-        else:
-            self.bot.c.execute(
-                "UPDATE ani_watchlist SET anime_id=? WHERE id=?",
-                (",".join(sorted(watchlist)), str(guild.id)),
-            )
-
     def cog_unload(self):
         self.handle_schedule.cancel()
 
