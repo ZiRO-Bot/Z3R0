@@ -17,17 +17,6 @@ class ZiMenu(menus.MenuPages):
             return self.init_msg
         return await channel.send(**kwargs)
     
-    async def _get_kwargs_from_page(self, page):
-        no_ping = {'mention_author': False if not self.ping else True}
-        value = await discord.utils.maybe_coroutine(self._source.format_page, self, page)
-        if isinstance(value, dict):
-            return value.update(no_ping)
-        elif isinstance(value, str):
-            no_ping.update({'content': value})
-        elif isinstance(value, discord.Embed):
-            no_ping.update({'embed': value})
-        return no_ping
-
     async def update(self, payload):
         if self._can_remove_reactions:
             if payload.event_type == 'REACTION_ADD':
