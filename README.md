@@ -26,7 +26,7 @@ py -3 -m pip install -r requirements.txt
 
 ### Host (Full Control)
 - Create folder called `data` (to prevent error)
-- Create a file named `config.py` with this format:
+- Create a file named `config.py` inside a folder named `core` with this format:
 ```python
 token = "TOKEN_GOES_HERE!"
 twitch = {
