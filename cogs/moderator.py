@@ -31,7 +31,7 @@ ch_types = {
     "purgatory": ["purge_ch", "Text channel for monitoring edited/deleted messages"],
     "meme": ["meme_ch", "Text channel for meme commands"],
     "anime": ["anime_ch", "Text channel for anime releases"],
-    "pingme": ["pingme_ch", "Text channel to get ping by pingme command"],
+    "pingme": ["pingme_ch", "Text channel to get ping by pingme command (REMOVED IN 3.0.R)"],
     "announcement": [
         "announcement_ch",
         "Text channel for announcements (for announce command)",
