@@ -2,6 +2,7 @@ import asyncio.subprocess
 import discord
 import os
 import re
+import time
 import sys
 
 from .utils.paginator import ZiMenu
@@ -70,7 +71,7 @@ class Developer(commands.Cog):
     @commands.command(usage="(extension)")
     async def unload(self, ctx, ext):
         """Unload an extension."""
-        msg = await ctx.send(f"<a:loading:784607467920949321> Unloading {ext}...")
+        msg = await ctx.send(f"{self.bot.get_emoji(776255339716673566)} Unloading {ext}...")
         try:
             self.bot.unload_extension(f"cogs.{ext}")
             await msg.edit(content=f"{ext} has been unloaded.")
@@ -87,7 +88,7 @@ class Developer(commands.Cog):
         """Reload an extension."""
         if not ext:
             reload_start = time.time()
-            exts = get_cogs()
+            exts = self.bot.get_cogs()
             reloaded = []
             error = 0
             for ext in exts:
@@ -117,7 +118,7 @@ class Developer(commands.Cog):
             )
             await ctx.send(embed=embed)
             return
-        msg = await ctx.send(f"<a:loading:784607467920949321> Reloading {ext}...")
+        msg = await ctx.send(f"{self.bot.get_emoji(776255339716673566)} Reloading {ext}...")
         try:
             self.bot.reload_extension(f"cogs.{ext}")
             await msg.edit(content=f"{ext} has been reloaded.")
@@ -132,14 +133,14 @@ class Developer(commands.Cog):
     @commands.command(usage="(extension)")
     async def load(self, ctx, ext):
         """Load an extension."""
-        await ctx.send(f"Loading {ext}...")
+        msg = await ctx.send(f"{self.bot.get_emoji(776255339716673566)} Loading {ext}...")
         try:
             self.bot.load_extension(f"cogs.{ext}")
-            await ctx.send(f"{ext} has been loaded.")
+            await msg.edit(content=f"{ext} has been loaded.")
         except commands.ExtensionNotFound:
-            await ctx.send(f"{ext} doesn't exist!")
+            await msg.edit(content=f"{ext} doesn't exist!")
         except commands.ExtensionFailed:
-            await ctx.send(f"{ext} failed to load! Check the log for details.")
+            await msg.edit(content=f"{ext} failed to load! Check the log for details.")
             self.bot.logger.exception(f"Failed to reload extension {ext}:")
 
     @commands.command()
