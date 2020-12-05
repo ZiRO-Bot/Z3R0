@@ -205,14 +205,16 @@ class ziBot(commands.Bot):
                 for guild in prefixes:
                     self.cache[guild] = {"prefixes": prefixes[guild]}
 
-                # Cache config
-                con = await conn.fetch("SELECT * FROM configs")
-                for x in con:
-                    self.cache[x["guild_id"]]["configs"] = {
-                        "send_error": x["send_error"],
-                        "msg_welcome": x["msg_welcome"],
-                        "msg_farewell": x["msg_farewell"],
-                    }
+    async def cache_config(self, conn, guild_id):
+        if "configs" not in self.cache[guild_id]:
+            con = await conn.fetch("SELECT * FROM configs WHERE guild_id=$1", guild_id)
+            x = con[0]
+            self.cache[guild_id]["configs"] = {
+                "send_error": x["send_error"],
+                "msg_welcome": x["msg_welcome"],
+                "msg_farewell": x["msg_farewell"],
+            }
+        
 
     def init_tagscript(self, blocks: list=None, member: discord.Member=None, guild: discord.Guild=None, context: commands.Context=None):
         if not blocks:
@@ -339,7 +341,9 @@ class ziBot(commands.Bot):
                 )
 
         if guild.id not in self.cache:
+            # since guild id not exist in self.cache because its just added we need to cache some data
             await self.add_guild_prefix(conn, guild.id, self.def_prefix)
+            await self.cache_config(conn, guild.id)
 
     async def on_guild_join(self, guild):
         conn = await self.pool.acquire()
@@ -361,9 +365,7 @@ class ziBot(commands.Bot):
         conn = await self.pool.acquire()
         for guild in self.guilds:
             await self.add_guild_info(conn, guild)
-            # await self.add_guild_id(conn, guild)
-            # if guild.id not in self.prefixes:
-            #     await self.add_guild_prefix(conn, guild.id, self.def_prefix)
+            await self.cache_config(conn, guild.id)
         await self.pool.release(conn)
 
     async def process_commands(self, message):
