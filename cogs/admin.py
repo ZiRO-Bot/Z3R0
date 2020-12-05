@@ -9,6 +9,18 @@ from .utils.embed_formatting import em_ctx_send_error, em_ctx_send_success
 from .utils.paginator import ZiMenu
 from discord.ext import commands, menus
 
+ch_types = {
+    "general": ["general", "Regular text channel"],
+    "voice": ["voice", "Voice channel"],
+    "greeting": ["greeting_ch", "Text channel for welcome/farewell messages"],
+    "purgatory": ["purge_ch", "Text channel for monitoring edited/deleted messages"],
+    "meme": ["meme_ch", "Text channel for meme commands"],
+    "anime": ["anime_ch", "Text channel for anime releases"],
+    "announcement": [
+        "announcement_ch",
+        "Text channel for announcements (for announce command)",
+    ],
+}
 
 class PrefixPageSource(menus.ListPageSource):
     def __init__(self, prefixes):
@@ -336,6 +348,100 @@ class Admin(commands.Cog):
     #         )
     #     if disabled:
     #         await em_ctx_send_success(ctx, f"`{', '.join(disabled)}` is now mods only!")
+
+    @commands.group()
+    @checks.is_mod()
+    async def channel(self, ctx):
+        """Manage server's channel."""
+        pass
+
+    @channel.command(alias=["type"])
+    async def types(self, ctx):
+        """Get channel types."""
+        e = discord.Embed(title="Channel Types")
+        for _type in ch_types:
+            e.add_field(name=_type, value=ch_types[_type][1], inline=False)
+        await ctx.send(embed=e)
+
+    @channel.command(
+        aliases=["+", "make"],
+        brief="Create a new channel.",
+        usage="(channel type) (channel name)",
+    )
+    async def create(self, ctx, _type, *name):
+        """Create a new channel."""
+        if not _type:
+            return
+        name = "-".join([*name])
+        if not name:
+            return
+        g = ctx.message.guild
+        if _type.lower() == "voice":
+            ch = await g.create_voice_channel(name)
+            e = discord.Embed(title=f"Voice Channel called `{name}` has been created!")
+        else:
+            if _type.lower() not in list(ch_types.keys()):
+                await ctx.send("Not valid channel type")
+                return
+            ch = await g.create_text_channel(name)
+            if _type.lower() == "general":
+                e = discord.Embed(
+                    title=f"Text Channel called `{ch.name}` has been created!"
+                )
+            else:
+                key = ch_types[_type.lower()][0]
+                value = ch.id
+
+                self.bot.c.execute(
+                    f"UPDATE servers SET {key} = ? WHERE id = ?",
+                    (int(value), str(g.id)),
+                )
+                self.bot.conn.commit()
+
+                e = discord.Embed(
+                    title=f"Text Channel for {_type.title()} "
+                    + f"called `{ch.name}` has been created!"
+                )
+
+        await ctx.send(embed=e)
+
+    @channel.command(name="set", usage="(channel type) (channel)")
+    async def ch_set(self, ctx, _type, ch: discord.TextChannel = None):
+        """Change channel type."""
+        # Check if _id is int
+        # try:
+        #     _id = int(_id)
+        # except ValueError:
+        #     await ctx.send(
+        #         f"Only numbers is allowed!\n**Example**: `{ctx.prefix}channel set 746649217543700551 general`"
+        #     )
+        #     return
+
+        if _type.lower() not in list(ch_types.keys()):
+            await ctx.send("Not valid channel type")
+            return
+        elif _type.lower() in ["general", "voice"]:
+            await em_ctx_send_error(ctx, f"You can't set channels to `{_type}`")
+            return
+
+        key = ch_types[_type.lower()][0]
+        value = ch.id
+
+        self.bot.c.execute(
+            f"UPDATE servers SET {key} = ? WHERE id = ?",
+            (int(value), str(ctx.guild.id)),
+        )
+        self.bot.conn.commit()
+
+        e = discord.Embed(title=f"``{ch.name}``'s type has been changed to ``{_type}``")
+        await ctx.send(embed=e)
+
+    @ch_set.error
+    async def ch_set_handler(self, ctx, error):
+        if isinstance(error, commands.BadArgument):
+            match = re.match(r"Channel \"[0-9]*\" not found.", str(error))
+            if match:
+                await em_ctx_send_error(ctx, "You can only set a text channel's type!")
 
 
 def setup(bot):
