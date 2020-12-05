@@ -257,7 +257,7 @@ class Info(commands.Cog):
     @commands.command(aliases=["bi", "about", "info", "uptime", "up"])
     async def botinfo(self, ctx):
         """Show bot information."""
-        bot_ver = "2.1.S"
+        bot_ver = "3.0.R"
         start = time.perf_counter()
         invite_link = discord.utils.oauth_url(
             self.bot.user.id,

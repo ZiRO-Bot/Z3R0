@@ -61,33 +61,28 @@ class Developer(commands.Cog):
         """Only bot master able to use this cogs."""
         return await ctx.bot.is_owner(ctx.author)
 
-    @commands.command()
-    async def get_prefix(self, ctx):
-        prefixes = await self.bot.get_raw_guild_prefixes(ctx.guild.id)
-        await ctx.send(prefixes)
-
-    @commands.command(aliases=["quit"], hidden=True)
+    @commands.command(aliases=["quit"])
     async def force_close(self, ctx):
         """Shutdown the bot."""
         await ctx.send("Shutting down...")
         await ctx.bot.logout()
 
-    @commands.command(usage="(extension)", hidden=True)
+    @commands.command(usage="(extension)")
     async def unload(self, ctx, ext):
         """Unload an extension."""
-        await ctx.send(f"Unloading {ext}...")
+        msg = await ctx.send(f"<a:loading:784607467920949321> Unloading {ext}...")
         try:
             self.bot.unload_extension(f"cogs.{ext}")
-            await ctx.send(f"{ext} has been unloaded.")
+            await msg.edit(content=f"{ext} has been unloaded.")
         except commands.ExtensionNotFound:
-            await ctx.send(f"{ext} doesn't exist!")
+            await msd.edit(content=f"{ext} doesn't exist!")
         except commands.ExtensionNotLoaded:
-            await ctx.send(f"{ext} is not loaded!")
+            await msg.edit(content=f"{ext} is not loaded!")
         except commands.ExtensionFailed:
-            await ctx.send(f"{ext} failed to unload! Check the log for details.")
+            await msg.edit(content=f"{ext} failed to unload! Check the log for details.")
             self.bot.logger.exception(f"Failed to reload extension {ext}:")
 
-    @commands.command(usage="[extension]", hidden=True)
+    @commands.command(usage="[extension]")
     async def reload(self, ctx, ext: str = None):
         """Reload an extension."""
         if not ext:
@@ -122,19 +117,19 @@ class Developer(commands.Cog):
             )
             await ctx.send(embed=embed)
             return
-        await ctx.send(f"Reloading {ext}...")
+        msg = await ctx.send(f"<a:loading:784607467920949321> Reloading {ext}...")
         try:
             self.bot.reload_extension(f"cogs.{ext}")
-            await ctx.send(f"{ext} has been reloaded.")
+            await msg.edit(content=f"{ext} has been reloaded.")
         except commands.ExtensionNotFound:
-            await ctx.send(f"{ext} doesn't exist!")
+            await msg.edit(content=f"{ext} doesn't exist!")
         except commands.ExtensionNotLoaded:
-            await ctx.send(f"{ext} is not loaded!")
+            await msg.edit(content=f"{ext} is not loaded!")
         except commands.ExtensionFailed:
-            await ctx.send(f"{ext} failed to reload! Check the log for details.")
+            await msg.edit(content=f"{ext} failed to reload! Check the log for details.")
             self.bot.logger.exception(f"Failed to reload extension {ext}:")
 
-    @commands.command(usage="(extension)", hidden=True)
+    @commands.command(usage="(extension)")
     async def load(self, ctx, ext):
         """Load an extension."""
         await ctx.send(f"Loading {ext}...")
@@ -147,7 +142,7 @@ class Developer(commands.Cog):
             await ctx.send(f"{ext} failed to load! Check the log for details.")
             self.bot.logger.exception(f"Failed to reload extension {ext}:")
 
-    @commands.command(hidden=True)
+    @commands.command()
     async def pull(self, ctx):
         """Update the bot from github."""
         await ctx.invoke(self.bot.get_command("sh"), command="git pull")
@@ -157,7 +152,7 @@ class Developer(commands.Cog):
         """Leave the server."""
         await ctx.message.guild.leave()
 
-    @commands.command(aliases=["sh"], usage="(shell command)", hidden=True)
+    @commands.command(aliases=["sh"], usage="(shell command)")
     async def shell(self, ctx, *, command: str):
         """Execute shell command from discord. **Use with caution**"""
         if "sudo" in command:
