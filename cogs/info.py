@@ -656,6 +656,32 @@ class Info(commands.Cog):
         e.set_image(url=member.avatar_url_as(size=1024))
         e.set_author(name=member, icon_url=member.avatar_url)
         await ctx.send(embed=e)
+    
+    @commands.command(aliases=["p"])
+    async def ping(self, ctx):
+        """Tell the ping of the bot to the discord servers."""
+        start = time.perf_counter()
+        e = discord.Embed(
+            title="Pong!",
+            timestamp=ctx.message.created_at,
+            colour=discord.Colour(0xFFFFF0),
+        )
+        e.add_field(name="<:zibot:785055470401749032> | Websocket", value=f"`{round(self.bot.latency*1000, 2)}` ms")
+        db_start = time.perf_counter()
+        async with ctx.db.acquire() as conn:
+            await conn.fetch("""SELECT * FROM guilds""")
+            db_end = time.perf_counter()
+        db_ping = (db_end - db_start) * 1000
+        e.add_field(name="<:psql:785055943209123900> | Database", value=f"`{round(db_ping, 2)}` ms")
+        e.set_footer(
+            text=f"Requested by {ctx.message.author.name}#{ctx.message.author.discriminator}"
+        )
+        msg = await ctx.send(embed=e)
+        end = time.perf_counter()
+        msg_ping = (end - start) * 1000
+        e.add_field(name="<a:typing:785053882664878100> | Typing", value=f"`{round(msg_ping, 2)}` ms")
+        await msg.edit(embed=e)
+
 
 
 def setup(bot):
