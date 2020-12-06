@@ -3,6 +3,35 @@ import discord
 from discord.ext import menus
 
 
+class FunctionPageSource(menus.PageSource):
+    """
+    PageSource for function, useful for `>anime search|info` since it's not returning list
+    """
+    def __init__(self, ctx, per_page: int=1):
+        self.per_page = per_page
+        self.cache = {}
+        self.ctx = ctx
+
+    async def prepare(self):
+        """Get first page from function and probably cache it and get pagination info such as last page."""
+        self.last_page = None
+        raise NotImplementedError
+    
+    def is_paginating(self):
+        if not self.last_page:
+            raise NotImplementedError
+        return self.last_page > self.per_page
+
+    def get_max_pages(self):
+        if not self.last_page:
+            raise NotImplementedError
+        return self.last_page
+    
+    async def get_page(self, page_number):
+        """Get the rest of the page from the function."""
+        raise NotImplementedError
+
+
 class ZiMenu(menus.MenuPages):
     def __init__(self, source, init_msg=None, check_embeds=True, ping=False):
         super().__init__(source=source, check_embeds=check_embeds)

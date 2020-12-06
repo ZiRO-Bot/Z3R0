@@ -6,6 +6,7 @@ import time
 import sys
 
 from .utils.paginator import ZiMenu
+from .utils.formatting import realtime
 from discord.ext import commands, menus
 from asyncio.subprocess import PIPE, STDOUT
 
@@ -88,7 +89,7 @@ class Developer(commands.Cog):
         """Reload an extension."""
         if not ext:
             reload_start = time.time()
-            exts = self.bot.get_cogs()
+            exts = list(self.bot.extensions.keys())
             reloaded = []
             error = 0
             for ext in exts:

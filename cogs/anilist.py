@@ -10,7 +10,7 @@ import time
 
 from .errors.anilist import NameNotFound, NameTypeNotFound, IdNotFound
 from .utils.formatting import hformat, realtime
-from .utils.paginator import ZiMenu
+from .utils.paginator import ZiMenu, FunctionPageSource
 from .utils.api import anilist
 from .utils.api.anilist_query import *
 from discord.ext import tasks, commands, menus
@@ -69,19 +69,17 @@ def filter_image(channel, is_adult: bool, image_url: str, _type: str = "cover"):
     return result
 
 
-class AniSearchPage(menus.PageSource):
+class AniSearchPage(FunctionPageSource):
     """
     Workaround to make `>anime search` work with ext.menus
     Might have better way to do this, but for now this will do.
     """
 
     def __init__(self, ctx, keyword, *, _type=None, api=None):
-        self.ctx = ctx
+        super().__init__(ctx, per_page=1)
         self._type = _type
         self.api = api or anilist.AniList()
-        self.per_page = 1
         self.keyword = keyword
-        self.cache = {}
 
     def format_anime_info(self, menu, data, is_paged=False) -> discord.Embed:
         """
@@ -198,12 +196,6 @@ class AniSearchPage(menus.PageSource):
             self.cache["1"] = q
             self.is_paged = False
             self.last_page = 1
-
-    def is_paginating(self):
-        return self.last_page > self.per_page
-
-    def get_max_pages(self):
-        return self.last_page
 
     async def get_page(self, page_number):
         # Since the website index don't start from 0 lets just add 1 to page_number
