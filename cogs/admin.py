@@ -8,6 +8,7 @@ import re
 from .utils.embed_formatting import em_ctx_send_error, em_ctx_send_success
 from .utils.paginator import ZiMenu
 from discord.ext import commands, menus
+from typing import Optional
 
 ch_types = {
     "general": ["general", "Regular text channel"],
@@ -21,6 +22,27 @@ ch_types = {
         "Text channel for announcements (for announce command)",
     ],
 }
+
+class EmojiPageSource(menus.ListPageSource):
+    def __init__(self, emojis):
+        super().__init__(entries=emojis, per_page=6)
+        self.emojis = emojis
+
+    async def format_page(self, menu, emojis):
+        desc = [f"{self.emojis.index(emoji) + 1}. {emoji}" for emoji in emojis]
+        e = discord.Embed(
+            title="Emojis", 
+            colour=discord.Colour(0xFFFFF0),
+            description="\n".join(desc),
+        )
+        maximum = self.get_max_pages()
+        e.set_footer(
+            text="{0} emojis{1}".format(
+                len(self.emojis),
+                f" - Page {menu.current_page + 1}/{maximum}" if maximum > 1 else "",
+            )
+        )
+        return e
 
 class PrefixPageSource(menus.ListPageSource):
     def __init__(self, prefixes):
@@ -442,6 +464,87 @@ class Admin(commands.Cog):
             match = re.match(r"Channel \"[0-9]*\" not found.", str(error))
             if match:
                 await em_ctx_send_error(ctx, "You can only set a text channel's type!")
+
+    @commands.group(aliases=["emote", "emo"])
+    async def emoji(self, ctx):
+        """Managed server's emoji."""
+        pass
+
+    @emoji.command(name="list")
+    async def emoji_list(self, ctx):
+        """List all emoji in the server."""
+        emojis = [str(emoji) for emoji in ctx.guild.emojis]
+        menus = ZiMenu(EmojiPageSource(emojis))
+        await menus.start(ctx)
+
+    @emoji.command(name="add", aliases=["+"], usage="(name)")
+    @checks.has_guild_permissions(manage_emojis=True)
+    async def emoji_add(
+        self, ctx, name: Optional[str], emote_pic: Optional[discord.PartialEmoji]
+    ):
+        """Add emoji to a server."""
+        # Get emote_pic from an emote
+        if emote_pic and isinstance(emote_pic, discord.PartialEmoji):
+            async with self.bot.session.get(str(emote_pic.url)) as f:
+                emote_pic = await f.read()
+        # Get emote_pic from embeds
+        elif ctx.message.embeds:
+            data = ctx.message.embeds[0]
+            if data.type == "image":
+                async with self.bot.session.get(data.url) as f:
+                    emote_pic = await f.read()
+            else:
+                return await em_ctx_send_error(
+                    ctx, "Emoji only supports `.png`, `.jpg`, and `.gif` filetype"
+                )
+        else:
+            emote_pic = None
+
+        # Check if it has attachments
+        if ctx.message.attachments and not emote_pic:
+            for attachment in ctx.message.attachments:
+                emote_pic = await attachment.read()
+
+        # This look ugly but sure why not
+        if not emote_pic:
+            await ctx.send("You need to attach an image of the emoji!")
+            return
+        if not name:
+            await ctx.send("You need to specify a name for the emoji!")
+            return
+        if len(name) < 2:
+            await ctx.send(
+                "The name of the emoji needs to be at least 2 characters long!"
+            )
+            return
+
+        # Try to add new emoji, if fails send error
+        try:
+            added_emote = await ctx.guild.create_custom_emoji(
+                name=name, image=emote_pic
+            )
+        except Forbidden:
+            await em_ctx_send_error(
+                ctx, "Bot need **Manage Emojis** permission for this command!"
+            )
+            return
+        except discord.InvalidArgument as err:
+            if err == "Unsupported image type given":
+                return await em_ctx_send_error(
+                    ctx, "Emoji only supports `.png`, `.jpg`, and `.gif` filetype"
+                )
+
+        # Just embed stuff to give user info that the bot successfully added an emoji
+        embed = discord.Embed(
+            title="New emote has been added!",
+            description=f"{str(added_emote)} `:{added_emote.name}:`",
+            color=discord.Colour(0xFFFFF0),
+            timestamp=ctx.message.created_at,
+        )
+        embed.set_footer(
+            text=f"Added by {ctx.message.author.name}#{ctx.message.author.discriminator}"
+        )
+        await ctx.send(embed=embed)
 
 
 def setup(bot):
