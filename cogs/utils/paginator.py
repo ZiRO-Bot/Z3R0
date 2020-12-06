@@ -1,3 +1,4 @@
+import asyncio
 import discord
 
 from discord.ext import menus
@@ -33,10 +34,16 @@ class FunctionPageSource(menus.PageSource):
 
 
 class ZiMenu(menus.MenuPages):
-    def __init__(self, source, init_msg=None, check_embeds=True, ping=False):
+    def __init__(self, source, init_msg=None, check_embeds=True, ping=False, loop=None):
         super().__init__(source=source, check_embeds=check_embeds)
-        self.init_msg = init_msg
         self.ping = ping
+        self.init_msg = init_msg
+
+    async def start(self, ctx):
+        if not self.init_msg:
+            e = discord.Embed(title=f"<a:loading:776255339716673566> Loading...", colour=discord.Colour.rounded())
+            self.init_msg = await ctx.channel.send(embed=e)
+        await super().start(ctx)
 
     async def send_initial_message(self, ctx, channel):
         page = await self._source.get_page(0)
@@ -44,7 +51,6 @@ class ZiMenu(menus.MenuPages):
         if self.init_msg:
             await self.init_msg.edit(**kwargs)
             return self.init_msg
-        return await channel.send(**kwargs)
     
     async def update(self, payload):
         if self._can_remove_reactions:

@@ -425,9 +425,7 @@ class AniList(commands.Cog):
             return
 
         try:
-            e = discord.Embed(title=f"{self.bot.get_emoji(776255339716673566)} Loading...", colour=discord.Colour.rounded())
-            init_msg = await ctx.send(embed=e)
-            menu = ZiMenu(AniSearchPage(ctx, anime, api=self.anilist, _type=_format), init_msg=init_msg)
+            menu = ZiMenu(AniSearchPage(ctx, anime, api=self.anilist, _type=_format))
             await menu.start(ctx)
         except anilist.AnimeNotFound:
             embed = discord.Embed(

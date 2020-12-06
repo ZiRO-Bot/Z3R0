@@ -383,16 +383,25 @@ class Utility(commands.Cog):
             e.add_field(name="License", value=info["license"] or "`Not specified.`")
             return await ctx.reply(embed=e)
 
-    @commands.command(aliases=["searx", "g", "google"])
+    @commands.command(aliases=["searx", "g", "google"], usage="(keyword)")
     async def search(self, ctx, *, keyword):
         """Search the web using searx."""
         if not ctx.channel.is_nsfw():
             return await ctx.send(
                 "This command only available in NSFW chat since safe search is not available yet."
             )
-        results = await self.searx.get_results(keyword)
-        menu = ZiMenu(source=SearxResultsPageSource(ctx, results))
+        e = discord.Embed(
+            title=f"<a:loading:776255339716673566> Searching `{keyword}`...",
+            colour=discord.Colour.dark_gray(),
+        )
+        msg = await ctx.send(embed=e)
+        menu = ZiMenu(source=SearxResultsPageSource(ctx, await self.searx.get_results(keyword)), init_msg=msg)
         await menu.start(ctx)
+    
+    @commands.command(aliases=["say"], usage="(message)")
+    async def echo(self, ctx, *, message):
+        """Make ziBot send a message."""
+        await ctx.send(message)
 
 
 def setup(bot):
