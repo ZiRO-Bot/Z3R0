@@ -64,6 +64,17 @@ class PokedexMenu(menus.Menu):
         self.current_page = page
         return await self.message.edit(embed=e)
     
+    async def update(self, payload):
+        if self._can_remove_reactions:
+            if payload.event_type == 'REACTION_ADD':
+                await self.bot.http.remove_reaction(
+                    payload.channel_id, payload.message_id,
+                    discord.Message._emoji_reaction(payload.emoji), payload.member.id
+                )
+            elif payload.event_type == 'REACTION_REMOVE':
+                return
+        await super().update(payload)
+    
     @menus.button('🏠', position=menus.First(0))
     async def go_to_home(self, payload):
         # if self.current_page != "home":
