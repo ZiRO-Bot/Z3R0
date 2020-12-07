@@ -10,6 +10,7 @@ import textwrap
 import time
 
 from .errors.weather import CityNotFound, PlaceParamEmpty
+from .utils.api.pokeapi import PokeAPI
 from .utils.formatting import bar_make, realtime, general_time
 from discord.ext import commands
 from pytz import timezone
@@ -47,6 +48,7 @@ async def get_weather_data(key, *place: str, _type="city"):
 class Info(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        self.pokeapi = PokeAPI(self.bot.session)
         try:
             self.weather_apikey = self.bot.config.openweather_apikey
         except AttributeError:
@@ -682,6 +684,26 @@ class Info(commands.Cog):
         e.add_field(name="<a:typing:785053882664878100> | Typing", value=f"`{round(msg_ping, 2)}` ms")
         await msg.edit(embed=e)
 
+    @commands.command()
+    async def pokedex(self, ctx, pokemon):
+        """Get pokedex entry of a pokemon."""
+        msg = await ctx.reply(embed=discord.Embed(title="<a:loading:776255339716673566> Getting pokemon info...", colour=discord.Colour.red()))
+        req = await self.pokeapi.get_pokemon(pokemon=pokemon)
+        if "Not Found" in req:
+            e = discord.Embed(title="404 Not Found", colour=discord.Colour.red())
+        else:
+            types = " ".join([f"`{x.upper()}`" for x in req["types"]])
+            height = round(req["height"] * 0.32808)
+            weight = round((req["weight"]/10) / 0.45359237, 1)
+            e = discord.Embed(title=f"#{req['id']} - {req['name'].title()}", description=req['text'], colour=discord.Colour.red())
+            e.add_field(name="Height", value=f"{height}'")
+            e.add_field(name="Weight", value=f"{weight} lbs")
+            e.add_field(name=f"Type{'s' if len(types) > 1 else ''}", value=types)
+            try:
+                e.set_thumbnail(url=req['sprites']['frontDefault'])
+            except KeyError:
+                pass
+        await msg.edit(embed=e)
 
 
 def setup(bot):
