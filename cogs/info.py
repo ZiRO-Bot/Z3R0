@@ -12,11 +12,67 @@ import time
 from .errors.weather import CityNotFound, PlaceParamEmpty
 from .utils.api.pokeapi import PokeAPI
 from .utils.formatting import bar_make, realtime, general_time
-from discord.ext import commands
+from discord.ext import commands, menus
 from pytz import timezone
 
 egs = epicstore_api.EpicGamesStoreAPI()
 session = aiohttp.ClientSession()
+
+
+class PokedexMenu(menus.Menu):
+    def __init__(self, data, message):
+        super().__init__(timeout=30.0, delete_message_after=False)
+        self.message = message
+        self.data = data
+        self.status = 200 if "Not Found" not in self.data else 404
+        self.current_page = None
+
+    async def start(self, ctx, *, channel=None, wait=False):
+        await super().start(ctx)
+        if self.status == 200:
+            await self.show_page("home")
+            return
+            # return await self.message.edit(await self.show_page("home"))
+        e = discord.Embed(title="404 Not Found", colour=discord.Colour.red())
+        return await self.message.edit(embed=e)
+
+    def should_add_reactions(self):
+        return self.status == 200
+
+    def format(self, data):
+        e = discord.Embed(title=f"#{data['id']} - {data['name'].title()}", description=data['text'], colour=discord.Colour.red())
+        try:
+            e.set_thumbnail(url=data['sprites']['frontDefault'])
+        except KeyError:
+            pass
+        return e
+
+    async def show_page(self, page):
+        if self.current_page == page:
+            return
+        e = self.format(self.data)
+        data = self.data
+        if page == "home":
+            types = " ".join([f"`{x.upper()}`" for x in data["types"]])
+            height = round(data["height"] * 0.32808)
+            weight = round((data["weight"]/10) / 0.45359237, 1)
+            e.add_field(name="Height", value=f"{height}'")
+            e.add_field(name="Weight", value=f"{weight} lbs")
+            e.add_field(name=f"Type{'s' if len(types) > 1 else ''}", value=types)
+        elif page == "stats":
+            e.add_field(name="HP", value="0")
+        self.current_page = page
+        return await self.message.edit(embed=e)
+    
+    @menus.button('🏠', position=menus.First(0))
+    async def go_to_home(self, payload):
+        # if self.current_page != "home":
+        return await self.show_page("home")
+    
+    @menus.button('📋', position=menus.First(1))
+    async def go_to_stats(self, payload):
+        # if self.current_page != "stats":
+        return await self.show_page("stats")
 
 
 def temperature(temp, unit: str, number_only=False):
@@ -689,21 +745,23 @@ class Info(commands.Cog):
         """Get pokedex entry of a pokemon."""
         msg = await ctx.reply(embed=discord.Embed(title="<a:loading:776255339716673566> Getting pokemon info...", colour=discord.Colour.red()))
         req = await self.pokeapi.get_pokemon(pokemon=pokemon)
-        if "Not Found" in req:
-            e = discord.Embed(title="404 Not Found", colour=discord.Colour.red())
-        else:
-            types = " ".join([f"`{x.upper()}`" for x in req["types"]])
-            height = round(req["height"] * 0.32808)
-            weight = round((req["weight"]/10) / 0.45359237, 1)
-            e = discord.Embed(title=f"#{req['id']} - {req['name'].title()}", description=req['text'], colour=discord.Colour.red())
-            e.add_field(name="Height", value=f"{height}'")
-            e.add_field(name="Weight", value=f"{weight} lbs")
-            e.add_field(name=f"Type{'s' if len(types) > 1 else ''}", value=types)
-            try:
-                e.set_thumbnail(url=req['sprites']['frontDefault'])
-            except KeyError:
-                pass
-        await msg.edit(embed=e)
+        menus = PokedexMenu(req, msg)
+        await menus.start(ctx)
+        # if "Not Found" in req:
+        #     e = discord.Embed(title="404 Not Found", colour=discord.Colour.red())
+        # else:
+        #     types = " ".join([f"`{x.upper()}`" for x in req["types"]])
+        #     height = round(req["height"] * 0.32808)
+        #     weight = round((req["weight"]/10) / 0.45359237, 1)
+        #     e = discord.Embed(title=f"#{req['id']} - {req['name'].title()}", description=req['text'], colour=discord.Colour.red())
+        #     e.add_field(name="Height", value=f"{height}'")
+        #     e.add_field(name="Weight", value=f"{weight} lbs")
+        #     e.add_field(name=f"Type{'s' if len(types) > 1 else ''}", value=types)
+        #     try:
+        #         e.set_thumbnail(url=req['sprites']['frontDefault'])
+        #     except KeyError:
+        #         pass
+        # await msg.edit(embed=e)
 
 
 def setup(bot):
