@@ -206,6 +206,15 @@ class Developer(commands.Cog):
         )
         menus = ZiMenu(TextWrapPageSource("```", "sh", content))
         return await menus.start(ctx)
+    
+    @commands.command()
+    async def language(self, ctx, language: str="en_US"):
+        self.bot.i18n.change_lang(language)
+        return await ctx.send(language)
+    
+    @commands.command()
+    async def languages(self, ctx):
+        return await ctx.send(self.bot.i18n.languages)
 
 
 def setup(bot):

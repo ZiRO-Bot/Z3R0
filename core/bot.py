@@ -17,6 +17,7 @@ from cogs.utils.tse_blocks import DiscordGuildBlock, DiscordMemberBlock
 from discord.errors import NotFound
 from discord.ext import commands, tasks
 from TagScriptEngine import Interpreter, block
+from zi_i18n import I18n
 
 import core.config as config
 
@@ -76,6 +77,8 @@ class ziBot(commands.Bot):
         self.blocks = [block.RandomBlock(), block.StrictVariableGetterBlock()]
 
         self.start_time = datetime.datetime.utcnow()
+
+        self.i18n = I18n()
 
         # Init database
         self.conn = sqlite3.connect("data/database.db")
