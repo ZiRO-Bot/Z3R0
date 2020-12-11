@@ -368,7 +368,7 @@ class Utility(commands.Cog):
             )
         _ = self.bot.i18n.translate
         e = discord.Embed(
-            title=_("bot.utility.searx").translate.format(keyword=keyword),
+            title=_("bot.utility.searx").format(keyword=keyword),
             colour=discord.Colour.dark_gray(),
         )
         msg = await ctx.send(embed=e)
