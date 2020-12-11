@@ -1,6 +1,7 @@
 import asyncio
 import asyncpg
 import aiohttp
+import builtins
 import core.context as context
 import copy
 import datetime
@@ -79,6 +80,8 @@ class ziBot(commands.Bot):
         self.start_time = datetime.datetime.utcnow()
 
         self.i18n = I18n()
+
+        builtins._ = self.i18n.translate
 
         # Init database
         self.conn = sqlite3.connect("data/database.db")
@@ -409,7 +412,7 @@ class ziBot(commands.Bot):
             prefixes.pop(0)
             prefixes = ", ".join([f"`{x}`" for x in prefixes])
             embed = discord.Embed(
-                description=f"My prefixes are: {prefixes} or {self.user.mention}",
+                description=_("bot.prefixes").format(prefixes, self.user.mention),
                 colour=discord.Colour.rounded(),
             )
             await message.reply(embed=embed)

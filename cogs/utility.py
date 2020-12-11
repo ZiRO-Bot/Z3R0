@@ -366,7 +366,6 @@ class Utility(commands.Cog):
             return await ctx.send(
                 "This command only available in NSFW chat since safe search is not available yet."
             )
-        _ = self.bot.i18n.translate
         e = discord.Embed(
             title=_("bot.utility.searx").format(keyword=keyword),
             colour=discord.Colour.dark_gray(),
