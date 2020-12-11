@@ -208,7 +208,9 @@ class Developer(commands.Cog):
         return await menus.start(ctx)
     
     @commands.command()
-    async def language(self, ctx, language: str="en_US"):
+    async def language(self, ctx, language: str=None):
+        if not language:
+            return await ctx.send(self.bot.i18n.lang)
         self.bot.i18n.change_lang(language)
         return await ctx.send(language)
     
