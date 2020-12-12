@@ -73,11 +73,18 @@ class ZiReplyMenu(ZiMenu):
     def __init__(self, source, ping=False):
         self.ping = ping
         super().__init__(source=source, check_embeds=True)
+    
+    async def start(self, ctx):
+        if not self.init_msg:
+            e = discord.Embed(title=f"<a:loading:776255339716673566> Loading...", colour=discord.Colour.rounded())
+            self.init_msg = await ctx.reply(embed=e)
+        await super().start(ctx)
 
     async def send_initial_message(self, ctx, channel):
         page = await self._source.get_page(0)
         kwargs = await self._get_kwargs_from_page(page)
-        return await ctx.reply(**kwargs)
+        await self.init_msg.edit(**kwargs)
+        return self.init_msg
 
     async def _get_kwargs_from_page(self, page):
         no_ping = {'mention_author': False if not self.ping else True}

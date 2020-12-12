@@ -216,7 +216,8 @@ class Developer(commands.Cog):
     
     @commands.command()
     async def languages(self, ctx):
-        return await ctx.send(self.bot.i18n.languages)
+        languages = [f"`{x[:-8]}`" for x in self.bot.i18n.languages]
+        return await ctx.send(", ".join(languages))
 
 
 def setup(bot):

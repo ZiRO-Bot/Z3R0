@@ -42,6 +42,18 @@ postgresql = "postgresql://username:password!@hostname/database"
 ```
 - Launch the bot with ```python3 main.py```
 
+## Translation
+All translation file located in `locale/` directory,
+
+ziBot uses [zi-i18n](https://github.com/ZiRO-Bot/zi-i18n) as its Internationalization system.
+
+Example:
+```python
+# Specification/Formatting: <!bot[.cogs_name].[translation_name] "Translated stuff goes here">
+<!bot.utility.searx "Mencari `{keyword}`">
+# Output: Mencari `{keyword}`
+```
+
 ## TODOs
 [Click here](https://github.com/null2264/ziBot/projects) to see all the plan i have for this project.
 
