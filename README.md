@@ -49,7 +49,11 @@ ziBot uses [zi-i18n](https://github.com/ZiRO-Bot/zi-i18n) as its Internationaliz
 
 Example:
 ```python
-# Specification/Formatting: <!bot[.cogs_name].[translation_name] "Translated stuff goes here">
+# File Name: [lang (ex: en_US)].zi.lang
+# Specification/Formatting: 
+# <!bot[.cogs_name].[translation_name] "Translated stuff goes here">
+
+# File Name: id_ID.zi.lang
 <!bot.utility.searx "Mencari `{keyword}`">
 # Output: Mencari `{keyword}`
 ```
