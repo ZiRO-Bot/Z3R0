@@ -51,10 +51,10 @@ Example:
 ```python
 # File Name: [lang (ex: en_US)].zi.lang
 # Specification/Formatting: 
-# <!bot[.cogs_name].[translation_name] "Translated stuff goes here">
+# <!bot[.cogs_name].[translation_name]: "Translated stuff goes here">
 
 # File Name: id_ID.zi.lang
-<!bot.utility.searx "Mencari `{keyword}`">
+<!bot.utility.searx: "Mencari `{keyword}`">
 # Output: Mencari `{keyword}`
 ```
 
