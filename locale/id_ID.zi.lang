@@ -1,2 +1,3 @@
 <!bot.prefixes: "Prefix saya adalah: {} atau {}">
 <!bot.utility.searx: "<a:loading:776255339716673566> Mencari `{keyword}`...">
+<%bot.fun.findsleep: {"zero": "{} -> anda tertidur selama {} jam - {}", "one": "{} -> anda tertidur selama {} jam - {}", "many": "{} -> anda tertidur selama {} jam - {}"}>

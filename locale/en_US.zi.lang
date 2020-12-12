@@ -1,2 +1,3 @@
 <!bot.prefixes: "My prefixes are: {} or {}">
 <!bot.utility.searx: "<a:loading:776255339716673566> Searching `{keyword}`...">
+<%bot.fun.findsleep: {"zero": "{} -> your sleep is {} hours long - {}", "one": "{} -> your sleep is {} hour long - {}", "many": "{} -> your sleep is {} hours long - {}"}>

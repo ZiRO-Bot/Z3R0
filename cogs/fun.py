@@ -267,7 +267,7 @@ class Fun(commands.Cog):
             color=discord.Colour(0x38665E),
         )
         e.set_author(
-            name=f"{ctx.message.author.name}#{ctx.message.author.discriminator}",
+            name=str(ctx.author),
             icon_url=ctx.message.author.avatar_url,
         )
         await ctx.send(embed=e)
@@ -297,19 +297,18 @@ class Fun(commands.Cog):
 
         if sleepHrs == 0:
             await ctx.send(
-                f"{ctx.author.mention} -> your sleep is 0 hours long - nice try \:D"
+                _("bot.fun.findsleep", count = sleepHrs).format(ctx.author.mention, sleepHrs, "nice try \:D")
+                # f"{ctx.author.mention} -> your sleep is 0 hours long - nice try \:D"
             )
         elif sleepHrs <= 5:
-            if sleepHrs == 1:
-                s = ""
-            else:
-                s = "s"
             await ctx.send(
-                f"{ctx.author.mention} -> your sleep is {sleepHrs} hour{s} long - {lessSleepMsg[randint(0, len(lessSleepMsg) - 1)]}"
+                _("bot.fun.findsleep", count = sleepHrs).format(ctx.author.mention, sleepHrs, lessSleepMsg[randint(0, len(lessSleepMsg) - 1)])
+                # f"{ctx.author.mention} -> your sleep is {sleepHrs} hour{s} long - {lessSleepMsg[randint(0, len(lessSleepMsg) - 1)]}"
             )
         else:
             await ctx.send(
-                f"{ctx.author.mention} -> your sleep is {sleepHrs} hours long - {moreSleepMsg[randint(0, len(moreSleepMsg) - 1)]}"
+                _("bot.fun.findsleep", count = sleepHrs).format(ctx.author.mention, sleepHrs, moreSleepMsg[randint(0, len(moreSleepMsg) - 1)])
+                # f"{ctx.author.mention} -> your sleep is {sleephrs} hours long - {moresleepmsg[randint(0, len(moresleepmsg) - 1)]}"
             )
 
     @commands.command()
