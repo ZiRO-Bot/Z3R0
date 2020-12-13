@@ -1,6 +1,7 @@
 import asyncio
 import aiohttp
 import json
+import re
 
 API_URL = "https://pokeapi.co/api/v2/"
 
@@ -57,9 +58,11 @@ class PokeAPI:
         endpoint = "pokemon"
         try:
             poke_info = json.loads(await self.request(endpoint=endpoint, query=pokemon))
-            entry = await self.get_pokemon_text(id=poke_info["id"], prefered_ver="ruby")
+            species = re.compile(r"http[s]?://pokeapi\.co/api/v2/pokemon-species/(\d*)[/]?")
+            species_id = species.findall(poke_info["species"]["url"])
+            entry = await self.get_pokemon_text(id=species_id[0], prefered_ver="ruby")
             poke_info = {
-                "id": f"{poke_info['id']:0>3}",
+                "id": f"{species_id[0]:0>3}",
                 "name": poke_info["name"],
                 "sprites": {"frontDefault": poke_info["sprites"]["front_default"]},
                 "text": entry.replace("\n", " ").replace("\f", " ") if entry != "Not Found" else "",
