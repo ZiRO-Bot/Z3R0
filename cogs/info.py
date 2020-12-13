@@ -755,7 +755,7 @@ class Info(commands.Cog):
     @commands.command()
     async def pokedex(self, ctx, pokemon):
         """Get pokedex entry of a pokemon."""
-        msg = await ctx.reply(embed=discord.Embed(title="<a:loading:776255339716673566> Getting pokemon info...", colour=discord.Colour.red()))
+        msg = await ctx.reply(embed=discord.Embed(title=str(_("bot.info.pokedex")), colour=discord.Colour.red()))
         req = await self.pokeapi.get_pokemon(pokemon=pokemon)
         menus = PokedexMenu(req, msg)
         await menus.start(ctx)
