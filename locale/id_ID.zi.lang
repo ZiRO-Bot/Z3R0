@@ -1,8 +1,9 @@
 <!bot.prefixes: "Prefix saya adalah: {} atau {}">
 <!bot.requestedBy: "Diminta oleh {}">
+<!bot.loading: "<a:loading:776255339716673566> Memuat...">
 <!bot.utility.searx: "<a:loading:776255339716673566> Mencari `{keyword}`...">
 <!bot.info.pingWebsocket: "<:zibot:785055470401749032> | Websocket">
-<!bot.info.pingI18n: "🔖 | i18n">
+<!bot.info.pingI18n: "<:i18n:787520869631131659> | Terjemahan">
 <!bot.info.pingDatabase: "<:psql:785055943209123900> | Basis Data">
 <!bot.info.pingTyping: "<a:typing:785053882664878100> | Menulis">
 <%bot.fun.findsleep: {"zero": "{} -> anda tertidur selama {} jam - {}", "one": "{} -> anda tertidur selama {} jam - {}", "many": "{} -> anda tertidur selama {} jam - {}"}>

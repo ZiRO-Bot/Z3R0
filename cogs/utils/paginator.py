@@ -41,7 +41,7 @@ class ZiMenu(menus.MenuPages):
 
     async def start(self, ctx):
         if not self.init_msg:
-            e = discord.Embed(title=f"<a:loading:776255339716673566> Loading...", colour=discord.Colour.rounded())
+            e = discord.Embed(title=str(_("bot.loading")), colour=discord.Colour.rounded())
             self.init_msg = await ctx.channel.send(embed=e)
         await super().start(ctx)
 
@@ -76,7 +76,7 @@ class ZiReplyMenu(ZiMenu):
     
     async def start(self, ctx):
         if not self.init_msg:
-            e = discord.Embed(title=f"<a:loading:776255339716673566> Loading...", colour=discord.Colour.rounded())
+            e = discord.Embed(title=str(_("bot.loading")), colour=discord.Colour.rounded())
             self.init_msg = await ctx.reply(embed=e)
         await super().start(ctx)
 
