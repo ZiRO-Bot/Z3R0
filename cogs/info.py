@@ -735,21 +735,21 @@ class Info(commands.Cog):
             timestamp=ctx.message.created_at,
             colour=discord.Colour(0xFFFFF0),
         )
-        e.add_field(name="<:zibot:785055470401749032> | Websocket", value=f"`{round(self.bot.latency*1000, 2)}` ms")
-        e.add_field(name="🔖 | i18n", value=f"`{round(self.bot.i18n.latency*1000, 2)}` ms")
+        e.add_field(name=_("bot.info.pingWebsocket"), value=f"`{round(self.bot.latency*1000, 2)}` ms")
+        e.add_field(name=_("bot.info.pingI18n"), value=f"`{round(self.bot.i18n.latency*1000, 2)}` ms")
         db_start = time.perf_counter()
         async with ctx.db.acquire() as conn:
             await conn.fetch("""SELECT * FROM guilds""")
             db_end = time.perf_counter()
         db_ping = (db_end - db_start) * 1000
-        e.add_field(name="<:psql:785055943209123900> | Database", value=f"`{round(db_ping, 2)}` ms")
+        e.add_field(name=_("bot.info.pingDatabase"), value=f"`{round(db_ping, 2)}` ms")
         e.set_footer(
-            text=f"Requested by {ctx.message.author.name}#{ctx.message.author.discriminator}"
+            text=_("bot.requestedBy").format(ctx.author)
         )
         msg = await ctx.send(embed=e)
         end = time.perf_counter()
         msg_ping = (end - start) * 1000
-        e.add_field(name="<a:typing:785053882664878100> | Typing", value=f"`{round(msg_ping, 2)}` ms")
+        e.add_field(name=_("bot.info.pingTyping"), value=f"`{round(msg_ping, 2)}` ms")
         await msg.edit(embed=e)
 
     @commands.command()

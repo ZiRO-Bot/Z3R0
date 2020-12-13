@@ -280,24 +280,24 @@ class Fun(commands.Cog):
             ctx.command.reset_cooldown(ctx)
 
         lessSleepMsg = [
-            "gn, insomniac!",
-            "counting sheep didn't work? try counting chloroform vials!",
-            "try a glass of water",
-            "some decaf coffee might do the trick!",
+            _("bot.fun.findsleepMsg1"),
+            _("bot.fun.findsleepMsg2"),
+            _("bot.fun.findsleepMsg3"),
+            _("bot.fun.findsleepMsg4"),
         ]
 
         moreSleepMsg = [
-            "waaakeee uuuppp!",
-            "are they dead or asleep? I can't tell.",
-            "wake up, muffin head",
-            "psst... coffeeee \\:D",
+            _("bot.fun.findsleepMsg5"),
+            _("bot.fun.findsleepMsg6"),
+            _("bot.fun.findsleepMsg7"),
+            _("bot.fun.findsleepMsg8"),
         ]
 
         sleepHrs = randint(0, 24)
 
         if sleepHrs == 0:
             await ctx.send(
-                _("bot.fun.findsleep", count = sleepHrs).format(ctx.author.mention, sleepHrs, "nice try \:D")
+                _("bot.fun.findsleep", count = sleepHrs).format(ctx.author.mention, sleepHrs, _("bot.fun.findsleepMsg0"))
                 # f"{ctx.author.mention} -> your sleep is 0 hours long - nice try \:D"
             )
         elif sleepHrs <= 5:
