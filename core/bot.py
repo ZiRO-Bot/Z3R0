@@ -79,7 +79,7 @@ class ziBot(commands.Bot):
 
         self.start_time = datetime.datetime.utcnow()
 
-        self.i18n = I18n()
+        self.i18n = I18n("locale", "en_US", False)
 
         builtins._ = self.i18n.translate
 

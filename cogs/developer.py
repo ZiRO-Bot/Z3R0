@@ -211,7 +211,7 @@ class Developer(commands.Cog):
     async def language(self, ctx, language: str=None):
         if not language:
             return await ctx.send(self.bot.i18n.lang)
-        self.bot.i18n.change_lang(language)
+        self.bot.i18n.change_lang(language, True)
         return await ctx.send(language)
     
     @commands.command()
