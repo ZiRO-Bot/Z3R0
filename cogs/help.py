@@ -24,7 +24,7 @@ class BotHelpPageSources(menus.ListPageSource):
         return ", ".join([f"`{c.qualified_name}`" for c in commands])
 
     def format_page(self, menu, cogs):
-        e = discord.Embed(title="Categories")
+        e = discord.Embed(title=str(_("bot.help.categories")))
         print(cogs)
         for cog in cogs:
             commands = self.commands.get(cog)

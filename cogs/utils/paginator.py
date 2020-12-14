@@ -77,7 +77,7 @@ class ZiReplyMenu(ZiMenu):
     async def start(self, ctx):
         if not self.init_msg:
             e = discord.Embed(title=str(_("bot.loading")), colour=discord.Colour.rounded())
-            self.init_msg = await ctx.reply(embed=e)
+            self.init_msg = await ctx.reply(embed=e, mention_author=False if not self.ping else True)
         await super().start(ctx)
 
     async def send_initial_message(self, ctx, channel):

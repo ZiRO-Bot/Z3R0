@@ -1,12 +1,3 @@
-<!bot.prefixes: "My prefixes are: {} or {}">
-<!bot.requestedBy: "Requested by {}">
-<!bot.loading: "<a:loading:776255339716673566> Loading...">
-<!bot.utility.searx: "<a:loading:776255339716673566> Searching `{keyword}`...">
-<!bot.info.pingWebsocket: "<:zibot:785055470401749032> | Websocket">
-<!bot.info.pingI18n: "<:i18n:787520869631131659> | Translation">
-<!bot.info.pingDatabase: "<:psql:785055943209123900> | Database">
-<!bot.info.pingTyping: "<a:typing:785053882664878100> | Typing">
-<!bot.info.pokedex: "<a:loading:776255339716673566> Getting pokemon info...">
 <%bot.fun.findsleep: {"zero": "{} -> your sleep is {} hours long - {}", "one": "{} -> your sleep is {} hour long - {}", "many": "{} -> your sleep is {} hours long - {}"}>
 <!bot.fun.findsleepMsg0: "nice try \:D">
 <!bot.fun.findsleepMsg1: "gn, insomniac!">
@@ -17,3 +8,13 @@
 <!bot.fun.findsleepMsg6: "are they dead or asleep? I can't tell.">
 <!bot.fun.findsleepMsg7: "wake up, muffin head">
 <!bot.fun.findsleepMsg8: "psst... coffeeee \:D">
+<!bot.loading: "<a:loading:776255339716673566> Loading...">
+<!bot.prefixes: "My prefixes are: {} or {}">
+<!bot.requestedBy: "Requested by {}">
+<!bot.utility.searx: "<a:loading:776255339716673566> Searching `{keyword}`...">
+<!bot.help.categories: "Categories">
+<!bot.info.pingWebsocket: "<:zibot:785055470401749032> | Websocket">
+<!bot.info.pingI18n: "<:i18n:787520869631131659> | Translation">
+<!bot.info.pingDatabase: "<:psql:785055943209123900> | Database">
+<!bot.info.pingTyping: "<a:typing:785053882664878100> | Typing">
+<!bot.info.pokedex: "<a:loading:776255339716673566> Getting pokemon info...">

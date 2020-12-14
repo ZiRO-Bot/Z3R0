@@ -1,12 +1,3 @@
-<!bot.prefixes: "Prefix saya adalah: {} atau {}">
-<!bot.requestedBy: "Diminta oleh {}">
-<!bot.loading: "<a:loading:776255339716673566> Memuat...">
-<!bot.utility.searx: "<a:loading:776255339716673566> Mencari `{keyword}`...">
-<!bot.info.pingWebsocket: "<:zibot:785055470401749032> | Websocket">
-<!bot.info.pingI18n: "<:i18n:787520869631131659> | Terjemahan">
-<!bot.info.pingDatabase: "<:psql:785055943209123900> | Basis Data">
-<!bot.info.pingTyping: "<a:typing:785053882664878100> | Menulis">
-<!bot.info.pokedex: "<a:loading:776255339716673566> Memuat informasi pokemon...">
 <%bot.fun.findsleep: {"zero": "{} -> anda tertidur selama {} jam - {}", "one": "{} -> anda tertidur selama {} jam - {}", "many": "{} -> anda tertidur selama {} jam - {}"}>
 <!bot.fun.findsleepMsg0: "usaha yang bagus \:D">
 <!bot.fun.findsleepMsg1: "tidak bisa tidur?">
@@ -17,3 +8,13 @@
 <!bot.fun.findsleepMsg6: "apa kau masih hidup? 🤔">
 <!bot.fun.findsleepMsg7: "bangun, *muffin head*">
 <!bot.fun.findsleepMsg8: "psst... kopiii~ \:D">
+<!bot.loading: "<a:loading:776255339716673566> Memuat...">
+<!bot.prefixes: "Prefix saya adalah: {} atau {}">
+<!bot.requestedBy: "Diminta oleh {}">
+<!bot.utility.searx: "<a:loading:776255339716673566> Mencari `{keyword}`...">
+<!bot.help.categories: "Kategori">
+<!bot.info.pingWebsocket: "<:zibot:785055470401749032> | Websocket">
+<!bot.info.pingI18n: "<:i18n:787520869631131659> | Terjemahan">
+<!bot.info.pingDatabase: "<:psql:785055943209123900> | Basis Data">
+<!bot.info.pingTyping: "<a:typing:785053882664878100> | Menulis">
+<!bot.info.pokedex: "<a:loading:776255339716673566> Memuat informasi pokemon...">
