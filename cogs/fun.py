@@ -406,7 +406,7 @@ class Fun(commands.Cog, name="fun"):
     @commands.command(usage="(member)")
     @commands.cooldown(5, 25, type=commands.BucketType.user)
     @commands.max_concurrency(1, per=commands.BucketType.guild)
-    async def triggered(self, ctx, member: discord.Member=None):
+    async def triggered(self, ctx, member: discord.User=None):
         """Make your or someone else's avatar triggered."""
         if "dagpi_token" not in self.bot.config:
             return
