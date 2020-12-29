@@ -17,8 +17,9 @@ import traceback
 from cogs.utils.tse_blocks import DiscordGuildBlock, DiscordMemberBlock
 from discord.errors import NotFound
 from discord.ext import commands, tasks
+from fluent.runtime import FluentLocalization, FluentResourceLoader
+from pathlib import Path
 from TagScriptEngine import Interpreter, block
-from zi_i18n import I18n
 
 import core.config as config
 
@@ -79,9 +80,14 @@ class ziBot(commands.Bot):
 
         self.start_time = datetime.datetime.utcnow()
 
-        self.i18n = I18n("locale", "en_US", False)
+        directory = "locale"
+        path = Path('./{}'.format(directory))
+        loader = FluentResourceLoader("locale/{locale}")
+        languages = [str(e)[len(directory)+1:] for e in path.iterdir() if e.is_dir()]
 
-        builtins._ = self.i18n.translate
+        self.i18n = FluentLocalization(languages, ["main.ftl"], loader)
+
+        builtins._ = self.i18n.format_value
 
         # Init database
         self.conn = sqlite3.connect("data/database.db")
@@ -412,7 +418,7 @@ class ziBot(commands.Bot):
             prefixes.pop(0)
             prefixes = ", ".join([f"`{x}`" for x in prefixes])
             embed = discord.Embed(
-                description=_("bot.prefixes").format(prefixes, self.user.mention),
+                description=_("bot-prefixes", {"prefix": prefixes, "mention": self.user.mention}),
                 colour=discord.Colour.rounded(),
             )
             await message.reply(embed=embed)

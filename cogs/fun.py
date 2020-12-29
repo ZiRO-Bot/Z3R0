@@ -280,34 +280,36 @@ class Fun(commands.Cog):
             ctx.command.reset_cooldown(ctx)
 
         lessSleepMsg = [
-            _("bot.fun.findsleepMsg1"),
-            _("bot.fun.findsleepMsg2"),
-            _("bot.fun.findsleepMsg3"),
-            _("bot.fun.findsleepMsg4"),
+            "findsleepMsg1",
+            "findsleepMsg2",
+            "findsleepMsg3",
+            "findsleepMsg4",
         ]
 
         moreSleepMsg = [
-            _("bot.fun.findsleepMsg5"),
-            _("bot.fun.findsleepMsg6"),
-            _("bot.fun.findsleepMsg7"),
-            _("bot.fun.findsleepMsg8"),
+            "findsleepMsg5",
+            "findsleepMsg6",
+            "findsleepMsg7",
+            "findsleepMsg8",
         ]
 
         sleepHrs = randint(0, 24)
 
         if sleepHrs == 0:
             await ctx.send(
-                _("bot.fun.findsleep", count = sleepHrs).format(ctx.author.mention, sleepHrs, _("bot.fun.findsleepMsg0"))
+                _("bot-fun-findsleep", {"user": ctx.author.mention, "count": sleepHrs})
                 # f"{ctx.author.mention} -> your sleep is 0 hours long - nice try \:D"
             )
         elif sleepHrs <= 5:
+            message = _(str(lessSleepMsg[randint(0, len(lessSleepMsg) - 1)]))
             await ctx.send(
-                _("bot.fun.findsleep", count = sleepHrs).format(ctx.author.mention, sleepHrs, lessSleepMsg[randint(0, len(lessSleepMsg) - 1)])
+                _("bot-fun-findsleep", {"user": ctx.author.mention, "count": sleepHrs, "message": message})
                 # f"{ctx.author.mention} -> your sleep is {sleepHrs} hour{s} long - {lessSleepMsg[randint(0, len(lessSleepMsg) - 1)]}"
             )
         else:
+            message = _(str(moreSleepMsg[randint(0, len(moreSleepMsg) - 1)]))
             await ctx.send(
-                _("bot.fun.findsleep", count = sleepHrs).format(ctx.author.mention, sleepHrs, moreSleepMsg[randint(0, len(moreSleepMsg) - 1)])
+                _("bot-fun-findsleep", {"user": ctx.author.mention, "count": sleepHrs, "message": message})
                 # f"{ctx.author.mention} -> your sleep is {sleephrs} hours long - {moresleepmsg[randint(0, len(moresleepmsg) - 1)]}"
             )
 
