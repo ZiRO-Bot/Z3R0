@@ -736,7 +736,6 @@ class Info(commands.Cog):
             colour=discord.Colour(0xFFFFF0),
         )
         e.add_field(name=_("bot.info.pingWebsocket"), value=f"`{round(self.bot.latency*1000, 2)}` ms")
-        e.add_field(name=_("bot.info.pingI18n"), value=f"`{round(self.bot.i18n.latency*1000, 2)}` ms")
         db_start = time.perf_counter()
         async with ctx.db.acquire() as conn:
             await conn.fetch("""SELECT * FROM guilds""")

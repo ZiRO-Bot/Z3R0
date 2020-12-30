@@ -15,6 +15,7 @@ import sys
 import traceback
 
 from cogs.utils.tse_blocks import DiscordGuildBlock, DiscordMemberBlock
+from cogs.utils.i18n import Fluent
 from discord.errors import NotFound
 from discord.ext import commands, tasks
 from fluent.runtime import FluentLocalization, FluentResourceLoader
@@ -85,7 +86,8 @@ class ziBot(commands.Bot):
         loader = FluentResourceLoader("locale/{locale}")
         languages = [str(e)[len(directory)+1:] for e in path.iterdir() if e.is_dir()]
 
-        self.i18n = FluentLocalization(languages, ["main.ftl"], loader)
+        fallback = "en_US"
+        self.i18n = Fluent("en_US", fallback, ["main.ftl"], loader, languages=languages)
 
         builtins._ = self.i18n.format_value
 
