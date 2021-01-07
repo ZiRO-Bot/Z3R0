@@ -1,0 +1,8 @@
+{
+    "<guild_id>": {
+        "purge_ch": <channel_id>,
+        "meme_ch": <channel_id>,
+        "welcome_ch": <channel_id>,
+        "prefix": ">"
+    }
+}

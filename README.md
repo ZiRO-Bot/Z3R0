@@ -1,14 +1,14 @@
 # ziBot
+**REPO HAS BEEN MOVED TO https://github.com/null2264/ziBot**
 
-[![Discord Bots](https://top.gg/api/widget/status/740122842988937286.svg)](https://top.gg/bot/740122842988937286)
+**Python 3.8.x or higher is required!**
 
-**Python 3.8.x or higher is required!** 
+Just a fork of mcbeDiscordBot but rewritten a bit. Some code are translated mee6's old deprecated code that works on the new version of [discord.py](https://github.com/Rapptz/discord.py)
 
-A multi-purpose customizable open-source discord bot.
+### Dependencies
+- [discord.py](https://github.com/Rapptz/discord.py)
+- asyncio
 
-A fork of mcbeDiscordBot (Steve the bot) that rewritten to be able to operate on multiple server. Some code are translated mee6's old deprecated codes that rewritten and some are messy js to python translation.
-
-## Dependencies
 To install the dependencies, you can use this command:
 ```
 # Linux
@@ -18,48 +18,11 @@ python3 -m pip install -r requirements.txt
 py -3 -m pip install -r requirements.txt
 ```
 
-## Usage
-*Hosting ziBot on your own server is recommended!*
-### User (Limited Control)
-- [Invite](https://discord.com/api/oauth2/authorize?client_id=740122842988937286&permissions=470153334&scope=bot) ziBot to your server
-- Set necessary variable using `>channel set` and `>prefix` command
+### Usage
+**You need to put bot's token to your environment variable with key name "TOKEN"! or put in TOKEN = 'YOUR_TOKEN_HERE' to a file called '.env'**
 
-### Host (Full Control)
-- Create folder called `data` (to prevent error)
-- Create a file named `config.py` inside a folder named `core` with this format:
-```python
-token = "TOKEN_GOES_HERE!"
-twitch = {
-    "id": "", "secret": ""
-}
-reddit = {
-    "id": "",
-    "secret": "",
-    "user_agent": "ziBot/0.1",
-}
-openweather_apikey = ""
-postgresql = "postgresql://username:password!@hostname/database"
-```
-- Launch the bot with ```python3 main.py```
+- Create folder called "data" *to prevent error
+- Launch the bot with ```python3 zibot.py```
 
-## Translation
-All translation file located in `locale/` directory,
-
-ziBot uses [zi-i18n](https://github.com/ZiRO-Bot/zi-i18n) as its Internationalization system.
-
-Example:
-```python
-# File Name: [lang (ex: en_US)].zi.lang
-# Specification/Formatting: 
-# <!bot[.cogs_name].[translation_name]: "Translated stuff goes here">
-
-# File Name: id_ID.zi.lang
-<!bot.utility.searx: "Mencari `{keyword}`">
-# Output: Mencari `{keyword}`
-```
-
-## TODOs
-[Click here](https://github.com/null2264/ziBot/projects) to see all the plan i have for this project.
-
-## License
-[GNU GPL-3.0-or-later](https://github.com/null2264/ziBot/blob/master/LICENSE)
+### Information
+src.py only designed to grab MCBE runs.

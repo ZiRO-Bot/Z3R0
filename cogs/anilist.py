@@ -8,14 +8,11 @@ import pytz
 import re
 import time
 
-from .errors.anilist import NameNotFound, NameTypeNotFound, IdNotFound
-from .utils.formatting import hformat, realtime
-from .utils.paginator import ZiMenu, FunctionPageSource
-from .utils.api import anilist
-from .utils.api.anilist_query import *
-from discord.ext import tasks, commands, menus
+from cogs.errors.anilist import NameNotFound, NameTypeNotFound, IdNotFound
+from discord.ext import tasks, commands
 from pytz import timezone
 from typing import Optional
+from utilities.formatting import hformat, realtime
 
 session = aiohttp.ClientSession()
 
@@ -28,379 +25,420 @@ streamingSites = [
     "Hulu",
     "Netflix",
     "Viz",
-    "VRV",
+    "VRV"
 ]
 
+scheduleQuery = '''
+query($page: Int = 0, $amount: Int = 50, $watched: [Int!]!, $nextDay: Int!) {
+  Page(page: $page, perPage: $amount) {
+    pageInfo {
+      currentPage
+      hasNextPage
+    }
+    airingSchedules(notYetAired: true, mediaId_in: $watched, sort: TIME, airingAt_lesser: $nextDay) {
+      media {
+        id
+        siteUrl
+        format
+        duration
+        episodes
+        title {
+          romaji
+        }
+        coverImage {
+          large
+          color
+        }
+        externalLinks {
+          site
+          url
+        }
+        studios(isMain: true) {
+          edges {
+            isMain
+            node {
+              name
+            }
+          }
+        }
+      }
+      episode
+      airingAt
+      timeUntilAiring
+      id
+    }
+  }
+}
+'''
 
-def filter_image(channel, is_adult: bool, image_url: str, _type: str = "cover"):
-    """
-    Filter NSFW image (banner/cover)
+searchAni = '''
+query($name:String,$aniformat:MediaFormat,$page:Int,$amount:Int=5){
+    Page(perPage:$amount,page:$page){
+        pageInfo{hasNextPage, currentPage, lastPage}
+        media(search:$name,type:ANIME,format:$aniformat){
+            title {
+                romaji, 
+                english
+            },
+            id,
+            format,
+            episodes, 
+            duration,
+            status, 
+            genres, 
+            averageScore, 
+            siteUrl,
+            studios{nodes{name}}, 
+            coverImage {large},
+            bannerImage
+        }
+    } 
+}
+'''
 
-    Parameter
-    ---------
-    channel
-        To get discord channel info (such as is_nsfw)
-    is_adult: bool
-        Boolean from anilist (media.isAdult)
-    image_url: str
-        Url of the image (banner/cover)
-    _type: str
-        Type of the image, whether its banner or cover (default: "cover")
-    """
-    types = ["cover", "banner"]
-    _type = _type.lower()
-    if _type not in types:
-        raise ValueError("Invalid type")
-    result = ""
-    if not channel.is_nsfw() and is_adult:
-        result = (
-            "https://raw.githubusercontent.com/null2264/null2264/master/NSFW.png"
-            if _type == "cover"
-            else "https://raw.githubusercontent.com/null2264/null2264/master/nsfw_banner.jpg"
-        )
-    else:
-        if _type == "cover":
-            result = image_url
-        else:
-            result = (
-                image_url
-                or "https://raw.githubusercontent.com/null2264/null2264/master/21519-1ayMXgNlmByb.jpg"
-            )
-    return result
+generalQ = '''
+query($mediaId: Int){
+    Media(id:$mediaId, type:ANIME){
+        id,
+        format,
+        title {
+            romaji, 
+            english
+        }, 
+        episodes, 
+        duration,
+        status, 
+        startDate {
+            year, 
+            month, 
+            day
+        }, 
+        endDate {
+            year, 
+            month, 
+            day
+        }, 
+        genres, 
+        coverImage {
+            large
+        }, 
+        bannerImage,
+        description, 
+        averageScore, 
+        studios{nodes{name}}, 
+        seasonYear, 
+        externalLinks {
+            site, 
+            url
+        } 
+    } 
+}
+'''
 
+listQ = '''
+query($page: Int = 0, $amount: Int = 50, $mediaId: [Int!]!) {
+  Page(page: $page, perPage: $amount) {
+    pageInfo {
+      currentPage
+      hasNextPage
+    }
+    media(id_in: $mediaId, type:ANIME){
+        id,
+        title {
+            romaji,
+            english
+        },
+        siteUrl,
+        nextAiringEpisode {
+            episode,
+            airingAt,
+            timeUntilAiring
+        }
+    }
+  }
+}
+'''
 
-class AniSearchPage(FunctionPageSource):
-    """
-    Workaround to make `>anime search` work with ext.menus
-    Might have better way to do this, but for now this will do.
-    """
+def checkjson():
+    try:
+        f = open('data/anime.json', 'r')
+    except FileNotFoundError:
+        with open('data/anime.json', 'w+') as f:
+            json.dump({"watchlist": []}, f, indent=4)
 
-    def __init__(self, ctx, keyword, *, _type=None, api=None):
-        super().__init__(ctx, per_page=1)
-        self._type = _type
-        self.api = api or anilist.AniList()
-        self.keyword = keyword
-
-    def format_anime_info(self, menu, data, is_paged=False) -> discord.Embed:
-        """
-        Make a discord.Embed for `>anime info|search`.
-
-        Parameter
-        ---------
-        menu
-            discord.ext.menus data, containing page info (such as current page number)
-        data: dict
-            Anime data from AniList, it should formatted dict
-        is_paged: bool (default: False)
-            Whether or not the result is paged
-        """
-        # Streaming Site
-        sites = []
-        for each in data["externalLinks"]:
-            if str(each["site"]) in streamingSites:
-                sites.append(f"[{each['site']}]({each['url']})")
-        sites = " | ".join(sites)
-
-        # Year its aired/released
-        seasonYear = data["seasonYear"]
-        if seasonYear is None:
-            seasonYear = "Unknown"
-
-        # Description
-        desc = data["description"]
-        if desc is not None:
-            for d in ["</i>", "<i>", "<br>"]:
-                desc = desc.replace(d, "")
-        else:
-            desc = "No description."
-        
-        max_size = 250
-        if len(desc) > max_size:
-            orig_size = len(desc)
-            desc,_ = desc[:max_size], desc
-            new_size = orig_size - len(desc)
-            desc += f"... **+{new_size} hidden**"
-
-        # Messy and Ugly ratingEmoji system
-        rating = data["averageScore"] or -1
-        if rating >= 90:
-            ratingEmoji = "😃"
-        elif rating >= 75:
-            ratingEmoji = "🙂"
-        elif rating >= 50:
-            ratingEmoji = "😐"
-        elif rating >= 0:
-            ratingEmoji = "😦"
-        else:
-            ratingEmoji = "🤔"
-        e = discord.Embed(
-            title=data["title"]["romaji"] + f" ({seasonYear})",
-            url=f"https://anilist.co/anime/{data['id']}",
-            description=f"**{data['title']['english'] or 'No english title'} (ID: `{data['id']}`)**\n"
-            + desc,
-            colour=discord.Colour(0x02A9FF),
-        )
-        maximum = self.get_max_pages()
-        e.set_author(
-            name=f"AniList - "
-            + (f"Page {menu.current_page + 1}/{maximum} - " if is_paged else "")
-            + f"{ratingEmoji} {rating}%",
-            icon_url="https://gblobscdn.gitbook.com/spaces%2F-LHizcWWtVphqU90YAXO%2Favatar.png",
-        )
-
-        # -- Filter NSFW images
-        e.set_thumbnail(
-            url=filter_image(
-                self.ctx.channel, data["isAdult"], data["coverImage"]["large"]
-            )
-        )
-        e.set_image(
-            url=filter_image(
-                self.ctx.channel, data["isAdult"], data["bannerImage"], _type="banner"
-            )
-        )
-        # ------
-
-        studios = []
-        for studio in data["studios"]["nodes"]:
-            studios.append(studio["name"])
-        e.add_field(name="Studios", value=", ".join(studios) or "Unknown", inline=False)
-        e.add_field(name="Format", value=data["format"].replace("_", " "))
-        if str(data["format"]).lower() in ["movie", "music"]:
-            if data["duration"]:
-                e.add_field(name="Duration", value=realtime(data["duration"] * 60))
-            else:
-                e.add_field(name="Duration", value=realtime(0))
-        else:
-            e.add_field(name="Episodes", value=data["episodes"] or "0")
-        e.add_field(name="Status", value=hformat(data["status"]))
-        genres = ", ".join(data["genres"])
-        e.add_field(name="Genres", value=genres or "Unknown", inline=False)
-        if sites:
-            e.add_field(name="Streaming Sites", value=sites, inline=False)
-
-        return e
-
-    async def prepare(self):
-        """
-        Get necessary info to start.
-
-        Also cache the result as first page.
-        """
-        q = await self.api.get_anime(self.keyword, 1, _format=self._type)
-        if "Page" in q:
-            self.cache["1"] = q["Page"]
-            self.last_page = q["Page"]["pageInfo"]["lastPage"]
-            self.is_paged = True
-        else:
-            self.cache["1"] = q
-            self.is_paged = False
-            self.last_page = 1
-
-    async def get_page(self, page_number):
-        # Since the website index don't start from 0 lets just add 1 to page_number
-        page_number += 1
-        # if Nth page exist in self.cache, return the it instead of getting a new one
-        if str(page_number) in self.cache:
-            return self.cache[str(page_number)]
-        q = await self.api.get_anime(self.keyword, page_number)
-        if q:
-            self.cache[str(page_number)] = q["Page"]
-            return self.cache[str(page_number)]
-
-    async def format_page(self, menu, page):
+async def query(query: str, variables: Optional[str]):
+    if not query:
+        return None
+    async with session.post("https://graphql.anilist.co", 
+                            json={'query': query, 
+                                  'variables': variables}) as req:
         try:
-            if self.is_paged is True:
-                data = page["media"][0]
-            else:
-                data = page["Media"]
-        except IndexError:
-            raise anilist.AnimeNotFound
+            if (json.loads(await req.text())['errors']):
+                return None
+        except KeyError:
+            return json.loads(await req.text())
 
-        return self.format_anime_info(
-            menu,
-            data,
-            is_paged=True if (self.is_paged and self.is_paginating()) else False,
-        )
+async def getwatchlist(self, ctx):
+    a = await query(listQ, {'mediaId' : self.watchlist})
+    a = a['data']
+    embed = discord.Embed(title="Anime Watchlist",
+                        colour = discord.Colour(0x02A9FF))
+    embed.set_author(name="AniList",
+                    icon_url="https://gblobscdn.gitbook.com/spaces%2F-LHizcWWtVphqU90YAXO%2Favatar.png")
+    jakarta = timezone('Asia/Jakarta')
+    for e in a['Page']['media']:
+        if e['nextAiringEpisode']:
+            status="AIRING"
+            _time_ = str(datetime.datetime.fromtimestamp(e['nextAiringEpisode']['airingAt'],
+                         tz=jakarta).strftime('%d %b %Y - %H:%M WIB'))
+            _timeTillAired_ = str(datetime.timedelta(seconds=e['nextAiringEpisode']['timeUntilAiring']))
+            embed.add_field(name=f"{e['title']['romaji']} ({e['id']})",
+                            value=f"Episode {e['nextAiringEpisode']['episode']} will be aired at" 
+                                + f" **{_time_}** (**{_timeTillAired_}**)", 
+                            inline=False)
+        else:
+            status="FINISHED"
+            embed.add_field(name=f"{e['title']['romaji']} ({e['id']})",
+                            value=status or "...",
+                            inline=False)
+    await ctx.send(embed=embed)
 
+async def getschedule(self, _time_, page):
+    q = await query(scheduleQuery, {"page": 1,"amount": 50, "watched": self.watchlist, "nextDay": _time_})
+    q = q['data']
+    channel = self.bot.get_channel(744528830382735421)
+    if q['Page']['airingSchedules']:
+        for e in q['Page']['airingSchedules']:
+            self.logger.info(f"Scheduling {e['media']['title']['romaji']} episode {e['episode']} (about to air in {str(datetime.timedelta(seconds=e['timeUntilAiring']))})")
+            async def queueSchedule(self):
+                anime = e['media']['title']['romaji']
+                id = e['media']['id']
+                eps = e['episode']
+                sites = []
+                for site in e['media']['externalLinks']:
+                    if str(site['site']) in streamingSites:
+                        sites.append(f"[{site['site']}]({site['url']})")
+                sites = " | ".join(sites)
+                _date_ = datetime.datetime.fromtimestamp(e['airingAt'])
+                embed = discord.Embed(title="New Release!",
+                                    description=f"Episode {eps} of [{anime}]({e['media']['siteUrl']}) ({id}) has just aired!",
+                                    timestamp=_date_,
+                                    colour = discord.Colour(0x02A9FF))
+                embed.set_author(name="AniList",
+                                icon_url="https://gblobscdn.gitbook.com/spaces%2F-LHizcWWtVphqU90YAXO%2Favatar.png")
+                embed.set_thumbnail(url=e['media']['coverImage']['large'])
+                if sites:
+                   embed.add_field(name="Streaming Sites",value=sites, inline=False)
+                else:
+                    embed.add_field(name="Streaming Sites",value="No official stream links available")
+                if id in self.watchlist:
+                    await channel.send(embed=embed)
+                else:
+                    self.logger.warning(f"{anime} ({id}) no longer in the watchlist.")
+            await asyncio.sleep(e['timeUntilAiring'])
+            # ---- For testing only
+            #await asyncio.sleep(5)
+            await queueSchedule(self)
+
+    if q['Page']['pageInfo']['hasNextPage']:
+        getschedule(self, int(time.time() 
+                    + (24 * 60 * 60 * 1000 * 1) / 1000 ), page+1)
+
+async def find_with_name(self, ctx, anime, _type_):
+    if not _type_:
+        q = await query("query($name:String){Media(search:$name,type:ANIME){id," 
+            + "title {romaji,english}, coverImage {large}, status, episodes, averageScore, seasonYear  } }",
+            {'name': anime})
+    else: 
+        _type_ = str(_type_.upper())
+        q = await query("query($name:String,$atype:MediaFormat){Media(search:$name,type:ANIME,format:$atype){id," 
+            + "title {romaji,english}, coverImage {large}, status, episodes, averageScore, seasonYear  } }",
+            {'name': anime,'atype': _type_})
+    try:
+        return q['data']
+    except TypeError:
+        if not _type_:
+            raise NameNotFound
+            # return "NameNotFound"
+        raise NameTypeNotFound
+        # return "NameTypeNotFound"
+
+async def find_id(self, ctx, url, _type_: str=None):
+    # if input is ID, just return it, else find id via name (string)        
+    try:
+        _id_ = int(url)
+        return _id_
+    except ValueError:
+        pass
+
+    # regex for AniList and MyAnimeList
+    regexAL = r"/anilist\.co\/anime\/(.\d*)/"
+    regexMAL = r"/myanimelist\.net\/anime\/(.\d*)"
+    
+    # if AL link then return the id
+    match = re.search(regexAL, url)
+    if match:
+        return int(match.group(1))
+    
+    # if MAL link get the id, find AL id out of MAL id then return the AL id
+    match = re.search(regexMAL, url)
+    if not match:
+        _id_ = await find_with_name(self, ctx, url, _type_)
+        return int(_id_['Media']['id'])
+    
+    # getting ID from MAL ID
+    q = await query("query($malId: Int){Media(idMal:$malId){id}}", {'malId': match.group(1)})
+    if q is None:
+        print("Error")
+        await ctx.send(f"Anime with id **{url}** can't be found.")
+        return None
+    return int(q['data']['Media']['id'])
+
+async def getinfo(self, ctx, other, _format_: str=None):
+    mediaId = await find_id(self, ctx, other, _format_)
+    if not mediaId:
+        raise IdNotFound
+
+    a = await query(generalQ,
+            {'mediaId' : mediaId})
+    if not a:
+        raise IdNotFound
+
+    a = a['data']
+    return a
+
+async def send_info(self, ctx, other, _format_: str=None):
+    embed = discord.Embed(title="404",
+                          colour = discord.Colour(0x02A9FF))
+    embed.set_author(name="AniList",
+                     icon_url="https://gblobscdn.gitbook.com/spaces%2F-LHizcWWtVphqU90YAXO%2Favatar.png")
+    try:
+        a = await getinfo(self, ctx, other, _format_)
+    except NameNotFound:
+        embed.description = f"**{other}** not found"
+        await ctx.send(embed=embed)
+        return None
+    except NameTypeNotFound:
+        embed.description = f"**{other}** with format {_format_} not found"
+        await ctx.send(embed=embed)
+        return None
+    except IdNotFound:
+        embed.description = f"Anime with id **{other}** not found"
+        await ctx.send(embed=embed)
+        return None
+
+    # Streaming Site
+    sites = []
+    for each in a['Media']['externalLinks']:
+        if str(each['site']) in streamingSites:
+            sites.append(f"[{each['site']}]({each['url']})")
+    sites = " | ".join(sites)
+
+    # Description
+    desc = a['Media']['description']
+    if desc is not None:
+        for d in ["</i>","<i>","<br>"]:
+            desc = desc.replace(d,"")
+    else:
+        desc = "No description."
+
+    # English Title
+    engTitle = a['Media']['title']['english']
+    if engTitle is None:
+        engTitle = a['Media']['title']['romaji']
+
+    # Studio Name
+    studios = []
+    for studio in a['Media']['studios']['nodes']:
+        studios.append(studio['name']) 
+    studio = ", ".join(studios)
+
+    # Year its aired/released
+    seasonYear = a['Media']['seasonYear']
+    if seasonYear is None:
+        seasonYear = "Unknown"
+
+    # Rating
+    rating = a['Media']['averageScore'] or 0
+    if rating >= 90:
+        ratingEmoji = "😃"
+    elif rating >= 75:
+        ratingEmoji = "🙂"
+    elif rating >= 50:
+        ratingEmoji = "😐"
+    else:
+        ratingEmoji = "😦"
+
+    # Episodes / Duration
+    eps = a['Media']['episodes']
+    if eps is None:
+        eps = "0"
+    
+    if a['Media']['duration']:
+        dur = realtime(a['Media']['duration']*60)
+    else:
+        dur = realtime(0)
+    
+    # Status
+    stat = hformat(a['Media']['status'])
+
+    embed = discord.Embed(
+            title = f"{a['Media']['title']['romaji']}",
+            url = f"https://anilist.co/anime/{a['Media']['id']}",
+            description = f"**{engTitle} ({seasonYear})**\n{desc}",
+            colour = discord.Colour(0x02A9FF)
+            )
+    embed.set_author(name=f"AniList - {ratingEmoji} {rating}%",
+                     icon_url="https://gblobscdn.gitbook.com/spaces%2F-LHizcWWtVphqU90YAXO%2Favatar.png")
+
+    if "Hentai" in a['Media']['genres'] and ctx.channel.is_nsfw() is False:
+        embed.set_thumbnail(url="https://raw.githubusercontent.com/null2264/null2264/master/NSFW.png")
+    else:
+        embed.set_thumbnail(url=a['Media']['coverImage']['large'])
+
+    if a['Media']['bannerImage']:
+        if "Hentai" in a['Media']['genres'] and ctx.channel.is_nsfw() is False:
+            embed.set_image(url="https://raw.githubusercontent.com/null2264/null2264/master/nsfw_banner.jpg")
+        else:
+            embed.set_image(url=a['Media']['bannerImage'])
+    else:
+        embed.set_image(url="https://raw.githubusercontent.com/null2264/null2264/master/21519-1ayMXgNlmByb.jpg")
+
+    embed.add_field(name="Studios",value=studio,inline=False)
+    if str(a['Media']['format']).lower() in ["movie", "music"]:
+        embed.add_field(name="Duration",value=f"{dur}")
+    else: 
+        embed.add_field(name="Episodes",value=f"{eps}")
+    embed.add_field(name="Status",value=f"{stat}")
+    embed.add_field(name="Format",value=a['Media']['format'].replace('_', ' '))
+    genres = ", ".join(a['Media']['genres'])
+    embed.add_field(name="Genres",value=genres, inline=False)
+    if sites:
+        embed.add_field(name="Streaming Sites",value=sites, inline=False)
+    await ctx.send(embed=embed)
+    return
+
+async def search_ani_new(self, ctx, anime, page):
+    q = await query(searchAni, {'name': anime, 'page': page, 'amount': 1})
+    if q:
+        return q['data']
+    return
+
+# async def createAnnoucementEmbed(entry: str=None, date: str=None, upNext: str=None):
 
 class AniList(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.logger = self.bot.logger
-        self.anilist = anilist.AniList(session=self.bot.session)
-        # Init but async.
-        self.bot.loop.create_task(self.async_init())
-
-    async def async_init(self):
-        """
-        Create table for anilist if its not exist
-        and cache all the data for later.
-        """
-
-        async with self.bot.pool.acquire() as conn:
-            async with conn.transaction():
-                # Table for anime watchlist, just like prefixes it will no longer use ',' separator
-                await conn.execute(
-                    """
-                    CREATE TABLE IF NOT EXISTS 
-                    anime_watchlist (
-                        guild_id BIGINT REFERENCES guilds(id) ON DELETE CASCADE NOT NULL,
-                        anime_id BIGINT NOT NULL
-                    )
-                    """
-                )
-
-                pre = [
-                    (i, a) for i, a in await conn.fetch("SELECT * FROM anime_watchlist")
-                ]
-                watchlist = {}
-                for k, v in pre:
-                    watchlist[k] = watchlist.get(k, []) + [v]
-                for guild in watchlist:
-                    self.bot.cache[guild]["watchlist"] = watchlist[guild]
         self.handle_schedule.start()
+        self.logger = logging.getLogger('discord')
 
-    @tasks.loop(hours=24)
-    async def handle_schedule(self):
-        """
-        Handle anime schedule
-        """
-        self.logger.warning("Checking for new releases on AniList...")
-        await self.scheduler(int(time.time() + (24 * 60 * 60)), 1)
+        checkjson()
 
-    async def scheduler(self, timestamp, page):
-        """
-        Get anime episode that about to air and schedule it
-        """
-        for guild in self.bot.cache:
-            if "watchlist" not in self.bot.cache[guild]:
-                continue
-
-            # Get channel to announce the anime
-            conn = await self.bot.pool.acquire()
-            channel = await conn.fetch("SELECT anime_ch FROM channels WHERE guild_id=$1", guild)
-            await self.bot.pool.release(conn)
-
-            channel = self.bot.get_channel(channel[0].get("anime_ch", None))
-            # If channel not found (removed or not exist) then skip
-            if not channel:
-                continue
-            
-            # Get episode that about to air
-            q = await self.anilist.request(
-                scheduleQuery,
-                {
-                    "page": 1,
-                    "amount": 50,
-                    "watched": self.bot.cache[guild]["watchlist"],
-                    "nextDay": timestamp,
-                },
-            )
-            if not q:
-                continue
-            q = q["data"]
-
-            # Schedule the episodes if there's any
-            if q and q["Page"]["airingSchedules"]:
-                for e in q["Page"]["airingSchedules"]:
-                    # prevent ratelimit
-                    await asyncio.sleep(2)
-                    self.bot.loop.create_task(self.handle_announcement(channel, e))
-
-                    # if self.bot.user.id == 733622032901603388:
-                    #     # ---- For testing only
-                    #     await asyncio.sleep(10)
-                    #     print(e)
-                    # else:
-                    #     await asyncio.sleep(e["timeUntilAiring"])
-                    # await queueSchedule(self)
-
-            # Schedule the next page if it has more than 1 page (pageInfo.hasNextPage)
-            if q["Page"]["pageInfo"]["hasNextPage"]:
-                await self.scheduler(int(time.time() + (24 * 60 * 60), page + 1))
-
-    async def handle_announcement(self, channel, data):
-        """
-        Format and send anime announcement's embed.
-        """
-        anime = data["media"]["title"]["romaji"]
-        _id = data["media"]["id"]
-        eps = data["episode"]
-        sites = []
-        for site in data["media"]["externalLinks"]:
-            if str(site["site"]) in streamingSites:
-                sites.append(f"[{site['site']}]({site['url']})")
-        sites = " | ".join(sites)
-
-        e = discord.Embed(
-            title="New Release!",
-            description=f"Episode {eps} of [{anime}]({data['media']['siteUrl']}) (**ID:** {_id}) has just aired.",
-            colour=discord.Colour(0x02A9FF),
-            timestamp=datetime.datetime.fromtimestamp(data["airingAt"]),
-        )
-        e.set_thumbnail(
-            url=filter_image(
-                channel,
-                is_adult=data["media"]["isAdult"],
-                image_url=data["media"]["coverImage"]["large"],
-            )
-        )
-        e.set_author(
-            name="AnilList",
-            icon_url="https://gblobscdn.gitbook.com/spaces%2F-LHizcWWtVphqU90YAXO%2Favatar.png",
-        )
-        e.add_field(
-            name="Streaming Sites",
-            value=sites or "No official stream links available",
-            inline=False,
-        )
-        if self.bot.user.id == 733622032901603388:
-            # ---- For testing only
-            await asyncio.sleep(5)
-        else:
-            await asyncio.sleep(e["timeUntilAiring"])
-        await channel.send(embed=e)
-
-    async def remove_anime_guild(self, connection, guild_id, anime_id):
-        """
-        Remove anime from a guild's watchlist
-        """
-        async with connection.transaction():
-            await connection.execute(
-                "DELETE FROM anime_watchlist WHERE guild_id=$1 AND anime_id=$2",
-                guild_id,
-                anime_id,
-            )
-        if guild_id in self.bot.cache and "watchlist" in self.bot.cache[guild_id]:
-            self.bot.cache[guild_id]["watchlist"].remove(anime_id)
-
-    async def add_anime_guild(self, connection, guild_id, anime_id):
-        """
-        Add anime to a guild's watchlist
-        """
-        async with connection.transaction():
-            await connection.execute(
-                "INSERT INTO anime_watchlist VALUES($1, $2)", guild_id, anime_id
-            )
-        if guild_id in self.bot.cache and "watchlist" in self.bot.cache[guild_id]:
-            self.bot.cache[guild_id]["watchlist"] += [anime_id]
-        else:
-            self.bot.cache[guild_id]["watchlist"] = [anime_id]
-
-    async def bulk_add_anime_guild(self, connection, guild_id, anime_ids):
-        """
-        Add many anime to a guild's watchlist
-        """
-        async with connection.transaction():
-            await connection.executemany(
-                "INSERT INTO anime_watchlist VALUES($1, $2)",
-                [(guild_id, _id) for _id in anime_ids],
-            )
-        if guild_id in self.bot.cache and "watchlist" in self.bot.cache[guild_id]:
-            self.bot.cache[guild_id]["watchlist"] += anime_ids
-        else:
-            self.bot.cache[guild_id]["watchlist"] = anime_ids
+        with open('data/anime.json') as f:
+            try:
+                self.watchlist = json.load(f)['watchlist']
+            except json.decoder.JSONDecodeError:
+                self.watchlist = []
 
     def cog_unload(self):
         self.handle_schedule.cancel()
@@ -408,235 +446,213 @@ class AniList(commands.Cog):
     async def is_mainserver(ctx):
         return ctx.guild.id == 645074407244562444
 
+    @tasks.loop(hours=24)
+    async def handle_schedule(self):
+        self.logger.warning("Checking for new releases on AniList...")
+        await getschedule(self, int(time.time() 
+                                + (24 * 60 * 60 * 1000 * 1) / 1000 ), 1)
+    
     @commands.group(brief="Get information about anime from AniList.")
     async def anime(self, ctx):
         """Get information about anime from AniList"""
-        pass
-
-    @anime.command(
-        aliases=["find", "info"],
-        usage="(anime) [format]",
-        example='{prefix}anime search "Kimi no Na Wa" Movie\n{prefix}anime info 97731',
-    )
-    async def search(self, ctx, anime: str, _format: str = None):
+    
+    @anime.command(name="info", usage="(anime) [format]", brief="Get information about an anime.")
+    async def animeinfo(self, ctx, anime, _format: str=None):
+        """Get information about an anime.\n\
+           **Example**\n\
+           `>anime info Kimi_no_Na_Wa`\n\
+           `>anime info "Koe no Katachi" Movie`"""
+        if not anime:
+            await ctx.send("Please specify the anime!")
+        async with ctx.typing():
+            await send_info(self, ctx, anime, _format)
+        return
+    
+    @anime.command(aliases=['find'], usage="(anime) [format]")
+    async def search(self, ctx, anime, _format: str=None):
         """Find an anime."""
         if not anime:
             await ctx.send("Please specify the anime!")
             return
-
-        try:
-            menu = ZiMenu(AniSearchPage(ctx, anime, api=self.anilist, _type=_format))
-            await menu.start(ctx)
-        except anilist.AnimeNotFound:
-            embed = discord.Embed(
-                title="404 - Not Found",
-                colour=discord.Colour(0x02A9FF),
-                description="Anime not found!",
-            )
-            embed.set_author(
-                name="AniList",
-                icon_url="https://gblobscdn.gitbook.com/spaces%2F-LHizcWWtVphqU90YAXO%2Favatar.png",
-            )
-            return await ctx.send(embed=embed)
-
-    @anime.command(usage="(anime id|url)")
-    async def watch(self, ctx, anime_id):
-        """Add anime to watchlist."""
-        try:
-            q = await self.anilist.get_basic_info(anime_id)
-            fetched_id = q["Media"]["id"]
-            # fetched_id = await self.anilist.fetch_id(anime_id)
-        except anilist.AnimeNotFound:
-            embed = discord.Embed(
-                title="404 - Not Found",
-                colour=discord.Colour(0x02A9FF),
-                description="Anime not found!",
-            )
-            embed.set_author(
-                name="AniList",
-                icon_url="https://gblobscdn.gitbook.com/spaces%2F-LHizcWWtVphqU90YAXO%2Favatar.png",
-            )
-            return await ctx.send(embed=embed)
-
-        added = False
-        conn = await ctx.acquire()
-        if (
-            ctx.guild.id not in self.bot.cache
-            or "watchlist" not in self.bot.cache[ctx.guild.id]
-        ) or fetched_id not in self.bot.cache[ctx.guild.id]["watchlist"]:
-            await self.add_anime_guild(conn, ctx.guild.id, fetched_id)
-            added = True
-        await ctx.release()
-
-        # This is stupid, but for readablity sake
-        if added:
-            title = q["Media"]["title"]["romaji"]
-            embed = discord.Embed(
-                title="New anime just added!",
-                description=f"**{title}** ({fetched_id}) has been added to the watchlist!",
-                colour=discord.Colour(0x02A9FF),
-            )
-            embed.set_author(
-                name="AniList",
-                icon_url="https://gblobscdn.gitbook.com/spaces%2F-LHizcWWtVphqU90YAXO%2Favatar.png",
-            )
-            embed.set_thumbnail(
-                url=filter_image(
-                    ctx.channel,
-                    q["Media"]["isAdult"],
-                    q["Media"]["coverImage"]["large"],
-                )
-            )
-            await ctx.send(embed=embed)
-        elif not added:
-            q = await self.anilist.get_basic_info(fetched_id)
-            title = q["Media"]["title"]["romaji"]
-            embed = discord.Embed(
-                title="Failed to add anime!",
-                description=f"**{title}** ({fetched_id}) already in the watchlist!",
-                colour=discord.Colour(0x02A9FF),
-            )
-            embed.set_author(
-                name="AniList",
-                icon_url="https://gblobscdn.gitbook.com/spaces%2F-LHizcWWtVphqU90YAXO%2Favatar.png",
-            )
-            embed.set_thumbnail(
-                url=filter_image(
-                    ctx.channel,
-                    q["Media"]["isAdult"],
-                    q["Media"]["coverImage"]["large"],
-                )
-            )
-            await ctx.send(embed=embed)
-        else:
-            return
-
-    @anime.command(usage="(anime id|url)")
-    async def unwatch(self, ctx, anime_id):
-        """Remove anime to watchlist."""
-        try:
-            q = await self.anilist.get_basic_info(anime_id)
-            fetched_id = q["Media"]["id"]
-            # fetched_id = await self.anilist.fetch_id(anime_id)
-        except anilist.AnimeNotFound:
-            embed = discord.Embed(
-                title="404 - Not Found",
-                colour=discord.Colour(0x02A9FF),
-                description="Anime not found!",
-            )
-            embed.set_author(
-                name="AniList",
-                icon_url="https://gblobscdn.gitbook.com/spaces%2F-LHizcWWtVphqU90YAXO%2Favatar.png",
-            )
-            return await ctx.send(embed=embed)
-
-        removed = False
-        conn = await ctx.acquire()
-        if (
-            ctx.guild.id in self.bot.cache
-            and "watchlist" in self.bot.cache[ctx.guild.id]
-        ) and fetched_id in self.bot.cache[ctx.guild.id]["watchlist"]:
-            await self.remove_anime_guild(conn, ctx.guild.id, fetched_id)
-            removed = True
-        await ctx.release()
-
-        # This is stupid, but for readablity sake
-        if removed:
-            title = q["Media"]["title"]["romaji"]
-            embed = discord.Embed(
-                title="An anime just removed!",
-                description=f"**{title}** ({fetched_id}) has been removed from watchlist!",
-                colour=discord.Colour(0x02A9FF),
-            )
-            embed.set_author(
-                name="AniList",
-                icon_url="https://gblobscdn.gitbook.com/spaces%2F-LHizcWWtVphqU90YAXO%2Favatar.png",
-            )
-            embed.set_thumbnail(
-                url=filter_image(
-                    ctx.channel,
-                    q["Media"]["isAdult"],
-                    q["Media"]["coverImage"]["large"],
-                )
-            )
-            await ctx.send(embed=embed)
-        elif not removed:
-            q = await self.anilist.get_basic_info(fetched_id)
-            title = q["Media"]["title"]["romaji"]
-            embed = discord.Embed(
-                title="Failed to add anime!",
-                description=f"**{title}** ({fetched_id}) is not exist in the watchlist!",
-                colour=discord.Colour(0x02A9FF),
-            )
-            embed.set_author(
-                name="AniList",
-                icon_url="https://gblobscdn.gitbook.com/spaces%2F-LHizcWWtVphqU90YAXO%2Favatar.png",
-            )
-            embed.set_thumbnail(
-                url=filter_image(
-                    ctx.channel,
-                    q["Media"]["isAdult"],
-                    q["Media"]["coverImage"]["large"],
-                )
-            )
-            await ctx.send(embed=embed)
-        else:
-            return
-
-    @anime.command(aliases=["wl", "list"])
-    async def watchlist(self, ctx):
-        """Get list of anime that added to watchlist."""
-        embed = discord.Embed(title="Anime Watchlist", colour=discord.Colour(0x02A9FF))
-        embed.set_author(
-            name="AniList",
-            icon_url="https://gblobscdn.gitbook.com/spaces%2F-LHizcWWtVphqU90YAXO%2Favatar.png",
-        )
-        if (
-            ctx.guild.id not in self.bot.cache
-            or "watchlist" not in self.bot.cache[ctx.guild.id]
-        ):
-            embed.description = "No anime in watchlist."
-            return await ctx.send(embed=embed)
-        a = await self.anilist.request(
-            listQ, {"mediaId": self.bot.cache[ctx.guild.id]["watchlist"]}
-        )
-        if not a:
-            return
-        a = a["data"]
-        jakarta = timezone("Asia/Jakarta")
-        if not a["Page"]["media"]:
-            embed.description = "No anime in watchlist."
-        for e in a["Page"]["media"]:
-            if e["nextAiringEpisode"]:
-                status = "AIRING"
-                _time_ = str(
-                    datetime.datetime.fromtimestamp(
-                        e["nextAiringEpisode"]["airingAt"], tz=jakarta
-                    ).strftime("%d %b %Y - %H:%M WIB")
-                )
-                _timeTillAired_ = str(
-                    datetime.timedelta(
-                        seconds=e["nextAiringEpisode"]["timeUntilAiring"]
-                    )
-                )
-                embed.add_field(
-                    name=f"{e['title']['romaji']} ({e['id']})",
-                    value=f"Episode {e['nextAiringEpisode']['episode']} will be aired at"
-                    + f" **{_time_}** (**{_timeTillAired_}**)",
-                    inline=False,
-                )
+        
+        page=1
+        embed_reactions = ['◀️', '▶️','⏹️']
+        def check_reactions(reaction, user):
+            if user == ctx.author and str(reaction.emoji) in embed_reactions:
+                return str(reaction.emoji)
             else:
-                status = "FINISHED"
-                embed.add_field(
-                    name=f"{e['title']['romaji']} ({e['id']})",
-                    value=status or "...",
-                    inline=False,
-                )
-        await ctx.send(embed=embed)
+                return False
 
-        # await send_watchlist(self, ctx)
+        def create_embed(ctx, data, pageData):
+            embed = None
+            data = data['media'][0]
+            rating = data['averageScore'] or 0
+            if rating >= 90:
+                ratingEmoji = "😃"
+            elif rating >= 75:
+                ratingEmoji = "🙂"
+            elif rating >= 50:
+                ratingEmoji = "😐"
+            else:
+                ratingEmoji = "😦"
+            embed = discord.Embed(title=data['title']['romaji'],
+                                  url = f"https://anilist.co/anime/{data['id']}",
+                                  description=f"**{data['title']['english'] or 'No english title'} ({data['id']})**\n\
+                                                `{ctx.prefix}anime info {data['id']} for more info`",
+                                  colour = discord.Colour(0x02A9FF))
+            embed.set_author(name=f"AniList - "
+                                + f"Page {pageData['currentPage']}/{pageData['lastPage']} - "
+                                + f"{ratingEmoji} {rating}%",
+                             icon_url="https://gblobscdn.gitbook.com/spaces%2F-LHizcWWtVphqU90YAXO%2Favatar.png")
+            
+            if "Hentai" in data['genres'] and ctx.channel.is_nsfw() is False:
+                embed.set_thumbnail(url="https://raw.githubusercontent.com/null2264/null2264/master/NSFW.png")
+            else:
+                embed.set_thumbnail(url=data['coverImage']['large'])
+
+            if data['bannerImage']:
+                if "Hentai" in data['genres'] and ctx.channel.is_nsfw() is False:
+                    embed.set_image(url="https://raw.githubusercontent.com/null2264/null2264/master/nsfw_banner.jpg")
+                else:
+                    embed.set_image(url=data['bannerImage'])
+            else:
+                embed.set_image(url="https://raw.githubusercontent.com/null2264/null2264/master/21519-1ayMXgNlmByb.jpg")
+
+            studios = []
+            for studio in data['studios']['nodes']:
+                studios.append(studio['name'])
+            embed.add_field(name="Studios", value=", ".join(studios) or "Unknown", inline=False)
+            embed.add_field(name="Format", value=data['format'].replace('_', ' '))
+            if str(data['format']).lower() in ["movie", "music"]:
+                if data['duration']:
+                    embed.add_field(name="Duration", value=realtime(data['duration']*60))
+                else:
+                    embed.add_field(name="Duration", value=realtime(0))
+            else:
+                embed.add_field(name="Episodes", value=data['episodes'] or "0")
+            embed.add_field(name="Status", value=hformat(data['status']))
+            genres = ", ".join(data['genres'])
+            embed.add_field(name="Genres",value=genres or "Unknown", inline=False)
+            return embed
+
+        q = await search_ani_new(self, ctx, anime, 1)
+        if not q:
+            await ctx.send(f"No anime with keyword '{anime}' not found.")
+            return
+        e = create_embed(ctx, q['Page'], q['Page']['pageInfo'])
+        msg = await ctx.send(embed=e)
+        for emoji in embed_reactions:
+            await msg.add_reaction(emoji)
+        
+        while True:
+            try:
+                reaction, user = await self.bot.wait_for('reaction_add',
+                                                        check=check_reactions,
+                                                        timeout=60.0)
+            except asyncio.TimeoutError:
+                break
+            else:
+                emoji = check_reactions(reaction, user)
+                try:
+                    await msg.remove_reaction(reaction.emoji, user)
+                except discord.Forbidden:
+                    pass
+                if emoji == "◀️" and page != 1:
+                    page -= 1
+                    q = await search_ani_new(self, ctx, anime, page)
+                    if not q:
+                        pass
+                    e = create_embed(ctx, q['Page'], q['Page']['pageInfo'])
+                    await msg.edit(embed=e)
+                if emoji == "▶️" and q['Page']['pageInfo']['hasNextPage']:
+                    page += 1
+                    q = await search_ani_new(self, ctx, anime, page)
+                    if not q:
+                        pass
+                    e = create_embed(ctx, q['Page'], q['Page']['pageInfo'])
+                    await msg.edit(embed=e)
+                if emoji == "⏹️":
+                    # await msg.clear_reactions()
+                    break
+
         return
 
+    @anime.command(usage="(anime) [format]")
+    @commands.check(is_mainserver)
+    async def watch(self, ctx, anime, _format: str=None):
+        """Add anime to watchlist."""
+        if not anime:
+            return
+        _id_ = await find_id(self, ctx, anime, _format)
+
+        # Get info from API
+        q = await getinfo(self, ctx, anime, _format)
+
+        title = q['Media']['title']['romaji']
+        if _id_ not in self.watchlist:
+            self.watchlist.append(_id_)
+            with open('data/anime.json', 'w') as f:
+                json.dump({'watchlist': self.watchlist}, f, indent=4)
+            embed = discord.Embed(
+                title = "New anime just added!",
+                description = f"**{title}** ({_id_}) has been added to the watchlist!",
+                colour = discord.Colour(0x02A9FF)
+            )
+        else:
+            embed = discord.Embed(
+                title = "Failed to add anime!",
+                description = f"**{title}** ({_id_}) already in the watchlist!",
+                colour = discord.Colour(0x02A9FF)
+            )
+        embed.set_author(name="AniList",
+            icon_url = "https://gblobscdn.gitbook.com/spaces%2F-LHizcWWtVphqU90YAXO%2Favatar.png"
+        )
+        embed.set_thumbnail(url=q['Media']['coverImage']['large'])
+        await ctx.send(embed=embed)
+        return
+    
+    @anime.command(usage="(anime) [format]")
+    @commands.check(is_mainserver)
+    async def unwatch(self, ctx, anime, _format: str=None):
+        """Remove anime to watchlist."""
+        if not anime:
+            return
+        _id_ = await find_id(self, ctx, anime)
+
+        # Get info from API
+        q = await getinfo(self, ctx, anime, _format)
+
+        title = q['Media']['title']['romaji']
+        if _id_ in self.watchlist:
+            self.watchlist.remove(_id_)
+            with open('data/anime.json', 'w') as f:
+                json.dump({'watchlist': self.watchlist}, f, indent=4)
+            embed = discord.Embed(
+                title = "An anime just removed!",
+                description = f"**{title}** ({_id_}) has been removed from the watchlist!",
+                colour = discord.Colour(0x02A9FF)
+            )
+        else:
+            embed = discord.Embed(
+                title = "Failed to remove anime!",
+                description = f"**{title}** ({_id_}) is not in the watchlist!",
+                colour = discord.Colour(0x02A9FF)
+            )
+        await ctx.send(f"**{title}** ({_id_}) has been removed from the watchlist")
+        embed.set_author(name="AniList",
+            icon_url="https://gblobscdn.gitbook.com/spaces%2F-LHizcWWtVphqU90YAXO%2Favatar.png"
+        )
+        embed.set_thumbnail(url=q['Media']['coverImage']['large'])
+        await ctx.send(embed=embed)
+        return
+    
+    @anime.command(aliases=['wl', 'list'])
+    @commands.check(is_mainserver)
+    async def watchlist(self, ctx):
+        """Get list of anime that added to watchlist."""
+        await getwatchlist(self, ctx)
+        return
 
 def setup(bot):
     bot.add_cog(AniList(bot))
+
