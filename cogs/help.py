@@ -179,10 +179,10 @@ class Help(commands.Cog, name="Help", command_attrs=dict(hidden=True)):
     def cog_unload(self):
         self.bot.help_command = self._original_help_command
 
-    @commands.command(aliases=["customcommands", "ccmds"])
+    @commands.command(aliases=["cmds"])
     async def listcommands(self, ctx):
         """List all custom commands."""
-        await ctx.invoke(self.bot.get_command("custom list"))
+        await ctx.invoke(self.bot.get_command("command list"))
         await ctx.send(
             f"This command will be removed soon, please use `{ctx.prefix}custom list` instead"
         )
