@@ -184,7 +184,7 @@ class Help(commands.Cog, name="Help", command_attrs=dict(hidden=True)):
         """List all custom commands."""
         await ctx.invoke(self.bot.get_command("command list"))
         await ctx.send(
-            f"This command will be removed soon, please use `{ctx.prefix}custom list` instead"
+            f"This command will be removed soon, please use `{ctx.prefix}command list` instead"
         )
 
 
