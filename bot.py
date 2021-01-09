@@ -63,6 +63,8 @@ class ziBot(commands.Bot):
             intents=discord.Intents.all(),
         )
 
+        self.version = "2.2.A"
+
         self.blocks = [block.RandomBlock(), block.StrictVariableGetterBlock()]
 
         # Init database
