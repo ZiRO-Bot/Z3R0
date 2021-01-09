@@ -11,3 +11,4 @@ leaderboard.png
 .env
 pyproject.toml
 poetry.lock
+database.db
