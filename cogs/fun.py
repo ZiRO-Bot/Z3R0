@@ -218,7 +218,7 @@ class Fun(commands.Cog, name="fun"):
         if ctx.guild.id in self.bot.norules:
             ctx.command.reset_cooldown(ctx)
 
-        rigged = {186713080841895936: 9000, 518154918276628490: 12}
+        rigged = {186713080841895936: 9000}
 
         if ctx.author.id in rigged:
             totalEyes = rigged[ctx.author.id]
