@@ -437,6 +437,10 @@ class Fun(commands.Cog, name="fun"):
             description = "You got {} {}!".format(trade.quantity, trade.item),
             colour = discord.Colour.gold()
         )
+        e.set_author(
+            name=f"{ctx.message.author}",
+            icon_url=ctx.message.author.avatar_url,
+        )
         await ctx.send(embed=e)
 
 
