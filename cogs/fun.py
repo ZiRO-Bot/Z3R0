@@ -10,6 +10,7 @@ import re
 from bs4 import BeautifulSoup
 from cogs.errors.fun import DiceTooBig
 from cogs.utilities.embed_formatting import em_ctx_send_error
+from cogs.utilities.barter import Piglin
 from discord.ext import commands
 from discord.errors import Forbidden
 from random import choice, randint, random
@@ -425,6 +426,18 @@ class Fun(commands.Cog, name="fun"):
             image = io.BytesIO(await res.read())
             img = discord.File(fp=image, filename="httpcat.jpg")
             await ctx.reply(file=img)
+    
+    @commands.cooldown(5, 25, type=commands.BucketType.user)
+    @commands.command(aliases=["piglin"])
+    async def barter(self, ctx):
+        """Barter with Minecraft's Piglin. (Based on JE 1.16.1, before nerf)"""
+        trade = Piglin()
+        e = discord.Embed(
+            title = "Bartering with Piglin...",
+            description = "You got {} {}!".format(trade.quantity, trade.item),
+            colour = discord.Colour.gold()
+        )
+        await ctx.send(embed=e)
 
 
 def setup(bot):
