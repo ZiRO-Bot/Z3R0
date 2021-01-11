@@ -18,7 +18,7 @@ from cogs.utilities.formatting import bar_make, realtime
 from discord.errors import Forbidden
 from discord.ext import commands
 from pytz import timezone
-from typing import Optional
+from typing import Optional, Union
 
 egs = epicstore_api.EpicGamesStoreAPI()
 session = aiohttp.ClientSession()
@@ -236,7 +236,7 @@ class General(commands.Cog, name="general"):
         await ctx.send(f"ziBot's source code: \n{git_link}")
 
     @commands.command(aliases=["ui"], usage="[member]")
-    async def userinfo(self, ctx, *, user: discord.Member = None):
+    async def userinfo(self, ctx, *, user: Union[discord.Member, discord.User] = None):
         """Show user information."""
         member = user or ctx.message.author
 
@@ -282,15 +282,12 @@ class General(commands.Cog, name="general"):
                 badges.append(badge("UserFlags.owner"))
             badges.append(badge(x))
 
-        roles = []
-        if member:
-            for role in member.roles:
-                if role.name != "@everyone":
-                    roles.append(role.mention)
+        if isinstance(member, discord.Member):
+            roles = [role.mention for role in member.roles if role.name != "@everyone"]
 
         jakarta = timezone("Asia/Jakarta")
 
-        if member:
+        if isinstance(member, discord.Member):
             status = member.status
             statEmoji = stat(member.status)
         else:
@@ -302,7 +299,7 @@ class General(commands.Cog, name="general"):
                 "<:activity:748091280227041281>"
                 + activity(str(member.activity.type).replace("ActivityType.", ""))
                 + f"**{member.activity.name}**"
-                if member and member.activity
+                if isinstance(member, discord.Member) and member.activity
                 else ""
             ),
             colour=member.colour if member else discord.Colour(0x000000),
@@ -328,17 +325,18 @@ class General(commands.Cog, name="general"):
             value=member.joined_at.replace(tzinfo=timezone("UTC"))
             .astimezone(jakarta)
             .strftime("%a, %#d %B %Y, %H:%M WIB")
-            if member
-            else "Not a member.",
+            if isinstance(member, discord.Member)
+            else "Not in this server.",
         )
-        if len(", ".join(roles)) <= 1024:
-            embed.add_field(
-                name=f"Roles ({len(roles)})",
-                value=", ".join(roles) or "No roles.",
-                inline=False,
-            )
-        else:
-            embed.add_field(name=f"Roles", value=f"{len(roles)}", inline=False)
+        if isinstance(member, discord.Member):
+            if len(", ".join(roles)) <= 1024:
+                embed.add_field(
+                    name=f"Roles ({len(roles)})",
+                    value=", ".join(roles) or "No roles.",
+                    inline=False,
+                )
+            else:
+                embed.add_field(name=f"Roles", value=f"{len(roles)}", inline=False)
         embed.set_footer(
             text=f"Requested by {ctx.message.author.name}#{ctx.message.author.discriminator}"
         )
