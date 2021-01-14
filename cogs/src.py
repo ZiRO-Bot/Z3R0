@@ -11,6 +11,7 @@ class SRC(commands.Cog, name="src"):
     def __init__(self, bot):
         self.bot = bot
         self.API_URL = "https://www.speedrun.com/api/v1/"
+        self.LOGO = "https://www.speedrun.com/images/1st.png"
         self.session = self.bot.session
 
     async def generate_tinyUrl(self, long_url: str):
@@ -211,7 +212,7 @@ class SRC(commands.Cog, name="src"):
         # finalize embed the send it
         e.set_author(
             name=f"MCBE - {cat_name} - {seeds[sel_seed]['name']}",
-            icon_url="https://www.speedrun.com/themes/Default/1st.png",
+            icon_url=self.LOGO,
         )
         await ctx.send(embed=e)
 
@@ -348,7 +349,7 @@ class SRC(commands.Cog, name="src"):
         e.set_author(
             name=cat_name,
             url=data["category"]["data"]["weblink"],
-            icon_url="https://www.speedrun.com/themes/Default/1st.png",
+            icon_url=self.LOGO,
         )
 
         for run in data["runs"]:
@@ -441,7 +442,7 @@ class SRC(commands.Cog, name="src"):
         e.set_thumbnail(url=data["game"]["data"]["assets"]["cover-large"]["uri"])
         e.set_author(
             name=f"{game['name']} - {cat_dict[pformat(category)]['name']}",
-            icon_url="https://www.speedrun.com/themes/Default/1st.png",
+            icon_url=self.LOGO,
         )
         e.add_field(
             name="Date Played", value=data["runs"][0]["run"]["date"], inline=False
@@ -463,7 +464,7 @@ class SRC(commands.Cog, name="src"):
         )
         e.set_author(
             name=f"speedrun.com",
-            icon_url="https://www.speedrun.com/themes/Default/1st.png",
+            icon_url=self.LOGO,
         )
         for i in catdict:
             e.add_field(
