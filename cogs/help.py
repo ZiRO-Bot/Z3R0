@@ -65,7 +65,7 @@ class CustomHelp(commands.HelpCommand):
 
             def f(x):
                 return {
-                    "src": "<:src:757467110564954172>",
+                    "src": "<:srcNew:799163305939435540>",
                     "moderation": "🔨",
                     "customcommands": "❗",
                     "help": "❓",
