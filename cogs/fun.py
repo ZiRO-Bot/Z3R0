@@ -442,6 +442,21 @@ class Fun(commands.Cog, name="fun"):
             icon_url=ctx.message.author.avatar_url,
         )
         await ctx.send(embed=e)
+    
+    @commands.command()
+    async def pp(self, ctx):
+        """Show your pp size."""
+        pp = "8" + "="*randint(1,50) + "D"
+        e = discord.Embed(
+            title = "Your pp looks like this:",
+            description = "`{}`".format(pp),
+            colour = discord.Colour.random(),
+        )
+        e.set_author(
+            name=f"{ctx.message.author}",
+            icon_url=ctx.message.author.avatar_url,
+        )
+        await ctx.send(embed=e)
 
 
 def setup(bot):
