@@ -59,7 +59,10 @@ class Welcome(commands.Cog, name="welcome"):
         self.bot.c.execute(
             "SELECT greeting_ch FROM servers WHERE id=?", (str(server.id),)
         )
-        welcome_channel = server.get_channel(int(self.bot.c.fetchone()[0] or 0))
+        try:
+            welcome_channel = server.get_channel(int(self.bot.c.fetchone()[0] or 0))
+        except TypeError:
+            return
         if not welcome_channel:
             return
 
