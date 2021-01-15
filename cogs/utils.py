@@ -245,7 +245,10 @@ class Utils(commands.Cog, name="utils"):
         self.bot.c.execute(
             "SELECT purge_ch FROM servers WHERE id=?", (str(message.guild.id),)
         )
-        purgatory_ch = self.bot.c.fetchall()[0][0]
+        try:
+            purgatory_ch = self.bot.c.fetchall()[0][0]
+        except IndexError:
+            return
         if not purgatory_ch:
             return
         purgatory_ch = self.bot.get_channel(purgatory_ch)
