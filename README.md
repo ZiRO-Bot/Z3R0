@@ -47,5 +47,8 @@ py -3 -m pip install -r requirements.txt
 ## TODOs
 [Click here](https://github.com/null2264/ziBot/projects) to see all the plan i have for this project.
 
+## Related Projects
+- [Inky Bot](https://github.com/xIKYx/InKY-Bot) by [xIKYx](https://github.com/xIKYx) - Contains a bit of ziBot's code without any cooldown.
+
 ## License
-[GNU GPL-3.0-or-later](https://github.com/null2264/ziBot/blob/master/LICENSE)
+This project is licensed under [GNU GPL-3.0-or-later](https://github.com/null2264/ziBot/blob/master/LICENSE).
