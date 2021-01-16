@@ -31,10 +31,11 @@ class Welcome(commands.Cog):
             f"SELECT farewell_msg FROM settings WHERE id=?", (str(server.id),)
         )
         settings = self.bot.c.fetchone()
-        if not settings[0]:
-            return
         # fetch special values
-        farewell_msg = self.fetch_special_val(member, str(settings[0]))
+        try:
+            farewell_msg = self.fetch_special_val(member, str(settings[0]))
+        except TypeError:
+            return
 
         # get greet_channel and send the message
         self.bot.c.execute(
