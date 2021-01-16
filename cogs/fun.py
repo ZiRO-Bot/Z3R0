@@ -446,7 +446,7 @@ class Fun(commands.Cog, name="fun"):
     @commands.command()
     async def pp(self, ctx):
         """Show your pp size."""
-        pp = "8" + "="*randint(1,50) + "D"
+        pp = "8" + "="*randint(1,500) + "D"
         e = discord.Embed(
             title = "Your pp looks like this:",
             description = "`{}`".format(pp),
