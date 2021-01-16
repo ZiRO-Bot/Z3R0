@@ -1,6 +1,6 @@
 import aiohttp
 import asyncio
-import bot
+import core.bot as bot
 import datetime
 import discord
 import epicstore_api
@@ -130,7 +130,7 @@ async def weather_get(key, *place, _type="city"):
     return weatherData
 
 
-class General(commands.Cog, name="general"):
+class General(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.logger = logging.getLogger("discord")

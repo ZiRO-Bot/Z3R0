@@ -12,14 +12,14 @@ from cogs.utilities.tse_blocks import RandomBlock
 from cogs.utilities.embed_formatting import em_ctx_send_error
 from cogs.utilities.formatting import realtime
 from cogs.utilities.stringparamadapter import StringParamAdapter
-from bot import get_cogs
+from core.bot import get_cogs
 from discord.errors import Forbidden
 from discord.ext import commands
 from pytz import timezone
 from TagScriptEngine import Verb, Interpreter, adapter, block
 
 
-class CustomCommands(commands.Cog, name="customcommands"):
+class CustomCommands(commands.Cog):
     def __init__(self, bot):
         self.logger = logging.getLogger("discord")
         self.bot = bot

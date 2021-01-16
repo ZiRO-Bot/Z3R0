@@ -5,7 +5,7 @@ import discord
 import json
 import logging
 
-from bot import ziBot
+from core.bot import ziBot
 
 
 @contextlib.contextmanager

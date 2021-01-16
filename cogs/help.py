@@ -1,11 +1,11 @@
 import asyncio
-import bot
+import core.bot as bot
 import discord
 import json
 import logging
 import re
 
-from bot import get_prefix
+from core.bot import get_prefix
 from discord.ext import commands
 from typing import Optional
 
@@ -168,7 +168,7 @@ class CustomHelp(commands.HelpCommand):
         await self.get_destination().send(embed=embed)
 
 
-class Help(commands.Cog, name="Help", command_attrs=dict(hidden=True)):
+class HelpCmd(commands.Cog, command_attrs=dict(hidden=True)):
     def __init__(self, bot):
         self.bot = bot
         self.logger = logging.getLogger("discord")
@@ -189,4 +189,4 @@ class Help(commands.Cog, name="Help", command_attrs=dict(hidden=True)):
 
 
 def setup(bot):
-    bot.add_cog(Help(bot))
+    bot.add_cog(HelpCmd(bot))

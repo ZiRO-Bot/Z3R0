@@ -1,6 +1,6 @@
 import asyncio
 import aiohttp
-import bot
+import core.bot as bot
 import datetime
 import discord
 import json
@@ -60,7 +60,7 @@ class SearxResultsPageSource(menus.ListPageSource):
         return e
 
 
-class Utils(commands.Cog, name="utils"):
+class Utils(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.logger = logging.getLogger("discord")

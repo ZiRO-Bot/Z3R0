@@ -17,7 +17,7 @@ from random import choice, randint, random
 from typing import Optional
 
 
-class Fun(commands.Cog, name="fun"):
+class Fun(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         praw.Reddit

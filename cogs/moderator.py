@@ -1,5 +1,5 @@
 import asyncio
-import bot
+import core.bot as bot
 import cogs.utilities.checks as checks
 import copy
 import datetime
@@ -14,7 +14,7 @@ import sys
 import textwrap
 import time
 
-from bot import get_cogs, get_prefix
+from core.bot import get_cogs, get_prefix
 from cogs.utilities.embed_formatting import em_ctx_send_error, em_ctx_send_success
 from discord.errors import Forbidden, NotFound
 from discord.ext import commands
@@ -65,7 +65,7 @@ async def copy_context_with(
     return await ctx.bot.get_context(alt_message, cls=type(ctx))
 
 
-class Admin(commands.Cog, name="moderation"):
+class Admin(commands.Cog):
     def __init__(self, bot):
         self.logger = logging.getLogger("discord")
         self.bot = bot
