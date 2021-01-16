@@ -62,13 +62,15 @@ class CustomHelp(commands.HelpCommand):
             colour=self.COLOUR,
         )
         for cog, commands in mapping.items():
+            if cog and str(cog.qualified_name).lower() == "helpcmd":
+                continue
 
             def f(x):
                 return {
                     "src": "<:srcNew:799163305939435540>",
-                    "moderation": "🔨",
+                    "admin": "🔨",
                     "customcommands": "❗",
-                    "help": "❓",
+                    "helpcmd": "❓",
                     "utils": "🔧",
                     "anilist": "<:anilist:757473769101983784>",
                     "fun": "🎉",
