@@ -21,9 +21,6 @@ from discord.ext import commands
 from typing import Optional
 from utilities.formatting import realtime
 
-SHELL = os.getenv("SHELL") or "/bin/bash"
-WINDOWS = sys.platform == "win32"
-
 ch_types = {
     "general": ["general", "Regular text channel"],
     "voice": ["voice", "Voice channel"],
@@ -427,22 +424,6 @@ class Admin(commands.Cog):
                     f"{member.mention} has been unbanned by {ctx.author.mention}!"
                 )
 
-    @commands.command(hidden=True)
-    @checks.is_botmaster()
-    async def pull(self, ctx):
-        """Update the bot from github."""
-        g = git.cmd.Git(os.getcwd())
-        embed = discord.Embed(
-            title="Git",
-            colour=discord.Colour.lighter_gray(),
-            timestamp=datetime.datetime.now(),
-        )
-        try:
-            embed.add_field(name="Pulling...", value=f"```bash\n{g.pull()}```")
-        except git.exc.GitCommandError as e:
-            embed.add_field(name="Pulling...", value=f"```bash\n{e}```")
-        await ctx.send(embed=embed)
-
     @commands.group(invoke_without_command=True)
     async def prefix(self, ctx):
         """Manage bot's prefix."""
@@ -613,31 +594,6 @@ class Admin(commands.Cog):
             match = re.match(r"Channel \"[0-9]*\" not found.", str(error))
             if match:
                 await em_ctx_send_error(ctx, "You can only set a text channel's type!")
-
-    @commands.command(aliases=["sh"], usage="(shell command)", hidden=True)
-    @checks.is_botmaster()
-    async def shell(self, ctx, *command: str):
-        """Execute shell command from discord. **Use with caution**"""
-        if WINDOWS:
-            sequence = shlex.split(" ".join([*command]))
-        else:
-            sequence = [SHELL, "-c", " ".join([*command])]
-
-        proc = subprocess.Popen(sequence, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
-
-        def clean_bytes(line):
-            """
-            Cleans a byte sequence of shell directives and decodes it.
-            """
-            lines = line
-            line = []
-            for i in lines:
-                line.append(i.decode("utf-8"))
-            line = "".join(line)
-            text = line.replace("\r", "").strip("\n")
-            return re.sub(r"\x1b[^m]*m", "", text).replace("``", "`\u200b`").strip("\n")
-
-        await ctx.send(f"```{clean_bytes(proc.stdout.readlines())}```")
 
     @commands.group()
     @checks.is_mod()
