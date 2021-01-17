@@ -239,7 +239,7 @@ class Fun(commands.Cog):
 
         # rig stuff
         # rig is capped at 12 no matter what
-        rigged = {186713080841895936: -5, 518154918276628490: 12}
+        rigged = {186713080841895936: 12, 518154918276628490: 12}
         if ctx.author.id in rigged:
             rig = rigged[ctx.author.id]
             # cap rig
