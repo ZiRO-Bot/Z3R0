@@ -392,7 +392,9 @@ class Utils(commands.Cog):
     async def search(self, ctx, *, keyword):
         """Search the web using searx."""
         if not ctx.channel.is_nsfw():
-            return await ctx.send("This command only available in NSFW chat since safe search is not available yet.")
+            return await ctx.send(
+                "This command only available in NSFW chat since safe search is not available yet."
+            )
         results = await self.searx.get_results(keyword)
         menu = menus.MenuPages(source=SearxResultsPageSource(ctx, results))
         await menu.start(ctx)

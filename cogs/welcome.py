@@ -14,7 +14,7 @@ class Welcome(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         # self.engine = Interpreter(self.bot.blocks)
-        
+
     def fetch_special_val(self, member, message):
         engine = self.bot.init_tagscript(self.bot.blocks, member, member.guild)
         special_vals = {

@@ -21,6 +21,7 @@ try:
 except FileExistsError:
     pass
 
+
 def get_cogs():
     """callable extensions"""
     extensions = [
@@ -114,7 +115,13 @@ class ziBot(commands.Bot):
 
         self.master = [186713080841895936]
 
-    def init_tagscript(self, blocks: list=None, member: discord.Member=None, guild: discord.Guild=None, context: commands.Context=None):
+    def init_tagscript(
+        self,
+        blocks: list = None,
+        member: discord.Member = None,
+        guild: discord.Guild = None,
+        context: commands.Context = None,
+    ):
         if not blocks:
             blocks = self.blocks
         if member:

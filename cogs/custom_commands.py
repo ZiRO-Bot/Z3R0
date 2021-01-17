@@ -28,8 +28,8 @@ class CustomCommands(commands.Cog):
                 (id text, name text, content text, created int, updated int, uses real, author text)"""
         )
         self.blocks = [
-            RandomBlock(), 
-            block.StrictVariableGetterBlock(), 
+            RandomBlock(),
+            block.StrictVariableGetterBlock(),
             block.MathBlock(),
             block.RangeBlock(),
         ]
@@ -72,7 +72,10 @@ class CustomCommands(commands.Cog):
                 ctx.prefix == "@" and (lookup == "everyone" or lookup == "here")
             ):
                 return
-            return await em_ctx_send_error(ctx, f"No command called `{name}` or you don't have a permission to use it")
+            return await em_ctx_send_error(
+                ctx,
+                f"No command called `{name}` or you don't have a permission to use it",
+            )
         self.bot.c.execute(
             "UPDATE tags SET uses = uses + 1 WHERE (name=? AND id=?)",
             (lookup, str(ctx.guild.id)),

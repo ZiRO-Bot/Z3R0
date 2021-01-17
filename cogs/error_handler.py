@@ -20,7 +20,9 @@ class ErrorHandler(commands.Cog):
             return
 
         if isinstance(error, commands.BotMissingPermissions):
-            return await ctx.send(f"The bot doesn't have `{missing_perms}` permission to do this command!")
+            return await ctx.send(
+                f"The bot doesn't have `{missing_perms}` permission to do this command!"
+            )
 
         if isinstance(error, commands.MissingRequiredArgument):
             return await ctx.send(
@@ -37,7 +39,7 @@ class ErrorHandler(commands.Cog):
 
         if isinstance(error, commands.CommandInvokeError):
             self.bot.logger.error(f"Something went wrong! error: {error}")
-            
+
             # Give details about the error
             print(
                 "Ignoring exception in command {}:".format(ctx.command), file=sys.stderr
@@ -45,7 +47,7 @@ class ErrorHandler(commands.Cog):
             traceback.print_exception(
                 type(error), error, error.__traceback__, file=sys.stderr
             )
-            
+
             # Send embed that when user react withh greenTick bot will send it to bot owner
             desc = (
                 f"The command was unsuccessful because of this reason:\n```{error}```\n"
@@ -56,9 +58,7 @@ class ErrorHandler(commands.Cog):
                 description=desc,
                 colour=discord.Colour(0x2F3136),
             )
-            e.set_footer(
-                text="Waiting for answer...", icon_url=ctx.author.avatar_url
-            )
+            e.set_footer(text="Waiting for answer...", icon_url=ctx.author.avatar_url)
             msg = await ctx.send(embed=e)
             await msg.add_reaction("<:greenTick:767209095090274325>")
 
@@ -84,11 +84,12 @@ class ErrorHandler(commands.Cog):
                     f"An error occured: `{error}`\nctx.message: `{ctx.message}`\nctx.message.content: `{ctx.message.content}`"
                 )
                 e.set_footer(
-                    text=f"Error has been reported to {bot_owner}", icon_url=ctx.author.avatar_url
+                    text=f"Error has been reported to {bot_owner}",
+                    icon_url=ctx.author.avatar_url,
                 )
                 await msg.edit(embed=e)
                 await msg.clear_reactions()
-            
+
             return
 
 

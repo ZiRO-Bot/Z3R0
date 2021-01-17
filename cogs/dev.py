@@ -12,6 +12,7 @@ from cogs.utilities.paginator import ZiMenu
 SHELL = os.getenv("SHELL") or "/bin/bash"
 WINDOWS = sys.platform == "win32"
 
+
 class ShellResult:
     def __init__(self, status, stdout, stderr):
         self.status = status
@@ -29,9 +30,10 @@ class ShellResult:
     def __repr__(self):
         return f"<Result status={self.status} stdout={len(self._stdout)} stderr={len(self._stderr)}>"
 
+
 class TextWrapPageSource(menus.ListPageSource):
     def __init__(self, prefix, lang, raw_text, max_size: int = 1024):
-        size_limit = len(prefix)*2 + len(lang) + max_size
+        size_limit = len(prefix) * 2 + len(lang) + max_size
         text = [raw_text]
         n = 0
         while len(text[n]) > size_limit:
@@ -59,7 +61,7 @@ class Developer(commands.Cog):
     async def cog_check(self, ctx):
         """Only bot master able to use debug cogs."""
         return await ctx.bot.is_owner(ctx.author)
-    
+
     @commands.command(aliases=["sh"], usage="(shell command)")
     async def shell(self, ctx, *, command: str):
         """Execute shell command from discord. **Use with caution**"""
@@ -70,13 +72,10 @@ class Developer(commands.Cog):
             return await ctx.send("Windows is not supported!")
         else:
             sequence = [SHELL, "-c", " ".join([*command])]
-        
+
         async def run(shell_command):
             p = await asyncio.create_subprocess_shell(
-                shell_command,
-                stdin=PIPE, 
-                stdout=PIPE, 
-                stderr=STDOUT
+                shell_command, stdin=PIPE, stdout=PIPE, stderr=STDOUT
             )
             stdout, stderr = await p.communicate()
             code = p.returncode

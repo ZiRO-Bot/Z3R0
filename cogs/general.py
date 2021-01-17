@@ -305,9 +305,7 @@ class General(commands.Cog):
             colour=member.colour if member else discord.Colour(0x000000),
             timestamp=ctx.message.created_at,
         )
-        embed.set_author(
-            name=f"{member}", icon_url=member.avatar_url
-        )
+        embed.set_author(name=f"{member}", icon_url=member.avatar_url)
         embed.set_thumbnail(url=member.avatar_url)
         embed.add_field(name="ID", value=member.id)
         embed.add_field(name="Guild name", value=member.display_name)
@@ -400,21 +398,27 @@ class General(commands.Cog):
         """Get bot's invite link."""
         e = discord.Embed(
             title="Want to invite ziBot?",
-            description="[Invite with administrator permission](" 
-                + discord.utils.oauth_url(
-                    self.bot.user.id, permissions=discord.Permissions(8), guild=None, redirect_uri=None
-                ) 
-                + ")\n"
-                + "[Invite with necessary premissions ***recommended**](" 
-                + discord.utils.oauth_url(
-                    self.bot.user.id, permissions=discord.Permissions(1879571542), guild=None, redirect_uri=None
-                ) 
-                + ")\n"
-                + "[Invite with no permissions]("
-                + discord.utils.oauth_url(
-                    self.bot.user.id, permissions=None, guild=None, redirect_uri=None
-                )
-                + ")\n",
+            description="[Invite with administrator permission]("
+            + discord.utils.oauth_url(
+                self.bot.user.id,
+                permissions=discord.Permissions(8),
+                guild=None,
+                redirect_uri=None,
+            )
+            + ")\n"
+            + "[Invite with necessary premissions ***recommended**]("
+            + discord.utils.oauth_url(
+                self.bot.user.id,
+                permissions=discord.Permissions(1879571542),
+                guild=None,
+                redirect_uri=None,
+            )
+            + ")\n"
+            + "[Invite with no permissions]("
+            + discord.utils.oauth_url(
+                self.bot.user.id, permissions=None, guild=None, redirect_uri=None
+            )
+            + ")\n",
             colour=discord.Colour(0xFFFFF0),
         )
         await ctx.send(embed=e)
@@ -424,7 +428,10 @@ class General(commands.Cog):
         """Show bot information."""
         start = time.perf_counter()
         invite_link = discord.utils.oauth_url(
-            self.bot.user.id, permissions=discord.Permissions(1879571542), guild=None, redirect_uri=None
+            self.bot.user.id,
+            permissions=discord.Permissions(1879571542),
+            guild=None,
+            redirect_uri=None,
         )
         embed = discord.Embed(
             title="About ziBot",
@@ -823,9 +830,14 @@ class General(commands.Cog):
         if not member:
             member = ctx.author
         e = discord.Embed(
-            title="Avatar", 
+            title="Avatar",
             colour=discord.Colour(0xFFFFF0),
-            description=f"[jpeg]({member.avatar_url_as(format='jpg')}) | [png]({member.avatar_url_as(format='png')}) | [webp]({member.avatar_url_as(format='webp')}) " + (f"| [gif]({member.avatar_url_as(format='gif')})" if member.is_avatar_animated() else "")
+            description=f"[jpeg]({member.avatar_url_as(format='jpg')}) | [png]({member.avatar_url_as(format='png')}) | [webp]({member.avatar_url_as(format='webp')}) "
+            + (
+                f"| [gif]({member.avatar_url_as(format='gif')})"
+                if member.is_avatar_animated()
+                else ""
+            ),
         )
         e.set_image(url=member.avatar_url_as(size=1024))
         e.set_author(name=member, icon_url=member.avatar_url)

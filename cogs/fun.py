@@ -90,9 +90,7 @@ class Fun(commands.Cog):
         """Roll the dice in steve's style."""
         if ctx.guild.id in self.bot.norules:
             ctx.command.reset_cooldown(ctx)
-        await ctx.reply(
-            f"You just rolled {randint(0, int(pool))}"
-        )
+        await ctx.reply(f"You just rolled {randint(0, int(pool))}")
 
     @commands.command()
     @is_reddit()
@@ -219,7 +217,10 @@ class Fun(commands.Cog):
         await ctx.invoke(self.bot.get_command("findseed classic"))
 
     @commands.cooldown(1, 25, commands.BucketType.user)
-    @commands.group(aliases=["fs", "vfs", "visualfindseed", "findseedbutvisual"], invoke_without_command=True)
+    @commands.group(
+        aliases=["fs", "vfs", "visualfindseed", "findseedbutvisual"],
+        invoke_without_command=True,
+    )
     async def findseed(self, ctx):
         """Test your luck in Minecraft but visual."""
         if ctx.guild.id in self.bot.norules:
@@ -232,7 +233,6 @@ class Fun(commands.Cog):
             "{end_portal}": "<:endPortal:800191496598978560>",
             "{lava}": "<:lava:800191584506871808>",
         }
-        
 
         eyes = ["{eye}" if randint(1, 10) == 1 else "{frame}" for i in range(12)]
         eye_count = sum([1 for i in eyes if i == "{eye}"])
@@ -244,23 +244,27 @@ class Fun(commands.Cog):
             rig = rigged[ctx.author.id]
             # cap rig
             if rig >= 12:
-                eye_count, rig = (12,)*2
-                eyes = ["{eye}"]*12
+                eye_count, rig = (12,) * 2
+                eyes = ["{eye}"] * 12
             elif rig <= 0:
-                eye_count, rig = (0,)*2
-                eyes = ["{frame}"]*12
+                eye_count, rig = (0,) * 2
+                eyes = ["{frame}"] * 12
             # rig loop
             while eye_count != rig:
                 for i in range(len(eyes)):
                     if eye_count == rig:
                         break
-                    if eyes[i] == "{frame}" and randint(1, 10) == 1 and (eye_count < rig and eye_count != rig):
+                    if (
+                        eyes[i] == "{frame}"
+                        and randint(1, 10) == 1
+                        and (eye_count < rig and eye_count != rig)
+                    ):
                         eyes[i] = "{eye}"
                         eye_count += 1
                     elif eyes[i] == "{eye}" and (eye_count > rig and eye_count != rig):
                         eyes[i] = "{frame}"
                         eye_count -= 1
-        
+
         # "render" portal
         sel_eye = 0
         portalframe = ""
@@ -271,8 +275,8 @@ class Fun(commands.Cog):
                 ):
                     sel_eye += 1
                     portalframe += eyes[sel_eye - 1]
-                elif ((col != 0 or col != 4) and (col > 0 and col <4)):
-                    portalframe += ("{end_portal}" if eye_count >= 12 else "{lava}")
+                elif (col != 0 or col != 4) and (col > 0 and col < 4):
+                    portalframe += "{end_portal}" if eye_count >= 12 else "{lava}"
                 else:
                     portalframe += "{air}"
             portalframe += "\n"
@@ -395,7 +399,12 @@ class Fun(commands.Cog):
         if message.author.bot:
             return
 
-        fair_guilds = [759073367767908375, 758764126679072788, 745481731133669476, 690032983817846859]
+        fair_guilds = [
+            759073367767908375,
+            758764126679072788,
+            745481731133669476,
+            690032983817846859,
+        ]
         bad_words = ["fair", "ⓕⓐⓘⓡ", "ɹıɐɟ", "justo", "adil"]
         fair = ""
         for word in bad_words:
@@ -444,14 +453,18 @@ class Fun(commands.Cog):
     @commands.command(usage="(member)")
     @commands.cooldown(5, 25, type=commands.BucketType.user)
     @commands.max_concurrency(1, per=commands.BucketType.guild)
-    async def triggered(self, ctx, member: discord.User=None):
+    async def triggered(self, ctx, member: discord.User = None):
         """Make your or someone else's avatar triggered."""
         if "dagpi_token" not in self.bot.config:
             return
         if not member:
             member = ctx.author
-        url = "https://api.dagpi.xyz/image/triggered/?url=" + str(member.avatar_url_as(format="png", size=1024))
-        async with self.bot.session.get(url=url, headers={"Authorization": self.bot.config["dagpi_token"]}) as res:
+        url = "https://api.dagpi.xyz/image/triggered/?url=" + str(
+            member.avatar_url_as(format="png", size=1024)
+        )
+        async with self.bot.session.get(
+            url=url, headers={"Authorization": self.bot.config["dagpi_token"]}
+        ) as res:
             image = io.BytesIO(await res.read())
             img = discord.File(fp=image, filename="triggered.gif")
             await ctx.send(file=img)
@@ -463,31 +476,31 @@ class Fun(commands.Cog):
             image = io.BytesIO(await res.read())
             img = discord.File(fp=image, filename="httpcat.jpg")
             await ctx.reply(file=img)
-    
+
     @commands.cooldown(5, 25, type=commands.BucketType.user)
     @commands.command(aliases=["piglin"])
     async def barter(self, ctx):
         """Barter with Minecraft's Piglin. (Based on JE 1.16.1, before nerf)"""
         trade = Piglin()
         e = discord.Embed(
-            title = "Bartering with Piglin...",
-            description = "You got {} {}!".format(trade.quantity, trade.item),
-            colour = discord.Colour.gold()
+            title="Bartering with Piglin...",
+            description="You got {} {}!".format(trade.quantity, trade.item),
+            colour=discord.Colour.gold(),
         )
         e.set_author(
             name=f"{ctx.message.author}",
             icon_url=ctx.message.author.avatar_url,
         )
         await ctx.send(embed=e)
-    
+
     @commands.command()
     async def pp(self, ctx):
         """Show your pp size."""
-        pp = "8" + "="*randint(1,500) + "D"
+        pp = "8" + "=" * randint(1, 500) + "D"
         e = discord.Embed(
-            title = "Your pp looks like this:",
-            description = "`{}`".format(pp),
-            colour = discord.Colour.random(),
+            title="Your pp looks like this:",
+            description="`{}`".format(pp),
+            colour=discord.Colour.random(),
         )
         e.set_author(
             name=f"{ctx.message.author}",
