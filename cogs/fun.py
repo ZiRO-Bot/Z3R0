@@ -213,9 +213,65 @@ class Fun(commands.Cog):
         await msg.delete()
 
     @commands.cooldown(1, 25, commands.BucketType.user)
-    @commands.command()
+    @commands.command(aliases=["cfs"])
+    async def classicfindseed(self, ctx):
+        """Alias of `findseed classic`, Test your luck in Minecraft the classic way."""
+        await ctx.invoke(self.bot.get_command("findseed classic"))
+
+    @commands.cooldown(1, 25, commands.BucketType.user)
+    @commands.group(aliases=["fs", "vfs", "visualfindseed", "findseedbutvisual"], invoke_without_command=True)
     async def findseed(self, ctx):
-        """Test your luck in Minecraft."""
+        """Test your luck in Minecraft but visual."""
+        if ctx.guild.id in self.bot.norules:
+            ctx.command.reset_cooldown(ctx)
+
+        emojis = {
+            "{air}": "<:empty:754550188269633556>",
+            "{frame}": "<:portal:754550231017979995>",
+            "{eye}": "<:eye:754550267382333441>",
+            "{end_portal}": "<:endPortal:800191496598978560>",
+            "{lava}": "<:lava:800191584506871808>",
+        }
+        
+        rigged = {186713080841895936: 9000, 518154918276628490: 12}
+
+        eyes = ["{eye}" if randint(1, 10) == 1 else "{frame}" for i in range(12)]
+        if ctx.author.id in rigged:
+            eyes = ["{eye}"]*rigged[ctx.author.id]
+        eye_count = sum([1 for i in eyes if i == "{eye}"])
+        sel_eye = 0
+        portalframe = ""
+        for row in range(5):
+            for col in range(5):
+                if ((col == 0 or col == 4) and (row != 0 and row != 4)) or (
+                    (row == 0 or row == 4) and (col > 0 and col < 4)
+                ):
+                    sel_eye += 1
+                    portalframe += eyes[sel_eye - 1]
+                elif ((col != 0 or col != 4) and (col > 0 and col <4)):
+                    portalframe += ("{end_portal}" if eye_count >= 12 else "{lava}")
+                else:
+                    portalframe += "{air}"
+            portalframe += "\n"
+
+        # replace placeholder with portal frame emoji
+        for placeholder in emojis.keys():
+            portalframe = portalframe.replace(placeholder, emojis[placeholder])
+
+        e = discord.Embed(
+            title="findseed but visual",
+            description=f"Your seed is a **{eye_count}** eye: \n\n{portalframe}",
+            color=discord.Colour(0x38665E),
+        )
+        e.set_author(
+            name=f"{ctx.message.author.name}#{ctx.message.author.discriminator}",
+            icon_url=ctx.message.author.avatar_url,
+        )
+        await ctx.send(embed=e)
+
+    @findseed.command(name="classic")
+    async def classic_findseed(self, ctx):
+        """Test your luck in Minecraft the classic way."""
         if ctx.guild.id in self.bot.norules:
             ctx.command.reset_cooldown(ctx)
 
@@ -232,48 +288,6 @@ class Fun(commands.Cog):
         await ctx.send(
             f"{ctx.message.author.mention} -> your seed is a {totalEyes} eye"
         )
-
-    @commands.cooldown(1, 25, commands.BucketType.user)
-    @commands.command(aliases=["vfindseed", "visualfindseed", "vfs"])
-    async def findseedbutvisual(self, ctx):
-        """Test your luck in Minecraft but visual."""
-        if ctx.guild.id in self.bot.norules:
-            ctx.command.reset_cooldown(ctx)
-
-        emojis = {
-            "{air}": "<:empty:754550188269633556>",
-            "{frame}": "<:portal:754550231017979995>",
-            "{eye}": "<:eye:754550267382333441>",
-        }
-
-        eyes = ["{eye}" if randint(1, 10) == 1 else "{frame}" for i in range(12)]
-        sel_eye = 0
-        portalframe = ""
-        for row in range(5):
-            for col in range(5):
-                if ((col == 0 or col == 4) and (row != 0 and row != 4)) or (
-                    (row == 0 or row == 4) and (col > 0 and col < 4)
-                ):
-                    sel_eye += 1
-                    portalframe += eyes[sel_eye - 1]
-                else:
-                    portalframe += "{air}"
-            portalframe += "\n"
-
-        # replace placeholder with portal frame emoji
-        for placeholder in emojis.keys():
-            portalframe = portalframe.replace(placeholder, emojis[placeholder])
-
-        e = discord.Embed(
-            title="findseed but visual",
-            description=f"Your seed looks like: \n\n{portalframe}",
-            color=discord.Colour(0x38665E),
-        )
-        e.set_author(
-            name=f"{ctx.message.author.name}#{ctx.message.author.discriminator}",
-            icon_url=ctx.message.author.avatar_url,
-        )
-        await ctx.send(embed=e)
 
     @commands.cooldown(1, 25, commands.BucketType.guild)
     @commands.command()
