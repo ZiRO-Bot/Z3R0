@@ -286,7 +286,7 @@ class Fun(commands.Cog):
             portalframe = portalframe.replace(placeholder, emojis[placeholder])
 
         e = discord.Embed(
-            title="findseed but visual",
+            title="findseed",
             description=f"Your seed is a **{eye_count}** eye: \n\n{portalframe}",
             color=discord.Colour(0x38665E),
         )
@@ -294,6 +294,7 @@ class Fun(commands.Cog):
             name=f"{ctx.message.author.name}#{ctx.message.author.discriminator}",
             icon_url=ctx.message.author.avatar_url,
         )
+        e.set_footer(text=f"The old findseed has been moved to `{ctx.prefix}findseed classic` or `{ctx.prefix}classicfindseed` or `{ctx.prefix}cfs`")
         await ctx.send(embed=e)
 
     @findseed.command(name="classic")
