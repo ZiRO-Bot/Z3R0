@@ -233,18 +233,35 @@ class Fun(commands.Cog):
             "{lava}": "<:lava:800191584506871808>",
         }
         
-        rigged = {186713080841895936: 11, 518154918276628490: 12}
 
         eyes = ["{eye}" if randint(1, 10) == 1 else "{frame}" for i in range(12)]
         eye_count = sum([1 for i in eyes if i == "{eye}"])
+
+        # rig stuff
+        # rig is capped at 12 no matter what
+        rigged = {186713080841895936: -5, 518154918276628490: 12}
         if ctx.author.id in rigged:
-            while eye_count < rigged[ctx.author.id]:
+            rig = rigged[ctx.author.id]
+            # cap rig
+            if rig >= 12:
+                eye_count, rig = (12,)*2
+                eyes = ["{eye}"]*12
+            elif rig <= 0:
+                eye_count, rig = (0,)*2
+                eyes = ["{frame}"]*12
+            # rig loop
+            while eye_count != rig:
                 for i in range(len(eyes)):
-                    if eye_count >= rigged[ctx.author.id] or eye_count >= 12:
+                    if eye_count == rig:
                         break
-                    if eyes[i] == "{frame}" and randint(1, 10) == 1:
+                    if eyes[i] == "{frame}" and randint(1, 10) == 1 and (eye_count < rig and eye_count != rig):
                         eyes[i] = "{eye}"
                         eye_count += 1
+                    elif eyes[i] == "{eye}" and (eye_count > rig and eye_count != rig):
+                        eyes[i] = "{frame}"
+                        eye_count -= 1
+        
+        # "render" portal
         sel_eye = 0
         portalframe = ""
         for row in range(5):
