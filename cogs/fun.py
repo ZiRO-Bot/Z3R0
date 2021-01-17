@@ -231,7 +231,7 @@ class Fun(commands.Cog):
             "{frame}": "<:portal:754550231017979995>",
             "{eye}": "<:eye:754550267382333441>",
             "{end_portal}": "<:endPortal:800191496598978560>",
-            "{lava}": "<:lava:800191584506871808>",
+            "{lava}": "<a:lavaAnimated:800215203614031892>",
         }
 
         eyes = ["{eye}" if randint(1, 10) == 1 else "{frame}" for i in range(12)]
