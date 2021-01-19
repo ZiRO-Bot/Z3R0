@@ -156,7 +156,7 @@ class Fun(commands.Cog):
             + f" I chose ***{bot_choice.capitalize()}***."
         )
         if bot_choice == choice:
-            await ctx.send("It's a Tie!")
+            result = "It's a Tie!"
         elif bot_choice == rps[0]:
 
             def f(x):
