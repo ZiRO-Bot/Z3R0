@@ -5,7 +5,7 @@ import logging
 
 from .utilities.stringparamadapter import StringParamAdapter
 from discord.ext import commands
-from random import randint
+from random import randint, choice
 from TagScriptEngine import Verb, Interpreter, adapter, block
 
 
@@ -72,12 +72,10 @@ class Welcome(commands.Cog):
         )
         settings = self.bot.c.fetchone()
 
+        welcome_msg = choice(def_welcome_msg)
         # welcome message
-        welcome_msg = (
-            self.fetch_special_val(member, str(settings[0]))
-            if settings[0]
-            else def_welcome_msg[randint(0, len(def_welcome_msg) - 1)]
-        )
+        if settings[0]:
+            welcome_msg = self.fetch_special_val(member, str(settings[0]))
 
         # send msg after getting welcome msg
         await welcome_channel.send(welcome_msg)
