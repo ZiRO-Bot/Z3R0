@@ -14,6 +14,38 @@ from utilities.formatting import realtime
 
 translator = Translator()
 
+class Translated:
+    def __init__(self, source, dest, origin, translated):
+        self.source = source
+        self.destination = dest
+        self.origin = origin
+        self.translated = translated
+
+    def __str__(self):
+        return self.translated
+
+    def __repr__(self):
+        return f"<{self.source} -> {self.destination}: origin={self.origin}, translated={self.translated}>"
+
+    @property
+    def dest(self):
+        return self.destination
+
+class GoogleTranslate:
+    def __init__(self, session = None):
+        self.session = session or aiohttp.ClientSession()
+        self.URL = "https://translate.googleapis.com/translate_a/single?client=gtx&dt=t"
+
+    async def translate(self, source, dest, query):
+        params = {
+            "sl": source,
+            "tl": dest,
+            "q": query,
+        }
+        async with self.session.get(self.URL + f"&sl={source}&tl={dest}&q={query}") as res:
+            _json = json.loads(await res.text())
+        return Translated(source, dest, query, _json[0][0][0])
+
 
 class SearxAPI:
     def __init__(self, base_url):
@@ -318,36 +350,35 @@ class Utils(commands.Cog):
         e.add_field(name="Bot Latency", value=f"{round(msg_ping)}ms")
         await msg.edit(embed=e)
 
-    # Disabled due to module not working properly
-    # TODO: find new API to work with
-    # @commands.command(
-    #     aliases=["trans"], brief="Translate a text.", usage="(language) (text)"
-    # )
-    # async def translate(self, ctx, lang, *txt):
-    #     """Translate a text.\n\
-    #        **Example**
-    #        ``>translate ja Hello World``"""
-    #     if not txt:
-    #         await ctx.send("You need to specify the text you want to translate!")
-    #     abbv = {"jp": "ja"}
-    #     if lang in abbv:
-    #         lang = abbv[lang]
-    #     translation = await translator.translate(" ".join(txt), dest=lang)
-    #     # remove spaces from <@![ID]>
-    #     translated = str(translation.text).replace("<@! ", "<@!")
-    #     translated = str(translated).replace("<@ ", "<@")
-    #     translated = str(translated).replace("<# ", "<#")
-    #     embed = discord.Embed(timestamp=ctx.message.created_at)
-    #     embed.set_author(
-    #         name="Google Translate", icon_url="https://translate.google.com/favicon.ico"
-    #     )
-    #     embed.add_field(
-    #         name=f"Source [{translation.src}]", value=translation.origin, inline=False
-    #     )
-    #     embed.add_field(
-    #         name=f"Translated [{translation.dest}]", value=translated, inline=False
-    #     )
-    #     await ctx.send(embed=embed)
+    @commands.command(
+        aliases=["trans"], brief="Translate a text.", usage="(language) (text)"
+    )
+    @commands.cooldown(1, 5, commands.BucketType.user)
+    async def translate(self, ctx, lang, *txt):
+        """Translate a text.\n\
+           **Example**
+           ``>translate ja Hello World``"""
+        if not txt:
+            await ctx.send("You need to specify the text you want to translate!")
+        abbv = {"jp": "ja"}
+        if lang in abbv:
+            lang = abbv[lang]
+        googletrans = GoogleTranslate(self.bot.session)
+        res = await googletrans.translate(lang, "en", " ".join(txt))
+
+        # Embed Build
+        embed = discord.Embed(timestamp=ctx.message.created_at, colour=0x4A8AF4)
+        embed.set_author(
+            name="Google Translate", icon_url="https://translate.google.com/favicon.ico"
+        )
+        embed.add_field(
+            name=f"Source [{res.source}]", value=res.origin, inline=False
+        )
+        embed.add_field(
+            name=f"Translated [{res.dest}]", value=str(res), inline=False
+        )
+        embed.set_footer(text=f"Requested by {ctx.author}", icon_url=ctx.author.avatar_url)
+        await ctx.send(embed=embed)
 
     @commands.command(usage="(project name)")
     async def pypi(self, ctx, project: str):

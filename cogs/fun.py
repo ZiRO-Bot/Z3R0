@@ -42,13 +42,13 @@ class Fun(commands.Cog):
         return ctx.guild.id in [747984453585993808, 758764126679072788]
 
     @commands.command()
-    @commands.cooldown(1, 5)
+    @commands.cooldown(1, 5, commands.BucketType.user)
     async def flip(self, ctx):
         """Flip a coin."""
         await ctx.reply(f"You got {choice(['heads', 'tails'])}!")
 
     @commands.command(usage="[dice size] [number of dice]", brief="Roll the dice.")
-    @commands.cooldown(1, 5)
+    @commands.cooldown(1, 5, commands.BucketType.user)
     async def roll(self, ctx, arg1: Optional[str] = "1", arg2: Optional[int] = None):
         """Roll the dice.\n\
            **Example**\n\
@@ -85,7 +85,7 @@ class Fun(commands.Cog):
         await ctx.reply(f"You just rolled {dice}!")
 
     @commands.command(aliases=["r", "sroll"], usage="(number of roll)")
-    @commands.cooldown(1, 5)
+    @commands.cooldown(1, 5, commands.BucketType.user)
     async def steveroll(self, ctx, pool):
         """Roll the dice in steve's style."""
         if ctx.guild.id in self.bot.norules:
@@ -144,7 +144,7 @@ class Fun(commands.Cog):
         brief="Rock Paper Scissors with the bot.",
         example="{prefix}rps rock",
     )
-    @commands.cooldown(1, 5)
+    @commands.cooldown(1, 5, commands.BucketType.user)
     async def rps(self, ctx, choice: str):
         """Rock Paper Scissors with the bot."""
         choice = choice.lower()
