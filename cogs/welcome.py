@@ -72,7 +72,9 @@ class Welcome(commands.Cog):
         )
         settings = self.bot.c.fetchone()
 
-        welcome_msg = choice(def_welcome_msg)
+        # temporarily disabled to see for debugging purposes
+        # welcome_msg = choice(def_welcome_msg)
+        welcome_msg = f"Welcome {member.mention}! <:PogChamp:747027389485154354>",
         # welcome message
         if settings[0]:
             welcome_msg = self.fetch_special_val(member, str(settings[0]))
