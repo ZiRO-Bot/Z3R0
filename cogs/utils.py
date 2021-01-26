@@ -37,11 +37,6 @@ class GoogleTranslate:
         self.URL = "https://translate.googleapis.com/translate_a/single?client=gtx&dt=t"
 
     async def translate(self, source, dest, query):
-        params = {
-            "sl": source,
-            "tl": dest,
-            "q": query,
-        }
         async with self.session.get(self.URL + f"&sl={source}&tl={dest}&q={query}") as res:
             _json = json.loads(await res.text())
         return Translated(source, dest, query, _json[0][0][0])
