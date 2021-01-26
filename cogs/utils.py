@@ -357,7 +357,7 @@ class Utils(commands.Cog):
     async def translate(self, ctx, lang, *txt):
         """Translate a text.\n\
            **Example**
-           ``>translate ja Hello World``"""
+           ``>translate fr Bonjour``"""
         if not txt:
             await ctx.send("You need to specify the text you want to translate!")
         abbv = {"jp": "ja"}
