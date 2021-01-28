@@ -154,6 +154,16 @@ class Developer(commands.Cog):
             menus = ZiMenu(p)
             await menus.start(ctx)
 
+    @commands.group(aliases=["sim"])
+    async def simulate(self, ctx):
+        """Simulate an event."""
+        pass
+
+    @simulate.command()
+    async def join(self, ctx):
+        """Simulate user joining a server."""
+        self.bot.dispatch("member_join", ctx.author)
+
     @commands.command()
     async def pull(self, ctx):
         """Update the bot from github."""

@@ -47,14 +47,16 @@ class Welcome(commands.Cog):
 
     @commands.Cog.listener()
     async def on_member_join(self, member):
+        server = member.guild
+
         def_welcome_msg = [
             f"It's a Bird, It's a Plane, It's {member.mention}!",
             f"Welcome {member.mention}! <:PogChamp:747027389485154354>",
             f"Good to see you, {member.mention}.",
             f"A wild {member.mention} appeared!",
+            f"{member.mention} has joined your party!",
+            f"{member.mention} joined the lobby [{server.member_count}/{server.member_count+1}]",
         ]
-
-        server = member.guild
 
         # Get welcome channel
         self.bot.c.execute(
@@ -70,18 +72,16 @@ class Welcome(commands.Cog):
         self.bot.c.execute(
             f"SELECT welcome_msg FROM settings WHERE id=?", (str(server.id),)
         )
-        settings = self.bot.c.fetchone()
-
-        # temporarily disabled to see for debugging purposes
-        # welcome_msg = choice(def_welcome_msg)
-        welcome_msg = f"Welcome {member.mention}! <:PogChamp:747027389485154354>",
         # welcome message
-        if settings[0]:
-            welcome_msg = self.fetch_special_val(member, str(settings[0]))
+        try:
+            welcome_msg = self.fetch_special_val(member, self.bot.c.fetchone()[0])
+        except TypeError:
+            welcome_msg = choice(def_welcome_msg)
 
         # send msg after getting welcome msg
         await welcome_channel.send(welcome_msg)
 
+        # try giving the new member default role if its set
         self.bot.c.execute(
             "SELECT default_role FROM roles WHERE id=?", (str(server.id),)
         )
