@@ -260,6 +260,11 @@ class CustomCommands(commands.Cog):
         if len(lookup) > 50:
             raise RuntimeError("Command name is a maximum of 50 characters.")
 
+    @commands.command(aliases=["cmds"])
+    async def commands(self, ctx):
+        """Alias for command list."""
+        await ctx.invoke(self.bot.get_command("command list"))
+
 
 def setup(bot):
     bot.add_cog(CustomCommands(bot))

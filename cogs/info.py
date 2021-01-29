@@ -3,6 +3,7 @@ import discord
 from cogs.api.weather import OpenWeatherAPI, CityNotFound
 from cogs.utilities.embed_formatting import embedDefault, embedError
 from discord.ext import commands
+from typing import Union
 
 
 class Info(commands.Cog):
@@ -76,6 +77,30 @@ class Info(commands.Cog):
         e.add_field(name="Wind", value=str(weatherData.wind))
         e.set_thumbnail(url=weatherData.iconUrl)
         await ctx.send(embed=e)
+
+    @commands.command(aliases=["perms"])
+    async def permissions(self, ctx, anyRoleMember: Union[discord.Member, discord.Role]):
+        """Get member/role's permission."""
+        def format_text(text: str):
+            return "`{}`".format(text.replace("_", " ").title())
+
+        if isinstance(anyRoleMember, discord.Member):
+            perms = {p[0]: p[1] for p in anyRoleMember.guild_permissions}
+        if isinstance(anyRoleMember, discord.Role):
+            perms = {p[0]: p[1] for p in anyRoleMember.permissions}
+
+        if perms["administrator"]:
+            perms = {"administrator": True}
+        
+        e = embedDefault(
+            ctx, 
+            title="{}'s Permissions".format(anyRoleMember.name),
+            colour=discord.Colour.rounded(),
+        )
+        if isinstance(anyRoleMember, discord.Member):
+            e.set_thumbnail(url=anyRoleMember.avatar_url) 
+        e.add_field(name="Permissions", value=", ".join([format_text(perm) for perm in perms if perms[perm]]))
+        return await ctx.send(embed=e)
 
 def setup(bot):
     bot.add_cog(Info(bot))
