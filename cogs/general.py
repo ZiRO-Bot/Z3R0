@@ -122,7 +122,7 @@ async def weather_get(key, *place, _type="city"):
         q = "q"
     elif _type == "zip":
         q = "zip"
-    apilink = f"https://api.openweathermap.org/data/2.5/weather?{q}={place}&appid={WEATHER_API}"
+    apilink = f"https://api.openweathermap.org/data/2.5/weather?{q}={place}&appid={key}"
     async with session.get(apilink) as url:
         weatherData = json.loads(await url.text())
     if weatherData["cod"] == "404":
