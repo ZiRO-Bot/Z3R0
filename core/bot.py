@@ -34,6 +34,7 @@ def get_cogs():
         "cogs.src",
         "cogs.anilist",
         "cogs.utils",
+        "cogs.info",
         "cogs.custom_commands",
         "cogs.dev",
         # "cogs.music",

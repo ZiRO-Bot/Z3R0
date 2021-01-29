@@ -13,7 +13,6 @@ import subprocess
 import textwrap
 import time
 
-from cogs.errors.weather import CityNotFound
 from cogs.utilities.formatting import bar_make, realtime
 from discord.errors import Forbidden
 from discord.ext import commands
@@ -104,30 +103,6 @@ def decode(msg):
                 ]
                 temp = ""
     return decoded
-
-
-def temperature(temp, unit: str, number_only=False):
-    if unit == "c":
-        temp = temp - 273.15
-    elif unit == "f":
-        temp = (temp - 273.15) * 1.8 + 32
-    if number_only:
-        return f"{round(temp)}"
-    return f"{round(temp)}°{unit.upper()}"
-
-
-async def weather_get(key, *place, _type="city"):
-    place = " ".join([*place])
-    if _type == "city":
-        q = "q"
-    elif _type == "zip":
-        q = "zip"
-    apilink = f"https://api.openweathermap.org/data/2.5/weather?{q}={place}&appid={key}"
-    async with session.get(apilink) as url:
-        weatherData = json.loads(await url.text())
-    if weatherData["cod"] == "404":
-        raise CityNotFound
-    return weatherData
 
 
 class General(commands.Cog):
@@ -613,106 +588,6 @@ class General(commands.Cog):
         e.add_field(name="Recovered", value=f"{covData['Recovered']:,}")
         e.add_field(name="Deaths", value=f"{covData['Deaths']:,}")
         e.add_field(name="Confirmed Cases", value=f"{covData['Confirmed']:,}")
-        e.set_footer(
-            text=f"Requested by {ctx.message.author.name}#{ctx.message.author.discriminator}"
-        )
-        await ctx.send(embed=e)
-
-    @commands.group(
-        usage="(city)", invoke_without_command=True, example="{prefix}weather Palembang"
-    )
-    @is_weather()
-    async def weather(self, ctx, *city):
-        """Show weather report."""
-        try:
-            weatherData = await weather_get(self.weather_key, *city, _type="city")
-        except CityNotFound:
-            await ctx.send("City not found")
-            return
-        temp = temperature(weatherData["main"]["temp"], "c")
-        feels_like = temperature(weatherData["main"]["feels_like"], "c")
-        e = discord.Embed(
-            title=f"{weatherData['name']}, {weatherData['sys']['country']}",
-            description=f"Feels like {feels_like}. {weatherData['weather'][0]['description'].title()}",
-            color=discord.Colour(0xEA6D4A),
-            timestamp=ctx.message.created_at,
-        )
-        e.set_thumbnail(
-            url=f"https://openweathermap.org/img/wn/{weatherData['weather'][0]['icon']}@2x.png"
-        )
-        e.set_author(
-            name="OpenWeather",
-            icon_url="https://openweathermap.org/themes/openweathermap/assets/vendor/owm/img/icons/logo_60x60.png",
-        )
-        e.add_field(name="Temperature", value=temp)
-        e.add_field(name="Humidity", value=f"{weatherData['main']['humidity']}%")
-        e.add_field(name="Wind", value=f"{weatherData['wind']['speed']}m/s")
-        e.set_footer(
-            text=f"Requested by {ctx.message.author.name}#{ctx.message.author.discriminator}"
-        )
-        await ctx.send(embed=e)
-
-    @weather.command(
-        name="city", usage="(city)", example="{prefix}weather city Palembang"
-    )
-    async def weather_city(self, ctx, *city):
-        """Show weather report from a city."""
-        try:
-            weatherData = await weather_get(self.weather_key, *city, _type="city")
-        except CityNotFound:
-            await ctx.send("City not found")
-            return
-        temp = temperature(weatherData["main"]["temp"], "c")
-        feels_like = temperature(weatherData["main"]["feels_like"], "c")
-        e = discord.Embed(
-            title=f"{weatherData['name']}, {weatherData['sys']['country']}",
-            description=f"Feels like {feels_like}. {weatherData['weather'][0]['description'].title()}",
-            color=discord.Colour(0xEA6D4A),
-            timestamp=ctx.message.created_at,
-        )
-        e.set_thumbnail(
-            url=f"https://openweathermap.org/img/wn/{weatherData['weather'][0]['icon']}@2x.png"
-        )
-        e.set_author(
-            name="OpenWeather",
-            icon_url="https://openweathermap.org/themes/openweathermap/assets/vendor/owm/img/icons/logo_60x60.png",
-        )
-        e.add_field(name="Temperature", value=temp)
-        e.add_field(name="Humidity", value=f"{weatherData['main']['humidity']}%")
-        e.add_field(name="Wind", value=f"{weatherData['wind']['speed']}m/s")
-        e.set_footer(
-            text=f"Requested by {ctx.message.author.name}#{ctx.message.author.discriminator}"
-        )
-        await ctx.send(embed=e)
-
-    @weather.command(
-        name="zip", usage="(zip code)", example="{prefix}weather zip 10404"
-    )
-    async def weather_zip(self, ctx, *city):
-        """Show weather report from a zip code."""
-        try:
-            weatherData = await weather_get(self.weather_key, *city, _type="zip")
-        except CityNotFound:
-            await ctx.send("City not found")
-            return
-        temp = temperature(weatherData["main"]["temp"], "c")
-        feels_like = temperature(weatherData["main"]["feels_like"], "c")
-        e = discord.Embed(
-            title=f"{weatherData['name']}, {weatherData['sys']['country']}",
-            description=f"Feels like {feels_like}. {weatherData['weather'][0]['description'].title()}",
-            color=discord.Colour(0xEA6D4A),
-            timestamp=ctx.message.created_at,
-        )
-        e.set_thumbnail(
-            url=f"https://openweathermap.org/img/wn/{weatherData['weather'][0]['icon']}@2x.png"
-        )
-        e.set_author(
-            name="OpenWeather",
-            icon_url="https://openweathermap.org/themes/openweathermap/assets/vendor/owm/img/icons/logo_60x60.png",
-        )
-        e.add_field(name="Temperature", value=temp)
-        e.add_field(name="Humidity", value=f"{weatherData['main']['humidity']}%")
-        e.add_field(name="Wind", value=f"{weatherData['wind']['speed']}m/s")
         e.set_footer(
             text=f"Requested by {ctx.message.author.name}#{ctx.message.author.discriminator}"
         )

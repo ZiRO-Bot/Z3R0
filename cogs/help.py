@@ -75,6 +75,7 @@ class CustomHelp(commands.HelpCommand):
                     "anilist": "<:anilist:757473769101983784>",
                     "fun": "🎉",
                     "general": "🗨️",
+                    "info": "<:info:783206485051441192>",
                 }.get(x.lower(), "​")
 
             name = (
