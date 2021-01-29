@@ -1,5 +1,6 @@
 import random
 
+
 class Piglin:
     """
     A very messy Piglin Barter in python
@@ -42,7 +43,7 @@ class Piglin:
         "leather": (4, 10),
         "nether-brick": (4, 16),
         "cry-obsidian": (1, 3),
-        "soul-sand": (4, 16) 
+        "soul-sand": (4, 16),
     }
 
     # Item Name
@@ -71,7 +72,7 @@ class Piglin:
         self.item = self._name.get(self.item_id)
         q = self._quantity.get(self.item_id, 1)
         self.quantity = q if not isinstance(q, tuple) else random.randrange(q[0], q[1])
-    
+
     def weighted_random(self, pairs, seed=None):
         total = sum(pair[0] for pair in pairs)
         if seed:

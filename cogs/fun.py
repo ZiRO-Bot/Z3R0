@@ -294,7 +294,9 @@ class Fun(commands.Cog):
             name=f"{ctx.message.author.name}#{ctx.message.author.discriminator}",
             icon_url=ctx.message.author.avatar_url,
         )
-        e.set_footer(text=f"The old findseed has been moved to `{ctx.prefix}findseed classic` or `{ctx.prefix}classicfindseed` or `{ctx.prefix}cfs`")
+        e.set_footer(
+            text=f"The old findseed has been moved to `{ctx.prefix}findseed classic` or `{ctx.prefix}classicfindseed` or `{ctx.prefix}cfs`"
+        )
         await ctx.send(embed=e)
 
     @findseed.command(name="classic")

@@ -14,6 +14,7 @@ from utilities.formatting import realtime
 
 translator = Translator()
 
+
 class Translated:
     def __init__(self, source, dest, origin, translated):
         self.source = source
@@ -31,13 +32,16 @@ class Translated:
     def dest(self):
         return self.destination
 
+
 class GoogleTranslate:
-    def __init__(self, session = None):
+    def __init__(self, session=None):
         self.session = session or aiohttp.ClientSession()
         self.URL = "https://translate.googleapis.com/translate_a/single?client=gtx&dt=t"
 
     async def translate(self, source, dest, query):
-        async with self.session.get(self.URL + f"&sl={source}&tl={dest}&q={query}") as res:
+        async with self.session.get(
+            self.URL + f"&sl={source}&tl={dest}&q={query}"
+        ) as res:
             _json = json.loads(await res.text())
         return Translated(source, dest, query, _json[0][0][0])
 
@@ -366,13 +370,11 @@ class Utils(commands.Cog):
         embed.set_author(
             name="Google Translate", icon_url="https://translate.google.com/favicon.ico"
         )
-        embed.add_field(
-            name=f"Source [{res.source}]", value=res.origin, inline=False
+        embed.add_field(name=f"Source [{res.source}]", value=res.origin, inline=False)
+        embed.add_field(name=f"Translated [{res.dest}]", value=str(res), inline=False)
+        embed.set_footer(
+            text=f"Requested by {ctx.author}", icon_url=ctx.author.avatar_url
         )
-        embed.add_field(
-            name=f"Translated [{res.dest}]", value=str(res), inline=False
-        )
-        embed.set_footer(text=f"Requested by {ctx.author}", icon_url=ctx.author.avatar_url)
         await ctx.send(embed=embed)
 
     @commands.command(usage="(project name)")

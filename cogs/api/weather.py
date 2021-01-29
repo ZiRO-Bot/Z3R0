@@ -2,14 +2,16 @@ import asyncio
 import aiohttp
 import json
 
+
 class CityNotFound(Exception):
     pass
+
 
 class Temperature:
     def __init__(self, temperature):
         """Uses kelvin by default"""
         self.temperature = round(temperature, 2)
-    
+
     def __str__(self):
         return "{} K".format(round(self.temperature, 2))
 
@@ -23,10 +25,11 @@ class Temperature:
     @property
     def fahrenheit(self):
         return round((self.temperature - 273.15) * 1.8 + 32, 2)
-    
+
     @property
     def celcius(self):
         return round(self.temperature - 273.15, 2)
+
 
 class Wind:
     def __init__(self, windData):
@@ -39,6 +42,7 @@ class Wind:
 
     def __repr__(self):
         return "<Wind(degree={}, speed={})>"
+
 
 class Weather:
     def __init__(self, data):
@@ -69,26 +73,31 @@ class Weather:
     def temperature(self):
         return self.temp
 
+
 class OpenWeatherAPI:
-    def __init__(self, key, session = None):
+    def __init__(self, key, session=None):
         """Wrapper for OpenWeather's API.
-        
+
         Parameter
         ---------
         key = Your openweather api key
         """
         self.apiKey = key
         self.session = session or aiohttp.ClientSession()
-        self.baseUrl = "https://api.openweathermap.org/data/2.5/weather?{type}={query}&appid={key}"
+        self.baseUrl = (
+            "https://api.openweathermap.org/data/2.5/weather?{type}={query}&appid={key}"
+        )
 
     async def get(self, _type, query):
         """Get weather report."""
-        async with self.session.get(self.baseUrl.format(type=_type, query=query, key=self.apiKey)) as res:
+        async with self.session.get(
+            self.baseUrl.format(type=_type, query=query, key=self.apiKey)
+        ) as res:
             weatherData = json.loads(await res.text())
             if weatherData["cod"] == "404":
                 raise CityNotFound("City not found.")
             return Weather(weatherData)
-    
+
     async def get_from_city(self, city):
         """Get weather report from a city name."""
         return await self.get("q", city)

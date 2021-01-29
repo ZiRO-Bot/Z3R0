@@ -20,25 +20,33 @@ def background_reader(stream, loop: asyncio.AbstractEventLoop, callback):
     Reads a stream and forwards each line to an async callback.
     """
 
-    for line in iter(stream.readline, b''):
+    for line in iter(stream.readline, b""):
         loop.call_soon_threadsafe(loop.create_task, callback(line))
 
 
 class ShellHandler:
-    def __init__(self, code: str, timeout: int = 90, loop: asyncio.AbstractEventLoop = None):
+    def __init__(
+        self, code: str, timeout: int = 90, loop: asyncio.AbstractEventLoop = None
+    ):
         if WINDOWS:
             raise TypeError("Windows is not supported!")
         else:
             sequence = [SHELL, "-c", code]
 
-        self.process = subprocess.Popen(sequence, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        self.process = subprocess.Popen(
+            sequence, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+        )
         self.close_code = None
 
         self.loop = loop or asyncio.get_event_loop()
         self.timeout = timeout
 
-        self.stdout_task = self.make_reader_task(self.process.stdout, self.stdout_handler)
-        self.stderr_task = self.make_reader_task(self.process.stderr, self.stderr_handler)
+        self.stdout_task = self.make_reader_task(
+            self.process.stdout, self.stdout_handler
+        )
+        self.stderr_task = self.make_reader_task(
+            self.process.stderr, self.stderr_handler
+        )
 
         self.queue = asyncio.Queue(maxsize=250)
 
@@ -62,7 +70,9 @@ class ShellHandler:
         Create a reader executor task for a stream.
         """
 
-        return self.loop.create_task(self.executor_wrapper(background_reader, stream, self.loop, callback))
+        return self.loop.create_task(
+            self.executor_wrapper(background_reader, stream, self.loop, callback)
+        )
 
     @staticmethod
     def clean_bytes(line):
@@ -70,8 +80,8 @@ class ShellHandler:
         Cleans a byte sequence of shell directives and decodes it.
         """
 
-        text = line.decode('utf-8').replace('\r', '').strip('\n')
-        return re.sub(r'\x1b[^m]*m', '', text).replace("``", "`\u200b`").strip('\n')
+        text = line.decode("utf-8").replace("\r", "").strip("\n")
+        return re.sub(r"\x1b[^m]*m", "", text).replace("``", "`\u200b`").strip("\n")
 
     async def stdout_handler(self, line):
         """
@@ -85,7 +95,7 @@ class ShellHandler:
         Handler for this class for stderr.
         """
 
-        await self.queue.put(self.clean_bytes(b'[stderr] ' + line))
+        await self.queue.put(self.clean_bytes(b"[stderr] " + line))
 
     def __enter__(self):
         return self
@@ -120,6 +130,7 @@ class PaginatorSource(commands.Paginator, menus.PageSource):
 
     async def get_page(self, page_number: int):
         return self.pages[page_number]
+
 
 class ShellPageSource(PaginatorSource):
     async def format_page(self, menu, text):

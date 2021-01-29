@@ -9,10 +9,13 @@ from typing import Union
 class Info(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.openweather = OpenWeatherAPI(self.bot.config["openweather_apikey"], session=self.bot.session)
+        self.openweather = OpenWeatherAPI(
+            self.bot.config["openweather_apikey"], session=self.bot.session
+        )
 
     def is_weather():
         """Check if openweather api key exist."""
+
         def predicate(ctx):
             return ctx.bot.config["openweather_apikey"] is not None
 
@@ -39,7 +42,9 @@ class Info(commands.Cog):
         e = embedDefault(
             ctx,
             title="{}, {}".format(weatherData.city, weatherData.country),
-            description="Feels like {}°C, {}".format(weatherData.tempFeels.celcius, weatherData.weatherDetail),
+            description="Feels like {}°C, {}".format(
+                weatherData.tempFeels.celcius, weatherData.weatherDetail
+            ),
             color=discord.Colour(0xEA6D4A),
         )
         e.set_author(
@@ -65,7 +70,9 @@ class Info(commands.Cog):
         e = embedDefault(
             ctx,
             title="{}, {}".format(weatherData.city, weatherData.country),
-            description="Feels like {}°C, {}".format(weatherData.tempFeels.celcius, weatherData.weatherDetail),
+            description="Feels like {}°C, {}".format(
+                weatherData.tempFeels.celcius, weatherData.weatherDetail
+            ),
             color=discord.Colour(0xEA6D4A),
         )
         e.set_author(
@@ -79,8 +86,11 @@ class Info(commands.Cog):
         await ctx.send(embed=e)
 
     @commands.command(aliases=["perms"])
-    async def permissions(self, ctx, anyRoleMember: Union[discord.Member, discord.Role]):
+    async def permissions(
+        self, ctx, anyRoleMember: Union[discord.Member, discord.Role]
+    ):
         """Get member/role's permission."""
+
         def format_text(text: str):
             return "`{}`".format(text.replace("_", " ").title())
 
@@ -91,16 +101,20 @@ class Info(commands.Cog):
 
         if perms["administrator"]:
             perms = {"administrator": True}
-        
+
         e = embedDefault(
-            ctx, 
+            ctx,
             title="{}'s Permissions".format(anyRoleMember.name),
             colour=discord.Colour.rounded(),
         )
         if isinstance(anyRoleMember, discord.Member):
-            e.set_thumbnail(url=anyRoleMember.avatar_url) 
-        e.add_field(name="Permissions", value=", ".join([format_text(perm) for perm in perms if perms[perm]]))
+            e.set_thumbnail(url=anyRoleMember.avatar_url)
+        e.add_field(
+            name="Permissions",
+            value=", ".join([format_text(perm) for perm in perms if perms[perm]]),
+        )
         return await ctx.send(embed=e)
+
 
 def setup(bot):
     bot.add_cog(Info(bot))

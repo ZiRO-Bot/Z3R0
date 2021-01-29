@@ -21,7 +21,7 @@ class DiscordGuildBlock(Block):
     def process(self, ctx: Interpreter.Context) -> Optional[str]:
         if ctx.verb.parameter is None:
             return str(self.guild.name)
-        
+
         param = ctx.verb.parameter.lower()
 
         if param == "bots":
@@ -29,7 +29,7 @@ class DiscordGuildBlock(Block):
 
         if param == "humans":
             return str(len([x for x in self.guild.members if not x.bot]))
-        
+
         if param == "random":
             return str(random.choice(self.guild.members))
 
@@ -60,9 +60,7 @@ class DiscordGuildBlock(Block):
 
 
 class DiscordMemberBlock(Block):
-    def __init__(
-        self, member: discord.Member, context: commands.Context = None
-    ):
+    def __init__(self, member: discord.Member, context: commands.Context = None):
         self.member = member
         self.context = context
 
@@ -73,7 +71,7 @@ class DiscordMemberBlock(Block):
     def process(self, ctx: Interpreter.Context) -> Optional[str]:
         if ctx.verb.declaration.lower() == "mention":
             return self.member.mention
-        
+
         if ctx.verb.parameter is None:
             return str(self.member.name)
 
