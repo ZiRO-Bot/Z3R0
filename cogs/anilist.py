@@ -373,23 +373,20 @@ class AniList(commands.Cog):
         pass
 
     @anime.command(
+        name="search",
         aliases=["find", "info"],
         usage="(anime) [format]",
         example='{prefix}anime search "Kimi no Na Wa" Movie\n{prefix}anime info 97731',
     )
-    async def search(self, ctx, *query):
+    async def animeSearch(self, ctx, *query):
         """Find an anime."""
         if not query:
             await ctx.send("Please specify the anime!")
             return
         
         # Get genre out of query
-        genre = None
-        for i in query:
-            res = process.extractOne(pformat(i), formats["anime"])
-            if res[1] >= 80:
-                genre = res[0]
-                break
+        res = process.extractOne(pformat(query[-1]), formats["anime"])
+        genre = res[0] if res[1] >= 85 else None
         title = " ".join(query)
         if genre:
             title = title.strip(genre)
