@@ -9,17 +9,18 @@ import re
 import time
 
 from .errors.anilist import NameNotFound, NameTypeNotFound, IdNotFound
-from .utilities.formatting import hformat, realtime
+from .utilities.formatting import hformat, realtime, pformat
 from .utilities.paginator import ZiMenu, FunctionPageSource
 from .api import anilist
 from .api.anilistQuery import *
 from discord.ext import tasks, commands, menus
+from fuzzywuzzy import fuzz, process
 from pytz import timezone
 from typing import Optional
 
 session = aiohttp.ClientSession()
 
-streamingSites = [
+streamingSites = (
     "Amazon",
     "AnimeLab",
     "Crunchyroll",
@@ -29,7 +30,25 @@ streamingSites = [
     "Netflix",
     "Viz",
     "VRV",
-]
+)
+
+# Anime/Manga genres/formats in pformat() style
+formats = {
+    "anime": (
+        "tv",
+        "tv_short",
+        "movie",
+        "special",
+        "ova",
+        "ona",
+        "music",
+    ),
+    "manga": (
+        "manga",
+        "novel",
+        "one_shot",
+    ),
+}
 
 
 def filter_image(channel, is_adult: bool, image_url: str, _type: str = "cover"):
@@ -120,6 +139,7 @@ class AniSearchPage(FunctionPageSource):
             desc += f"... **+{new_size} hidden**"
 
         # Messy and Ugly ratingEmoji system
+        # NOTICE: Only unicode emoji works here.
         rating = data["averageScore"] or -1
         if rating >= 90:
             ratingEmoji = "😃"
@@ -357,16 +377,29 @@ class AniList(commands.Cog):
         usage="(anime) [format]",
         example='{prefix}anime search "Kimi no Na Wa" Movie\n{prefix}anime info 97731',
     )
-    async def search(self, ctx, anime: str, _format: str = None):
+    async def search(self, ctx, *query):
         """Find an anime."""
-        if not anime:
+        if not query:
             await ctx.send("Please specify the anime!")
             return
+        
+        # Get genre out of query
+        genre = None
+        for i in query:
+            res = process.extractOne(pformat(i), formats["anime"])
+            if res[1] >= 80:
+                genre = res[0]
+                break
+        title = " ".join(query)
+        if genre:
+            title = title.strip(genre)
 
         try:
-            menu = ZiMenu(AniSearchPage(ctx, anime, api=self.anilist, _type=_format))
+            e = discord.Embed(title="Loading...", colour=discord.Colour.blue())
+            msg = await ctx.channel.send(embed=e)
+            menu = ZiMenu(AniSearchPage(ctx, title, api=self.anilist, _type=genre), init_msg=msg)
             await menu.start(ctx)
-        except anilist.AnimeNotFound:
+        except Exception:
             embed = discord.Embed(
                 title="404 - Not Found",
                 colour=discord.Colour(0x02A9FF),
@@ -376,7 +409,7 @@ class AniList(commands.Cog):
                 name="AniList",
                 icon_url="https://gblobscdn.gitbook.com/spaces%2F-LHizcWWtVphqU90YAXO%2Favatar.png",
             )
-            return await ctx.send(embed=embed)
+            return await msg.edit(embed=embed)
 
     @anime.command(usage="(anime id|url)")
     async def watch(self, ctx, anime_id):
