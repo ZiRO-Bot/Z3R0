@@ -9,8 +9,8 @@ import re
 import time
 
 from aiogoogletrans import Translator
+from cogs.utilities.formatting import realtime
 from discord.ext import commands, menus
-from utilities.formatting import realtime
 
 translator = Translator()
 

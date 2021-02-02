@@ -169,3 +169,89 @@ query($page: Int = 0, $amount: Int = 50, $mediaId: [Int!]!) {
   }
 }
 """
+
+defaultWithGenre = """
+query($title:String,$genre:MediaFormat,$page:Int,$amount:Int=5){
+    Page(perPage:$amount,page:$page){
+        pageInfo{hasNextPage, currentPage, lastPage}
+        media(search:$title,type:ANIME,format:$genre){
+            id,
+            format,
+            title {
+                romaji, 
+                english
+            }, 
+            episodes, 
+            duration,
+            status, 
+            startDate {
+                year, 
+                month, 
+                day
+            }, 
+            endDate {
+                year, 
+                month, 
+                day
+            }, 
+            genres, 
+            coverImage {
+                large
+            }, 
+            bannerImage,
+            description, 
+            averageScore, 
+            studios{nodes{name}}, 
+            seasonYear, 
+            externalLinks {
+                site, 
+                url
+            },
+            isAdult
+        }
+    } 
+}
+"""
+
+default = """
+query($title:String,$page:Int,$amount:Int=5){
+    Page(perPage:$amount,page:$page){
+        pageInfo{hasNextPage, currentPage, lastPage}
+        media(search:$title,type:ANIME){
+            id,
+            format,
+            title {
+                romaji, 
+                english
+            }, 
+            episodes, 
+            duration,
+            status, 
+            startDate {
+                year, 
+                month, 
+                day
+            }, 
+            endDate {
+                year, 
+                month, 
+                day
+            }, 
+            genres, 
+            coverImage {
+                large
+            }, 
+            bannerImage,
+            description, 
+            averageScore, 
+            studios{nodes{name}}, 
+            seasonYear, 
+            externalLinks {
+                site, 
+                url
+            },
+            isAdult
+        }
+    } 
+}
+"""

@@ -175,6 +175,11 @@ class Developer(commands.Cog):
         """Simulate user joining a server."""
         self.bot.dispatch("member_join", ctx.author)
 
+    @simulate.command()
+    async def error(self, ctx):
+        """Simulate error."""
+        int("h")
+
     @commands.command()
     async def pull(self, ctx):
         """Update the bot from github."""

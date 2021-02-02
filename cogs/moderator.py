@@ -16,10 +16,10 @@ import time
 
 from core.bot import get_cogs, get_prefix
 from cogs.utilities.embed_formatting import em_ctx_send_error, em_ctx_send_success
+from cogs.utilities.formatting import realtime
 from discord.errors import Forbidden, NotFound
 from discord.ext import commands
 from typing import Optional
-from utilities.formatting import realtime
 
 ch_types = {
     "general": ["general", "Regular text channel"],
