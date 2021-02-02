@@ -8,6 +8,14 @@ import logging
 from core.bot import ziBot
 
 
+try:
+    import uvloop
+except ImportError:
+    pass
+else:
+    asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
+
+
 @contextlib.contextmanager
 def setup_logging():
     try:
