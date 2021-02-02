@@ -5,6 +5,7 @@ import discord
 import json
 import logging
 import os
+import re
 import sqlite3
 import sys
 import traceback
@@ -12,7 +13,7 @@ import time
 
 from cogs.utilities.tse_blocks import DiscordMemberBlock, DiscordGuildBlock
 from discord.errors import NotFound
-from discord.ext import commands
+from discord.ext import commands, tasks
 from TagScriptEngine import Interpreter, block
 
 # Create data directory if its not exist
@@ -47,20 +48,22 @@ extensions = get_cogs()
 start_time = time.time()
 
 
-def get_prefix(bot, message):
+def _callable_prefix(bot, message):
     """A callable Prefix for our bot. This could be edited to allow per server prefixes."""
-    base = []
+    user_id = bot.user.id
+    base = [f"<@!{user_id}> ", f"<@{user_id}> "]
     if not message.guild:
         base.append(">")
     else:
         base.extend(bot.prefixes.get(message.guild.id, [">"]))
     return base
 
+get_prefix = _callable_prefix
 
 class ziBot(commands.Bot):
     def __init__(self):
         super().__init__(
-            command_prefix=get_prefix,
+            command_prefix=_callable_prefix,
             case_insensitive=True,
             allowed_mentions=discord.AllowedMentions(users=True, roles=False),
             intents=discord.Intents.all(),
@@ -212,11 +215,15 @@ class ziBot(commands.Bot):
     async def on_guild_remove(self, guild):
         self.remove_guild_data(guild)
 
-    async def on_ready(self):
+    @tasks.loop(minutes=2)
+    async def changing_presence(self):
         activity = discord.Activity(
-            name="over your shoulder", type=discord.ActivityType.watching
+            name=f"over {len(self.guilds)} servers", type=discord.ActivityType.watching
         )
         await self.change_presence(activity=activity)
+
+    async def on_ready(self):
+        self.changing_presence.start()
 
         for extension in extensions:
             self.load_extension(extension)
@@ -231,6 +238,17 @@ class ziBot(commands.Bot):
         if message.author.bot:
             return
 
+        pattern = f"<@(!?){self.user.id}>"
+        if re.fullmatch(pattern, message.content):
+            prefixes = _callable_prefix(self, message)
+            prefixes.pop(0)
+            prefixes.pop(0)
+            prefixes = ", ".join([f"`{x}`" for x in prefixes])
+            embed = discord.Embed(
+                description="My prefixes are: {} or {}".format(prefixes, self.user.mention),
+                colour=discord.Colour.rounded(),
+            )
+            await message.reply(embed=embed)
         await self.process_commands(message)
 
         ctx = await self.get_context(message)

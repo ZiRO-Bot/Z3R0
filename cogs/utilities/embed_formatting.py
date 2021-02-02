@@ -19,12 +19,19 @@ def embedError(_error):
 def embedDefault(context=None, **kwargs):
     if not context:
         return discord.Embed(**kwargs)
-    kwargs.pop("timestamp", None)
-    embed = discord.Embed(timestamp=context.message.created_at, **kwargs)
-    embed.set_footer(
-        text=f"Requested by {context.author}",
-        icon_url=context.author.avatar_url,
-    )
+    ts = kwargs.pop("timestamp", context.message.created_at)
+    embed = discord.Embed(timestamp=ts, **kwargs)
+    authorPos = kwargs.pop("author_pos", "bottom")
+    if authorPos == "top":
+        embed.set_author(
+            name=str(context.author),
+            icon_url=context.author.avatar_url,
+        )
+    else:
+        embed.set_footer(
+            text=f"Requested by {context.author}",
+            icon_url=context.author.avatar_url,
+        )
     return embed
 
 

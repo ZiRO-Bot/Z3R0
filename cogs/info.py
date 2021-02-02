@@ -1,4 +1,5 @@
 import discord
+import time
 
 from cogs.api.weather import OpenWeatherAPI, CityNotFound
 from cogs.utilities.embed_formatting import embedDefault, embedError
@@ -114,6 +115,25 @@ class Info(commands.Cog):
             value=", ".join([format_text(perm) for perm in perms if perms[perm]]),
         )
         return await ctx.send(embed=e)
+
+    @commands.command(aliases=["p"])
+    async def ping(self, ctx):
+        """Tell the ping of the bot to the discord servers."""
+        start = time.perf_counter()
+        e = discord.Embed(
+            title="Pong!",
+            timestamp=ctx.message.created_at,
+            colour=discord.Colour(0xFFFFF0),
+        )
+        e.add_field(name="<a:loading:776255339716673566> | Websocket", value=f"{round(self.bot.latency*1000)}ms")
+        e.set_footer(
+            text=f"Requested by {ctx.message.author.name}#{ctx.message.author.discriminator}"
+        )
+        msg = await ctx.send(embed=e)
+        end = time.perf_counter()
+        msg_ping = (end - start) * 1000
+        e.add_field(name="<a:typing:785053882664878100> | Typing", value=f"{round(msg_ping)}ms", inline=False)
+        await msg.edit(embed=e)
 
 
 def setup(bot):
