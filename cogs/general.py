@@ -14,6 +14,7 @@ import textwrap
 import time
 
 from cogs.utilities.formatting import bar_make, realtime
+from cogs.utilities.embed_formatting import embedError
 from discord.errors import Forbidden
 from discord.ext import commands
 from pytz import timezone
@@ -581,7 +582,8 @@ class General(commands.Cog):
         try:
             covData = covData[len(covData) - 1]
         except KeyError:
-            await ctx.send(f"{country} not found")
+            e = embedError(f"{country} not found")
+            await ctx.send(embed=e)
             return
         e = discord.Embed(title=covData["Country"], timestamp=ctx.message.created_at)
         e.add_field(name="Active", value=f"{covData['Active']:,}")
