@@ -9,7 +9,7 @@ import re
 
 from bs4 import BeautifulSoup
 from cogs.errors.fun import DiceTooBig
-from cogs.utilities.embed_formatting import em_ctx_send_error
+from cogs.utilities.embed_formatting import em_ctx_send_error, embedDefault
 from cogs.utilities.barter import Piglin
 from discord.ext import commands
 from discord.errors import Forbidden
@@ -285,17 +285,12 @@ class Fun(commands.Cog):
         for placeholder in emojis.keys():
             portalframe = portalframe.replace(placeholder, emojis[placeholder])
 
-        e = discord.Embed(
+        e = embedDefault(
+            ctx,
+            author_pos="top",
             title="findseed",
             description=f"Your seed is a **{eye_count}** eye: \n\n{portalframe}",
             color=discord.Colour(0x38665E),
-        )
-        e.set_author(
-            name=f"{ctx.message.author.name}#{ctx.message.author.discriminator}",
-            icon_url=ctx.message.author.avatar_url,
-        )
-        e.set_footer(
-            text=f"The old findseed has been moved to `{ctx.prefix}findseed classic` or `{ctx.prefix}classicfindseed` or `{ctx.prefix}cfs`"
         )
         await ctx.send(embed=e)
 
