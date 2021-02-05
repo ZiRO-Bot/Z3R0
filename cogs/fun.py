@@ -476,7 +476,7 @@ class Fun(commands.Cog):
             await ctx.reply(file=img)
 
     @commands.cooldown(5, 25, type=commands.BucketType.user)
-    @commands.command(aliases=["piglin"])
+    @commands.command(aliases=["piglin"], usage="[amount of gold]", example="{prefix}barter 64")
     async def barter(self, ctx, gold: int = 64):
         """Barter with Minecraft's Piglin. (Based on JE 1.16.1, before nerf)"""
         # limit gold amount up to 2240 (Minecraft inventory limit)
