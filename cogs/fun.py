@@ -477,17 +477,54 @@ class Fun(commands.Cog):
 
     @commands.cooldown(5, 25, type=commands.BucketType.user)
     @commands.command(aliases=["piglin"])
-    async def barter(self, ctx):
+    async def barter(self, ctx, gold: int = 64):
         """Barter with Minecraft's Piglin. (Based on JE 1.16.1, before nerf)"""
-        trade = Piglin()
-        e = discord.Embed(
-            title="Bartering with Piglin...",
-            description="You got {} {}!".format(trade.quantity, trade.item),
+        # limit gold amount up to 2240 (Minecraft inventory limit)
+        if gold > 2240:
+            gold = 2240
+        if gold <= 0:
+            gold = 1
+
+        trade = Piglin(gold)
+
+        items = {}
+        for item in trade.items:
+            try:
+                items[item.name][1] += item.quantity
+            except KeyError:
+                items[item.name] = [item.id, item.quantity]
+
+        def emoji(name: str):
+            return {
+                "enchanted-book": "<:enchantedbook:807261766065192971>",
+                "iron-boots": "<:ironboots:807261701363597322>",
+                "iron-nugget": "<:ironnugget:807261807601385473>",
+                "splash-potion-fire-res": "<:splashpotionfireres:807261948017377300>",
+                "potion-fire-res": "<:potionfireres:807262044478504967>",
+                "quartz": "<:quartz:807262092032999484>",
+                "glowstone-dust": "<:glowstonedust:807262151826735105>",
+                "magma-cream": "<:magmacream:807262199684005918>",
+                "ender-pearl": "<:enderpearl:807261299817709608>",
+                "string": "<:string:807262264381014086>",
+                "fire-charge": "<:firecharge:807262322522718219>",
+                "gravel": "<:gravel:807262690506047530>",
+                "leather": "<:leather:807262494619860993>",
+                "nether-brick": "<:netherbrick:807262738443141180>",
+                "obsidian": "<:obsidian:807262809883803648>",
+                "cry-obsidian": "<:cryobsidian:807262920542912562>",
+                "soul-sand": "<:soulsand:807262976104464385>",
+            }.get(name, "❔")
+
+        e = embedDefault(
+            ctx,
+            author_pos="top",
+            title="Bartering with {} gold{}".format(gold, "s" if gold > 1 else ""),
+            description="You got:\n\n{}".format(
+                "\n".join(["{} → {}".format(
+                    emoji(v[0]), v[1]) for v in items.values()]
+                )
+            ),
             colour=discord.Colour.gold(),
-        )
-        e.set_author(
-            name=f"{ctx.message.author}",
-            icon_url=ctx.message.author.avatar_url,
         )
         await ctx.send(embed=e)
 

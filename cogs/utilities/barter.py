@@ -30,21 +30,23 @@ class Piglin:
         (40, "soul-sand"),
     ]
 
-    # Item quantity
-    _quantity = {
-        "iron-nugget": (9, 36),
-        "quartz": (8, 16),
-        "glowstone-dust": (5, 12),
-        "magma-cream": (2, 6),
-        "ender-pearl": (4, 8),
-        "string": (8, 24),
-        "fire-charge": (1, 5),
-        "gravel": (8, 16),
-        "leather": (4, 10),
-        "nether-brick": (4, 16),
-        "cry-obsidian": (1, 3),
-        "soul-sand": (4, 16),
-    }
+    def __init__(self, gold: int = 64):
+        self.items = [BarterItem(self.weighted_random(self._items)) for i in range(gold)]
+
+    def weighted_random(self, pairs, seed=None):
+        total = sum(pair[0] for pair in pairs)
+        if seed:
+            random.seed(seed)
+        r = random.randint(1, total)
+        for (weight, value) in pairs:
+            r -= weight
+            if r <= 0:
+                return value
+
+    def __str__(self):
+        return ", ".join(["{}: {}".format(str(item), item.quantity) for item in self.items])
+
+class BarterItem:
 
     # Item Name
     _name = {
@@ -67,18 +69,27 @@ class Piglin:
         "soul-sand": "Soul Sand",
     }
 
-    def __init__(self):
-        self.item_id = self.weighted_random(self._items)
-        self.item = self._name.get(self.item_id)
-        q = self._quantity.get(self.item_id, 1)
+    # Item quantity
+    _quantity = {
+        "iron-nugget": (9, 36),
+        "quartz": (8, 16),
+        "glowstone-dust": (5, 12),
+        "magma-cream": (2, 6),
+        "ender-pearl": (4, 8),
+        "string": (8, 24),
+        "fire-charge": (1, 5),
+        "gravel": (8, 16),
+        "leather": (4, 10),
+        "nether-brick": (4, 16),
+        "cry-obsidian": (1, 3),
+        "soul-sand": (4, 16),
+    }
+
+    def __init__(self, _id):
+        self.id = _id
+        self.name = self._name.get(_id)
+        q = self._quantity.get(_id, 1)
         self.quantity = q if not isinstance(q, tuple) else random.randrange(q[0], q[1])
 
-    def weighted_random(self, pairs, seed=None):
-        total = sum(pair[0] for pair in pairs)
-        if seed:
-            random.seed(seed)
-        r = random.randint(1, total)
-        for (weight, value) in pairs:
-            r -= weight
-            if r <= 0:
-                return value
+    def __str__(self):
+        return self.name
