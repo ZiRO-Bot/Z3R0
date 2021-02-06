@@ -174,6 +174,11 @@ class Developer(commands.Cog):
     async def join(self, ctx):
         """Simulate user joining a server."""
         self.bot.dispatch("member_join", ctx.author)
+    
+    @simulate.command()
+    async def remove(self, ctx):
+        """Simulate user leaving a server."""
+        self.bot.dispatch("member_remove", ctx.author)
 
     @simulate.command()
     async def error(self, ctx):

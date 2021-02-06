@@ -30,10 +30,9 @@ class Welcome(commands.Cog):
         self.bot.c.execute(
             f"SELECT farewell_msg FROM settings WHERE id=?", (str(server.id),)
         )
-        settings = self.bot.c.fetchone()
         # fetch special values
         try:
-            farewell_msg = self.fetch_special_val(member, str(settings[0]))
+            farewell_msg = self.fetch_special_val(member, self.bot.c.fetchone()[0])
         except TypeError:
             return
 
@@ -42,7 +41,7 @@ class Welcome(commands.Cog):
             "SELECT greeting_ch FROM servers WHERE id=?", (str(server.id),)
         )
         greet_channel = server.get_channel(int(self.bot.c.fetchone()[0] or 0))
-        if greet_channel:
+        if greet_channel and farewell_msg:
             await greet_channel.send(farewell_msg)
 
     @commands.Cog.listener()
