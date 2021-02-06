@@ -20,7 +20,7 @@ from typing import Optional
 class Fun(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.redditRewrite = reddit.Reddit(self.bot.session)
+        self.reddit = reddit.Reddit(self.bot.session)
 
     def is_reddit():
         def predicate(ctx):
@@ -101,7 +101,7 @@ class Fun(commands.Cog):
             return await ctx.send(f"Please do this command in {meme_channel.mention}")
 
         memeSubreddits = ["memes", "funny"]
-        subreddit = await self.redditRewrite.hot(choice(memeSubreddits))
+        subreddit = await self.reddit.hot(choice(memeSubreddits))
         posts = subreddit.posts
         submission = choice([post for post in posts if not post.is18])
 
@@ -407,7 +407,7 @@ class Fun(commands.Cog):
     @commands.command()
     async def findanime(self, ctx):
         """Find a random anime picture."""
-        subreddit = await self.redditRewrite.hot("animereactionimages")
+        subreddit = await self.reddit.hot("animereactionimages")
         posts = subreddit.posts
         submission = choice([post for post in posts if not post.is18])
 
