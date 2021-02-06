@@ -8,6 +8,7 @@ import praw
 import re
 
 from bs4 import BeautifulSoup
+from cogs.api import reddit
 from cogs.errors.fun import DiceTooBig
 from cogs.utilities.embed_formatting import em_ctx_send_error, embedDefault
 from cogs.utilities.barter import Piglin
@@ -26,6 +27,7 @@ class Fun(commands.Cog):
             client_secret=self.bot.config["reddit"]["secret"],
             user_agent=self.bot.config["reddit"]["user_agent"],
         )
+        self.redditRewrite = reddit.Reddit(self.bot.session)
 
     def is_reddit():
         def predicate(ctx):
@@ -93,10 +95,8 @@ class Fun(commands.Cog):
         await ctx.reply(f"You just rolled {randint(0, int(pool))}")
 
     @commands.command()
-    @is_reddit()
     async def meme(self, ctx):
         """Get memes from subreddit r/memes."""
-        reddit = self.reddit
         self.bot.c.execute(
             "SELECT meme_ch FROM servers WHERE id=?", (str(ctx.guild.id),)
         )
@@ -104,40 +104,37 @@ class Fun(commands.Cog):
         if not meme_channel:
             meme_channel = ctx.channel
 
-        meme_subreddits = ["memes", "funny"]
-        reg_img = r".*/(i)\.redd\.it"
-
         if ctx.channel != meme_channel:
-            async with ctx.typing():
-                await ctx.send(f"Please do this command in {meme_channel.mention}")
-                return
-        async with meme_channel.typing():
-            selected_subreddit = meme_subreddits[randint(0, len(meme_subreddits) - 1)]
-            memes_submissions = reddit.subreddit(selected_subreddit).hot()
-            post_to_pick = randint(1, 50)
-            for i in range(0, post_to_pick):
-                submission = next(x for x in memes_submissions if not x.stickied)
-            if submission.over_18:
-                return
-            embed = discord.Embed(
-                title=f"r/{selected_subreddit} " + f"- {submission.title}",
-                colour=discord.Colour(0xFF4500),
-            )
-            embed.set_author(
-                name="Reddit",
-                icon_url="https://www.redditstatic.com/desktop2x/"
-                + "img/favicon/android-icon-192x192.png",
-            )
-            match = re.search(reg_img, submission.url)
-            embed.add_field(name="Upvotes", value=submission.score)
-            embed.add_field(name="Comments", value=submission.num_comments)
-            if match:
-                embed.set_image(url=submission.url)
+            return await ctx.send(f"Please do this command in {meme_channel.mention}")
+
+        memeSubreddits = ["memes", "funny"]
+        subreddit = await self.redditRewrite.hot(choice(memeSubreddits))
+        posts = subreddit.posts
+        submission = choice([post for post in posts if not post.is18])
+
+        e = embedDefault(
+            ctx,
+            author_pos="bottom",
+            title=f"{subreddit} - {submission.title}",
+            colour=discord.Colour(0xFF4500),
+        )
+        e.set_author(
+            name="Reddit",
+            icon_url="https://www.redditstatic.com/desktop2x/"
+            + "img/favicon/android-icon-192x192.png",
+        )
+        e.add_field(name="Score", value=submission.score)
+        e.add_field(name="Comments", value=submission.commentCount)
+
+        if submission.url:
+            if not submission.isVideo:
+                e.set_image(url=submission.url)
             else:
-                await meme_channel.send(embed=embed)
+                await meme_channel.send(embed=e)
                 await meme_channel.send(submission.url)
                 return
-            await meme_channel.send(embed=embed)
+
+        await ctx.send(embed=e)
 
     @commands.command(
         usage="(choice)",
@@ -417,36 +414,33 @@ class Fun(commands.Cog):
     @commands.command()
     async def findanime(self, ctx):
         """Find a random anime picture."""
-        reddit = self.reddit
+        subreddit = await self.redditRewrite.hot("animereactionimages")
+        posts = subreddit.posts
+        submission = choice([post for post in posts if not post.is18])
 
-        reg_img = r".*/(i)\.redd\.it"
+        e = embedDefault(
+            ctx,
+            author_pos="bottom",
+            title=f"{subreddit} - {submission.title}",
+            colour=discord.Colour(0xFF4500),
+        )
+        e.set_author(
+            name="Reddit",
+            icon_url="https://www.redditstatic.com/desktop2x/"
+            + "img/favicon/android-icon-192x192.png",
+        )
+        e.add_field(name="Score", value=submission.score)
+        e.add_field(name="Comments", value=submission.commentCount)
 
-        async with ctx.channel.typing():
-            findanime_submissions = reddit.subreddit("animereactionimages").hot()
-            post_to_pick = randint(1, 50)
-            for i in range(0, post_to_pick):
-                submission = next(x for x in findanime_submissions if not x.stickied)
-            if submission.over_18:
-                return await ctx.send("18+ Submission detected, please try again.")
-            embed = discord.Embed(
-                title=f"r/animereactionimages " + f"- {submission.title}",
-                colour=discord.Colour(0xFFFFF0),
-            )
-            embed.set_author(
-                name="Reddit",
-                icon_url="https://www.redditstatic.com/desktop2x/"
-                + "img/favicon/android-icon-192x192.png",
-            )
-            match = re.search(reg_img, submission.url)
-            embed.add_field(name="Upvotes", value=submission.score)
-            embed.add_field(name="Comments", value=submission.num_comments)
-            if match:
-                embed.set_image(url=submission.url)
+        if submission.url:
+            if not submission.isVideo:
+                e.set_image(url=submission.url)
             else:
-                await ctx.send(embed=embed)
+                await ctx.send(embed=e)
                 await ctx.send(submission.url)
                 return
-            await ctx.send(embed=embed)
+
+        await ctx.send(embed=e)
 
     @commands.command(usage="(member)")
     @commands.cooldown(5, 25, type=commands.BucketType.user)
