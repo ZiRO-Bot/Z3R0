@@ -34,11 +34,6 @@ py -3 -m pip install -r requirements.txt
         "id": "",
         "secret": ""
     },
-    "reddit": {
-        "id": "",
-        "secret": "",
-        "user_agent": "ziBot/0.4"
-    },
     "openweather_apikey": ""
 }
 ```
