@@ -483,13 +483,13 @@ class Fun(commands.Cog):
                 "ender-pearl": "<:enderpearl:807261299817709608>",
                 "string": "<:string:807262264381014086>",
                 "fire-charge": "<:firecharge:807262322522718219>",
-                "gravel": "<:gravel:807262690506047530>",
+                "gravel": "<:gravel3D:807535983448948766>",
                 "leather": "<:leather:807262494619860993>",
-                "nether-brick": "<:netherbrick:807262738443141180>",
-                "obsidian": "<:obsidian:807262809883803648>",
-                "cry-obsidian": "<:cryobsidian:807262920542912562>",
-                "soul-sand": "<:soulsand:807262976104464385>",
-            }.get(name, "❔")
+                "nether-brick": "<:netherbricks3D:807536302365999114>",
+                "obsidian": "<:obsidian3D:807536509837770762>",
+                "cry-obsidian": "<:cryobsidian3D:807536510152474644>",
+                "soul-sand": "<:soulsand3D:807536744253227049>",
+            }.get(name, "<:missingtexture:807536928361545729>")
 
         e = embedDefault(
             ctx,
