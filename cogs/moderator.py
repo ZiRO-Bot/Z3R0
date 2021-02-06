@@ -464,9 +464,12 @@ class Admin(commands.Cog):
         g = ctx.guild
         added = []
         prefixes = list([*prefixes])
-        ori_prefixes = list(bot.get_prefix(self.bot, ctx.message))
+        ori_prefixes = [p for p in list(bot.get_prefix(self.bot, ctx.message)) if not p.startswith((f'<@{self.bot.user.id}>', f'<@!{self.bot.user.id}>'))]
         # Filter whitespaces and prefix that already exist from *prefixes
         for prefix in prefixes:
+            if str(prefix).startswith((f'<@{self.bot.user.id}>', f'<@!{self.bot.user.id}>')):
+                continue
+
             match = re.match(r"^\s+", prefix)
             if match or prefix in ori_prefixes or prefix == ",":
                 prefixes.remove(prefix)
@@ -490,8 +493,11 @@ class Admin(commands.Cog):
         """Remove a prefix from bot."""
         g = ctx.guild
         removed = []
-        ori_prefixes = list(bot.get_prefix(self.bot, ctx.message))
+        ori_prefixes = [p for p in list(bot.get_prefix(self.bot, ctx.message)) if not p.startswith((f'<@{self.bot.user.id}>', f'<@!{self.bot.user.id}>'))]
         for prefix in prefixes:
+            if str(prefix).startswith((f'<@{self.bot.user.id}>', f'<@!{self.bot.user.id}>')):
+                continue
+
             if prefix in ori_prefixes and len(ori_prefixes) - 1 >= 1:
                 removed.append(prefix)
                 ori_prefixes.remove(prefix)
