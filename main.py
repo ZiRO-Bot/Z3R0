@@ -54,7 +54,6 @@ def check_json():
                 {
                     "bot_token": "",
                     "twitch": {"id": "", "secret": ""},
-                    "reddit": {"id": "", "secret": "", "user_agent": ""},
                     "openweather_apikey": "",
                 },
                 f,
