@@ -22,17 +22,6 @@ class Fun(commands.Cog):
         self.bot = bot
         self.reddit = reddit.Reddit(self.bot.session)
 
-    def is_reddit():
-        def predicate(ctx):
-            reddit_id = ctx.bot.config["reddit"]["id"]
-            reddit_secret = ctx.bot.config["reddit"]["secret"]
-            reddit_user_agent = ctx.bot.config["reddit"]["user_agent"]
-            if reddit_id and reddit_secret and reddit_user_agent:
-                return True
-            return False
-
-        return commands.check(predicate)
-
     async def is_redarmy(ctx):
         return ctx.guild.id in [747984453585993808, 758764126679072788]
 
