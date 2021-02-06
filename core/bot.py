@@ -74,6 +74,8 @@ class ziBot(commands.Bot):
 
         self.blocks = [block.RandomBlock(), block.StrictVariableGetterBlock()]
 
+        self.activityIndex = 0
+
         # Init database
         self.conn = sqlite3.connect("data/database.db")
         self.c = self.conn.cursor()
@@ -215,12 +217,27 @@ class ziBot(commands.Bot):
     async def on_guild_remove(self, guild):
         self.remove_guild_data(guild)
 
-    @tasks.loop(minutes=2)
+    @tasks.loop(seconds=15)
     async def changing_presence(self):
-        activity = discord.Activity(
-            name=f"over {len(self.guilds)} servers", type=discord.ActivityType.watching
-        )
-        await self.change_presence(activity=activity)
+        activities = [
+            discord.Activity(
+                name=f"over {len(self.guilds)} servers", type=discord.ActivityType.watching
+            ),
+            discord.Activity(
+                name=f"over {len(self.users)} users", type=discord.ActivityType.watching
+            ),
+            discord.Activity(
+                name=f"commands | Ping me to get prefix list!", type=discord.ActivityType.listening
+            ),
+            discord.Activity(
+                name=f"bot war", type=discord.ActivityType.competing
+            ),
+        ]
+        await self.change_presence(activity=activities[self.activityIndex])
+
+        self.activityIndex += 1
+        if self.activityIndex > len(activities) - 1:
+            self.activityIndex = 0
 
     async def on_ready(self):
         self.changing_presence.start()
@@ -233,25 +250,9 @@ class ziBot(commands.Bot):
         for server in self.guilds:
             self.add_empty_data(server)
 
-    async def on_message(self, message):
-        # dont accept commands from bot
-        if message.author.bot:
-            return
-
-        pattern = f"<@(!?){self.user.id}>"
-        if re.fullmatch(pattern, message.content):
-            prefixes = _callable_prefix(self, message)
-            prefixes.pop(0)
-            prefixes.pop(0)
-            prefixes = ", ".join([f"`{x}`" for x in prefixes])
-            embed = discord.Embed(
-                description="My prefixes are: {} or {}".format(prefixes, self.user.mention),
-                colour=discord.Colour.rounded(),
-            )
-            await message.reply(embed=embed)
-        await self.process_commands(message)
-
+    async def process_commands(self, message):
         ctx = await self.get_context(message)
+
         # See if user can run the command (if exists)
         can_run = False
         if ctx.command:
@@ -269,7 +270,28 @@ class ziBot(commands.Bot):
             if ctx.prefix:
                 new_content = msg.content[len(ctx.prefix) :]
                 msg.content = "{}tag get {}".format(ctx.prefix, new_content)
-                await self.process_commands(msg)
+                return await self.process_commands(msg)
+
+        await self.invoke(ctx)
+
+    async def on_message(self, message):
+        # dont accept commands from bot
+        if message.author.bot:
+            return
+
+        pattern = f"<@(!?){self.user.id}>"
+        if re.fullmatch(pattern, message.content):
+            prefixes = _callable_prefix(self, message)
+            prefixes.pop(0)
+            prefixes.pop(0)
+            prefixes = ", ".join([f"`{x}`" for x in prefixes])
+            embed = discord.Embed(
+                description="My prefixes are: {} or {}".format(prefixes, self.user.mention),
+                colour=discord.Colour.rounded(),
+            )
+            await message.reply(embed=embed)
+
+        await self.process_commands(message)
 
     async def close(self):
         await super().close()
