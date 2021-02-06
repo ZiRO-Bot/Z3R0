@@ -578,13 +578,19 @@ class General(commands.Cog):
             country = "UK"
         api = "https://api.covid19api.com/total/country"
         async with session.get(f"{api}/{country}") as url:
-            covData = json.loads(await url.text())
-        try:
-            covData = covData[len(covData) - 1]
-        except KeyError:
-            e = embedError(f"{country} not found")
-            await ctx.send(embed=e)
-            return
+            try:
+                covData = json.loads(await url.text())
+            except json.decoder.JSONDecodeError:
+                e = embedError(f"502 Bad Gateway, please try again later.")
+                await ctx.send(embed=e)
+                return
+                
+            try:
+                covData = covData[len(covData) - 1]
+            except KeyError:
+                e = embedError(f"{country} not found")
+                await ctx.send(embed=e)
+                return
         e = discord.Embed(title=covData["Country"], timestamp=ctx.message.created_at)
         e.add_field(name="Active", value=f"{covData['Active']:,}")
         e.add_field(name="Recovered", value=f"{covData['Recovered']:,}")
