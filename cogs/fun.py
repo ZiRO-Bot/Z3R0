@@ -4,7 +4,6 @@ import discord
 import io
 import json
 import os
-import praw
 import re
 
 from bs4 import BeautifulSoup
@@ -21,12 +20,6 @@ from typing import Optional
 class Fun(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        praw.Reddit
-        self.reddit = praw.Reddit(
-            client_id=self.bot.config["reddit"]["id"],
-            client_secret=self.bot.config["reddit"]["secret"],
-            user_agent=self.bot.config["reddit"]["user_agent"],
-        )
         self.redditRewrite = reddit.Reddit(self.bot.session)
 
     def is_reddit():
