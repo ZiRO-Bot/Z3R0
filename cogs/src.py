@@ -4,8 +4,8 @@ import json
 import re
 
 from discord.ext import commands
-from cogs.api import speedrun
 from cogs.utilities.formatting import pformat, realtime, hformat
+from speedrunpy import SpeedrunPy
 
 
 class SRC(commands.Cog):
@@ -14,7 +14,7 @@ class SRC(commands.Cog):
         self.API_URL = "https://www.speedrun.com/api/v1/"
         self.LOGO = "https://www.speedrun.com/images/1st.png"
         self.session = self.bot.session
-        self.src = speedrun.SpeedrunPy(session=self.session)
+        self.src = SpeedrunPy(session=self.session)
 
     async def generate_tinyUrl(self, long_url: str):
         async with self.session.get(
@@ -457,17 +457,17 @@ class SRC(commands.Cog):
     @commands.command(aliases=["cats"])
     async def categories(self, ctx, game):
         """Get speedrun categories for a specific game."""
-        game = await self.src.get_game(game, embeds=["categories"])
+        games = await self.src.get_games(game, embeds=["categories"])
         e = discord.Embed(
-            title=f"{game.name} Categories",
+            title=f"{games[0].name} Categories",
             colour=discord.Colour.gold(),
         )
         e.set_author(
             name=f"speedrun.com",
             icon_url=self.LOGO,
         )
-        e.set_thumbnail(url=str(game.assets["cover-large"]))
-        for cat in game.categories:
+        e.set_thumbnail(url=str(games[0].assets["cover-large"]))
+        for cat in games[0].categories:
             e.add_field(
                 name=cat.name, value=pformat(cat.name), inline=False
             )
