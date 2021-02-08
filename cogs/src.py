@@ -466,15 +466,11 @@ class SRC(commands.Cog):
             name=f"speedrun.com",
             icon_url=self.LOGO,
         )
+        e.set_thumbnail(url=str(game.assets["cover-large"]))
         for cat in game.categories:
             e.add_field(
                 name=cat.name, value=pformat(cat.name), inline=False
             )
-
-        # for i in catdict:
-        #     e.add_field(
-        #         name=catdict[i]["name"], value=pformat(catdict[i]["name"]), inline=False
-        #     )
         await ctx.send(embed=e)
 
 
