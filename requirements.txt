@@ -1,8 +1,6 @@
 # ----- pypi
 GitPython == 2.1.15
-aiogoogletrans == 3.3.2
 aiohttp == 3.6.2
-async_timeout == 3.0.1
 beautifulsoup4==4.9.3
 bs4==0.0.1
 click == 7.1.2
