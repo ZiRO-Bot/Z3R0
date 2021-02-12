@@ -247,7 +247,9 @@ class AniList(commands.Cog):
         self.logger = self.bot.logger
         self.anilist = anilist.AniList(session=self.bot.session)
         self.watchlist = self.get_raw_watchlist()
-        self.handle_schedule.start()
+        # --- Disable anime schedule, not working
+        # TODO: Rewrite maybe?
+        # self.handle_schedule.start()
 
     def get_raw_watchlist(self):
         self.bot.c.execute("SELECT * FROM ani_watchlist WHERE 1")
