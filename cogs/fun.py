@@ -354,20 +354,23 @@ class Fun(commands.Cog):
         )
         await ctx.send(embed=e)
 
-    @commands.cooldown(1, 25, commands.BucketType.guild)
+    @commands.cooldown(3, 25, commands.BucketType.user)
     @commands.command(aliases=["isimposter"], usage="[impostor count] [player count]")
     async def isimpostor(self, ctx, impostor: int = 1, player: int = 10):
         """Check if you're an impostor or a crewmate."""
         if ctx.guild.id in self.bot.norules:
             ctx.command.reset_cooldown(ctx)
-        if 3 < impostor < 1:
-            await em_ctx_send_error("Impostor counter can only be up to 3 impostors")
-            return
-        chance = 100 * impostor / player / 100
-        if random() < chance:
-            await ctx.send(f"{ctx.author.mention}, you're a crewmate!")
-        else:
+
+        if impostor < 1:
+            impostor = 1
+            await ctx.send("Impostor count has been set to `1`")
+        if impostor > player:
+            impostor = player
+
+        if random() < impostor / player:
             await ctx.send(f"{ctx.author.mention}, you're an impostor!")
+        else:
+            await ctx.send(f"{ctx.author.mention}, you're a crewmate!")
 
     @commands.Cog.listener()
     async def on_message(self, message):
