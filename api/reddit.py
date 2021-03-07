@@ -4,6 +4,11 @@ import json
 
 
 class Post:
+
+    __slots__ = ("isStickied", "title", "content", "author", "is18",
+                "isVideo", "url", "upvotes", "downvotes", "score",
+                "commentCount")
+
     def __init__(self, data):
         self.isStickied = data["data"]["stickied"]
         self.title = data["data"]["title"]
@@ -67,4 +72,4 @@ if __name__ == "__main__":
     loop = asyncio.get_event_loop()
     reddit = Reddit()
     res = loop.run_until_complete(reddit.top("meme"))
-    print(res.posts[0].content)
+    print(res.posts[1].url)

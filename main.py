@@ -1,19 +1,10 @@
 import asyncio
 import click
 import contextlib
-import discord
-import json
+import core.bot as _bot
 import logging
 
-from core.bot import ziBot
-
-
-try:
-    import uvloop
-except ImportError:
-    pass
-else:
-    asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
+import config
 
 
 @contextlib.contextmanager
@@ -45,29 +36,11 @@ def setup_logging():
             logger.removeHandler(handler)
 
 
-def check_json():
-    try:
-        f = open("config.json", "r")
-    except FileNotFoundError:
-        with open("config.json", "w+") as f:
-            json.dump(
-                {
-                    "bot_token": "",
-                    "twitch": {"id": "", "secret": ""},
-                    "openweather_apikey": "",
-                },
-                f,
-                indent=4,
-            )
-
-
 def init_bot():
     loop = asyncio.get_event_loop()
     logger = logging.getLogger()
 
-    check_json()
-
-    bot = ziBot()
+    bot = _bot.ziBot()
     bot.run()
 
 
