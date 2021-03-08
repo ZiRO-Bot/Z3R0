@@ -1,3 +1,4 @@
+import aiosqlite
 import discord
 import os
 import logging
@@ -5,13 +6,14 @@ import re
 
 from discord.ext import commands, tasks
 
+
 import config
 
 
 extensions = []
-for filename in os.listdir('./ext'):
+for filename in os.listdir('./exts'):
     if filename.endswith('.py'):
-        extensions.append("ext".format(filename[:-3]))
+        extensions.append("exts.{}".format(filename[:-3]))
 
 
 def _callable_prefix(bot, message):
@@ -19,15 +21,16 @@ def _callable_prefix(bot, message):
     user_id = bot.user.id
     base = [f"<@!{user_id}> ", f"<@{user_id}> "]
     if not message.guild:
-        base.extend(bot.def_prefix)
+        base.extend(bot.defPrefix)
     else:
         # per-server prefix, soon (TM)
         #   base.extend(
-        #       sorted(bot.cache[message.guild.id].get("prefixes", bot.def_prefix))
+        #       sorted(bot.cache[message.guild.id].get("prefixes", bot.defPrefix))
         #   )
 
-        base.extend(bot.def_prefix)
+        base.extend(bot.defPrefix)
     return base
+
 
 class ziBot(commands.Bot):
     def __init__(self):
@@ -44,7 +47,14 @@ class ziBot(commands.Bot):
         self.activityIndex = 0
         
         # bot's default prefix
-        self.def_prefix = [">"]
+        self.defPrefix = [">"]
+
+        # async init
+        self.loop.create_task(self.asyncInit())
+    
+    async def asyncInit(self):
+        """`__init__` but async"""
+        self.db = await aiosqlite.connect("data/database.db")
 
     @tasks.loop(seconds=15)
     async def changing_presence(self):
@@ -90,12 +100,17 @@ class ziBot(commands.Bot):
             prefixes.pop(0)
             prefixes.pop(0)
             prefixes = ", ".join([f"`{x}`" for x in prefixes])
-            await message.reply("My prefixes are: `{}` or {}".format(prefixes, self.user.mention))
+            embed = discord.Embed(
+                description="My prefixes are: {} or {}".format(prefixes, self.user.mention),
+                colour=discord.Colour.rounded(),
+            )
+            await message.reply(embed=embed)
 
         await self.process_commands(message)
 
     async def close(self):
         await super().close()
+        await self.db.close()
 
     def run(self):
         super().run(config.token, reconnect=True)

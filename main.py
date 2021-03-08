@@ -3,8 +3,25 @@ import click
 import contextlib
 import core.bot as _bot
 import logging
+import os
+
 
 import config
+
+
+# Use uvloop as loop policy if possible (Linux only)
+try:
+    import uvloop
+except ImportError:
+    pass
+else:
+    asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
+
+# Create data directory if its not exist
+try:
+    os.makedirs("data")
+except FileExistsError:
+    pass
 
 
 @contextlib.contextmanager

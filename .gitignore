@@ -4,6 +4,7 @@ downloads/
 zibot.egg-info/
 api_keys.json
 config.json
+config.py
 blacklist.json
 runs_blacklist.json
 discord.log
