@@ -3,9 +3,8 @@ import discord
 
 from discord.ext import commands
 
-class CommandManager(commands.Cog):
+class Admin(commands.Cog):
     def __init__(self, bot):
-        """Manage commands (both built-in and user-made), also handle user-made commands"""
         self.bot = bot
         self.db = self.bot.db
 
@@ -42,4 +41,4 @@ class CommandManager(commands.Cog):
         await self.db.commit()
     
 def setup(bot):
-    bot.add_cog(CommandManager(bot))
+    bot.add_cog(Admin(bot))
