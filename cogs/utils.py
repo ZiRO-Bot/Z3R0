@@ -212,7 +212,7 @@ class Utils(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message_delete(self, message):
-        if message.author == self.bot.user:
+        if message.author.bot:
             return
 
         self.bot.c.execute(
@@ -269,6 +269,9 @@ class Utils(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message_edit(self, before, after):
+        if message.author.bot:
+            return
+
         if before.content == after.content:
             return
         message = before
