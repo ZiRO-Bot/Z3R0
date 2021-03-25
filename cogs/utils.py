@@ -269,7 +269,7 @@ class Utils(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message_edit(self, before, after):
-        if message.author.bot:
+        if before.author.bot:
             return
 
         if before.content == after.content:
