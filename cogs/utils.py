@@ -384,7 +384,7 @@ class Utils(commands.Cog):
             )
             e.add_field(
                 name="Author Info",
-                value=f"**Name**: {info['author']}\n"
+                value=f"**Name**: {info['author'] or '`Unknown`'}\n"
                 + f"**Email**: {info['author_email'] or '`Not provided.`'}",
             )
             e.add_field(name="Version", value=info["version"])
@@ -392,7 +392,7 @@ class Utils(commands.Cog):
                 name="Project Links",
                 value="\n".join(
                     [f"[{x}]({y})" for x, y in dict(info["project_urls"]).items()]
-                ),
+                ) if info["project_urls"] else "`No links provided.`",
             )
             e.add_field(name="License", value=info["license"] or "`Not specified.`")
             return await ctx.reply(embed=e)
