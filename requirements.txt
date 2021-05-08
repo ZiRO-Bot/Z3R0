@@ -11,7 +11,6 @@ python_dateutil == 2.8.1
 python-Levenshtein == 0.12.1
 pytz == 2020.1
 pyparsing == 2.4.7
-speedrun.py == 0.0.2
 TagScriptEngine == 2.3.0
 uvloop == 0.14.0
 zidiscord.py == 1.7.0
