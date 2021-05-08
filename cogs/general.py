@@ -534,40 +534,6 @@ class General(commands.Cog):
         )
         await ctx.send(embed=e)
 
-    @commands.command(aliases=["xi", "xboxuser", "xu"], usage="(gamertag)")
-    async def xboxinfo(self, ctx, gamertag):
-        """Show user's xbox information."""
-        xbox = "https://xbl-api.prouser123.me/profile/gamertag"
-        async with session.get(f"{xbox}/{gamertag}") as url:
-            xboxdata = json.loads(await url.text())["profileUsers"][0]["settings"]
-        if not xboxdata:
-            return
-
-        _gamertag = xboxdata[4]["value"]
-        gamerscore = xboxdata[3]["value"]
-        tier = xboxdata[6]["value"]
-        reputation = xboxdata[8]["value"]
-
-        e = discord.Embed(
-            title=_gamertag,
-            color=discord.Colour(0x107C10),
-            timestamp=ctx.message.created_at,
-        )
-        e.set_author(
-            name="Xbox",
-            icon_url="https://raw.githubusercontent.com/null2264/null2264/master/xbox.png",
-        )
-        e.set_thumbnail(url=xboxdata[5]["value"])
-        e.add_field(
-            name="Gamerscore", value=f"<:gamerscore:752423525247352884>{gamerscore}"
-        )
-        e.add_field(name="Account Tier", value=tier)
-        e.add_field(name="Reputation", value=reputation)
-        e.set_footer(
-            text=f"Requested by {ctx.message.author.name}#{ctx.message.author.discriminator}"
-        )
-        await ctx.send(embed=e)
-
     @commands.command(usage="(country)")
     async def covid(self, ctx, *country):
         """Show covid information on certain country."""
