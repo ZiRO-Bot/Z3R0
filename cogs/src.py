@@ -1,3 +1,5 @@
+# NO LONGER USED, checkout https://github.com/null2264/speedrunComBot instead
+
 import aiohttp
 import discord
 import json
