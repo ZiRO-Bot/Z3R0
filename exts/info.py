@@ -10,8 +10,20 @@ class Info(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
+    @commands.command(aliases=["bi", "about"])
+    async def botinfo(self, ctx):
+        """Information about me."""
+        e = discord.Embed(
+            title="About me",
+            timestamp=ctx.message.created_at,
+            colour=discord.Colour(0xFFFFF0),
+        )
+        e.add_field(name="Version", value="3.0.O `overhaul`")
+        await ctx.send(embed=e)
+
     @commands.command()
     async def test(self, ctx):
+        """Nothing, just a test."""
         return await ctx.send(info("Test\nTest") + " Hello World!")
 
     @commands.command(aliases=["p"])
