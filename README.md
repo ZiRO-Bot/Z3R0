@@ -10,7 +10,8 @@ Overhaul plan:
 - Filter to show/hide user-made command for help commands.
 - Built-in category for user to categorized their commands.
 - Public/Private commands, allowing other user to use each other's command in a different server.
+- Relicense (Migrate from GPLv3)
 
 ### License
 
-This project is licensed under `GPL-3.0-or-Later`
+Public Domain (Not specified yet.)
