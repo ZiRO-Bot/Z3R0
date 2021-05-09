@@ -52,6 +52,11 @@ class Admin(commands.Cog):
         """Manage commands"""
         pass
 
+    @command.command(aliases=["exec"])
+    async def run(self, ctx, name):
+        """Run a custom command"""
+        return await ctx.send("Not implemented yet.")
+
     @command.command(aliases=["+", "create"])
     async def add(self, ctx, name, *content):
         """Add new command"""

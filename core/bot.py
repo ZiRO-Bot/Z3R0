@@ -1,4 +1,5 @@
 import aiosqlite
+import aiohttp
 import discord
 import os
 import logging
@@ -10,10 +11,11 @@ from discord.ext import commands, tasks
 import config
 
 
+extensionFolder = "exts"
 extensions = []
-for filename in os.listdir('./exts'):
+for filename in os.listdir('./{}'.format(extensionFolder)):
     if filename.endswith('.py'):
-        extensions.append("exts.{}".format(filename[:-3]))
+        extensions.append("{}.{}".format(extensionFolder, filename[:-3]))
 
 
 def _callable_prefix(bot, message):
@@ -51,6 +53,7 @@ class ziBot(commands.Bot):
 
         # async init
         self.loop.create_task(self.asyncInit())
+        self.session = aiohttp.ClientSession()
     
     async def asyncInit(self):
         """`__init__` but async"""
@@ -88,6 +91,24 @@ class ziBot(commands.Bot):
 
         self.logger.warning(f"Online: {self.user} (ID: {self.user.id})")
 
+    async def process_commands(self, message):
+        ctx = await self.get_context(message)
+
+        # --- TODO: 
+        # * Prefix ">" or any user specified prefix will prioritize 
+        #   built-in command
+        # * Prefix ">" after user specified prefix `ex:">>" or "!>"` 
+        #   will prioritize custom command
+        # ---
+
+        # msg = copy.copy(message)
+        # if ctx.prefix:
+        #     new_content = msg.content[len(ctx.prefix) :]
+        #     msg.content = "{}command run {}".format(ctx.prefix, new_content)
+        #     return await self.process_commands(msg)
+
+        await self.invoke(ctx)
+
     async def on_message(self, message):
         # dont accept commands from bot
         if message.author.bot:
@@ -109,8 +130,12 @@ class ziBot(commands.Bot):
         await self.process_commands(message)
 
     async def close(self):
+        """Properly close/turn off bot"""
         await super().close()
+        # Close database
         await self.db.close()
+        # Close aiohttp session
+        await self.session.close()
 
     def run(self):
         super().run(config.token, reconnect=True)
