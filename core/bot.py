@@ -1,5 +1,6 @@
 import aiosqlite
 import aiohttp
+import copy
 import discord
 import os
 import logging
@@ -100,12 +101,17 @@ class ziBot(commands.Bot):
         # * Prefix ">" after user specified prefix `ex:">>" or "!>"` 
         #   will prioritize custom command
         # ---
-
-        # msg = copy.copy(message)
-        # if ctx.prefix:
-        #     new_content = msg.content[len(ctx.prefix) :]
-        #     msg.content = "{}command run {}".format(ctx.prefix, new_content)
-        #     return await self.process_commands(msg)
+        
+        # 0 = Built-In, 1 = Custom
+        priority = 0
+        
+        msg = copy.copy(message)
+        if ctx.prefix:
+            msgContent: str = msg.content[len(ctx.prefix):]
+            msg.content = "{}command run {}".format(ctx.prefix, msgContent[1:])
+            if msgContent.startswith(">"):
+                priority = 1
+                return await self.process_commands(msg)
 
         await self.invoke(ctx)
 
