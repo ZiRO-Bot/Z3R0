@@ -6,6 +6,7 @@ import os
 import logging
 import re
 
+from databases import Database
 from discord.ext import commands, tasks
 
 
@@ -52,13 +53,17 @@ class ziBot(commands.Bot):
         # bot's default prefix
         self.defPrefix = [">"]
 
+        # database
+        self.db = Database(config.sql)
+
         # async init
         self.loop.create_task(self.asyncInit())
         self.session = aiohttp.ClientSession()
     
     async def asyncInit(self):
         """`__init__` but async"""
-        self.db = await aiosqlite.connect("data/database.db")
+        # self.db = await aiosqlite.connect("data/database.db")
+        await self.db.connect()
 
     @tasks.loop(seconds=15)
     async def changing_presence(self):
@@ -85,6 +90,9 @@ class ziBot(commands.Bot):
     async def on_ready(self):
         # change bot's presence into guild live count
         self.changing_presence.start()
+
+        # rows = await self.db.fetch_all("SELECT * FROM commands")
+        # print(rows)
 
         # load all listed extensions
         for extension in extensions:
@@ -139,7 +147,8 @@ class ziBot(commands.Bot):
         """Properly close/turn off bot"""
         await super().close()
         # Close database
-        await self.db.close()
+        # await self.db.close()
+        await self.db.disconnect()
         # Close aiohttp session
         await self.session.close()
 

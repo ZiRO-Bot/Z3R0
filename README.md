@@ -1,6 +1,19 @@
 **WARNING:** This branch is a rewrite of ziBot and not yet ready to be used, use [master branch](https://github.com/ZiRO-Bot/ziBot/tree/master) instead!
 
-Overhaul plan:
+`config.py` file example [**REQUIRED!**]
+
+```py
+token="bottokengoeshere"
+# Database URL, planned to be working with any sql
+# (using https://github.com/encode/databases/ and SQLAlchemy Core)
+# URL Examples:
+# - sqlite:///database.db
+# - postgresql://localhost/example?ssl=true
+# - mysql://localhost/example?min_size=5&max_size=20
+sql="sqlite:///database.db"
+```
+
+### Overhaul Plan
 
 - User-made command system, allow user to make command that act similarly to built-in commands.
 - Integrate user-made commands into help commands.
