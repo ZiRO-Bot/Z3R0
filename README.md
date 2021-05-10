@@ -1,3 +1,8 @@
+`ziBot (ZiRO's Bot)`
+--------------------
+
+A **free** and **open-source** multi-purpose discord bot.
+
 **WARNING:** This branch is a rewrite of ziBot and not yet ready to be used, use [master branch](https://github.com/ZiRO-Bot/ziBot/tree/master) instead!
 
 `config.py` file example [**REQUIRED!**]
