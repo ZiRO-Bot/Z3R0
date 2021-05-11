@@ -8,14 +8,7 @@ A **free** and **open-source** multi-purpose discord bot.
 `config.py` file example [**REQUIRED!**]
 
 ```py
-token="bottokengoeshere"
-# Database URL, planned to be working with any sql
-# (using https://github.com/encode/databases/ and SQLAlchemy Core)
-# URL Examples:
-# - sqlite:///database.db
-# - postgresql://localhost/example?ssl=true
-# - mysql://localhost/example?min_size=5&max_size=20
-sql="sqlite:///database.db"
+token="YOUR BOT TOKEN GOES HERE"
 ```
 
 ### Overhaul Plan
