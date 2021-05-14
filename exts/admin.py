@@ -1,4 +1,5 @@
 import discord
+import exts.utils.dbQuery as dbQuery
 
 
 from discord.ext import commands
@@ -13,32 +14,11 @@ class Admin(commands.Cog):
 
     async def asyncInit(self):
         # commands database table
-        await self.db.execute(
-            """
-            CREATE TABLE IF NOT EXISTS commands (
-                id INTEGER NOT NULL UNIQUE,
-                name TEXT,
-                content TEXT,
-                uses INTEGER DEFAULT 0,
-                ownerId INTEGER,
-                createdAt REAL,
-                PRIMARY KEY("id" AUTOINCREMENT)
-            );
-            """
-        )
+        await self.db.execute(dbQuery.createCommandsTable)
         await self.db.commit()
 
         # commands_lookup database table
-        await self.db.execute(
-            """
-            CREATE TABLE IF NOT EXISTS commands_lookup (
-                cmdId INTEGER NOT NULL,
-                name TEXT,
-                guildId INTEGER,
-                FOREIGN KEY("cmdId") REFERENCES commands("id")
-            );
-            """
-        )
+        await self.db.execute(dbQuery.createCommandsLookupTable)
         await self.db.commit()
 
     # TODO: Adds custom check with usage limit (
