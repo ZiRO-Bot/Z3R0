@@ -103,27 +103,42 @@ class ziBot(commands.Bot):
     async def process_commands(self, message):
         ctx = await self.get_context(message)
 
-        # --- TODO: 
-        # * Prefix ">" or any user specified prefix will prioritize 
-        #   built-in command
-        # * Prefix ">" after user specified prefix `ex:">>" or "!>"` 
-        #   will prioritize custom command
-        # ---
-        
         # 0 = Built-In, 1 = Custom
         priority = 0
+        # Save command to a variable for later
+        command = ctx.command
         
+        # Handling custom command priority
         msg = copy.copy(message)
         if ctx.prefix:
+            # Get msg content without prefix
             msgContent: str = msg.content[len(ctx.prefix):]
-            msg.content = "{}command run {}".format(ctx.prefix, msgContent[1:])
             if msgContent.startswith(">"):
                 priority = 1
+                # Turn `>command` into `command`
+                # So it can properly checked
+                command = self.get_command(msgContent[1:])
 
-        if priority == 1:
-            return await self.process_commands(msg)
+        canRun = False
+        if command:
+            try:
+                canRun = await command.can_run(ctx)
+            except commands.CheckFailure:
+                canRun = False
 
-        await self.invoke(ctx)
+        # Handling command invoke with priority
+        if canRun:
+            if priority == 1:
+                try:
+                    return await ctx.invoke(self.get_command("command run"), name=msgContent[1:])
+                except RuntimeError:
+                    # Failed to run custom command, revert to built-in command
+                    ctx.command = command
+            # Since priority is 0 and it can run the built-in command,
+            # no need to try getting custom command
+            return await self.invoke(ctx)
+        # Priority is 0 but can't run built-in command
+        return await ctx.invoke(self.get_command("command run"), name=msgContent[1:])
 
     async def on_message(self, message):
         # dont accept commands from bot

@@ -24,7 +24,7 @@ class Info(commands.Cog):
     @commands.command()
     async def test(self, ctx):
         """Nothing, just a test."""
-        return await ctx.send(info("Test\nTest") + " Hello World!")
+        return await ctx.send(info("Test\nTest", title="Warning") + " Hello World!")
 
     @commands.command(aliases=["p"])
     async def ping(self, ctx):
