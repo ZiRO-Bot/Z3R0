@@ -103,6 +103,9 @@ class ziBot(commands.Bot):
     async def process_commands(self, message):
         ctx = await self.get_context(message)
 
+        if not ctx.prefix:
+            return
+
         # 0 = Built-In, 1 = Custom
         priority = 0
         # Save command to a variable for later
