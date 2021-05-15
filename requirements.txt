@@ -2,7 +2,7 @@
 aiohttp == 3.6.2
 
 # --- databases, choose one! (or multiple if you want)
-#databases[sqlite] == 0.4.3
+databases[sqlite] == 0.4.3
 #databases[postgresql] == 0.4.3
 #databases[mysql] == 0.4.3
 

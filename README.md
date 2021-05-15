@@ -9,6 +9,15 @@ A **free** and **open-source** multi-purpose discord bot.
 
 ```py
 token="YOUR BOT TOKEN GOES HERE"
+
+# Database URL (using https://github.com/encode/databases/ and SQLAlchemy Core)
+# NOTE: Query is created for sqlite, be sure to edit exts/utils/dbQuery.py for other SQL!
+#
+# URL Examples:
+# - sqlite:///database.db
+# - postgresql://localhost/example?ssl=true
+# - mysql://localhost/example?min_size=5&max_size=20
+sql="sqlite:///database.db"
 ```
 
 ### Overhaul Plan

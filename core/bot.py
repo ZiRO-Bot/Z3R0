@@ -1,4 +1,3 @@
-import aiosqlite
 import aiohttp
 import copy
 import discord
@@ -6,7 +5,7 @@ import os
 import logging
 import re
 
-# from databases import Database
+from databases import Database
 from discord.ext import commands, tasks
 
 
@@ -54,7 +53,7 @@ class ziBot(commands.Bot):
         self.defPrefix = [">"]
 
         # database
-        # self.db = Database(config.sql)
+        self.db = Database(config.sql)
 
         # async init
         self.loop.create_task(self.asyncInit())
@@ -62,8 +61,9 @@ class ziBot(commands.Bot):
     
     async def asyncInit(self):
         """`__init__` but async"""
-        self.db = await aiosqlite.connect("data/database.db")
-        # await self.db.connect()
+        # self.db = await aiosqlite.connect("data/database.db")
+
+        await self.db.connect()
 
     @tasks.loop(seconds=15)
     async def changing_presence(self):
@@ -119,7 +119,9 @@ class ziBot(commands.Bot):
             msg.content = "{}command run {}".format(ctx.prefix, msgContent[1:])
             if msgContent.startswith(">"):
                 priority = 1
-                return await self.process_commands(msg)
+
+        if priority == 1:
+            return await self.process_commands(msg)
 
         await self.invoke(ctx)
 
@@ -147,8 +149,8 @@ class ziBot(commands.Bot):
         """Properly close/turn off bot"""
         await super().close()
         # Close database
-        await self.db.close()
-        # await self.db.disconnect()
+        # await self.db.close()
+        await self.db.disconnect()
         # Close aiohttp session
         await self.session.close()
 

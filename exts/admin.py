@@ -13,13 +13,11 @@ class Admin(commands.Cog):
         self.bot.loop.create_task(self.asyncInit())
 
     async def asyncInit(self):
-        # commands database table
-        await self.db.execute(dbQuery.createCommandsTable)
-        await self.db.commit()
-
-        # commands_lookup database table
-        await self.db.execute(dbQuery.createCommandsLookupTable)
-        await self.db.commit()
+        async with self.db.transaction():
+            # commands database table
+            await self.db.execute(dbQuery.createCommandsTable)
+            # commands_lookup database table
+            await self.db.execute(dbQuery.createCommandsLookupTable)
 
     # TODO: Adds custom check with usage limit (
     #     0: Only mods,
