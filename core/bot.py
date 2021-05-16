@@ -122,6 +122,7 @@ class ziBot(commands.Bot):
                 # So it can properly checked
                 command = self.get_command(msgContent[1:])
 
+        # Check if user can run the command
         canRun = False
         if command:
             try:
