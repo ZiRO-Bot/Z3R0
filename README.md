@@ -37,6 +37,7 @@ sql="sqlite:///database.db"
 - Built-in category for user to categorized their commands.
 - Public/Private commands, allowing other user to use each other's command in a different server.
 - Relicense (Migrate from GPLv3)
+- Better way of handling temp ban/mute
 
 ### License
 
