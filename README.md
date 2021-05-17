@@ -1,4 +1,4 @@
-`ziBot (ZiRO's Bot)`
+`Z3R0 (formerly ziBot)`
 --------------------
 
 A **free** and **open-source** multi-purpose discord bot.
@@ -38,6 +38,7 @@ sql="sqlite:///database.db"
 - Public/Private commands, allowing other user to use each other's command in a different server.
 - Relicense (Migrate from GPLv3)
 - Better way of handling temp ban/mute
+- Logo/Mascot
 
 ### License
 
