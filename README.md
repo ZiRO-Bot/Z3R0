@@ -6,11 +6,16 @@
 <h1 align="center"><code>Z3R0 (formerly ziBot)</code></h1>
 
 <h3 align="center"> A <b>free</b> and <b>open-source</b> multi-purpose discord bot. </h3>
+
+<p align="center">
+    <b>WARNING:</b> This branch is a rewrite of ziBot and not yet ready to be used, use <a href="https://github.com/ZiRO-Bot/ziBot/tree/master">master</a> branch instead!
+</p>
+
 <p id="badges" align="center">
     <a href="https://top.gg/bot/740122842988937286"><img src="https://top.gg/api/widget/status/740122842988937286.svg"></a>
 </p>
 
-**WARNING:** This branch is a rewrite of ziBot and not yet ready to be used, use [master branch](https://github.com/ZiRO-Bot/ziBot/tree/master) instead!
+
 
 `config.py` file example [**REQUIRED!**]
 
