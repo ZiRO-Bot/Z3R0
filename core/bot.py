@@ -108,6 +108,8 @@ class Brain(commands.Bot):
 
         # 0 = Built-In, 1 = Custom
         priority = 0
+        priorityPrefix = 1
+        unixStyle = False
         # Save command to a variable for later
         command = ctx.command
         
@@ -116,11 +118,14 @@ class Brain(commands.Bot):
         if ctx.prefix:
             # Get msg content without prefix
             msgContent: str = msg.content[len(ctx.prefix):]
-            if msgContent.startswith(">"):
+            if msgContent.startswith(">") or (unixStyle := msgContent.startswith("./")):
+                # `./` for unix-style of launching custom scripts
                 priority = 1
                 # Turn `>command` into `command`
                 # So it can properly checked
-                command = self.get_command(msgContent[1:])
+                if unixStyle:
+                    priorityPrefix = 2
+                command = self.get_command(msgContent[priorityPrefix:])
 
         # Check if user can run the command
         canRun = False
@@ -134,7 +139,7 @@ class Brain(commands.Bot):
         if canRun:
             if priority == 1:
                 try:
-                    return await ctx.invoke(self.get_command("command run"), name=msgContent[1:])
+                    return await ctx.invoke(self.get_command("command run"), name=msgContent[priorityPrefix:])
                 except RuntimeError:
                     # Failed to run custom command, revert to built-in command
                     ctx.command = command
