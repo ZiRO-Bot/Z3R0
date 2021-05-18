@@ -35,7 +35,7 @@ def _callable_prefix(bot, message):
     return base
 
 
-class ziBot(commands.Bot):
+class Brain(commands.Bot):
     def __init__(self):
         super().__init__(
             command_prefix=_callable_prefix,
