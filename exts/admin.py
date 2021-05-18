@@ -30,11 +30,11 @@ class Admin(commands.Cog):
         pass
 
     @command.command(aliases=["exec"])
-    async def run(self, ctx, name):
+    async def run(self, ctx, name, argument = None):
         """Run a custom command"""
         if name != "test":
             raise RuntimeError("Invalid command") 
-        return await ctx.send("Not implemented yet.")
+        return await ctx.send(name)
 
     @command.command(aliases=["+", "create"])
     async def add(self, ctx, name, *content):

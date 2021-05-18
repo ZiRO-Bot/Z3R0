@@ -4,6 +4,7 @@ downloads/
 zibot.egg-info/
 
 .env
+exts/youtube.py
 config.json
 config.py
 
