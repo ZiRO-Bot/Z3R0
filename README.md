@@ -15,7 +15,7 @@
     <a href="https://top.gg/bot/740122842988937286"><img src="https://top.gg/api/widget/status/740122842988937286.svg"></a>
 </p>
 
-
+## Configuration
 
 `config.py` file example [**REQUIRED!**]
 
@@ -32,11 +32,14 @@ token="YOUR BOT TOKEN GOES HERE"
 sql="sqlite:///database.db"
 ```
 
+## Overhaul
+
 ### Overhaul changes
 
 - [**Rename**] `cogs/` -> `exts/`
 - [**New**] Command priority [0: Built-in, 1: Custom]
 - [**New**] Use databases to handle SQL (Edit `exts/utils/dbQuery.py` if you're planning to use other SQL instead of  `sqlite`!)
+- [**Rename**] `ziBot` -> `Z3R0`
 
 ### Overhaul Plan
 
@@ -52,6 +55,6 @@ sql="sqlite:///database.db"
 - Better way of handling temp ban/mute
 - Logo/Mascot
 
-### License
+## License
 
 Public Domain (Not specified yet.)
