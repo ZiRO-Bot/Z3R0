@@ -57,7 +57,11 @@ class Brain(commands.Bot):
 
         # async init
         self.loop.create_task(self.asyncInit())
-        self.session = aiohttp.ClientSession()
+        self.session = aiohttp.ClientSession(
+            headers = {
+                "User-Agent": "Discord/Z3RO (ziBot/3.0 by ZiRO2264)"
+            }
+        )
     
     async def asyncInit(self):
         """`__init__` but async"""
