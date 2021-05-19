@@ -8,6 +8,7 @@ import re
 
 from .context import Context
 from .errors import CCommandNotFound
+from exts.utils import dbQuery
 from databases import Database
 from discord.ext import commands, tasks
 
@@ -72,8 +73,9 @@ class Brain(commands.Bot):
     async def asyncInit(self):
         """`__init__` but async"""
         # self.db = await aiosqlite.connect("data/database.db")
-
         await self.db.connect()
+        async with self.db.transaction():
+            await self.db.execute(dbQuery.createGuildsTable)
 
     @tasks.loop(seconds=15)
     async def changing_presence(self):
@@ -103,6 +105,12 @@ class Brain(commands.Bot):
 
         # rows = await self.db.fetch_all("SELECT * FROM commands")
         # print(rows)
+
+        async with self.db.transaction():
+            await self.db.execute_many(
+                dbQuery.insertToGuilds,
+                values=[{"id": i.id} for i in self.guilds]
+            )
 
         # load all listed extensions
         for extension in extensions:
