@@ -14,7 +14,10 @@ import config
 
 extensionFolder = "exts"
 extensions = []
+ignoredExtensions = ("youtube.py")
 for filename in os.listdir('./{}'.format(extensionFolder)):
+    if filename in ignoredExtensions:
+        continue
     if filename.endswith('.py'):
         extensions.append("{}.{}".format(extensionFolder, filename[:-3]))
 
@@ -112,7 +115,7 @@ class Brain(commands.Bot):
 
         # 0 = Built-In, 1 = Custom
         priority = 0
-        priorityPrefix = 1
+        priorityPrefix = 0
         unixStyle = False
         # Save command to a variable for later
         command = ctx.command
@@ -124,7 +127,7 @@ class Brain(commands.Bot):
             msgContent: str = msg.content[len(ctx.prefix):]
             if msgContent.startswith(">") or (unixStyle := msgContent.startswith("./")):
                 # `./` for unix-style of launching custom scripts
-                priority = 1
+                priority = priorityPrefix = 1
                 # Turn `>command` into `command`
                 # So it can properly checked
                 if unixStyle:
@@ -151,7 +154,7 @@ class Brain(commands.Bot):
             # no need to try getting custom command
             return await self.invoke(ctx)
         # Priority is 0 but can't run built-in command
-        return await ctx.invoke(self.get_command("command run"), name=msgContent[1:])
+        return await ctx.invoke(self.get_command("command run"), name=msgContent[priorityPrefix:])
 
     async def on_message(self, message):
         # dont accept commands from bot
