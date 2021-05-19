@@ -119,7 +119,6 @@ class Brain(commands.Bot):
         priority = 0
         priorityPrefix = 0
         unixStyle = False
-        # Save command to a variable for later
         command = ctx.command
         
         # Handling custom command priority
@@ -134,6 +133,10 @@ class Brain(commands.Bot):
                 # So it can properly checked
                 if unixStyle:
                     priorityPrefix = 2
+                # Get arguments
+                tmp = msgContent[priorityPrefix:].split(" ")
+                args = (tmp.pop(0), " ".join(tmp))
+                # Properly get command when priority is 1
                 command = self.get_command(msgContent[priorityPrefix:])
 
         # Check if user can run the command
@@ -149,7 +152,7 @@ class Brain(commands.Bot):
             if priority == 1:
                 try:
                     # Apparently commands are callable, so ctx.invoke longer needed
-                    return await self.get_command("command run")(ctx, *msgContent[priorityPrefix:].split(" "))
+                    return await self.get_command("command run")(ctx, *args)
                 except CCommandNotFound:
                     # Failed to run custom command, revert to built-in command
                     ctx.command = command
@@ -157,7 +160,7 @@ class Brain(commands.Bot):
             # no need to try getting custom command
             return await self.invoke(ctx)
         # Priority is 0 but can't run built-in command
-        return await self.get_command("command run")(ctx, *msgContent[priorityPrefix:].split(" "))
+        return await self.get_command("command run")(ctx, *args)
 
     async def on_message(self, message):
         # dont accept commands from bot
