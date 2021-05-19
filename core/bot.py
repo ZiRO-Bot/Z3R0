@@ -52,6 +52,10 @@ class Brain(commands.Bot):
         # make cogs case insensitive
         self._BotBase__cogs = commands.core._CaseInsensitiveDict()
 
+        # Default colour for embed
+        self.colour = discord.Colour(0x3db4ff)
+        self.color = self.colour
+
         self.logger = logging.getLogger("discord")
 
         self.activityIndex = 0

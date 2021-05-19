@@ -13,18 +13,27 @@ class Info(commands.Cog):
     @commands.command(aliases=["bi", "about"])
     async def botinfo(self, ctx):
         """Information about me."""
+        # --- Edit these stuff to your liking
+        author = "ZiRO2264#4572"
         desc = "A **free and open source** multi-purpose **discord bot** created by" \
              + " ZiRO2264, formerly called `ziBot`."
+        version = "3.0.O (`overhaul`)"
+        gh_link = "https://github.com/ZiRO-Bot/ziBot"
+        # ---
+
+        # Z3R0 Banner
         f = discord.File("./assets/img/banner.png", filename="banner.png")
+
         e = discord.Embed(
             description=desc,
             timestamp=ctx.message.created_at,
-            colour=discord.Colour(0xFFFFF0),
+            colour=self.bot.colour,
         )
         e.set_author(name=ctx.bot.user.name, icon_url=ctx.bot.user.avatar_url)
         e.set_image(url="attachment://banner.png")
-        e.add_field(name="Links", value="[Source Code](https://github.com/ZiRO-Bot/ziBot)")
-        e.add_field(name="Version", value="3.0.O (`overhaul`)")
+        e.add_field(name="Author", value=author)
+        e.add_field(name="Links", value="[Source Code]({})".format(gh_link))
+        e.add_field(name="Version", value=version)
         await ctx.send(file=f, embed=e)
 
     @commands.command()
@@ -39,7 +48,7 @@ class Info(commands.Cog):
         e = discord.Embed(
             title="Pong!",
             timestamp=ctx.message.created_at,
-            colour=discord.Colour(0xFFFFF0),
+            colour=self.bot.colour,
         )
         e.add_field(
             name="<a:loading:776255339716673566> | Websocket",
