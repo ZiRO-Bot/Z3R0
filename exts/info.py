@@ -13,13 +13,19 @@ class Info(commands.Cog):
     @commands.command(aliases=["bi", "about"])
     async def botinfo(self, ctx):
         """Information about me."""
+        desc = "A **free and open source** multi-purpose **discord bot** created by" \
+             + " ZiRO2264, formerly called `ziBot`."
+        f = discord.File("./assets/img/banner.png", filename="banner.png")
         e = discord.Embed(
-            title="About me",
+            description=desc,
             timestamp=ctx.message.created_at,
             colour=discord.Colour(0xFFFFF0),
         )
-        e.add_field(name="Version", value="3.0.O `overhaul`")
-        await ctx.send(embed=e)
+        e.set_author(name=ctx.bot.user.name, icon_url=ctx.bot.user.avatar_url)
+        e.set_image(url="attachment://banner.png")
+        e.add_field(name="Links", value="[Source Code](https://github.com/ZiRO-Bot/ziBot)")
+        e.add_field(name="Version", value="3.0.O (`overhaul`)")
+        await ctx.send(file=f, embed=e)
 
     @commands.command()
     async def test(self, ctx):
@@ -35,15 +41,21 @@ class Info(commands.Cog):
             timestamp=ctx.message.created_at,
             colour=discord.Colour(0xFFFFF0),
         )
-        e.add_field(name="<a:loading:776255339716673566> | Websocket", value=f"{round(self.bot.latency*1000)}ms")
-        e.set_footer(
-            text="Requested by {}".format(str(ctx.author))
+        e.add_field(
+            name="<a:loading:776255339716673566> | Websocket",
+            value=f"{round(self.bot.latency*1000)}ms",
         )
+        e.set_footer(text="Requested by {}".format(str(ctx.author)))
         msg = await ctx.send(embed=e)
         end = time.perf_counter()
         msg_ping = (end - start) * 1000
-        e.add_field(name="<a:typing:785053882664878100> | Typing", value=f"{round(msg_ping)}ms", inline=False)
+        e.add_field(
+            name="<a:typing:785053882664878100> | Typing",
+            value=f"{round(msg_ping)}ms",
+            inline=False,
+        )
         await msg.edit(embed=e)
+
 
 def setup(bot):
     bot.add_cog(Info(bot))
