@@ -133,11 +133,12 @@ class Brain(commands.Bot):
                 # So it can properly checked
                 if unixStyle:
                     priorityPrefix = 2
-                # Get arguments
-                tmp = msgContent[priorityPrefix:].split(" ")
-                args = (tmp.pop(0), " ".join(tmp))
                 # Properly get command when priority is 1
                 command = self.get_command(msgContent[priorityPrefix:])
+
+        # Get arguments for custom commands
+        tmp = msgContent[priorityPrefix:].split(" ")
+        args = (tmp.pop(0), " ".join(tmp))
 
         # Check if user can run the command
         canRun = False
