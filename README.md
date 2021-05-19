@@ -1,6 +1,6 @@
 <p align="center">
     <!-- Change the img source to Z3R0 logo/mascot when its done --->
-    <a href="https://github.com/ZiRO-Bot/ziBot"><img src="/assets/img/banner.png" alt="Z3R0" width="1280"/></a>
+    <a href="https://github.com/ZiRO-Bot/ziBot"><img src="/assets/img/banner.png" alt="Z3R0" width="720"/></a>
 </p>
 
 <h1 align="center"><code>Z3R0 (formerly ziBot)</code></h1>
