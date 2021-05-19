@@ -6,6 +6,7 @@ import logging
 import re
 
 
+from .context import Context
 from .errors import CCommandNotFound
 from databases import Database
 from discord.ext import commands, tasks
@@ -110,7 +111,7 @@ class Brain(commands.Bot):
         self.logger.warning(f"Online: {self.user} (ID: {self.user.id})")
 
     async def process_commands(self, message):
-        ctx = await self.get_context(message)
+        ctx = await self.get_context(message, cls=Context)
 
         if not ctx.prefix:
             return
