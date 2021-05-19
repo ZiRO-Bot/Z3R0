@@ -1,13 +1,12 @@
 # Just bunch of SQL query
 createCommandsTable = """
     CREATE TABLE IF NOT EXISTS commands (
-        id INTEGER NOT NULL PRIMARY KEY UNIQUE,
+        id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
         name TEXT,
         content TEXT,
         uses INTEGER DEFAULT 0,
         ownerId INTEGER,
-        createdAt REAL,
-        FOREIGN KEY ("id") REFERENCES guilds ("id") ON DELETE CASCADE
+        createdAt REAL
     );
 """
 
@@ -16,7 +15,8 @@ createCommandsLookupTable = """
         cmdId INTEGER NOT NULL,
         name TEXT,
         guildId INTEGER,
-        FOREIGN KEY ("cmdId") REFERENCES commands ("id") ON DELETE CASCADE
+        FOREIGN KEY ("cmdId") REFERENCES commands ("id"),
+        FOREIGN KEY ("guildId") REFERENCES guilds ("id") ON DELETE CASCADE
     );
 """
 
