@@ -5,6 +5,8 @@ import os
 import logging
 import re
 
+
+from .errors import CCommandNotFound
 from databases import Database
 from discord.ext import commands, tasks
 
@@ -146,15 +148,16 @@ class Brain(commands.Bot):
         if canRun:
             if priority == 1:
                 try:
-                    return await ctx.invoke(self.get_command("command run"), name=msgContent[priorityPrefix:])
-                except RuntimeError:
+                    # Apparently commands are callable, so ctx.invoke longer needed
+                    return await self.get_command("command run")(ctx, msgContent[priorityPrefix:])
+                except CCommandNotFound:
                     # Failed to run custom command, revert to built-in command
                     ctx.command = command
             # Since priority is 0 and it can run the built-in command,
             # no need to try getting custom command
             return await self.invoke(ctx)
         # Priority is 0 but can't run built-in command
-        return await ctx.invoke(self.get_command("command run"), name=msgContent[priorityPrefix:])
+        return await self.get_command("command run")(ctx, msgContent[priorityPrefix:])
 
     async def on_message(self, message):
         # dont accept commands from bot

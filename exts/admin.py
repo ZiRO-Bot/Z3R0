@@ -2,6 +2,7 @@ import discord
 import exts.utils.dbQuery as dbQuery
 
 
+from core.errors import CCommandNotFound
 from discord.ext import commands
 
 
@@ -35,7 +36,7 @@ class Admin(commands.Cog):
         hardcoded = {"hello": "Hello World!"}
         result = hardcoded.get(name, None)
         if not result:
-            raise RuntimeError("Invalid command")
+            raise CCommandNotFound(name)
         return await ctx.send(result)
 
     @command.command(aliases=["+", "create"])
