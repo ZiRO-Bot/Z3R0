@@ -149,7 +149,7 @@ class Brain(commands.Bot):
             if priority == 1:
                 try:
                     # Apparently commands are callable, so ctx.invoke longer needed
-                    return await self.get_command("command run")(ctx, msgContent[priorityPrefix:])
+                    return await self.get_command("command run")(ctx, *msgContent[priorityPrefix:].split(" "))
                 except CCommandNotFound:
                     # Failed to run custom command, revert to built-in command
                     ctx.command = command
@@ -157,7 +157,7 @@ class Brain(commands.Bot):
             # no need to try getting custom command
             return await self.invoke(ctx)
         # Priority is 0 but can't run built-in command
-        return await self.get_command("command run")(ctx, msgContent[priorityPrefix:])
+        return await self.get_command("command run")(ctx, *msgContent[priorityPrefix:].split(" "))
 
     async def on_message(self, message):
         # dont accept commands from bot
