@@ -19,7 +19,7 @@ class Info(commands.Cog):
             "A **free and open source** multi-purpose **discord bot** created by"
             + " ZiRO2264, formerly called `ziBot`."
         )
-        version = "3.0.O (`overhaul`)"
+        version = "`v3.0.O` - `overhaul`"
         gh_link = "https://github.com/ZiRO-Bot/ziBot"
         serv_invite = "https://discord.gg/sP9xRy6"
         # ---
@@ -48,18 +48,17 @@ class Info(commands.Cog):
         e.add_field(name="Version", value=version)
         e.add_field(
             name="Links",
-            value="- [Source Code]({})\n- [Support Server]({})".format(
-                gh_link,
-                serv_invite
+            value="- [Source Code]({})\n- [Support Server]({})\n- Documentation (Coming Soon™️)".format(
+                gh_link, serv_invite
             ),
-            inline=False
+            inline=False,
         )
         await ctx.send(file=f, embed=e)
 
-    @commands.command()
-    async def test(self, ctx):
-        """Nothing, just a test."""
-        return await ctx.send(info("Test\nTest", title="Warning") + " Hello World!")
+    # @commands.command()
+    # async def test(self, ctx):
+    #     """Nothing, just a test."""
+    #     return await ctx.send(info("Test\nTest", title="Warning") + " Hello World!")
 
     @commands.command(aliases=["p"])
     async def ping(self, ctx):
@@ -84,6 +83,40 @@ class Info(commands.Cog):
             inline=False,
         )
         await msg.edit(embed=e)
+
+    @commands.command(aliases=["av", "userpfp", "pfp"])
+    async def avatar(self, ctx, user: discord.User = None):
+        """Show member's avatar image."""
+        if not user:
+            if ref := ctx.message.reference:
+                # Get referenced message author
+                # if user reply to a message while doing this command
+                user = (
+                    ref.cached_message.author
+                    if ref.cached_message
+                    else (await ctx.fetch_message(ref.message_id)).author
+                )
+            else:
+                user = ctx.author
+        e = discord.Embed(
+            title="{}'s Avatar".format(user.name),
+            colour=self.bot.colour,
+            description="[`JPEG`]({})".format(user.avatar_url_as(format="jpg"))
+            + " | [`PNG`]({})".format(user.avatar_url_as(format="png"))
+            + " | [`WEBP`]({})".format(user.avatar_url_as(format="webp"))
+            + (
+                " | [`GIF`]({})".format(user.avatar_url_as(format="gif"))
+                if user.is_avatar_animated()
+                else ""
+            ),
+            timestamp=ctx.message.created_at,
+        )
+        e.set_image(url=user.avatar_url_as(size=1024))
+        e.set_footer(
+            text="Requested by {}".format(str(ctx.author)),
+            icon_url=ctx.author.avatar_url,
+        )
+        await ctx.reply(embed=e, mention_author=False)
 
 
 def setup(bot):
