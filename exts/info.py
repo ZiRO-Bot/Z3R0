@@ -15,10 +15,13 @@ class Info(commands.Cog):
         """Information about me."""
         # --- Edit these stuff to your liking
         author = "ZiRO2264#4572"
-        desc = "A **free and open source** multi-purpose **discord bot** created by" \
-             + " ZiRO2264, formerly called `ziBot`."
+        desc = (
+            "A **free and open source** multi-purpose **discord bot** created by"
+            + " ZiRO2264, formerly called `ziBot`."
+        )
         version = "3.0.O (`overhaul`)"
         gh_link = "https://github.com/ZiRO-Bot/ziBot"
+        serv_invite = "https://discord.gg/sP9xRy6"
         # ---
 
         # Z3R0 Banner
@@ -30,10 +33,27 @@ class Info(commands.Cog):
             colour=self.bot.colour,
         )
         e.set_author(name=ctx.bot.user.name, icon_url=ctx.bot.user.avatar_url)
+        e.set_footer(
+            text="Requested by {}".format(str(ctx.author)),
+            icon_url=ctx.author.avatar_url,
+        )
         e.set_image(url="attachment://banner.png")
         e.add_field(name="Author", value=author)
-        e.add_field(name="Links", value="[Source Code]({})".format(gh_link))
+        e.add_field(
+            name="Library",
+            value="[`zidiscord.py`](https://github.com/null2264/discord.py) - `v{}`".format(
+                discord.__version__
+            ),
+        )
         e.add_field(name="Version", value=version)
+        e.add_field(
+            name="Links",
+            value="- [Source Code]({})\n- [Support Server]({})".format(
+                gh_link,
+                serv_invite
+            ),
+            inline=False
+        )
         await ctx.send(file=f, embed=e)
 
     @commands.command()
