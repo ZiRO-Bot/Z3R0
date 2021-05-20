@@ -20,8 +20,11 @@ class Info(commands.Cog):
             + " ZiRO2264, formerly called `ziBot`."
         )
         version = "`v3.0.O` - `overhaul`"
-        gh_link = "https://github.com/ZiRO-Bot/ziBot"
-        serv_invite = "https://discord.gg/sP9xRy6"
+        links = {
+            "Documentation (Coming Soon)": "",
+            "Source Code": "https://github.com/ZiRO-Bot/ziBot",
+            "Support Server": "https://discord.gg/sP9xRy6",
+        }
         # ---
 
         # Z3R0 Banner
@@ -48,9 +51,7 @@ class Info(commands.Cog):
         e.add_field(name="Version", value=version)
         e.add_field(
             name="Links",
-            value="- [Source Code]({})\n- [Support Server]({})\n- Documentation (Coming Soon™️)".format(
-                gh_link, serv_invite
-            ),
+            value="\n".join(["- [{}]({})".format(k, v) for k, v in links.items()]),
             inline=False,
         )
         await ctx.send(file=f, embed=e)
@@ -87,6 +88,7 @@ class Info(commands.Cog):
     @commands.command(aliases=["av", "userpfp", "pfp"])
     async def avatar(self, ctx, user: discord.User = None):
         """Show member's avatar image."""
+        # TODO: Make a converter to do this thing
         if not user:
             if ref := ctx.message.reference:
                 # Get referenced message author
@@ -98,6 +100,8 @@ class Info(commands.Cog):
                 )
             else:
                 user = ctx.author
+
+        # Embed stuff
         e = discord.Embed(
             title="{}'s Avatar".format(user.name),
             colour=self.bot.colour,
