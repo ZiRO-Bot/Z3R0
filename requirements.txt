@@ -1,7 +1,7 @@
-# --- pypi
+# === pypi
 aiohttp == 3.6.2
 
-# --- databases, choose one! (or multiple if you want)
+# -- databases, choose one! (or multiple if you want)
 databases[sqlite] == 0.4.3
 #databases[postgresql] == 0.4.3
 #databases[mysql] == 0.4.3
@@ -17,5 +17,5 @@ TagScriptEngine == 2.3.0
 uvloop == 0.14.0
 zidiscord.py == 1.7.2
 
-# --- git
+# === git
 git+https://github.com/ShineyDev/prettify.py
