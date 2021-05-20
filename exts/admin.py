@@ -25,7 +25,7 @@ class Admin(commands.Cog):
     #     1: Partial (Can only add/edit/remove their own command),
     #     2: Full (Can do anything to any existing command in the guild)
     # )
-    @commands.group()
+    @commands.group(aliases=["tag", "script"])
     async def command(self, ctx):
         """Manage commands"""
         pass
