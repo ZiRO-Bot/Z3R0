@@ -15,10 +15,6 @@ class Info(commands.Cog):
         """Information about me."""
         # --- Edit these stuff to your liking
         author = "ZiRO2264#4572"
-        desc = (
-            "A **free and open source** multi-purpose **discord bot** created by"
-            + " ZiRO2264, formerly called `ziBot`."
-        )
         version = "`v3.0.O` - `overhaul`"
         links = {
             "Documentation (Coming Soon)": "",
@@ -31,7 +27,7 @@ class Info(commands.Cog):
         f = discord.File("./assets/img/banner.png", filename="banner.png")
 
         e = discord.Embed(
-            description=desc,
+            description=self.bot.description,
             timestamp=ctx.message.created_at,
             colour=self.bot.colour,
         )

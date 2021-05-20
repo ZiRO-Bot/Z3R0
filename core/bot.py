@@ -16,6 +16,11 @@ from discord.ext import commands, tasks
 import config
 
 
+desc = (
+    "A **free and open source** multi-purpose **discord bot** created by"
+    + " ZiRO2264, formerly called `ziBot`."
+)
+
 extensionFolder = "exts"
 extensions = []
 ignoredExtensions = "youtube.py"
@@ -46,8 +51,10 @@ class Brain(commands.Bot):
     def __init__(self):
         super().__init__(
             command_prefix=_callable_prefix,
+            description=desc,
             case_insensitive=True,
             intents=discord.Intents.all(),
+            heartbeat_timeout=150.0,
         )
         # make cogs case insensitive
         self._BotBase__cogs = commands.core._CaseInsensitiveDict()
