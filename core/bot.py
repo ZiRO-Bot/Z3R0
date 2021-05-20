@@ -1,5 +1,6 @@
 import aiohttp
 import copy
+import datetime
 import discord
 import os
 import logging
@@ -127,7 +128,10 @@ class Brain(commands.Bot):
         for extension in extensions:
             self.load_extension(extension)
 
-        self.logger.warning(f"Online: {self.user} (ID: {self.user.id})")
+        if not hasattr(self, 'uptime'):
+            self.uptime = datetime.datetime.utcnow()
+
+        self.logger.warning("Ready: {0} (ID: {0.id})".format(self.user))
 
     async def process_commands(self, message):
         ctx = await self.get_context(message, cls=Context)
