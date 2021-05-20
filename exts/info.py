@@ -55,10 +55,10 @@ class Info(commands.Cog):
         )
         await ctx.send(file=f, embed=e)
 
-    # @commands.command()
-    # async def test(self, ctx):
-    #     """Nothing, just a test."""
-    #     return await ctx.send(info("Test\nTest", title="Warning") + " Hello World!")
+    @commands.command()
+    async def test(self, ctx, message):
+        """Nothing, just a test."""
+        return await ctx.send(info("Test\nTest", title="Warning") + " Hello World!")
 
     @commands.command(aliases=["p"])
     async def ping(self, ctx):

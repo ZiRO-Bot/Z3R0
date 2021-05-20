@@ -56,6 +56,9 @@ class Brain(commands.Bot):
         self.colour = discord.Colour(0x3db4ff)
         self.color = self.colour
 
+        # Bot master(s)
+        self.master = (186713080841895936,)
+
         self.logger = logging.getLogger("discord")
 
         self.activityIndex = 0
