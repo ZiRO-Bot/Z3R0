@@ -41,6 +41,7 @@ sql="sqlite:///database.db"
 - [**New**] Command priority [0: Built-in, 1: Custom]
 - [**New**] Use databases to handle SQL (Edit `exts/utils/dbQuery.py` if you're planning to use other SQL instead of  `sqlite`!)
 - [**Rename**] `ziBot` -> `Z3R0`
+- [**New**] Mascot, named `Z3R0`
 
 ### Overhaul Plan
 
@@ -54,7 +55,7 @@ sql="sqlite:///database.db"
 - Public/Private commands, allowing other user to use each other's command in a different server.
 - Relicense (Migrate from GPLv3)
 - Better way of handling temp ban/mute
-- Logo/Mascot
+- Migration tool, migrate from old database "layout" to newer "layout"
 
 ## License
 
