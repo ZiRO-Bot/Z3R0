@@ -1,5 +1,6 @@
 from discord.ext import commands
 
+
 class Context(commands.Context):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -14,7 +15,9 @@ class Context(commands.Context):
 
         if len(content) > 2000:
             fp = io.BytesIO(content.encode())
-            kwargs.pop('file', None)
-            return await self.send(file=discord.File(fp, filename='message_too_long.txt'), **kwargs)
+            kwargs.pop("file", None)
+            return await self.send(
+                file=discord.File(fp, filename="message_too_long.txt"), **kwargs
+            )
         else:
             return await self.send(content)

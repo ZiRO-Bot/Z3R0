@@ -48,7 +48,11 @@ class ErrorHandler(commands.Cog):
             await asyncio.sleep(round(error.retry_after))
             return await bot_msg.delete()
 
-        _traceback = ''.join(prettify_exceptions.DefaultFormatter().format_exception(type(error), error, error.__traceback__))
+        _traceback = "".join(
+            prettify_exceptions.DefaultFormatter().format_exception(
+                type(error), error, error.__traceback__
+            )
+        )
         self.bot.logger.error(f"Something went wrong! error: {error}\n{_traceback}")
 
         # Give details about the error
@@ -106,6 +110,7 @@ class ErrorHandler(commands.Cog):
             await msg.clear_reactions()
 
         return
+
 
 def setup(bot):
     bot.add_cog(ErrorHandler(bot))

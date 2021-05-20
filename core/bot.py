@@ -18,11 +18,11 @@ import config
 
 extensionFolder = "exts"
 extensions = []
-ignoredExtensions = ("youtube.py")
-for filename in os.listdir('./{}'.format(extensionFolder)):
+ignoredExtensions = "youtube.py"
+for filename in os.listdir("./{}".format(extensionFolder)):
     if filename in ignoredExtensions:
         continue
-    if filename.endswith('.py'):
+    if filename.endswith(".py"):
         extensions.append("{}.{}".format(extensionFolder, filename[:-3]))
 
 
@@ -53,7 +53,7 @@ class Brain(commands.Bot):
         self._BotBase__cogs = commands.core._CaseInsensitiveDict()
 
         # Default colour for embed
-        self.colour = discord.Colour(0x3db4ff)
+        self.colour = discord.Colour(0x3DB4FF)
         self.color = self.colour
 
         # Bot master(s)
@@ -62,7 +62,7 @@ class Brain(commands.Bot):
         self.logger = logging.getLogger("discord")
 
         self.activityIndex = 0
-        
+
         # bot's default prefix
         self.defPrefix = [">"]
 
@@ -72,11 +72,9 @@ class Brain(commands.Bot):
         # async init
         self.loop.create_task(self.asyncInit())
         self.session = aiohttp.ClientSession(
-            headers = {
-                "User-Agent": "Discord/Z3RO (ziBot/3.0 by ZiRO2264)"
-            }
+            headers={"User-Agent": "Discord/Z3RO (ziBot/3.0 by ZiRO2264)"}
         )
-    
+
     async def asyncInit(self):
         """`__init__` but async"""
         # self.db = await aiosqlite.connect("data/database.db")
@@ -88,17 +86,17 @@ class Brain(commands.Bot):
     async def changing_presence(self):
         activities = [
             discord.Activity(
-                name=f"over {len(self.guilds)} servers", type=discord.ActivityType.watching
+                name=f"over {len(self.guilds)} servers",
+                type=discord.ActivityType.watching,
             ),
             discord.Activity(
                 name=f"over {len(self.users)} users", type=discord.ActivityType.watching
             ),
             discord.Activity(
-                name=f"commands | Ping me to get prefix list!", type=discord.ActivityType.listening
+                name=f"commands | Ping me to get prefix list!",
+                type=discord.ActivityType.listening,
             ),
-            discord.Activity(
-                name=f"bot war", type=discord.ActivityType.competing
-            ),
+            discord.Activity(name=f"bot war", type=discord.ActivityType.competing),
         ]
         await self.change_presence(activity=activities[self.activityIndex])
 
@@ -115,8 +113,7 @@ class Brain(commands.Bot):
 
         async with self.db.transaction():
             await self.db.execute_many(
-                dbQuery.insertToGuilds,
-                values=[{"id": i.id} for i in self.guilds]
+                dbQuery.insertToGuilds, values=[{"id": i.id} for i in self.guilds]
             )
 
         # load all listed extensions
@@ -136,12 +133,12 @@ class Brain(commands.Bot):
         priorityPrefix = 0
         unixStyle = False
         command = ctx.command
-        
+
         # Handling custom command priority
         msg = copy.copy(message)
         if ctx.prefix:
             # Get msg content without prefix
-            msgContent: str = msg.content[len(ctx.prefix):]
+            msgContent: str = msg.content[len(ctx.prefix) :]
             if msgContent.startswith(">") or (unixStyle := msgContent.startswith("./")):
                 # `./` for unix-style of launching custom scripts
                 priority = priorityPrefix = 1
@@ -192,7 +189,9 @@ class Brain(commands.Bot):
             prefixes.pop(0)
             prefixes = ", ".join([f"`{x}`" for x in prefixes])
             embed = discord.Embed(
-                description="My prefixes are: {} or {}".format(prefixes, self.user.mention),
+                description="My prefixes are: {} or {}".format(
+                    prefixes, self.user.mention
+                ),
                 colour=discord.Colour.rounded(),
             )
             await message.reply(embed=embed)

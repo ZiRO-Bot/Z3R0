@@ -5,9 +5,19 @@ import json
 
 class Post:
 
-    __slots__ = ("isStickied", "title", "content", "author", "is18",
-                "isVideo", "url", "upvotes", "downvotes", "score",
-                "commentCount")
+    __slots__ = (
+        "isStickied",
+        "title",
+        "content",
+        "author",
+        "is18",
+        "isVideo",
+        "url",
+        "upvotes",
+        "downvotes",
+        "score",
+        "commentCount",
+    )
 
     def __init__(self, data):
         self.isStickied = data["data"]["stickied"]
@@ -36,13 +46,15 @@ class Subreddit:
 
 
 class Reddit:
-    def __init__(self, session = aiohttp.ClientSession(), defaultLimit: int = 100):
+    def __init__(self, session=aiohttp.ClientSession(), defaultLimit: int = 100):
         """
         Wrapper for Reddit read-only API
 
         API Key not required, used to replace praw
         """
-        self.baseUrl = "https://www.reddit.com/r/{subreddit}/{listingType}.json?limit={limit}"
+        self.baseUrl = (
+            "https://www.reddit.com/r/{subreddit}/{listingType}.json?limit={limit}"
+        )
         self.defaultLimit = defaultLimit
         self.session = session
 
@@ -52,7 +64,9 @@ class Reddit:
         """
         if not limit:
             limit = self.defaultLimit
-        async with self.session.get(self.baseUrl.format(subreddit=subreddit, listingType=_type, limit=limit)) as res:
+        async with self.session.get(
+            self.baseUrl.format(subreddit=subreddit, listingType=_type, limit=limit)
+        ) as res:
             _json = json.loads(await res.text())
             return Subreddit(_json)
 
@@ -67,6 +81,7 @@ class Reddit:
         Get hot posts from Reddit
         """
         return await self.get(subreddit, "top")
+
 
 if __name__ == "__main__":
     loop = asyncio.get_event_loop()
