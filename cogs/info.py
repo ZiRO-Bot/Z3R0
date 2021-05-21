@@ -140,7 +140,7 @@ class Info(commands.Cog):
         """Show user's xbox information."""
         xbox = "https://xbl-api.prouser123.me/profile/gamertag"
         async with self.bot.session.get(f"{xbox}/{gamertag}") as url:
-            xboxdata = json.loads(await url.text())["profileUsers"][0]["settings"]
+            xboxdata = (await url.json())["profileUsers"][0]["settings"]
         if not xboxdata:
             return
 
