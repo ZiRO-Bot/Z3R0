@@ -21,13 +21,15 @@ class Info(commands.Cog):
             "Source Code": "https://github.com/ZiRO-Bot/ziBot",
             "Support Server": "https://discord.gg/sP9xRy6",
         }
+        license = "Public Domain"
         # ---
 
         # Z3R0 Banner
         f = discord.File("./assets/img/banner.png", filename="banner.png")
 
         e = discord.Embed(
-            description=self.bot.description,
+            description=self.bot.description
+            + "\n\nThis bot is licensed under **{}**.".format(license),
             timestamp=ctx.message.created_at,
             colour=self.bot.colour,
         )
