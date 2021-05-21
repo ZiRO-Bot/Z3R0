@@ -3,10 +3,12 @@ createCommandsTable = """
     CREATE TABLE IF NOT EXISTS commands (
         id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
         name TEXT,
+        description TEXT,
         content TEXT,
         uses INTEGER DEFAULT 0,
         ownerId INTEGER,
-        createdAt REAL
+        createdAt REAL,
+        visibility INTEGER DEFAULT 0
     );
 """
 
