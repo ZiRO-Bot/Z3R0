@@ -56,6 +56,7 @@ sql="sqlite:///database.db"
 - Relicense (Migrate from GPLv3)
 - Better way of handling temp ban/mute
 - Migration tool, migrate from old database "layout" to newer "layout"
+- i18n (If possible)
 
 ## License
 
