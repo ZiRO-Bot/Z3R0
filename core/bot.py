@@ -66,6 +66,7 @@ class Brain(commands.Bot):
 
         # Bot master(s)
         self.master = (186713080841895936,)
+        self.issueChannel = 779936802596192277
 
         self.logger = logging.getLogger("discord")
 

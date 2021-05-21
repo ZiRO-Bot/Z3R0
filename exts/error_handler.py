@@ -48,23 +48,30 @@ class ErrorHandler(commands.Cog):
             await asyncio.sleep(round(error.retry_after))
             return await bot_msg.delete()
 
+        # Give details about the error
         _traceback = "".join(
             prettify_exceptions.DefaultFormatter().format_exception(
                 type(error), error, error.__traceback__
             )
         )
         self.bot.logger.error(f"Something went wrong! error: {error}\n{_traceback}")
-
-        # Give details about the error
+        # --- Without prettify
         # print(
         #     "Ignoring exception in command {}:".format(ctx.command), file=sys.stderr
         # )
         # print(_traceback, file=sys.stderr)
+        # ---
 
-        # Send embed that when user react withh greenTick bot will send it to bot owner
+        # Send embed that when user react with greenTick bot will send it to bot owner or issue channel
+        dest = (
+            self.bot.get_channel(self.bot.issueChannel)
+            or self.bot.get_user(self.bot.master[0])
+        )
+        destName = dest if isinstance(dest, discord.User) else dest.guild
+        # Embed things
         desc = (
-            f"The command was unsuccessful because of this reason:\n```{error}```\n"
-            + "React with <:greenTick:767209095090274325> to report the error to ZiRO2264#4572"
+            "The command was unsuccessful because of this reason:\n```{}```\n".format(error)
+            + "React with <:greenTick:767209095090274325> to report the error to {}".format(destName)
         )
         e = discord.Embed(
             title="Something went wrong!",
@@ -76,6 +83,7 @@ class ErrorHandler(commands.Cog):
         await msg.add_reaction("<:greenTick:767209095090274325>")
 
         def check(reaction, user):
+            # Check if user want to report the error message
             return (
                 user == ctx.author
                 and str(reaction.emoji) == "<:greenTick:767209095090274325>"
@@ -99,11 +107,9 @@ class ErrorHandler(commands.Cog):
             )
             e_owner.add_field(name="Executor", value=ctx.author)
             e_owner.add_field(name="Message", value=ctx.message.content)
-            e_owner.add_field(name="Guild", value=ctx.guild)
-            bot_owner = self.bot.get_user(self.bot.master[0])
-            await bot_owner.send(embed=e_owner)
+            await dest.send(embed=e_owner)
             e.set_footer(
-                text=f"Error has been reported to {bot_owner}",
+                text="Error has been reported to {}".format(destName),
                 icon_url=ctx.author.avatar_url,
             )
             await msg.edit(embed=e)
