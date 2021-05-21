@@ -93,7 +93,7 @@ class Brain(commands.Bot):
 
     @tasks.loop(seconds=15)
     async def changing_presence(self):
-        activities = [
+        activities = (
             discord.Activity(
                 name=f"over {len(self.guilds)} servers",
                 type=discord.ActivityType.watching,
@@ -106,7 +106,7 @@ class Brain(commands.Bot):
                 type=discord.ActivityType.listening,
             ),
             discord.Activity(name=f"bot war", type=discord.ActivityType.competing),
-        ]
+        )
         await self.change_presence(activity=activities[self.activityIndex])
 
         self.activityIndex += 1
