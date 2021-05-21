@@ -47,7 +47,12 @@ class Info(commands.Cog):
         e.add_field(name="Version", value=version)
         e.add_field(
             name="Links",
-            value="\n".join(["- [{}]({})".format(k, v) for k, v in links.items()]),
+            value="\n".join(
+                [
+                    "- [{}]({})".format(k, v) if v else "- {}".format(k)
+                    for k, v in links.items()
+                ]
+            ),
             inline=False,
         )
         await ctx.send(file=f, embed=e)
