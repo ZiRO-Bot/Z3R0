@@ -138,9 +138,6 @@ class Info(commands.Cog):
     @commands.command(aliases=["xi", "xboxuser", "xu"], usage="(gamertag)")
     async def xboxinfo(self, ctx, gamertag):
         """Show user's xbox information."""
-
-        return await ctx.reply("`Sorry, This command is temporarily disabled due to technical difficulty.`")
-
         xbox = "https://xbl-api.prouser123.me/profile/gamertag"
         async with session.get(f"{xbox}/{gamertag}") as url:
             xboxdata = json.loads(await url.text())["profileUsers"][0]["settings"]
