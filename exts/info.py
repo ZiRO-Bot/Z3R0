@@ -83,21 +83,22 @@ class Info(commands.Cog):
         )
         await msg.edit(embed=e)
 
+    async def authorOrReferenced(self, ctx):
+        if ref := ctx.message.reference:
+            # Get referenced message author
+            # if user reply to a message while doing this command
+            return (
+                ref.cached_message.author
+                if ref.cached_message
+                else (await ctx.fetch_message(ref.message_id)).author
+            )
+        return ctx.author
+
     @commands.command(aliases=["av", "userpfp", "pfp"])
     async def avatar(self, ctx, user: discord.User = None):
         """Show member's avatar image."""
-        # TODO: Make a converter to do this thing
         if not user:
-            if ref := ctx.message.reference:
-                # Get referenced message author
-                # if user reply to a message while doing this command
-                user = (
-                    ref.cached_message.author
-                    if ref.cached_message
-                    else (await ctx.fetch_message(ref.message_id)).author
-                )
-            else:
-                user = ctx.author
+            user = await self.authorOrReferenced(ctx)
 
         # Embed stuff
         e = discord.Embed(
