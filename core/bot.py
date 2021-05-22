@@ -70,9 +70,9 @@ class Brain(commands.Bot):
         # Bot master(s)
         # self.master = (186713080841895936,)
         self.master = (
-            None
+            tuple()
             if not hasattr(config, "botMasters")
-            else set([int(master) for master in config.botMasters])
+            else tuple([int(master) for master in config.botMasters])
         )
         if not self.master:
             self.logger.warning(

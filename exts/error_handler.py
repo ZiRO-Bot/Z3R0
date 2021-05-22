@@ -62,65 +62,74 @@ class ErrorHandler(commands.Cog):
         # print(_traceback, file=sys.stderr)
         # ---
 
-        # Send embed that when user react with greenTick bot will send it to bot owner or issue channel
-        dest = self.bot.get_channel(self.bot.issueChannel) or self.bot.get_user(
-            self.bot.owner_id
-        )
-        destName = dest if isinstance(dest, discord.User) else "the support server"
-
-        # Embed things
         desc = "The command was unsuccessful because of this reason:\n```{}```\n".format(
             error
-        ) + (
-            "React with <:greenTick:767209095090274325> to report the error to {}".format(
-                destName
-            )
-            if destName
-            else ""
         )
-        e = discord.Embed(
-            title="Something went wrong!",
-            description=desc,
-            colour=discord.Colour(0x2F3136),
-        )
-        e.set_footer(text="Waiting for answer...", icon_url=ctx.author.avatar_url)
-        msg = await ctx.send(embed=e)
-
-        # Report stuff
-        await msg.add_reaction("<:greenTick:767209095090274325>")
-
-        def check(reaction, user):
-            # Check if user want to report the error message
-            return (
-                user == ctx.author
-                and str(reaction.emoji) == "<:greenTick:767209095090274325>"
-            )
-
         try:
-            reaction, user = await self.bot.wait_for(
-                "reaction_add", timeout=60.0, check=check
+            # Send embed that when user react with greenTick bot will send it to bot owner or issue channel
+            dest = self.bot.get_channel(self.bot.issueChannel) or self.bot.get_user(
+                self.bot.owner_id
+            ) or (self.bot.get_user(self.bot.master[0]))
+            destName = dest if isinstance(dest, discord.User) else "the support server"
+
+            # Embed things
+            desc += (
+                "React with <:greenTick:767209095090274325> to report the error to {}".format(
+                    destName
+                )
+                if destName
+                else ""
             )
-        except asyncio.TimeoutError:
-            e.set_footer(
-                text="You were too late to answer.", icon_url=ctx.author.avatar_url
-            )
-            await msg.edit(embed=e)
-            await msg.clear_reactions()
-        else:
-            e_owner = discord.Embed(
+            e = discord.Embed(
                 title="Something went wrong!",
-                description=f"An error occured:\n```{error}```",
+                description=desc,
                 colour=discord.Colour(0x2F3136),
             )
-            e_owner.add_field(name="Executor", value=ctx.author)
-            e_owner.add_field(name="Message", value=ctx.message.content)
-            await dest.send(embed=e_owner)
-            e.set_footer(
-                text="Error has been reported to {}".format(destName),
-                icon_url=ctx.author.avatar_url,
+            e.set_footer(text="Waiting for answer...", icon_url=ctx.author.avatar_url)
+            msg = await ctx.send(embed=e)
+
+            # Report stuff
+            await msg.add_reaction("<:greenTick:767209095090274325>")
+
+            def check(reaction, user):
+                # Check if user want to report the error message
+                return (
+                    user == ctx.author
+                    and str(reaction.emoji) == "<:greenTick:767209095090274325>"
+                )
+
+            try:
+                reaction, user = await self.bot.wait_for(
+                    "reaction_add", timeout=60.0, check=check
+                )
+            except asyncio.TimeoutError:
+                e.set_footer(
+                    text="You were too late to answer.", icon_url=ctx.author.avatar_url
+                )
+                await msg.edit(embed=e)
+                await msg.clear_reactions()
+            else:
+                e_owner = discord.Embed(
+                    title="Something went wrong!",
+                    description=f"An error occured:\n```{error}```",
+                    colour=discord.Colour(0x2F3136),
+                )
+                e_owner.add_field(name="Executor", value=ctx.author)
+                e_owner.add_field(name="Message", value=ctx.message.content)
+                await dest.send(embed=e_owner)
+                e.set_footer(
+                    text="Error has been reported to {}".format(destName),
+                    icon_url=ctx.author.avatar_url,
+                )
+                await msg.edit(embed=e)
+                await msg.clear_reactions()
+        except IndexError:
+            e = discord.Embed(
+                title="Something went wrong!",
+                description=desc,
+                colour=discord.Colour(0x2F3136),
             )
-            await msg.edit(embed=e)
-            await msg.clear_reactions()
+            await ctx.send(embed=e)
 
         return
 
