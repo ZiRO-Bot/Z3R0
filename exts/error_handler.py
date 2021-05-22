@@ -62,14 +62,18 @@ class ErrorHandler(commands.Cog):
         # print(_traceback, file=sys.stderr)
         # ---
 
-        desc = "The command was unsuccessful because of this reason:\n```{}```\n".format(
-            error
+        desc = (
+            "The command was unsuccessful because of this reason:\n```{}```\n".format(
+                error
+            )
         )
         try:
             # Send embed that when user react with greenTick bot will send it to bot owner or issue channel
-            dest = self.bot.get_channel(self.bot.issueChannel) or self.bot.get_user(
-                self.bot.owner_id
-            ) or (self.bot.get_user(self.bot.master[0]))
+            dest = (
+                self.bot.get_channel(self.bot.issueChannel)
+                or self.bot.get_user(self.bot.owner_id)
+                or (self.bot.get_user(self.bot.master[0]))
+            )
             destName = dest if isinstance(dest, discord.User) else "the support server"
 
             # Embed things
