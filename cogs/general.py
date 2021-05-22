@@ -701,6 +701,7 @@ class General(commands.Cog):
     @commands.command()
     @isRafael()
     async def findwaifu(self, ctx):
+        """Rafael and his waifu."""
         f = discord.File("./assets/img/rafaelAndHisWaifu.png", filename="img.png")
         return await ctx.send(file=f)
 
