@@ -27,6 +27,8 @@ prefix=">"
 
 # Very important!
 token="YOUR BOT TOKEN GOES HERE"
+# Bot master(s), required to use master/dev only commands!
+botMasters=["0000000000000000","0000000000000001"]
 
 # Database URL (using https://github.com/encode/databases/ and SQLAlchemy Core)
 # NOTE: Query is created for sqlite, be sure to edit `exts/utils/dbQuery.py` for other SQL!

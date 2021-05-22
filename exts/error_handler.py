@@ -63,15 +63,20 @@ class ErrorHandler(commands.Cog):
         # ---
 
         # Send embed that when user react with greenTick bot will send it to bot owner or issue channel
-        dest = (
-            self.bot.get_channel(self.bot.issueChannel)
-            or self.bot.get_user(self.bot.owner_id)
+        dest = self.bot.get_channel(self.bot.issueChannel) or self.bot.get_user(
+            self.bot.owner_id
         )
         destName = dest if isinstance(dest, discord.User) else "the support server"
+
         # Embed things
-        desc = (
-            "The command was unsuccessful because of this reason:\n```{}```\n".format(error)
-            + "React with <:greenTick:767209095090274325> to report the error to {}".format(destName)
+        desc = "The command was unsuccessful because of this reason:\n```{}```\n".format(
+            error
+        ) + (
+            "React with <:greenTick:767209095090274325> to report the error to {}".format(
+                destName
+            )
+            if destName
+            else ""
         )
         e = discord.Embed(
             title="Something went wrong!",
@@ -80,6 +85,8 @@ class ErrorHandler(commands.Cog):
         )
         e.set_footer(text="Waiting for answer...", icon_url=ctx.author.avatar_url)
         msg = await ctx.send(embed=e)
+
+        # Report stuff
         await msg.add_reaction("<:greenTick:767209095090274325>")
 
         def check(reaction, user):

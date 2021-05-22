@@ -60,19 +60,27 @@ class Brain(commands.Bot):
         # make cogs case insensitive
         self._BotBase__cogs = commands.core._CaseInsensitiveDict()
 
+        # log
+        self.logger = logging.getLogger("discord")
+
         # Default colour for embed
         self.colour = discord.Colour(0x3DB4FF)
         self.color = self.colour
 
         # Bot master(s)
-        self.master = (186713080841895936,)
+        # self.master = (186713080841895936,)
+        self.master = (
+            None
+            if not hasattr(config, "botMasters")
+            else set([int(master) for master in config.botMasters])
+        )
+        if not self.master:
+            self.logger.warning("No master is set, you may not able to use certain commands!")
         self.issueChannel = (
             None 
             if not hasattr(config, "issueChannel")
             else int(config.issueChannel)
         )
-
-        self.logger = logging.getLogger("discord")
 
         self.activityIndex = 0
 

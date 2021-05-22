@@ -11,7 +11,7 @@ class Developer(commands.Cog):
 
     async def cog_check(self, ctx):
         """Only bot master able to use debug cogs."""
-        return await ctx.bot.is_owner(ctx.author)
+        return (self.bot.master and ctx.author.id in self.bot.master)
 
     @commands.group(invoke_without_command=True)
     async def test(self, ctx):
