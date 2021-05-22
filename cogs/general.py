@@ -692,6 +692,18 @@ class General(commands.Cog):
         e.set_author(name=member, icon_url=member.avatar_url)
         await ctx.send(embed=e)
 
+    def isRafael():
+        async def pred(ctx):
+            return ctx.author.id == 518154918276628490
+
+        return commands.check(pred)
+
+    @commands.command()
+    @isRafael()
+    async def findwaifu(self, ctx):
+        f = discord.File("./assets/img/rafaelAndHisWaifu.png", filename="img.png")
+        return await ctx.send(file=f)
+
 
 def setup(bot):
     bot.add_cog(General(bot))
