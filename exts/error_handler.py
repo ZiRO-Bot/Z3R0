@@ -65,7 +65,7 @@ class ErrorHandler(commands.Cog):
         # Send embed that when user react with greenTick bot will send it to bot owner or issue channel
         dest = (
             self.bot.get_channel(self.bot.issueChannel)
-            or self.bot.get_user(self.bot.master[0])
+            or self.bot.get_user(self.bot.owner_id)
         )
         destName = dest if isinstance(dest, discord.User) else "the support server"
         # Embed things

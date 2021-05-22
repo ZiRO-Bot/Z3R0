@@ -21,6 +21,11 @@
 `config.py` file example [**REQUIRED!**]
 
 ```py
+# To change default prefix, can be done in source code
+# but for easier access you can change it here
+prefix=">"
+
+# Very important!
 token="YOUR BOT TOKEN GOES HERE"
 
 # Database URL (using https://github.com/encode/databases/ and SQLAlchemy Core)
@@ -31,6 +36,9 @@ token="YOUR BOT TOKEN GOES HERE"
 # - postgresql://localhost/example?ssl=true
 # - mysql://localhost/example?min_size=5&max_size=20
 sql="sqlite:///database.db"
+
+# Not needed, but if you want error to be reported to a guild channel you can set it here
+issueChannel="0000000000000000"
 ```
 
 ## Overhaul

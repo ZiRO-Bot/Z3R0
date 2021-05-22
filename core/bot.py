@@ -66,14 +66,18 @@ class Brain(commands.Bot):
 
         # Bot master(s)
         self.master = (186713080841895936,)
-        self.issueChannel = 779936802596192277
+        self.issueChannel = (
+            None 
+            if not hasattr(config, "issueChannel")
+            else int(config.issueChannel)
+        )
 
         self.logger = logging.getLogger("discord")
 
         self.activityIndex = 0
 
         # bot's default prefix
-        self.defPrefix = ">"
+        self.defPrefix = ">" if not hasattr(config, "prefix") else config.prefix
 
         # database
         self.db = Database(config.sql)
@@ -129,7 +133,7 @@ class Brain(commands.Bot):
         for extension in extensions:
             self.load_extension(extension)
 
-        if not hasattr(self, 'uptime'):
+        if not hasattr(self, "uptime"):
             self.uptime = datetime.datetime.utcnow()
 
         self.logger.warning("Ready: {0} (ID: {0.id})".format(self.user))
