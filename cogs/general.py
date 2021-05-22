@@ -698,7 +698,7 @@ class General(commands.Cog):
 
         return commands.check(pred)
 
-    @commands.command()
+    @commands.command(name="find-waifu")
     @isRafael()
     async def findwaifu(self, ctx):
         """Rafael and his waifu."""
