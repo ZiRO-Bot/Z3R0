@@ -6,23 +6,41 @@ from .utils.infoQuote import *
 from discord.ext import commands
 
 
+# TODO: Move this somewhere in `exts/utils/` folder
+async def authorOrReferenced(ctx):
+    if ref := ctx.message.reference:
+        # Get referenced message author
+        # if user reply to a message while doing this command
+        return (
+            ref.cached_message.author
+            if ref.cached_message
+            else (await ctx.fetch_message(ref.message_id)).author
+        )
+    return ctx.author
+
+# --- NOTE: Edit these stuff to your liking
+author = "ZiRO2264#4572"
+version = "`v3.0.O` - `overhaul`"
+links = {
+    "Documentation (Coming Soon)": "",
+    "Source Code": "https://github.com/ZiRO-Bot/ziBot",
+    "Support Server": "https://discord.gg/sP9xRy6",
+}
+license = "Public Domain"
+# ---
+
 class Info(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
+    @commands.command()
+    async def source(self, ctx):
+        """Get link to my source code."""
+        await ctx.send("My source code: {}".format(links["Source Code"]))
+
     @commands.command(aliases=["bi", "about"])
     async def botinfo(self, ctx):
         """Information about me."""
-        # --- Edit these stuff to your liking
-        author = "ZiRO2264#4572"
-        version = "`v3.0.O` - `overhaul`"
-        links = {
-            "Documentation (Coming Soon)": "",
-            "Source Code": "https://github.com/ZiRO-Bot/ziBot",
-            "Support Server": "https://discord.gg/sP9xRy6",
-        }
-        license = "Public Domain"
-        # ---
 
         # Z3R0 Banner
         f = discord.File("./assets/img/banner.png", filename="banner.png")
@@ -83,22 +101,11 @@ class Info(commands.Cog):
         )
         await msg.edit(embed=e)
 
-    async def authorOrReferenced(self, ctx):
-        if ref := ctx.message.reference:
-            # Get referenced message author
-            # if user reply to a message while doing this command
-            return (
-                ref.cached_message.author
-                if ref.cached_message
-                else (await ctx.fetch_message(ref.message_id)).author
-            )
-        return ctx.author
-
     @commands.command(aliases=["av", "userpfp", "pfp"])
     async def avatar(self, ctx, user: discord.User = None):
         """Show member's avatar image."""
         if not user:
-            user = await self.authorOrReferenced(ctx)
+            user = await authorOrReferenced(ctx)
 
         # Embed stuff
         e = discord.Embed(
