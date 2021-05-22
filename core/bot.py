@@ -75,11 +75,11 @@ class Brain(commands.Bot):
             else set([int(master) for master in config.botMasters])
         )
         if not self.master:
-            self.logger.warning("No master is set, you may not able to use certain commands!")
+            self.logger.warning(
+                "No master is set, you may not able to use certain commands!"
+            )
         self.issueChannel = (
-            None 
-            if not hasattr(config, "issueChannel")
-            else int(config.issueChannel)
+            None if not hasattr(config, "issueChannel") else int(config.issueChannel)
         )
 
         self.activityIndex = 0

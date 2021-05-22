@@ -18,6 +18,7 @@ async def authorOrReferenced(ctx):
         )
     return ctx.author
 
+
 # --- NOTE: Edit these stuff to your liking
 author = "ZiRO2264#4572"
 version = "`v3.0.O` - `overhaul`"
@@ -28,6 +29,7 @@ links = {
 }
 license = "Public Domain"
 # ---
+
 
 class Info(commands.Cog):
     def __init__(self, bot):
