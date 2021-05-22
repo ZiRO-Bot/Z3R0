@@ -37,14 +37,14 @@ def _callable_prefix(bot, message):
     user_id = bot.user.id
     base = [f"<@!{user_id}> ", f"<@{user_id}> "]
     if not message.guild:
-        base.extend(bot.defPrefix)
+        base.extend([bot.defPrefix])
     else:
         # per-server prefix, soon (TM)
         #   base.extend(
-        #       sorted(bot.cache[message.guild.id].get("prefixes", bot.defPrefix))
+        #       sorted(bot.cache[message.guild.id].get("prefixes", [bot.defPrefix]))
         #   )
 
-        base.extend(bot.defPrefix)
+        base.extend([bot.defPrefix])
     return base
 
 
@@ -73,7 +73,7 @@ class Brain(commands.Bot):
         self.activityIndex = 0
 
         # bot's default prefix
-        self.defPrefix = [">"]
+        self.defPrefix = ">"
 
         # database
         self.db = Database(config.sql)
