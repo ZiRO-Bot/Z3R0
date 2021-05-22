@@ -67,7 +67,7 @@ class ErrorHandler(commands.Cog):
             self.bot.get_channel(self.bot.issueChannel)
             or self.bot.get_user(self.bot.master[0])
         )
-        destName = dest if isinstance(dest, discord.User) else dest.guild
+        destName = dest if isinstance(dest, discord.User) else "the support server"
         # Embed things
         desc = (
             "The command was unsuccessful because of this reason:\n```{}```\n".format(error)
