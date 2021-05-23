@@ -58,6 +58,11 @@ class Meta(commands.Cog):
         """Add new command"""
         pass
 
+    @command.command(aliases=["/"])
+    async def alias(self, ctx, alias, command):
+        """Create alias for a command"""
+        pass
+
     @command.command(aliases=["&"])
     async def edit(self, ctx, name, *content):
         """Edit existing command"""
