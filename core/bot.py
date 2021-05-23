@@ -197,7 +197,7 @@ class Brain(commands.Bot):
             # Since priority is 0 and it can run the built-in command,
             # no need to try getting custom command
             return await self.invoke(ctx)
-        # Priority is 0 but can't run built-in command
+        # Can't run built-in command, straight to trying custom command
         return await self.get_command("command run")(ctx, *args)
 
     async def on_message(self, message):
