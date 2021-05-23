@@ -1,3 +1,9 @@
+"""
+This Source Code Form is subject to the terms of the Mozilla Public
+License, v. 2.0. If a copy of the MPL was not distributed with this
+file, You can obtain one at http://mozilla.org/MPL/2.0/.
+"""
+
 import asyncio
 import discord
 
@@ -15,12 +21,13 @@ links = {
     "Source Code": "https://github.com/ZiRO-Bot/ziBot",
     "Support Server": "https://discord.gg/sP9xRy6",
 }
-license = "Public Domain"
+license = "MPL-2.0"
 # ---
 
 
 class Meta(commands.Cog):
     """Bot-related commands."""
+
     def __init__(self, bot):
         self.bot = bot
         self.db = self.bot.db

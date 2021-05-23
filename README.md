@@ -70,4 +70,4 @@ issueChannel="0000000000000000"
 
 ## License
 
-Public Domain (Not specified yet.)
+[MPL-2.0](/LICENSE)
