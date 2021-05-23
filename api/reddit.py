@@ -1,6 +1,5 @@
 import asyncio
 import aiohttp
-import json
 
 
 class Post:
@@ -67,8 +66,7 @@ class Reddit:
         async with self.session.get(
             self.baseUrl.format(subreddit=subreddit, listingType=_type, limit=limit)
         ) as res:
-            _json = json.loads(await res.text())
-            return Subreddit(_json)
+            return Subreddit(await res.json())
 
     async def hot(self, subreddit: str):
         """
