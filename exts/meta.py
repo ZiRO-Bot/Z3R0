@@ -21,7 +21,7 @@ links = {
     "Source Code": "https://github.com/ZiRO-Bot/ziBot",
     "Support Server": "https://discord.gg/sP9xRy6",
 }
-license = "MPL-2.0"
+license = "Mozilla Public License, v. 2.0"
 # ---
 
 
