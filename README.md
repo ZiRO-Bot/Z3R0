@@ -70,4 +70,4 @@ issueChannel="0000000000000000"
 
 ## License
 
-[MPL-2.0](/LICENSE)
+[Mozilla Public License, v. 2.0 (MPL-2.0)](/LICENSE)
