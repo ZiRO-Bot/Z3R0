@@ -45,13 +45,14 @@ issueChannel="0000000000000000"
 
 ## Overhaul
 
-### Overhaul changes
+### Changelog
 
 - [**Rename**] `cogs/` -> `exts/`
 - [**New**] Command priority [0: Built-in, 1: Custom]
 - [**New**] Use databases to handle SQL (Edit `exts/utils/dbQuery.py` if you're planning to use other SQL instead of  `sqlite`!)
 - [**Rename**] `ziBot` -> `Z3R0`
 - [**New**] Mascot, named `Z3R0`
+- [**Relicense**] `GPL-3.0` -> `MPL-2.0`
 
 ### Overhaul Plan
 
@@ -63,10 +64,10 @@ issueChannel="0000000000000000"
 - Filter to show/hide user-made command for help commands.
 - Built-in category for user to categorized their commands.
 - Public/Private commands, allowing other user to use each other's command in a different server.
-- Relicense (Migrate from GPLv3)
 - Better way of handling temp ban/mute
 - Migration tool, migrate from old database "layout" to newer "layout"
 - i18n (If possible)
+- Twitch and YouTube notification (Maybe?)
 
 ## License
 
