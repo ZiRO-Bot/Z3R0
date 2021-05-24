@@ -4,12 +4,14 @@ createCommandsTable = """
     CREATE TABLE IF NOT EXISTS commands (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT,
+        type TEXT,
         description TEXT,
         content TEXT,
         uses INTEGER DEFAULT 0,
         ownerId INTEGER,
         createdAt REAL,
-        visibility INTEGER DEFAULT 0
+        visibility INTEGER DEFAULT 0,
+        enabled INTEGER DEFAULT 1
     );
 """
 
@@ -18,7 +20,7 @@ createCommandsLookupTable = """
         cmdId INTEGER NOT NULL,
         name TEXT,
         guildId INTEGER,
-        FOREIGN KEY ("cmdId") REFERENCES commands ("id"),
+        FOREIGN KEY ("cmdId") REFERENCES commands ("id") ON DELETE CASCADE,
         FOREIGN KEY ("guildId") REFERENCES guilds ("id") ON DELETE CASCADE
     );
 """
