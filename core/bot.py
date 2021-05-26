@@ -207,6 +207,15 @@ class Brain(commands.Bot):
         # Can't run built-in command, straight to trying custom command
         return await self.get_command("command run")(ctx, *args)
 
+    def formattedPrefixes(self, message, codeblock: bool = False):
+        prefixes = _callable_prefix(self, message)
+        prefixes.pop(0)
+        prefixes.pop(0)
+        prefixes = ", ".join([f"`{x}`" for x in prefixes])
+        return "My prefixes are: {} or {}".format(
+            prefixes, self.user.mention if not codeblock else ("@" + self.user.display_name)
+        )
+
     async def on_message(self, message):
         # dont accept commands from bot
         if message.author.bot:
@@ -215,14 +224,8 @@ class Brain(commands.Bot):
         # if bot is mentioned without any other message, send prefix list
         pattern = f"<@(!?){self.user.id}>"
         if re.fullmatch(pattern, message.content):
-            prefixes = _callable_prefix(self, message)
-            prefixes.pop(0)
-            prefixes.pop(0)
-            prefixes = ", ".join([f"`{x}`" for x in prefixes])
             e = discord.Embed(
-                description="My prefixes are: {} or {}".format(
-                    prefixes, self.user.mention
-                ),
+                description=self.formattedPrefixes(message),
                 colour=discord.Colour.rounded(),
             )
             e.set_footer(

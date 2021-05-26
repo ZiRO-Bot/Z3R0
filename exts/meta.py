@@ -10,8 +10,24 @@ import discord
 
 from core.errors import CCommandNotFound
 from core.mixin import CogMixin
-from exts.utils import dbQuery
+from exts.utils import dbQuery, infoQuote
 from discord.ext import commands
+
+class CustomHelp(commands.HelpCommand):
+    async def send_bot_help(self, mapping):
+        ctx = self.context
+        destination = self.get_destination()
+        e = discord.Embed(
+            description=infoQuote.info(
+                "`()`: **Required** | `[]`: **Optional**\n{}".format(
+                    ctx.bot.formattedPrefixes(ctx.message),
+                )
+            ).replace("   ", ""),
+            colour=ctx.bot.colour,
+        )
+        e.set_author(name=ctx.author, icon_url=ctx.author.avatar_url)
+        e.add_field(name="Commands", value="Placeholder")
+        await destination.send(embed=e)
 
 
 # --- NOTE: Edit these stuff to your liking
@@ -30,6 +46,11 @@ class Meta(commands.Cog, CogMixin):
     """Bot-related commands."""
     def __init__(self, bot):
         super().__init__(bot)
+        # Replace default help menu with custom one
+        self._original_help_command = bot.help_command
+        self.bot.help_command = CustomHelp()
+        self.bot.help_command.cog = self
+
         self.bot.loop.create_task(self.asyncInit())
 
     async def asyncInit(self):
@@ -48,13 +69,13 @@ class Meta(commands.Cog, CogMixin):
         if not result:
             raise CCommandNotFound(command)
         return await ctx.send(result)
-        
 
     # TODO: Adds custom check with usage limit (
     #     0: Only mods,
     #     1: Partial (Can only add/edit/remove their own command),
     #     2: Full (Can do anything to any existing command in the guild)
     # )
+    # Also separate tags from custom command later on
     @commands.group(aliases=["tag", "script"])
     async def command(self, ctx):
         """Manage commands"""
