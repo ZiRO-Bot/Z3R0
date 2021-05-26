@@ -219,13 +219,18 @@ class Brain(commands.Bot):
             prefixes.pop(0)
             prefixes.pop(0)
             prefixes = ", ".join([f"`{x}`" for x in prefixes])
-            embed = discord.Embed(
+            e = discord.Embed(
                 description="My prefixes are: {} or {}".format(
                     prefixes, self.user.mention
                 ),
                 colour=discord.Colour.rounded(),
             )
-            await message.reply(embed=embed)
+            e.set_footer(
+                text="Use `@{} help` to learn how to use the bot".format(
+                    self.user.display_name
+                )
+            )
+            await message.reply(embed=e)
 
         await self.process_commands(message)
 
