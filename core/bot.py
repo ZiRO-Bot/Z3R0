@@ -74,10 +74,7 @@ class Brain(commands.Bot):
             if not hasattr(config, "botMasters")
             else tuple([int(master) for master in config.botMasters])
         )
-        if not self.master:
-            self.logger.warning(
-                "No master is set, you may not able to use certain commands!"
-            )
+
         self.issueChannel = (
             None if not hasattr(config, "issueChannel") else int(config.issueChannel)
         )
@@ -126,6 +123,16 @@ class Brain(commands.Bot):
             self.activityIndex = 0
 
     async def on_ready(self):
+        if not self.master:
+            # If self.master not set, warn the hoster
+            self.logger.warning(
+                "No master is set, you may not able to use certain commands! (Unless you own the Bot Application)"
+            )
+        # Add application owner into bot master list
+        owner = (await self.application_info()).owner
+        if owner and owner.id not in self.master:
+            self.master += (owner.id,)
+
         # change bot's presence into guild live count
         self.changing_presence.start()
 
