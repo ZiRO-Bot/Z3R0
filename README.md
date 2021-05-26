@@ -22,25 +22,26 @@
 `config.py` file example [**REQUIRED!**]
 
 ```py
-# To change default prefix, can be done in source code
-# but for easier access you can change it here
+# To change default prefix, can be done in source code # but for easier
+# access you can change it here
 prefix=">"
 
-# Very important!
-token="YOUR BOT TOKEN GOES HERE"
-# Bot master(s), required to use master/dev only commands!
+# Very important!  token="YOUR BOT TOKEN GOES HERE" # Bot master(s), required
+# to use master/dev only commands! (Unless you're the bot application's owner)
 botMasters=["0000000000000000","0000000000000001"]
 
 # Database URL (using https://github.com/encode/databases/ and SQLAlchemy Core)
-# NOTE: Query is created for sqlite, be sure to edit `exts/utils/dbQuery.py` for other SQL!
+# NOTE: Query is created for sqlite, be sure to edit `exts/utils/dbQuery.py`
+# for other SQL!
 #
 # URL Examples:
-# - sqlite:///database.db
-# - postgresql://localhost/example?ssl=true
+# - sqlite:///database.db 
+# - postgresql://localhost/example?ssl=true 
 # - mysql://localhost/example?min_size=5&max_size=20
 sql="sqlite:///database.db"
 
-# Not needed, but if you want error to be reported to a guild channel you can set it here
+# Not needed, but if you want error to be reported to a guild channel you can
+# set it here
 issueChannel="0000000000000000"
 ```
 
