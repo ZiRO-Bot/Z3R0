@@ -39,6 +39,17 @@ class Meta(commands.Cog, CogMixin):
             # commands_lookup database table
             await self.db.execute(dbQuery.createCommandsLookupTable)
 
+    async def execCustomCommand(self, ctx, command):
+        hardcoded = {
+            "hello": "Hello World!",
+            "test": "Yep a test"
+        }
+        result = hardcoded.get(command, None)
+        if not result:
+            raise CCommandNotFound(command)
+        return await ctx.send(result)
+        
+
     # TODO: Adds custom check with usage limit (
     #     0: Only mods,
     #     1: Partial (Can only add/edit/remove their own command),
@@ -52,11 +63,7 @@ class Meta(commands.Cog, CogMixin):
     @command.command(aliases=["exec"])
     async def run(self, ctx, name: str, argument: str = None):
         """Run a custom command"""
-        hardcoded = {"hello": "Hello World!"}
-        result = hardcoded.get(name, None)
-        if not result:
-            raise CCommandNotFound(name)
-        return await ctx.send(result)
+        return await self.execCustomCommand(ctx, name)
 
     @command.command(aliases=["+", "create"])
     async def add(self, ctx, name, *content):
