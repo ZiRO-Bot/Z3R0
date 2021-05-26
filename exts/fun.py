@@ -9,14 +9,15 @@ import discord
 
 
 from api import reddit
+from core.mixin import CogMixin
 from discord.ext import commands
 from random import choice
 
 
-class Fun(commands.Cog):
+class Fun(commands.Cog, CogMixin):
     """Meme and other fun commands."""
     def __init__(self, bot):
-        self.bot = bot
+        super().__init__(bot)
         self.reddit = reddit.Reddit(self.bot.session)
 
     @commands.command()

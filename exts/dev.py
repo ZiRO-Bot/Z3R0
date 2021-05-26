@@ -7,13 +7,13 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 import discord
 
 
+from core.mixin import CogMixin
 from exts.utils import infoQuote
 from discord.ext import commands
 
 
-class Developer(commands.Cog):
-    def __init__(self, bot):
-        self.bot = bot
+class Developer(commands.Cog, CogMixin):
+    """Debugging tools for bot devs."""
 
     async def cog_check(self, ctx):
         """Only bot master able to use debug cogs."""

@@ -9,6 +9,7 @@ import discord
 
 
 from core.errors import CCommandNotFound
+from core.mixin import CogMixin
 from exts.utils import dbQuery
 from discord.ext import commands
 
@@ -25,13 +26,10 @@ license = "Mozilla Public License, v. 2.0"
 # ---
 
 
-class Meta(commands.Cog):
+class Meta(commands.Cog, CogMixin):
     """Bot-related commands."""
-
     def __init__(self, bot):
-        self.bot = bot
-        self.db = self.bot.db
-
+        super().__init__(bot)
         self.bot.loop.create_task(self.asyncInit())
 
     async def asyncInit(self):

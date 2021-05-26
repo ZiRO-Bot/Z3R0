@@ -13,14 +13,14 @@ import sys
 import traceback
 
 
+from core.mixin import CogMixin
 from discord.ext import commands
 
 
-class ErrorHandler(commands.Cog):
+class ErrorHandler(commands.Cog, CogMixin):
     """Handle errors."""
-
     def __init__(self, bot):
-        self.bot = bot
+        super().__init__(bot)
 
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):

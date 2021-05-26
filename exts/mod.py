@@ -7,13 +7,12 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 import discord
 
 
+from core.mixin import CogMixin
 from discord.ext import commands
 
 
-class Mod(commands.Cog):
+class Mod(commands.Cog, CogMixin):
     """Moderation commands."""
-    def __init__(self, bot):
-        self.bot = bot
 
 
 def setup(bot):

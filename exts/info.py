@@ -8,7 +8,8 @@ import discord
 import time
 
 
-from .utils.infoQuote import *
+from core.mixin import CogMixin
+from exts.utils.infoQuote import *
 from discord.ext import commands
 
 
@@ -25,10 +26,8 @@ async def authorOrReferenced(ctx):
     return ctx.author
 
 
-class Info(commands.Cog):
+class Info(commands.Cog, CogMixin):
     """Commands that gives you information."""
-    def __init__(self, bot):
-        self.bot = bot
 
     @commands.command(aliases=["p"])
     async def ping(self, ctx):

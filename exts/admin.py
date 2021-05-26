@@ -7,13 +7,12 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 import discord
 
 
+from core.mixin import CogMixin
 from discord.ext import commands
 
 
-class Admin(commands.Cog):
+class Admin(commands.Cog, CogMixin):
     """Admin-only commands to configure the bot."""
-    def __init__(self, bot):
-        self.bot = bot
 
 
 def setup(bot):
