@@ -4,6 +4,8 @@
 
 **Python 3.8.x or higher is required!** 
 
+**NOTE: Currently working on [overhaul](https://github.com/ZiRO-Bot/ziBot/tree/overhaul). There will be no future update for this branch besides of few bug/issue fixes.**
+
 A multi-purpose customizable open-source discord bot.
 
 A fork of mcbeDiscordBot (Steve the bot) that rewritten to be able to operate on multiple server. Some code are translated mee6's old deprecated codes that rewritten and some are messy js to python translation.
