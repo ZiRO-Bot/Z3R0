@@ -24,7 +24,7 @@ desc = (
 
 extensionFolder = "exts"
 extensions = []
-ignoredExtensions = "youtube.py"
+ignoredExtensions = ("youtube.py", "slash.py")
 for filename in os.listdir("./{}".format(extensionFolder)):
     if filename in ignoredExtensions:
         continue
@@ -144,10 +144,6 @@ class Brain(commands.Bot):
                 dbQuery.insertToGuilds, values=[{"id": i.id} for i in self.guilds]
             )
 
-        # load all listed extensions
-        for extension in extensions:
-            self.load_extension(extension)
-
         if not hasattr(self, "uptime"):
             self.uptime = datetime.datetime.utcnow()
 
@@ -247,6 +243,10 @@ class Brain(commands.Bot):
         await self.session.close()
 
     def run(self):
+        # load all listed extensions
+        for extension in extensions:
+            self.load_extension(extension)
+
         super().run(config.token, reconnect=True)
 
     @property

@@ -9,6 +9,15 @@ class Context(commands.Context):
     def session(self):
         return self.bot.session
 
+    async def try_reply(self, content=None, *, mention=False, **kwargs):
+        """Try reply, if failed do send instead"""
+        try:
+            return await self.reply(content, mention_author=mention, **kwargs)
+        except:
+            kwargs.pop("mention_author")
+            return await self.send(content, **kwargs)
+
+
     async def safe_send(self, content, *, escape_mentions=True, **kwargs):
         if escape_mentions:
             content = discord.utils.escape_mentions(content)
