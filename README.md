@@ -17,7 +17,21 @@
     <a href="/LICENSE"><img alt="License: MPL-2.0" src="https://img.shields.io/badge/license-MPL--2.0-blue.svg"></a>
 </p>
 
+## About
+
+**`Z3R0`** (formerly **`ziBot`**) is a **free** and **open-source** multi-purpose discord bot, created for fun in the middle of quarantine. Used to be fork of [Steve-Bot](https://github.com/MCBE-Speedrunning/Steve-Bot) by MCBE Speedrunning Moderators.
+
+### Features
+
+Coming Soon.
+
 ## Configuration
+
+### Quick Setup
+
+Not ready yet.
+
+### Self-Hosting
 
 `config.py` file example [**REQUIRED!**]
 
