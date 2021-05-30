@@ -6,12 +6,15 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import asyncio
 import discord
+import datetime as dt
+import humanize
 
 
 from core.errors import CCommandNotFound
 from core.mixin import CogMixin
 from exts.utils import dbQuery, infoQuote
 from discord.ext import commands
+
 
 class CustomHelp(commands.HelpCommand):
     async def send_bot_help(self, mapping):
@@ -166,7 +169,22 @@ class Meta(commands.Cog, CogMixin):
             ),
             inline=False,
         )
-        await ctx.send(file=f, embed=e)
+        await ctx.try_reply(file=f, embed=e)
+
+    @commands.command()
+    async def stats(self, ctx):
+        uptime = dt.datetime.utcnow() - self.bot.uptime
+        e = discord.Embed(
+            timestamp=ctx.message.created_at,
+            colour=self.bot.colour,
+        )
+        e.set_author(name=ctx.bot.user.name + "'s stats", icon_url=ctx.bot.user.avatar_url)
+        e.set_footer(
+            text="Requested by {}".format(str(ctx.author)),
+            icon_url=ctx.author.avatar_url,
+        )
+        e.add_field(name="🕙 | Uptime", value=humanize.precisedelta(uptime))
+        await ctx.try_reply(embed=e)
 
 
 def setup(bot):

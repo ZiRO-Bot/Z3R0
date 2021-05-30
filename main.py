@@ -2,6 +2,7 @@ import asyncio
 import click
 import contextlib
 import core.bot as _bot
+import datetime
 import logging
 import os
 
@@ -58,6 +59,7 @@ def init_bot():
     logger = logging.getLogger()
 
     bot = _bot.Brain()
+    bot.uptime = datetime.datetime.utcnow()
     bot.run()
 
 
