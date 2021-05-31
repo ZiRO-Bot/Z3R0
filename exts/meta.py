@@ -64,14 +64,24 @@ class Meta(commands.Cog, CogMixin):
             await self.db.execute(dbQuery.createCommandsLookupTable)
 
     async def execCustomCommand(self, ctx, command):
-        hardcoded = {
-            "hello": "Hello World!",
-            "test": "Yep a test"
-        }
-        result = hardcoded.get(command, None)
-        if not result:
+        _id = await self.db.fetch_one(
+            dbQuery.getCommandId,
+            values={"name": command, "guildId": ctx.guild.id}
+        )
+        if not _id:
+            # No command found
             raise CCommandNotFound(command)
-        return await ctx.send(result)
+        result = await self.db.fetch_one(
+            dbQuery.getCommandContent,
+            values={"id": _id[0]}
+        )
+        async with self.db.transaction():
+            # Increment uses
+            await self.db.execute(
+                dbQuery.incrCommandUsage,
+                values={"id": _id[0]}
+            )
+            return await ctx.send(result[0])
 
     # TODO: Adds custom check with usage limit (
     #     0: Only mods,
@@ -79,10 +89,10 @@ class Meta(commands.Cog, CogMixin):
     #     2: Full (Can do anything to any existing command in the guild)
     # )
     # Also separate tags from custom command later on
-    @commands.group(aliases=["tag", "script"])
-    async def command(self, ctx):
+    @commands.group(aliases=["cmd", "tag", "script"], invoke_without_command=True)
+    async def command(self, ctx, name: str, argument: str = None):
         """Manage commands"""
-        pass
+        return await self.execCustomCommand(ctx, name)
 
     @command.command(aliases=["exec"])
     async def run(self, ctx, name: str, argument: str = None):
@@ -90,9 +100,42 @@ class Meta(commands.Cog, CogMixin):
         return await self.execCustomCommand(ctx, name)
 
     @command.command(aliases=["+", "create"])
-    async def add(self, ctx, name, *content):
+    async def add(self, ctx, name: str, *, content: str):
         """Add new command"""
-        pass
+
+        # Check if command already exists
+        rows = await self.db.fetch_all("""
+            SELECT *
+            FROM commands
+            INNER JOIN commands_lookup ON
+                commands.id = commands_lookup.cmdId
+            WHERE
+                commands_lookup.name = :name
+        """, values={"name": name})
+        if rows:
+            return await ctx.try_reply("A command/alias called `{}` already exists!".format(name))
+        
+        # Adding command to database
+        async with self.db.transaction():
+            lastInsert = await self.db.execute(
+                dbQuery.insertToCommands,
+                values={
+                    "name": name,
+                    "content": content,
+                    "ownerId": ctx.author.id,
+                    "createdAt": dt.datetime.utcnow().timestamp(),
+                }
+            )
+            lastLastInsert = await self.db.execute(
+                dbQuery.insertToCommandsLookup,
+                values={
+                    "cmdId": lastInsert,
+                    "name": name,
+                    "guildId": ctx.guild.id,
+                }
+            )
+            if lastInsert and lastLastInsert:
+                await ctx.send("{} has been created".format(name))
 
     @command.command(aliases=["/"])
     async def alias(self, ctx, alias, command):
@@ -100,7 +143,7 @@ class Meta(commands.Cog, CogMixin):
         pass
 
     @command.command(aliases=["&"])
-    async def edit(self, ctx, name, *content):
+    async def edit(self, ctx, name, *, content):
         """Edit existing command"""
         pass
 

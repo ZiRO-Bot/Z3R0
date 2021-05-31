@@ -4,7 +4,6 @@ createCommandsTable = """
     CREATE TABLE IF NOT EXISTS commands (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT,
-        type TEXT,
         description TEXT,
         content TEXT,
         uses INTEGER DEFAULT 0,
@@ -23,6 +22,31 @@ createCommandsLookupTable = """
         FOREIGN KEY ("cmdId") REFERENCES commands ("id") ON DELETE CASCADE,
         FOREIGN KEY ("guildId") REFERENCES guilds ("id") ON DELETE CASCADE
     );
+"""
+
+insertToCommands = """
+    INSERT INTO commands (name, content, ownerId, createdAt)
+    VALUES (:name, :content, :ownerId, :createdAt)
+"""
+
+insertToCommandsLookup = """
+    INSERT INTO commands_lookup (cmdId, name, guildId)
+    VALUES (:cmdId, :name, :guildId)
+"""
+
+getCommandId = """
+    SELECT cmdId FROM commands_lookup
+    WHERE (commands_lookup.name=:name AND commands_lookup.guildId=:guildId)
+"""
+
+getCommandContent = """
+    SELECT content FROM commands
+    WHERE commands.id=:id
+"""
+
+incrCommandUsage = """
+    UPDATE commands SET uses = uses + 1
+    WHERE commands.id=:id
 """
 
 createGuildsTable = """

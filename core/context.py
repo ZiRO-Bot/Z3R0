@@ -9,6 +9,10 @@ class Context(commands.Context):
     def session(self):
         return self.bot.session
 
+    @property
+    def db(self):
+        return self.bot.db
+
     async def try_reply(self, content=None, *, mention=False, **kwargs):
         """Try reply, if failed do send instead"""
         try:
