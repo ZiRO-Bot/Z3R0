@@ -13,6 +13,7 @@ import humanize
 from core.errors import CCommandNotFound
 from core.mixin import CogMixin
 from exts.utils import dbQuery, infoQuote
+from exts.utils.format import CMDName
 from discord.ext import commands
 
 
@@ -90,17 +91,17 @@ class Meta(commands.Cog, CogMixin):
     # )
     # Also separate tags from custom command later on
     @commands.group(aliases=["cmd", "tag", "script"], invoke_without_command=True)
-    async def command(self, ctx, name: str, argument: str = None):
+    async def command(self, ctx, name: CMDName, argument: str = None):
         """Manage commands"""
         return await self.execCustomCommand(ctx, name)
 
     @command.command(aliases=["exec"])
-    async def run(self, ctx, name: str, argument: str = None):
+    async def run(self, ctx, name: CMDName, argument: str = None):
         """Run a custom command"""
         return await self.execCustomCommand(ctx, name)
 
     @command.command(aliases=["+", "create"])
-    async def add(self, ctx, name: str, *, content: str):
+    async def add(self, ctx, name: CMDName, *, content: str):
         """Add new command"""
 
         # Check if command already exists
@@ -138,34 +139,34 @@ class Meta(commands.Cog, CogMixin):
                 await ctx.send("{} has been created".format(name))
 
     @command.command(aliases=["/"])
-    async def alias(self, ctx, alias, command):
+    async def alias(self, ctx, alias: CMDName, command):
         """Create alias for a command"""
         pass
 
     @command.command(aliases=["&"])
-    async def edit(self, ctx, name, *, content):
+    async def edit(self, ctx, name: CMDName, *, content):
         """Edit existing command"""
         pass
 
     @command.command(aliases=["-", "rm"])
-    async def remove(self, ctx, name):
+    async def remove(self, ctx, name: CMDName):
         """Remove a command"""
         pass
 
     @command.command()
-    async def disable(self, ctx, name):
+    async def disable(self, ctx, name: CMDName):
         """Disable a command"""
         # This will work for both built-in and user-made commands
         pass
 
     @command.command()
-    async def enable(self, ctx, name):
+    async def enable(self, ctx, name: CMDName):
         """Enable a command"""
         # This will work for both built-in and user-made commands
         pass
 
     @command.command(aliases=["?"])
-    async def info(self, ctx, name):
+    async def info(self, ctx, name: CMDName):
         """Show information about a command"""
         # Executes {prefix}help {name} if its built-in command
         pass
