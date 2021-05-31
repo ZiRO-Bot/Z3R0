@@ -110,8 +110,8 @@ class Meta(commands.Cog, CogMixin):
             INNER JOIN commands_lookup ON
                 commands.id = commands_lookup.cmdId
             WHERE
-                commands_lookup.name = :name
-        """, values={"name": name})
+                commands_lookup.name = :name AND commands_lookup.guildId = :guildId
+        """, values={"name": name, "guildId": ctx.guild.id})
         if rows:
             return await ctx.try_reply("A command/alias called `{}` already exists!".format(name))
         

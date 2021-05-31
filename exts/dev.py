@@ -20,9 +20,9 @@ class Developer(commands.Cog, CogMixin):
         return self.bot.master and ctx.author.id in self.bot.master
 
     @commands.group(invoke_without_command=True)
-    async def test(self, ctx):
+    async def test(self, ctx, text):
         """Test something."""
-        await ctx.send(infoQuote.info("Test") + " hello")
+        await ctx.send(infoQuote.info("Test") + " {}".format(text))
 
     @test.command()
     async def error(self, ctx):

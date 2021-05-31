@@ -150,6 +150,7 @@ class Brain(commands.Bot):
         self.logger.warning("Ready: {0} (ID: {0.id})".format(self.user))
 
     async def process_commands(self, message):
+        # initial ctx
         ctx = await self.get_context(message, cls=Context)
 
         if not ctx.prefix:
@@ -159,22 +160,23 @@ class Brain(commands.Bot):
         priority = 0
         priorityPrefix = 0
         unixStyle = False
-        command = ctx.command
 
         # Handling custom command priority
         msg = copy.copy(message)
-        if ctx.prefix:
-            # Get msg content without prefix
-            msgContent: str = msg.content[len(ctx.prefix) :]
-            if msgContent.startswith(">") or (unixStyle := msgContent.startswith("./")):
-                # `./` for unix-style of launching custom scripts
-                priority = priorityPrefix = 1
-                # Turn `>command` into `command`
-                # So it can properly checked
-                if unixStyle:
-                    priorityPrefix = 2
-                # Properly get command when priority is 1
-                command = self.get_command(msgContent[priorityPrefix:])
+        # Get msg content without prefix
+        msgContent: str = msg.content[len(ctx.prefix):]
+        if msgContent.startswith(">") or (unixStyle := msgContent.startswith("./")):
+            # `./` for unix-style of launching custom scripts
+            priority = priorityPrefix = 1
+            # Turn `>command` into `command`
+            # So it can properly checked
+            if unixStyle:
+                priorityPrefix = 2
+            # Properly get command when priority is 1
+            msg.content = ctx.prefix + msgContent[priorityPrefix:]
+
+            # This fixes the problem, idk how ._.
+            ctx = await self.get_context(msg, cls=Context)
 
         # Get arguments for custom commands
         tmp = msgContent[priorityPrefix:].split(" ")
@@ -182,9 +184,9 @@ class Brain(commands.Bot):
 
         # Check if user can run the command
         canRun = False
-        if command:
+        if ctx.command:
             try:
-                canRun = await command.can_run(ctx)
+                canRun = await ctx.command.can_run(ctx)
             except commands.CheckFailure:
                 canRun = False
 
@@ -196,7 +198,7 @@ class Brain(commands.Bot):
                     return await self.get_command("command run")(ctx, *args)
                 except CCommandNotFound:
                     # Failed to run custom command, revert to built-in command
-                    ctx.command = command
+                    pass
             # Since priority is 0 and it can run the built-in command,
             # no need to try getting custom command
             return await self.invoke(ctx)
