@@ -69,6 +69,7 @@ issueChannel="0000000000000000"
 - [**Rename**] `ziBot` -> `Z3R0`
 - [**New**] Mascot, named `Z3R0`
 - [**Relicense**] `GPL-3.0` -> `MPL-2.0`
+- [**BugFix**] Priority doesn't work on user-based input (string, int, etc)
 
 ### Overhaul Plan
 
