@@ -179,7 +179,7 @@ class Brain(commands.Bot):
 
         # Get arguments for custom commands
         tmp = msgContent[priorityPrefix:].split(" ")
-        args = (tmp.pop(0), " ".join(tmp))
+        args = (ctx, tmp.pop(0), " ".join(tmp))
 
         # Check if user can run the command
         canRun = False
@@ -190,12 +190,12 @@ class Brain(commands.Bot):
                 canRun = False
 
         # Apparently commands are callable, so ctx.invoke longer needed
-        executeCC = self.get_command("command run")(ctx, *args)
+        executeCC = self.get_command("command run")
         # Handling command invoke with priority
         if canRun:
             if priority == 1:
                 try:
-                    return await executeCC
+                    return await executeCC(*args)
                 except CCommandNotFound:
                     # Failed to run custom command, revert to built-in command
                     pass
@@ -203,7 +203,7 @@ class Brain(commands.Bot):
             # no need to try getting custom command
             return await self.invoke(ctx)
         # Can't run built-in command, straight to trying custom command
-        return await executeCC
+        return await executeCC(*args)
 
     def formattedPrefixes(self, message, codeblock: bool = False):
         prefixes = _callablePrefix(self, message)
