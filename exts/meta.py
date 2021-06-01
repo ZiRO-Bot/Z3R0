@@ -23,9 +23,7 @@ class CustomHelp(commands.HelpCommand):
         destination = self.get_destination()
         e = discord.Embed(
             description=infoQuote.info(
-                "`()`: **Required** | `[]`: **Optional**\n{}".format(
-                    ctx.bot.formattedPrefixes(ctx.message),
-                )
+                "`()`: **Required**\n`[]`: **Optional**"
             ).replace("   ", ""),
             colour=ctx.bot.colour,
         )
@@ -84,6 +82,14 @@ class Meta(commands.Cog, CogMixin):
             )
             return await ctx.send(result[0])
 
+    def modeCheck():
+        """Check for custom command's modes."""
+        async def pred(ctx):
+            return True
+            # return await check_permissions(ctx, perms, check=check)
+
+        return commands.check(pred)
+
     # TODO: Adds custom check with usage limit (
     #     0: Only mods,
     #     1: Partial (Can only add/edit/remove their own command),
@@ -101,6 +107,7 @@ class Meta(commands.Cog, CogMixin):
         return await self.execCustomCommand(ctx, name)
 
     @command.command(aliases=["+", "create"])
+    @modeCheck()
     async def add(self, ctx, name: CMDName, *, content: str):
         """Add new command"""
 
@@ -139,30 +146,37 @@ class Meta(commands.Cog, CogMixin):
                 await ctx.send("{} has been created".format(name))
 
     @command.command(aliases=["/"])
+    @modeCheck()
     async def alias(self, ctx, alias: CMDName, command):
         """Create alias for a command"""
         pass
 
     @command.command(aliases=["&"])
+    @modeCheck()
     async def edit(self, ctx, name: CMDName, *, content):
         """Edit existing command"""
         pass
 
     @command.command(aliases=["-", "rm"])
+    @modeCheck()
     async def remove(self, ctx, name: CMDName):
         """Remove a command"""
         pass
 
     @command.command()
+    @modeCheck()
     async def disable(self, ctx, name: CMDName):
         """Disable a command"""
         # This will work for both built-in and user-made commands
+        # NOTE: Only mods can enable/disable built-in command
         pass
 
     @command.command()
+    @modeCheck()
     async def enable(self, ctx, name: CMDName):
         """Enable a command"""
         # This will work for both built-in and user-made commands
+        # NOTE: Only mods can enable/disable built-in command
         pass
 
     @command.command(aliases=["?"])
