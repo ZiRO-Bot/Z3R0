@@ -23,27 +23,23 @@ except FileExistsError:
     pass
 
 
-def get_cogs():
-    """callable extensions"""
-    extensions = [
-        "cogs.welcome",
-        "cogs.error_handler",
-        "cogs.help",
-        "cogs.general",
-        "cogs.moderator",
-        "cogs.fun",
-        # "cogs.src",
-        "cogs.anilist",
-        "cogs.utils",
-        "cogs.info",
-        "cogs.custom_commands",
-        "cogs.dev",
-        # "cogs.music",
-    ]
-    return extensions
+EXTS = []
+EXTS_DIR= "cogs"
+EXTS_IGNORED = (
+    "admin.py",
+    "twitch.py",
+    "youtube.py",
+    "slash.py",
+    "src.py",
+    "mcbe.py",
+    "music.py"
+)
+for filename in os.listdir("./{}".format(EXTS_DIR)):
+    if filename in EXTS_IGNORED:
+        continue
+    if filename.endswith(".py"):
+        EXTS.append("{}.{}".format(EXTS_DIR, filename[:-3]))
 
-
-extensions = get_cogs()
 
 start_time = time.time()
 
@@ -242,7 +238,7 @@ class ziBot(commands.Bot):
     async def on_ready(self):
         self.changing_presence.start()
 
-        for extension in extensions:
+        for extension in EXTS:
             self.load_extension(extension)
 
         self.logger.warning(f"Online: {self.user} (ID: {self.user.id})")

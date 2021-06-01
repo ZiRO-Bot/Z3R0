@@ -14,7 +14,7 @@ import sys
 import textwrap
 import time
 
-from core.bot import get_cogs, get_prefix
+from core.bot import get_prefix
 from cogs.utilities.embed_formatting import em_ctx_send_error, em_ctx_send_success
 from cogs.utilities.formatting import realtime
 from discord.errors import Forbidden, NotFound
@@ -129,7 +129,7 @@ class Admin(commands.Cog):
         """Reload an extension."""
         if not ext:
             reload_start = time.time()
-            exts = get_cogs()
+            exts = self.bot.extensions
             reloaded = []
             error = 0
             for ext in exts:

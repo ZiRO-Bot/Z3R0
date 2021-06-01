@@ -12,7 +12,6 @@ from cogs.utilities.tse_blocks import RandomBlock
 from cogs.utilities.embed_formatting import em_ctx_send_error
 from cogs.utilities.formatting import realtime
 from cogs.utilities.stringparamadapter import StringParamAdapter
-from core.bot import get_cogs
 from discord.errors import Forbidden
 from discord.ext import commands
 from pytz import timezone
