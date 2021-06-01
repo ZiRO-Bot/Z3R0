@@ -53,6 +53,10 @@ class ErrorHandler(commands.Cog, CogMixin):
             )
             await asyncio.sleep(round(error.retry_after))
             return await bot_msg.delete()
+        
+        if isinstance(error, commands.CheckFailure):
+            # TODO: Change the message
+            return await ctx.send("You have no permissions!")
 
         # Give details about the error
         _traceback = "".join(

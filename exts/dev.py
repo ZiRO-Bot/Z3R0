@@ -17,7 +17,22 @@ class Developer(commands.Cog, CogMixin):
 
     async def cog_check(self, ctx):
         """Only bot master able to use debug cogs."""
-        return self.bot.master and ctx.author.id in self.bot.master
+        return (
+            (self.bot.master
+            and ctx.author.id in self.bot.master)
+            or commands.is_owner().predicate(ctx)
+        )
+
+    def notMe():
+        async def pred(ctx):
+            return not (
+                (ctx.bot.master
+                and ctx.author.id in ctx.bot.master)
+                or commands.is_owner().predicate(ctx)
+            )
+
+        return commands.check(pred)
+
 
     @commands.group(invoke_without_command=True)
     async def test(self, ctx, text):
@@ -28,6 +43,12 @@ class Developer(commands.Cog, CogMixin):
     async def error(self, ctx):
         """Test error handler."""
         raise RuntimeError("Haha error brrr")
+
+    @test.command()
+    @notMe()
+    async def noperm(self, ctx):
+        """Test no permission."""
+        pass
 
 
 def setup(bot):

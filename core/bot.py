@@ -16,23 +16,22 @@ from discord.ext import commands, tasks
 
 import config
 
-
-desc = (
+DESC = (
     "A **free and open source** multi-purpose **discord bot** created by"
     + " ZiRO2264, formerly called `ziBot`."
 )
 
-extensionFolder = "exts"
-extensions = []
-ignoredExtensions = ("youtube.py", "slash.py")
-for filename in os.listdir("./{}".format(extensionFolder)):
-    if filename in ignoredExtensions:
+EXTS = []
+EXTS_DIR= "exts"
+EXTS_IGNORED = ("youtube.py", "slash.py")
+for filename in os.listdir("./{}".format(EXTS_DIR)):
+    if filename in EXTS_IGNORED:
         continue
     if filename.endswith(".py"):
-        extensions.append("{}.{}".format(extensionFolder, filename[:-3]))
+        EXTS.append("{}.{}".format(EXTS_DIR, filename[:-3]))
 
 
-def _callable_prefix(bot, message):
+def _callablePrefix(bot, message):
     """Callable Prefix for the bot."""
     user_id = bot.user.id
     base = [f"<@!{user_id}> ", f"<@{user_id}> "]
@@ -51,8 +50,8 @@ def _callable_prefix(bot, message):
 class Brain(commands.Bot):
     def __init__(self):
         super().__init__(
-            command_prefix=_callable_prefix,
-            description=desc,
+            command_prefix=_callablePrefix,
+            description=DESC,
             case_insensitive=True,
             intents=discord.Intents.all(),
             heartbeat_timeout=150.0,
@@ -190,12 +189,13 @@ class Brain(commands.Bot):
             except commands.CheckFailure:
                 canRun = False
 
+        # Apparently commands are callable, so ctx.invoke longer needed
+        executeCC = self.get_command("command run")(ctx, *args)
         # Handling command invoke with priority
         if canRun:
             if priority == 1:
                 try:
-                    # Apparently commands are callable, so ctx.invoke longer needed
-                    return await self.get_command("command run")(ctx, *args)
+                    return await executeCC
                 except CCommandNotFound:
                     # Failed to run custom command, revert to built-in command
                     pass
@@ -203,10 +203,10 @@ class Brain(commands.Bot):
             # no need to try getting custom command
             return await self.invoke(ctx)
         # Can't run built-in command, straight to trying custom command
-        return await self.get_command("command run")(ctx, *args)
+        return await executeCC
 
     def formattedPrefixes(self, message, codeblock: bool = False):
-        prefixes = _callable_prefix(self, message)
+        prefixes = _callablePrefix(self, message)
         prefixes.pop(0)
         prefixes.pop(0)
         prefixes = ", ".join([f"`{x}`" for x in prefixes])
@@ -246,7 +246,7 @@ class Brain(commands.Bot):
 
     def run(self):
         # load all listed extensions
-        for extension in extensions:
+        for extension in EXTS:
             self.load_extension(extension)
 
         super().run(config.token, reconnect=True)

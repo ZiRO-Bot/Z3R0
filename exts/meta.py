@@ -35,14 +35,14 @@ class CustomHelp(commands.HelpCommand):
 
 
 # --- NOTE: Edit these stuff to your liking
-author = "ZiRO2264#4572"
-version = "`v3.0.O` - `overhaul`"
-links = {
+AUTHOR = "ZiRO2264#4572"
+VERSION = "`v3.0.O` - `overhaul`"
+LINKS = {
     "Documentation (Coming Soon)": "",
     "Source Code": "https://github.com/ZiRO-Bot/ziBot",
     "Support Server": "https://discord.gg/sP9xRy6",
 }
-license = "Mozilla Public License, v. 2.0"
+LICENSE = "Mozilla Public License, v. 2.0"
 # ---
 
 
@@ -195,20 +195,20 @@ class Meta(commands.Cog, CogMixin):
             icon_url=ctx.author.avatar_url,
         )
         e.set_image(url="attachment://banner.png")
-        e.add_field(name="Author", value=author)
+        e.add_field(name="Author", value=AUTHOR)
         e.add_field(
             name="Library",
             value="[`zidiscord.py`](https://github.com/null2264/discord.py) - `v{}`".format(
                 discord.__version__
             ),
         )
-        e.add_field(name="Version", value=version)
+        e.add_field(name="Version", value=VERSION)
         e.add_field(
             name="Links",
             value="\n".join(
                 [
                     "- [{}]({})".format(k, v) if v else "- {}".format(k)
-                    for k, v in links.items()
+                    for k, v in LINKS.items()
                 ]
             ),
             inline=False,
