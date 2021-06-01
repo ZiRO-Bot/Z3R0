@@ -23,7 +23,11 @@ DESC = (
 
 EXTS = []
 EXTS_DIR= "exts"
-EXTS_IGNORED = ("youtube.py", "slash.py")
+EXTS_IGNORED = (
+    # "twitch.py",
+    "youtube.py",
+    "slash.py"
+)
 for filename in os.listdir("./{}".format(EXTS_DIR)):
     if filename in EXTS_IGNORED:
         continue
