@@ -43,7 +43,10 @@ class Info(commands.Cog, CogMixin):
             name="<a:loading:776255339716673566> | Websocket",
             value=f"{round(self.bot.latency*1000)}ms",
         )
-        e.set_footer(text="Requested by {}".format(str(ctx.author)))
+        e.set_footer(
+            text="Requested by {}".format(str(ctx.author)),
+            icon_url=ctx.author.avatar_url,
+        )
         msg = await ctx.try_reply(embed=e)
         end = time.perf_counter()
         msg_ping = (end - start) * 1000
