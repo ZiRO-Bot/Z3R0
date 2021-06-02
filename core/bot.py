@@ -24,7 +24,7 @@ DESC = (
 EXTS = []
 EXTS_DIR= "exts"
 EXTS_IGNORED = (
-    # "twitch.py",
+    "twitch.py",
     "youtube.py",
     "slash.py"
 )
