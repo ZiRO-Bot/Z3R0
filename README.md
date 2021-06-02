@@ -85,7 +85,8 @@ issueChannel="0000000000000000"
 - Migration tool, migrate from old database "layout" to newer "layout"
 - i18n (If possible)
 - Twitch and YouTube notification (Maybe?)
-- Lavalink-based Music Player
+- Music Player
+- Image manipulation (Filter and stuff)
 
 ## License
 
