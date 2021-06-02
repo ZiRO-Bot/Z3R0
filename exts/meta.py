@@ -107,7 +107,7 @@ async def getCustomCommands(db, guildId):
             description=v["description"],
             category=v["category"],
             isAlias=0,
-            aliases=v["aliases"],
+            aliases=v.get("aliases", []),
         )
         for k, v in cmds.items()
     ]
