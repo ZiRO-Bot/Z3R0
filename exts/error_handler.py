@@ -64,7 +64,7 @@ class ErrorHandler(commands.Cog, CogMixin):
                 type(error), error, error.__traceback__
             )
         )
-        self.bot.logger.error(f"Something went wrong! error: {error}\n{_traceback}")
+        self.bot.logger.error("Something went wrong! error: {}".format(_traceback))
         # --- Without prettify
         # print(
         #     "Ignoring exception in command {}:".format(ctx.command), file=sys.stderr
