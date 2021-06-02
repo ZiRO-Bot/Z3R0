@@ -6,4 +6,5 @@ Please try to follow these guidelines when contributing/making pull requests to 
   * Functions: `lowerCamelCase`
   * Variables **inside** a function/class: `lowerCamelCase`
   * Variables **outside** a function/class: `UPPERCASE`
+- Use `str.format()` instead of f-string unless there's no words in it (For i18n, maybe in the future)
 - Format your code with [`black`](https://github.com/psf/black) before creating a pull request.
