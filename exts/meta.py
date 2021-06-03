@@ -35,37 +35,52 @@ class CustomCommand:
     __slots__ = (
         "id",
         "name",
+        "invokedName",
         "description",
         "category",
         "content",
-        "isAlias",
         "aliases",
     )
 
-    def __init__(self, id, name, category, isAlias, **kwargs):
+    def __init__(self, id, name, category, **kwargs):
         self.id = id
+        
         self.name = name
+        # Incase its invoked using its alias
+        self.invokedName = kwargs.pop("invokedName", name)
+
         self.description = kwargs.pop("description", None) or "No description."
         self.content = kwargs.pop("content", "NULL")
         self.category = category
-        # Convert 1 and 0 to True and False
-        self.isAlias = True if isAlias else False
         self.aliases = kwargs.pop("aliases", [])
+
+        # - Convert 1 and 0 to True and False
+        # No longer used, replaced by invokedName
+        # self.isAlias = True if isAlias else False
 
     def __str__(self):
         return self.name
 
 
 async def getCustomCommand(ctx, db, command):
-    _id = await db.fetch_one(
-        dbQuery.getCommandId, values={"name": command, "guildId": ctx.guild.id}
-    )
-    if not _id:
+    try:
+        _id, name = await db.fetch_one(
+            dbQuery.getCommandId, values={"name": command, "guildId": ctx.guild.id}
+        )
+    except TypeError:
         # No command found
         raise CCommandNotFound(command)
-    result = await db.fetch_one(dbQuery.getCommandContent, values={"id": _id[0]})
+
+    result = await db.fetch_all(dbQuery.getCommandContent, values={"id": _id})
+    firstRes = result[0]
     return CustomCommand(
-        id=_id[0], content=result[0], name=_id[1], category=result[2], isAlias=_id[2]
+        id=_id,
+        content=firstRes[0],
+        name=firstRes[1],
+        invokedName=name,
+        category=firstRes[2],
+        description=firstRes[3],
+        aliases=[row[2] for row in result if row[2] != row[1]]
     )
 
 
@@ -84,10 +99,12 @@ async def getCustomCommands(db, guildId):
     cmds = {}
     rows = await db.fetch_all(dbQuery.getCommands, values={"guildId": guildId})
     for row in rows:
+        isAlias = row[1] != row[2]
+
         if row[0] not in cmds:
             cmds[row[0]] = {}
 
-        if row[5] == 0:
+        if not isAlias:
             # If its not an alias
             cmds[row[0]] = {
                 "name": row[2],  # "real" name
@@ -106,7 +123,6 @@ async def getCustomCommands(db, guildId):
             name=v["name"],
             description=v["description"],
             category=v["category"],
-            isAlias=0,
             aliases=v.get("aliases", []),
         )
         for k, v in cmds.items()
