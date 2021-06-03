@@ -19,4 +19,4 @@ zidiscord.py == 1.7.2
 
 # === git
 git+https://github.com/ShineyDev/prettify.py
-git+https://github.com/phenom4n4n/TagScript.git
+git+https://github.com/ZiRO-Bot/TagScript.git

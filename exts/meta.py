@@ -8,6 +8,7 @@ import asyncio
 import discord
 import datetime as dt
 import humanize
+import TagScriptEngine as tse
 
 
 from core.errors import CCommandNotFound
@@ -175,6 +176,16 @@ class Meta(commands.Cog, CogMixin):
         self.bot.help_command = CustomHelp()
         self.bot.help_command.cog = self
 
+        # TSE stuff
+        blocks = [
+            tse.LooseVariableGetterBlock(),
+            tse.RandomBlock(),
+            tse.AssignmentBlock(),
+            tse.RequireBlock(),
+            tse.EmbedBlock(),
+        ]
+        self.engine = tse.Interpreter(blocks)
+
         self.bot.loop.create_task(self.asyncInit())
 
     async def asyncInit(self):
@@ -184,12 +195,33 @@ class Meta(commands.Cog, CogMixin):
             # commands_lookup database table
             await self.db.execute(dbQuery.createCommandsLookupTable)
 
+    def processTag(self, ctx, content):
+        """Process tags from CC's content with TSE."""
+        author = tse.MemberAdapter(ctx.author)
+        target = tse.MemberAdapter(ctx.message.mentions[0]) if ctx.message.mentions else author
+        channel = tse.ChannelAdapter(ctx.channel)
+        seed = {
+            "author": author,
+            "user": author,
+            "target": target,
+            "member": target,
+            "channel": channel,
+            "unix": tse.IntAdapter(int(dt.datetime.utcnow().timestamp()))
+        }
+        if ctx.guild:
+            guild = tse.GuildAdapter(ctx.guild)
+            seed.update(guild=guild, server=guild)
+        return self.engine.process(content, seed)
+
+
     async def execCustomCommand(self, ctx, command):
-        result = await getCustomCommand(ctx, self.db, command)
+        cmd = await getCustomCommand(ctx, self.db, command)
         async with self.db.transaction():
             # Increment uses
-            await self.db.execute(dbQuery.incrCommandUsage, values={"id": result.id})
-            return await ctx.send(result.content)
+            await self.db.execute(dbQuery.incrCommandUsage, values={"id": cmd.id})
+            result = self.processTag(ctx, cmd.content)
+            embed = result.actions.get("embed")
+            return await ctx.send(result.body, embed=embed)
 
     def modeCheck():
         """Check for custom command's modes."""
@@ -205,7 +237,7 @@ class Meta(commands.Cog, CogMixin):
     #     1: Partial (Can only add/edit/remove their own command),
     #     2: Full (Can do anything to any existing command in the guild)
     # )
-    # Also separate tags from custom command later on
+    # TODO: Separate tags from custom command
     @commands.group(aliases=["cmd", "tag", "script"], invoke_without_command=True)
     async def command(self, ctx, name: CMDName, argument: str = None):
         """Manage commands"""
@@ -255,7 +287,6 @@ class Meta(commands.Cog, CogMixin):
                     "cmdId": lastInsert,
                     "name": name,
                     "guildId": ctx.guild.id,
-                    "isAlias": 0,
                 },
             )
             if lastInsert and lastLastInsert:
