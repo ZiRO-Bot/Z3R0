@@ -44,7 +44,7 @@ class CustomCommand:
 
     def __init__(self, id, name, category, **kwargs):
         self.id = id
-        
+
         self.name = name
         # Incase its invoked using its alias
         self.invokedName = kwargs.pop("invokedName", name)
@@ -80,7 +80,7 @@ async def getCustomCommand(ctx, db, command):
         invokedName=name,
         category=firstRes[2],
         description=firstRes[3],
-        aliases=[row[2] for row in result if row[2] != row[1]]
+        aliases=[row[2] for row in result if row[2] != row[1]],
     )
 
 
@@ -145,16 +145,23 @@ class CustomHelp(commands.HelpCommand):
         )
         e.set_author(name=ctx.author, icon_url=ctx.author.avatar_url)
 
-        for cog, commands in mapping.items():
+        unsorted = mapping.pop(None)
+        for cog, commands in sorted(mapping.items(), key=lambda c: c[0].qualified_name):
             # TODO: filter commands, only show command that can be executed
             if not commands:
                 continue
             e.add_field(
-                name=cog.qualified_name if cog else "Unsorted",
+                name=cog.qualified_name,
                 value=", ".join(
                     [f"`{cmd.name}`" for cmd in sorted(commands, key=lambda c: c.name)]
                 ),
             )
+        e.add_field(
+            name="Unsorted",
+            value=", ".join(
+                [f"`{cmd.name}`" for cmd in sorted(unsorted, key=lambda c: c.name)]
+            ),
+        )
         await dest.send(embed=e)
 
 
@@ -352,7 +359,14 @@ class Meta(commands.Cog, CogMixin):
             text="Requested by {}".format(str(ctx.author)),
             icon_url=ctx.author.avatar_url,
         )
-        e.add_field(name="🕙 | Uptime", value=humanize.precisedelta(uptime))
+        e.add_field(
+            name="🕙 | Uptime", value=humanize.precisedelta(uptime), inline=False
+        )
+        e.add_field(
+            name="`>_` | Command Usage (This session)",
+            value="{} commands".format(self.bot.commandUsage),
+            inline=False,
+        )
         await ctx.try_reply(embed=e)
 
 

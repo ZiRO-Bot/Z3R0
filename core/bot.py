@@ -83,6 +83,7 @@ class Brain(commands.Bot):
         )
 
         self.activityIndex = 0
+        self.commandUsage = 0
 
         # bot's default prefix
         self.defPrefix = ">" if not hasattr(config, "prefix") else config.prefix
@@ -237,7 +238,9 @@ class Brain(commands.Bot):
             )
             await message.reply(embed=e)
 
-        await self.process_commands(message)
+        processed = await self.process_commands(message)
+        if not processed:
+            self.commandUsage += 1
 
     async def close(self):
         """Properly close/turn off bot"""
