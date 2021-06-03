@@ -14,9 +14,9 @@ python-Levenshtein == 0.12.1
 pytz == 2021.1
 pyparsing == 2.4.7
 requests == 2.24.0
-TagScriptEngine == 2.3.0
 uvloop == 0.14.0
 zidiscord.py == 1.7.2
 
 # === git
 git+https://github.com/ShineyDev/prettify.py
+git+https://github.com/phenom4n4n/TagScript.git
