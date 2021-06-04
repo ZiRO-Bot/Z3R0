@@ -22,7 +22,7 @@ from discord.ext import commands
 AUTHOR = "ZiRO2264#4572"
 VERSION = "`v3.0.O` - `overhaul`"
 LINKS = {
-    "Documentation (Coming Soon)": "",
+    "Documentation (Coming Soon\u2122)": "",
     "Source Code": "https://github.com/ZiRO-Bot/ziBot",
     "Support Server": "https://discord.gg/sP9xRy6",
 }

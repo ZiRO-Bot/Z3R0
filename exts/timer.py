@@ -28,7 +28,7 @@ class Timer(commands.Cog, CogMixin):
             description=formatDateTime(dt.datetime.utcnow()),
             colour=self.bot.colour,
         )
-        e.set_footer(text="Timezone coming soon(TM)!")
+        e.set_footer(text="Timezone coming soon\u2122!")
         await ctx.try_reply(embed=e)
 
 
