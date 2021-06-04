@@ -13,7 +13,7 @@ import TagScriptEngine as tse
 
 from core.errors import CCommandNotFound
 from core.mixin import CogMixin
-from exts.utils import dbQuery, infoQuote
+from exts.utils import dbQuery, infoQuote, tseBlocks
 from exts.utils.format import CMDName
 from discord.ext import commands
 
@@ -183,6 +183,7 @@ class Meta(commands.Cog, CogMixin):
             tse.AssignmentBlock(),
             tse.RequireBlock(),
             tse.EmbedBlock(),
+            tseBlocks.SilentBlock(),
         ]
         self.engine = tse.Interpreter(blocks)
 
@@ -213,7 +214,6 @@ class Meta(commands.Cog, CogMixin):
             seed.update(guild=guild, server=guild)
         return self.engine.process(content, seed)
 
-
     async def execCustomCommand(self, ctx, command):
         cmd = await getCustomCommand(ctx, self.db, command)
         async with self.db.transaction():
@@ -221,6 +221,9 @@ class Meta(commands.Cog, CogMixin):
             await self.db.execute(dbQuery.incrCommandUsage, values={"id": cmd.id})
             result = self.processTag(ctx, cmd.content)
             embed = result.actions.get("embed")
+            if not (result.body and embed):
+                # Both content and embed is empty so lets just return nothing
+                return await ctx.send("\u200b")
             return await ctx.send(result.body, embed=embed)
 
     def modeCheck():
