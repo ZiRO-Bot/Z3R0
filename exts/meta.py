@@ -183,6 +183,7 @@ class Meta(commands.Cog, CogMixin):
             tse.AssignmentBlock(),
             tse.RequireBlock(),
             tse.EmbedBlock(),
+            tse.RedirectBlock(),
             tseBlocks.SilentBlock(),
         ]
         self.engine = tse.Interpreter(blocks)
@@ -221,10 +222,19 @@ class Meta(commands.Cog, CogMixin):
             await self.db.execute(dbQuery.incrCommandUsage, values={"id": cmd.id})
             result = self.processTag(ctx, cmd.content)
             embed = result.actions.get("embed")
-            if not (result.body and embed):
+
+            target = result.actions.get("target")
+            action = ctx.send
+            if target:
+                if target == "reply":
+                    action = ctx.try_reply
+                if target == "dm":
+                    action = ctx.author.send
+
+            if not result.body and not embed:
                 # Both content and embed is empty so lets just return nothing
-                return await ctx.send("\u200b")
-            return await ctx.send(result.body, embed=embed)
+                return await action("\u200b")
+            return await action(result.body, embed=embed)
 
     def modeCheck():
         """Check for custom command's modes."""
