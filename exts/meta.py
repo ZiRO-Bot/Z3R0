@@ -147,8 +147,11 @@ class CustomHelp(commands.HelpCommand):
         e.set_author(name=ctx.author, icon_url=ctx.author.avatar_url)
 
         unsorted = mapping.pop(None)
+        ignored = ["ErrorHandler"]
         for cog, commands in sorted(mapping.items(), key=lambda c: c[0].qualified_name):
             # TODO: filter commands, only show command that can be executed
+            if cog.qualified_name in ignored:
+                continue
             value = ", ".join(
                 [f"`{cmd.name}`" for cmd in sorted(commands, key=lambda c: c.name)]
             ) if commands else "No commands."
