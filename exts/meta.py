@@ -199,6 +199,15 @@ class Meta(commands.Cog, CogMixin):
             # commands_lookup database table
             await self.db.execute(dbQuery.createCommandsLookupTable)
 
+    async def reactsToMessage(self, message: discord.Message, reactions: list = []):
+        """Simple loop to react to a message."""
+        for reaction in reactions:
+            await asyncio.sleep(0.5)
+            try:
+                await message.add_reaction(reaction)
+            except:
+                continue
+
     def processTag(self, ctx, content):
         """Process tags from CC's content with TSE."""
         author = tse.MemberAdapter(ctx.author)
@@ -227,6 +236,7 @@ class Meta(commands.Cog, CogMixin):
             result = self.processTag(ctx, cmd.content)
             embed = result.actions.get("embed")
 
+
             target = result.actions.get("target")
             action = ctx.send
             if target:
@@ -237,8 +247,15 @@ class Meta(commands.Cog, CogMixin):
 
             if not result.body and not embed:
                 # Both content and embed is empty so lets just return nothing
-                return await action("\u200b")
-            return await action(result.body, embed=embed)
+                msg = await action("\u200b")
+            else:
+                msg = await action(result.body, embed=embed)
+            react = result.actions.get("react")
+            reactu = result.actions.get("reactu")
+            if reactu:
+                self.bot.loop.create_task(self.reactsToMessage(ctx.message, reactu))
+            if react:
+                self.bot.loop.create_task(self.reactsToMessage(msg, react))
 
     def modeCheck():
         """Check for custom command's modes."""
