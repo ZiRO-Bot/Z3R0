@@ -185,6 +185,8 @@ class Meta(commands.Cog, CogMixin):
             tse.EmbedBlock(),
             tse.RedirectBlock(),
             tseBlocks.SilentBlock(),
+            tseBlocks.ReactBlock(),
+            tseBlocks.ReactUBlock()
         ]
         self.engine = tse.Interpreter(blocks)
 
@@ -200,6 +202,7 @@ class Meta(commands.Cog, CogMixin):
     def processTag(self, ctx, content):
         """Process tags from CC's content with TSE."""
         author = tse.MemberAdapter(ctx.author)
+        # TODO: Make target uses custom command arguments instead
         target = tse.MemberAdapter(ctx.message.mentions[0]) if ctx.message.mentions else author
         channel = tse.ChannelAdapter(ctx.channel)
         seed = {
@@ -208,7 +211,8 @@ class Meta(commands.Cog, CogMixin):
             "target": target,
             "member": target,
             "channel": channel,
-            "unix": tse.IntAdapter(int(dt.datetime.utcnow().timestamp()))
+            "unix": tse.IntAdapter(int(dt.datetime.utcnow().timestamp())),
+            "prefix": ctx.prefix,
         }
         if ctx.guild:
             guild = tse.GuildAdapter(ctx.guild)
