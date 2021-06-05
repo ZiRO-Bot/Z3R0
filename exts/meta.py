@@ -149,19 +149,19 @@ class CustomHelp(commands.HelpCommand):
         unsorted = mapping.pop(None)
         for cog, commands in sorted(mapping.items(), key=lambda c: c[0].qualified_name):
             # TODO: filter commands, only show command that can be executed
-            if not commands:
-                continue
+            value = ", ".join(
+                [f"`{cmd.name}`" for cmd in sorted(commands, key=lambda c: c.name)]
+            ) if commands else "No commands."
             e.add_field(
                 name=cog.qualified_name,
-                value=", ".join(
-                    [f"`{cmd.name}`" for cmd in sorted(commands, key=lambda c: c.name)]
-                ),
+                value=value,
             )
+        value = ", ".join(
+            [f"`{cmd.name}`" for cmd in sorted(unsorted, key=lambda c: c.name)]
+        ) if unsorted else "No commands."
         e.add_field(
             name="Unsorted",
-            value=", ".join(
-                [f"`{cmd.name}`" for cmd in sorted(unsorted, key=lambda c: c.name)]
-            ),
+            value=value,
         )
         await dest.send(embed=e)
 
@@ -245,11 +245,7 @@ class Meta(commands.Cog, CogMixin):
                 if target == "dm":
                     action = ctx.author.send
 
-            if not result.body and not embed:
-                # Both content and embed is empty so lets just return nothing
-                msg = await action("\u200b")
-            else:
-                msg = await action(result.body, embed=embed)
+            msg = await action(result.body or "\u200b", embed=embed)
             react = result.actions.get("react")
             reactu = result.actions.get("reactu")
             if reactu:
@@ -281,6 +277,13 @@ class Meta(commands.Cog, CogMixin):
     async def run(self, ctx, name: CMDName, argument: str = None):
         """Run a custom command"""
         return await self.execCustomCommand(ctx, name)
+
+    @commands.command(name="import", aliases=["++"])
+    @modeCheck()
+    async def _import(self, ctx, name: CMDName, url: str):
+        """Import command from pastebin/github gist"""
+        # TODO: Add update and update-url command to update imported command
+        pass
 
     @command.command(aliases=["+", "create"])
     @modeCheck()

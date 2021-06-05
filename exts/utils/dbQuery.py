@@ -3,6 +3,7 @@
 createCommandsTable = """
     CREATE TABLE IF NOT EXISTS commands (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
+        type TEXT DEFAULT "text",
         name TEXT,
         category TEXT,
         description TEXT,
