@@ -152,16 +152,24 @@ class CustomHelp(commands.HelpCommand):
             # TODO: filter commands, only show command that can be executed
             if cog.qualified_name in ignored:
                 continue
-            value = ", ".join(
-                [f"`{cmd.name}`" for cmd in sorted(commands, key=lambda c: c.name)]
-            ) if commands else "No commands."
+            value = (
+                ", ".join(
+                    [f"`{cmd.name}`" for cmd in sorted(commands, key=lambda c: c.name)]
+                )
+                if commands
+                else "No commands."
+            )
             e.add_field(
                 name=cog.qualified_name,
                 value=value,
             )
-        value = ", ".join(
-            [f"`{cmd.name}`" for cmd in sorted(unsorted, key=lambda c: c.name)]
-        ) if unsorted else "No commands."
+        value = (
+            ", ".join(
+                [f"`{cmd.name}`" for cmd in sorted(unsorted, key=lambda c: c.name)]
+            )
+            if unsorted
+            else "No commands."
+        )
         e.add_field(
             name="Unsorted",
             value=value,
@@ -189,7 +197,7 @@ class Meta(commands.Cog, CogMixin):
             tse.RedirectBlock(),
             tseBlocks.SilentBlock(),
             tseBlocks.ReactBlock(),
-            tseBlocks.ReactUBlock()
+            tseBlocks.ReactUBlock(),
         ]
         self.engine = tse.Interpreter(blocks)
 
@@ -215,7 +223,11 @@ class Meta(commands.Cog, CogMixin):
         """Process tags from CC's content with TSE."""
         author = tse.MemberAdapter(ctx.author)
         # TODO: Make target uses custom command arguments instead
-        target = tse.MemberAdapter(ctx.message.mentions[0]) if ctx.message.mentions else author
+        target = (
+            tse.MemberAdapter(ctx.message.mentions[0])
+            if ctx.message.mentions
+            else author
+        )
         channel = tse.ChannelAdapter(ctx.channel)
         seed = {
             "author": author,
@@ -239,16 +251,17 @@ class Meta(commands.Cog, CogMixin):
             result = self.processTag(ctx, cmd.content)
             embed = result.actions.get("embed")
 
-
-            target = result.actions.get("target")
+            dest = result.actions.get("target")
             action = ctx.send
-            if target:
-                if target == "reply":
+            if dest:
+                if dest == "reply":
                     action = ctx.try_reply
-                if target == "dm":
+                if dest == "dm":
                     action = ctx.author.send
 
-            msg = await action(result.body or "\u200b", embed=embed)
+            msg = await action(
+                result.body or ("\u200b" if not embed else ""), embed=embed
+            )
             react = result.actions.get("react")
             reactu = result.actions.get("reactu")
             if reactu:
