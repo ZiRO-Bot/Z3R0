@@ -141,19 +141,24 @@ class CustomHelp(commands.HelpCommand):
                 "- () : Required Argument\n"
                 + "+ [] : Optional Argument\n"
                 + "\nDon't literally type `[]` or `()`!",
-                codeBlock=True
+                codeBlock=True,
             ),
             colour=ctx.bot.colour,
         )
         e.set_author(name=ctx.author, icon_url=ctx.author.avatar_url)
         unsorted = mapping.pop(None)
         sortedCog = sorted(mapping.keys(), key=lambda c: c.qualified_name)
+        ignored = ["ErrorHandler"]
         e.add_field(
             name="Categories",
             value="\n".join(
-                ["• **{}**".format(cog.qualified_name) for cog in sortedCog]
+                [
+                    "• **{}**".format(cog.qualified_name)
+                    for cog in sortedCog
+                    if cog.qualified_name not in ignored
+                ]
                 + ["• **Unsorted**"]
-            )
+            ),
         )
 
         return await dest.send(embed=e)
