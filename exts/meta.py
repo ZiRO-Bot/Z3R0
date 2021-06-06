@@ -126,7 +126,7 @@ class CustomHelp(commands.HelpCommand):
             value="\n".join(
                 [
                     "• {} **{}**".format(
-                        cog.icon if hasattr(cog, "icon") else "❓", cog.qualified_name
+                        getattr(cog, "icon","❓"), cog.qualified_name
                     )
                     for cog in sortedCog
                     if cog.qualified_name not in ignored
