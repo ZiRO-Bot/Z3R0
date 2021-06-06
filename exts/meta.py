@@ -35,16 +35,24 @@ class CustomCommand:
 
     __slots__ = (
         "id",
+        "type",
         "name",
         "invokedName",
         "description",
         "category",
         "content",
         "aliases",
+        "url",
     )
 
     def __init__(self, id, name, category, **kwargs):
         self.id = id
+        # NOTE: Can be 'text' or 'imported'
+        # - text: using text and not imported from pastebin/gist
+        # - imported: imported from pastebin/gist
+        self.type = kwargs.pop("type", "text")
+        # Will always return None unless type == 'imported'
+        self.url = kwargs.pop("url", None)
 
         self.name = name
         # Incase its invoked using its alias

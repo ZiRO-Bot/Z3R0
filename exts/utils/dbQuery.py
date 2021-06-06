@@ -8,6 +8,7 @@ createCommandsTable = """
         category TEXT,
         description TEXT,
         content TEXT,
+        url TEXT,
         uses INTEGER DEFAULT 0,
         ownerId INTEGER,
         createdAt REAL,
