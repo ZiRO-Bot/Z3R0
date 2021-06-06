@@ -116,18 +116,22 @@ class CustomHelp(commands.HelpCommand):
             colour=ctx.bot.colour,
         )
         e.set_author(name=ctx.author, icon_url=ctx.author.avatar_url)
+        
         unsorted = mapping.pop(None)
         sortedCog = sorted(mapping.keys(), key=lambda c: c.qualified_name)
+
         ignored = ["ErrorHandler"]
         e.add_field(
             name="Categories",
             value="\n".join(
                 [
-                    "• **{}**".format(cog.qualified_name)
+                    "• {} **{}**".format(
+                        cog.icon if hasattr(cog, "icon") else "❓", cog.qualified_name
+                    )
                     for cog in sortedCog
                     if cog.qualified_name not in ignored
                 ]
-                + ["• **Unsorted**"]
+                + ["• ❓ **Unsorted**"]
             ),
         )
 
@@ -360,16 +364,13 @@ class Meta(commands.Cog, CogMixin):
             async with ctx.db.transaction():
                 await ctx.db.execute(
                     dbQuery.deleteCommandAlias,
-                    values={"name": name, "guildId": ctx.guild.id}
+                    values={"name": name, "guildId": ctx.guild.id},
                 )
         else:
             # Aliases will be deleted automatically
             # NOTE TO DEVS: You must have `ON DELETE CASCADE`
             async with ctx.db.transaction():
-                await ctx.db.execute(
-                    dbQuery.deleteCommand,
-                    values={"id": command.id}
-                )
+                await ctx.db.execute(dbQuery.deleteCommand, values={"id": command.id})
         # TODO: Adjust removed message
         return await ctx.send("{} has been removed".format(name))
 
