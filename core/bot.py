@@ -7,8 +7,9 @@ import logging
 import re
 
 
-from .context import Context
-from .errors import CCommandNotFound
+from core.context import Context
+from core.errors import CCommandNotFound
+from core.objects import Connection
 from exts.utils import dbQuery
 from databases import Database
 from discord.ext import commands, tasks
@@ -89,7 +90,7 @@ class Brain(commands.Bot):
         self.defPrefix = ">" if not hasattr(config, "prefix") else config.prefix
 
         # database
-        self.db = Database(config.sql)
+        self.db = Database(config.sql, factory=Connection)
 
         # async init
         self.loop.create_task(self.asyncInit())

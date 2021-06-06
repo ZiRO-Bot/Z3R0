@@ -354,7 +354,24 @@ class Meta(commands.Cog, CogMixin):
     @modeCheck()
     async def remove(self, ctx, name: CMDName):
         """Remove a command"""
-        pass
+        command = await getCustomCommand(ctx, ctx.db, name)
+        isAlias = name in command.aliases
+        if isAlias:
+            async with ctx.db.transaction():
+                await ctx.db.execute(
+                    dbQuery.deleteCommandAlias,
+                    values={"name": name, "guildId": ctx.guild.id}
+                )
+        else:
+            # Aliases will be deleted automatically
+            # NOTE TO DEVS: You must have `ON DELETE CASCADE`
+            async with ctx.db.transaction():
+                await ctx.db.execute(
+                    dbQuery.deleteCommand,
+                    values={"id": command.id}
+                )
+        # TODO: Adjust removed message
+        return await ctx.send("{} has been removed".format(name))
 
     @command.command()
     @modeCheck()

@@ -1,5 +1,15 @@
 """Collection of Object."""
 
+
+import sqlite3
+
+
+class Connection(sqlite3.Connection):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.execute('pragma foreign_keys=1')
+
+
 class CustomCommand:
     """Object for custom command."""
 

@@ -32,6 +32,16 @@ insertToCommands = """
     VALUES (:name, :content, :ownerId, :createdAt)
 """
 
+deleteCommandAlias = """
+    DELETE FROM commands_lookup
+    WHERE (name=:name AND guildId=:guildId)
+"""
+
+deleteCommand = """
+    DELETE FROM commands
+    WHERE id=:id
+"""
+
 insertToCommandsLookup = """
     INSERT INTO commands_lookup (cmdId, name, guildId)
     VALUES (:cmdId, :name, :guildId)
@@ -39,7 +49,7 @@ insertToCommandsLookup = """
 
 getCommandId = """
     SELECT cmdId, name FROM commands_lookup
-    WHERE (commands_lookup.name=:name AND commands_lookup.guildId=:guildId)
+    WHERE (name=:name AND guildId=:guildId)
 """
 
 getCommandContent = """
