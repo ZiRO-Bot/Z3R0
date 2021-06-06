@@ -13,6 +13,7 @@ import TagScriptEngine as tse
 
 from core.errors import CCommandNotFound
 from core.mixin import CogMixin
+from core.objects import CustomCommand
 from exts.utils import dbQuery, infoQuote, tseBlocks
 from exts.utils.format import CMDName
 from discord.ext import commands
@@ -30,48 +31,8 @@ LICENSE = "Mozilla Public License, v. 2.0"
 # ---
 
 
-class CustomCommand:
-    """Object for custom command."""
-
-    __slots__ = (
-        "id",
-        "type",
-        "name",
-        "invokedName",
-        "description",
-        "category",
-        "content",
-        "aliases",
-        "url",
-    )
-
-    def __init__(self, id, name, category, **kwargs):
-        self.id = id
-        # NOTE: Can be 'text' or 'imported'
-        # - text: using text and not imported from pastebin/gist
-        # - imported: imported from pastebin/gist
-        self.type = kwargs.pop("type", "text")
-        # Will always return None unless type == 'imported'
-        self.url = kwargs.pop("url", None)
-
-        self.name = name
-        # Incase its invoked using its alias
-        self.invokedName = kwargs.pop("invokedName", name)
-
-        self.description = kwargs.pop("description", None) or "No description."
-        self.content = kwargs.pop("content", "NULL")
-        self.category = category
-        self.aliases = kwargs.pop("aliases", [])
-
-        # - Convert 1 and 0 to True and False
-        # No longer used, replaced by invokedName
-        # self.isAlias = True if isAlias else False
-
-    def __str__(self):
-        return self.name
-
-
 async def getCustomCommand(ctx, db, command):
+    """Get custom command from database."""
     try:
         _id, name = await db.fetch_one(
             dbQuery.getCommandId, values={"name": command, "guildId": ctx.guild.id}
@@ -107,6 +68,7 @@ async def getCustomCommands(db, guildId):
 
     cmds = {}
     rows = await db.fetch_all(dbQuery.getCommands, values={"guildId": guildId})
+    # Create temporary dict
     for row in rows:
         isAlias = row[1] != row[2]
 
