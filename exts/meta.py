@@ -134,17 +134,35 @@ class CustomHelp(commands.HelpCommand):
     async def send_bot_help(self, mapping):
         ctx = self.context
 
+        dest = self.get_destination()
+
+        e = discord.Embed(
+            description=infoQuote.info(
+                "- () : Required Argument\n"
+                + "+ [] : Optional Argument\n"
+                + "\nDon't literally type `[]` or `()`!",
+                codeBlock=True
+            ),
+            colour=ctx.bot.colour,
+        )
+        e.set_author(name=ctx.author, icon_url=ctx.author.avatar_url)
+        unsorted = mapping.pop(None)
+        sortedCog = sorted(mapping.keys(), key=lambda c: c.qualified_name)
+        e.add_field(
+            name="Categories",
+            value="\n".join(
+                ["• **{}**".format(cog.qualified_name) for cog in sortedCog]
+                + ["• **Unsorted**"]
+            )
+        )
+
+        return await dest.send(embed=e)
+
+        # TODO: Move these stuff below to send_cog_help
         # Add custom commands to mapping
         ccs = await getCustomCommands(ctx.db, ctx.guild.id)
         for cmd in ccs:
             mapping[cmd.category] += [cmd]
-
-        dest = self.get_destination()
-        e = discord.Embed(
-            description=infoQuote.info("`()` : **Required**\n`[]` : **Optional**"),
-            colour=ctx.bot.colour,
-        )
-        e.set_author(name=ctx.author, icon_url=ctx.author.avatar_url)
 
         unsorted = mapping.pop(None)
         ignored = ["ErrorHandler"]
