@@ -27,7 +27,8 @@ EXTS_DIR= "exts"
 EXTS_IGNORED = (
     "twitch.py",
     "youtube.py",
-    "slash.py"
+    "slash.py",
+    "music.py"
 )
 for filename in os.listdir("./{}".format(EXTS_DIR)):
     if filename in EXTS_IGNORED:
