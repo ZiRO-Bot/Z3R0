@@ -110,13 +110,16 @@ class CustomHelp(commands.HelpCommand):
             description=infoQuote.info(
                 "- () : Required Argument\n"
                 + "+ [] : Optional Argument\n"
-                + "\nDon't literally type `[]` or `()`!",
+                + "\nDon't literally type `[]`, `()` or `|`!",
                 codeBlock=True,
             ),
             colour=ctx.bot.colour,
         )
         e.set_author(name=ctx.author, icon_url=ctx.author.avatar_url)
-        
+        e.set_footer(
+            text="Use `{}help [category|command]` for more information".format(ctx.prefix)
+        )
+
         unsorted = mapping.pop(None)
         sortedCog = sorted(mapping.keys(), key=lambda c: c.qualified_name)
 
@@ -125,9 +128,7 @@ class CustomHelp(commands.HelpCommand):
             name="Categories",
             value="\n".join(
                 [
-                    "• {} **{}**".format(
-                        getattr(cog, "icon","❓"), cog.qualified_name
-                    )
+                    "• {} **{}**".format(getattr(cog, "icon", "❓"), cog.qualified_name)
                     for cog in sortedCog
                     if cog.qualified_name not in ignored
                 ]
