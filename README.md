@@ -57,6 +57,9 @@ sql="sqlite:///database.db"
 # Not needed, but if you want error to be reported to a guild channel you can
 # set it here
 issueChannel="0000000000000000"
+
+# OpenWeather's API Key, required for weather command
+openweather = "0000000000000000000000000000000"
 ```
 
 ## Overhaul

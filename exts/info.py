@@ -9,6 +9,7 @@ import discord
 import time
 
 
+from api.openweather import OpenWeatherAPI, CityNotFound
 from core.mixin import CogMixin
 from exts.utils.infoQuote import *
 from discord.ext import commands
@@ -29,6 +30,12 @@ async def authorOrReferenced(ctx):
 
 class Info(commands.Cog, CogMixin):
     """Commands that gives you information."""
+
+    def __init__(self, bot):
+        super().__init__(bot)
+        self.openweather = OpenWeatherAPI(
+            key=getattr(self.bot.config, "openweather", None), session=self.bot.session
+        )
 
     @commands.command(aliases=["p"])
     async def ping(self, ctx):
@@ -83,6 +90,36 @@ class Info(commands.Cog, CogMixin):
             icon_url=ctx.author.avatar_url,
         )
         await ctx.try_reply(embed=e)
+
+    @commands.command()
+    async def weather(self, ctx, *, city):
+        """Get current weather on specific city"""
+        if not self.openweather.apiKey:
+            # TODO: Adjust error message
+            return await ctx.send(
+                "OpenWeather's API Key is not set! Please contact the bot owner to solve this issue."
+            )
+
+        try:
+            weatherData = await self.openweather.get_from_city(city)
+        except CityNotFound as err:
+            # TODO: Also adjust this message
+            return await ctx.reply("City not Found!")
+
+        e = discord.Embed(
+            title="{}, {}".format(weatherData.city, weatherData.country),
+            description="Feels like {}°C, {}".format(weatherData.tempFeels.celcius, weatherData.weatherDetail),
+            color=discord.Colour(0xEA6D4A),
+        )
+        e.set_author(
+            name="OpenWeather",
+            icon_url="https://openweathermap.org/themes/openweathermap/assets/vendor/owm/img/icons/logo_60x60.png",
+        )
+        e.add_field(name="Temperature", value="{}°C".format(weatherData.temp.celcius))
+        e.add_field(name="Humidity", value=weatherData.humidity)
+        e.add_field(name="Wind", value=str(weatherData.wind))
+        e.set_thumbnail(url=weatherData.iconUrl)
+        await ctx.send(embed=e)
 
 
 def setup(bot):
