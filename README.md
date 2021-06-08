@@ -73,6 +73,7 @@ openweather = "0000000000000000000000000000000"
 - [**New**] Mascot, named `Z3R0`
 - [**Relicense**] `GPL-3.0` -> `MPL-2.0`
 - [**BugFix**] Priority doesn't work on user-based input (string, int, etc)
+- [**New**] "Colour Information" command
 
 ### Overhaul Plan
 
@@ -90,6 +91,7 @@ openweather = "0000000000000000000000000000000"
 - Twitch and YouTube notification (Maybe?)
 - Music Player
 - Image manipulation (Filter and stuff)
+- Re-implement old (`v2.x`) commands to `v3.0.0`
 
 ## License
 
