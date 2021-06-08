@@ -11,8 +11,10 @@ import time
 
 from api.openweather import OpenWeatherAPI, CityNotFound
 from core.mixin import CogMixin
+from exts.utils import pillow
 from exts.utils.infoQuote import *
 from discord.ext import commands
+from typing import Union
 
 
 # TODO: Move this somewhere in `exts/utils/` folder
@@ -110,7 +112,9 @@ class Info(commands.Cog, CogMixin):
 
         e = discord.Embed(
             title="{}, {}".format(weatherData.city, weatherData.country),
-            description="Feels like {}°C, {}".format(weatherData.tempFeels.celcius, weatherData.weatherDetail),
+            description="Feels like {}°C, {}".format(
+                weatherData.tempFeels.celcius, weatherData.weatherDetail
+            ),
             color=discord.Colour(0xEA6D4A),
         )
         e.set_author(
@@ -122,6 +126,30 @@ class Info(commands.Cog, CogMixin):
         e.add_field(name="Wind", value=str(weatherData.wind))
         e.set_thumbnail(url=weatherData.iconUrl)
         await ctx.send(embed=e)
+
+    @commands.command(aliases=["c", "color"])
+    async def colour(self, ctx, value: str):
+        """Get colour information from hex value"""
+        # Pre processing
+        value = value.lstrip("#")[:6]
+        value = value.ljust(6, "0")
+
+        try:
+            h = str(hex(int(value, 16)))[2:]
+            h = h.ljust(6, "0")
+        except ValueError:
+            return await ctx.send("Invalid colour value!")
+        RGB = tuple(int(h[i : i + 2], 16) for i in (0, 2, 4))
+        image = await pillow.rectangle(self.bot.loop, *RGB)
+        f = discord.File(fp=image, filename="rect.png")
+        e = discord.Embed(
+            title="Information on #{}".format(h),
+            colour=discord.Colour(int(h, 16) if h != "ffffff" else 0xFFFFF0),
+        )
+        e.set_thumbnail(url="attachment://rect.png")
+        e.add_field(name="Hex", value=f"#{h}")
+        e.add_field(name="RGB", value=str(RGB))
+        return await ctx.send(file=f, embed=e)
 
 
 def setup(bot):
