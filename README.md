@@ -92,6 +92,7 @@ openweather = "0000000000000000000000000000000"
 - Music Player
 - Image manipulation (Filter and stuff)
 - Re-implement old (`v2.x`) commands to `v3.0.0`
+- Slash command (Waiting for Dpy `v2.0`)
 
 ## License
 
