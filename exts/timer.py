@@ -19,6 +19,8 @@ def formatDateTime(datetime):
 class Timer(commands.Cog, CogMixin):
     """Time-related commands."""
 
+    icon = "🕑"
+
     @commands.command()
     async def time(self, ctx):
         """Get current time."""

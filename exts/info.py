@@ -31,6 +31,8 @@ async def authorOrReferenced(ctx):
 class Info(commands.Cog, CogMixin):
     """Commands that gives you information."""
 
+    icon = "<:info:783206485051441192>"
+
     def __init__(self, bot):
         super().__init__(bot)
         self.openweather = OpenWeatherAPI(

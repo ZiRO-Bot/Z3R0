@@ -19,18 +19,6 @@ from exts.utils.format import CMDName
 from discord.ext import commands
 
 
-# --- NOTE: Edit these stuff to your liking
-AUTHOR = "ZiRO2264#4572"
-VERSION = "`v3.0.O` - `overhaul`"
-LINKS = {
-    "Documentation (Coming Soon\u2122)": "",
-    "Source Code": "https://github.com/ZiRO-Bot/ziBot",
-    "Support Server": "https://discord.gg/sP9xRy6",
-}
-LICENSE = "Mozilla Public License, v. 2.0"
-# ---
-
-
 async def getCustomCommand(ctx, db, command):
     """Get custom command from database."""
     try:
@@ -48,9 +36,10 @@ async def getCustomCommand(ctx, db, command):
         content=firstRes[0],
         name=firstRes[1],
         invokedName=name,
-        category=firstRes[2],
         description=firstRes[3],
+        category=firstRes[4],
         aliases=[row[2] for row in result if row[2] != row[1]],
+        uses=firstRes[5]+1
     )
 
 
@@ -178,6 +167,8 @@ class CustomHelp(commands.HelpCommand):
 class Meta(commands.Cog, CogMixin):
     """Bot-related commands."""
 
+    icon = "🤖"
+
     def __init__(self, bot):
         super().__init__(bot)
         # Replace default help menu with custom one
@@ -217,9 +208,10 @@ class Meta(commands.Cog, CogMixin):
             except:
                 continue
 
-    def processTag(self, ctx, content):
+    def processTag(self, ctx, cmd: CustomCommand):
         """Process tags from CC's content with TSE."""
         author = tse.MemberAdapter(ctx.author)
+        content = cmd.content
         # TODO: Make target uses custom command arguments instead
         target = (
             tse.MemberAdapter(ctx.message.mentions[0])
@@ -235,6 +227,7 @@ class Meta(commands.Cog, CogMixin):
             "channel": channel,
             "unix": tse.IntAdapter(int(dt.datetime.utcnow().timestamp())),
             "prefix": ctx.prefix,
+            "uses": tse.IntAdapter(cmd.uses),
         }
         if ctx.guild:
             guild = tse.GuildAdapter(ctx.guild)
@@ -246,7 +239,7 @@ class Meta(commands.Cog, CogMixin):
         async with self.db.transaction():
             # Increment uses
             await self.db.execute(dbQuery.incrCommandUsage, values={"id": cmd.id})
-            result = self.processTag(ctx, cmd.content)
+            result = self.processTag(ctx, cmd)
             embed = result.actions.get("embed")
 
             dest = result.actions.get("target")
@@ -402,8 +395,8 @@ class Meta(commands.Cog, CogMixin):
         """Get link to my source code."""
         await ctx.send("My source code: {}".format(links["Source Code"]))
 
-    @commands.command(aliases=["bi", "about"])
-    async def botinfo(self, ctx):
+    @commands.command(aliases=["botinfo", "bi"])
+    async def about(self, ctx):
         """Information about me."""
 
         # Z3R0 Banner
@@ -411,7 +404,7 @@ class Meta(commands.Cog, CogMixin):
 
         e = discord.Embed(
             description=self.bot.description
-            + "\n\nThis bot is licensed under **{}**.".format(license),
+            + "\n\nThis bot is licensed under **{}**.".format(ctx.bot.license),
             timestamp=ctx.message.created_at,
             colour=self.bot.colour,
         )
@@ -421,20 +414,20 @@ class Meta(commands.Cog, CogMixin):
             icon_url=ctx.author.avatar_url,
         )
         e.set_image(url="attachment://banner.png")
-        e.add_field(name="Author", value=AUTHOR)
+        e.add_field(name="Author", value=ctx.bot.author)
         e.add_field(
             name="Library",
             value="[`zidiscord.py`](https://github.com/null2264/discord.py) - `v{}`".format(
                 discord.__version__
             ),
         )
-        e.add_field(name="Version", value=VERSION)
+        e.add_field(name="Version", value=ctx.bot.version)
         e.add_field(
             name="Links",
             value="\n".join(
                 [
                     "- [{}]({})".format(k, v) if v else "- {}".format(k)
-                    for k, v in LINKS.items()
+                    for k, v in ctx.bot.links.items()
                 ]
             ),
             inline=False,
@@ -460,7 +453,10 @@ class Meta(commands.Cog, CogMixin):
         )
         e.add_field(
             name="`>_` | Command Usage (This session)",
-            value="{} commands".format(self.bot.commandUsage),
+            value="{} commands ({} custom commands)".format(
+                self.bot.commandUsage,
+                self.bot.customCommandUsage
+            ),
             inline=False,
         )
         await ctx.try_reply(embed=e)

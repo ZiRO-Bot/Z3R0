@@ -22,6 +22,8 @@ ERR = "<:redTick:767209263054585856>"
 class Developer(commands.Cog, CogMixin):
     """Debugging tools for bot devs."""
 
+    icon = "<:verified_bot_developer:748090768237002792>"
+
     async def cog_check(self, ctx):
         """Only bot master able to use debug cogs."""
         return (

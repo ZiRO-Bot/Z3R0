@@ -58,7 +58,8 @@ getCommandContent = """
         commands.name,
         commands_lookup.name,
         commands.description,
-        commands.category
+        commands.category,
+        commands.uses
     FROM commands
     JOIN commands_lookup
         ON commands_lookup.cmdId=commands.id

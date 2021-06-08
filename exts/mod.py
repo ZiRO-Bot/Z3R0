@@ -11,9 +11,10 @@ from core.mixin import CogMixin
 from discord.ext import commands
 
 
-class Mod(commands.Cog, CogMixin):
+class Moderation(commands.Cog, CogMixin):
     """Moderation commands."""
 
+    icon = "🛠️"
 
 def setup(bot):
-    bot.add_cog(Mod(bot))
+    bot.add_cog(Moderation(bot))

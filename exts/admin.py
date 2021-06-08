@@ -14,6 +14,8 @@ from discord.ext import commands
 class Admin(commands.Cog, CogMixin):
     """Admin-only commands to configure the bot."""
 
+    icon = "\u2699"
+
 
 def setup(bot):
     bot.add_cog(Admin(bot))

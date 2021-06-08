@@ -54,6 +54,18 @@ def _callablePrefix(bot, message):
 
 
 class Brain(commands.Bot):
+
+    # --- NOTE: Information about the bot
+    author = "ZiRO2264#4572"
+    version = "`3.0.0` - `overhaul`"
+    links = {
+        "Documentation (Coming Soon\u2122)": "",
+        "Source Code": "https://github.com/ZiRO-Bot/ziBot",
+        "Support Server": "https://discord.gg/sP9xRy6",
+    }
+    license = "Mozilla Public License, v. 2.0"
+    # ---
+
     def __init__(self):
         super().__init__(
             command_prefix=_callablePrefix,
@@ -86,6 +98,7 @@ class Brain(commands.Bot):
 
         self.activityIndex = 0
         self.commandUsage = 0
+        self.customCommandUsage = 0
 
         # bot's default prefix
         self.defPrefix = ">" if not hasattr(config, "prefix") else config.prefix
@@ -202,7 +215,9 @@ class Brain(commands.Bot):
         if canRun:
             if priority == 1:
                 try:
-                    return await executeCC(*args)
+                    await executeCC(*args)
+                    self.customCommandUsage += 1
+                    return
                 except CCommandNotFound:
                     # Failed to run custom command, revert to built-in command
                     pass
@@ -210,7 +225,9 @@ class Brain(commands.Bot):
             # no need to try getting custom command
             return await self.invoke(ctx)
         # Can't run built-in command, straight to trying custom command
-        return await executeCC(*args)
+        await executeCC(*args)
+        self.customCommandUsage += 1
+        return
 
     def formattedPrefixes(self, message, codeblock: bool = False):
         prefixes = _callablePrefix(self, message)
