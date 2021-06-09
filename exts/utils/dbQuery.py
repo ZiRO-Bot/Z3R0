@@ -3,7 +3,7 @@
 createCommandsTable = """
     CREATE TABLE IF NOT EXISTS commands (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        type TEXT DEFAULT "text",
+        type TEXT,
         name TEXT,
         category TEXT,
         description TEXT,
@@ -28,13 +28,8 @@ createCommandsLookupTable = """
 """
 
 insertToCommands = """
-    INSERT INTO commands (name, content, ownerId, createdAt)
-    VALUES (:name, :content, :ownerId, :createdAt)
-"""
-
-deleteCommandAlias = """
-    DELETE FROM commands_lookup
-    WHERE (name=:name AND guildId=:guildId)
+    INSERT INTO commands (name, content, ownerId, createdAt, type, url)
+    VALUES (:name, :content, :ownerId, :createdAt, :type, :url)
 """
 
 deleteCommand = """
@@ -45,6 +40,11 @@ deleteCommand = """
 insertToCommandsLookup = """
     INSERT INTO commands_lookup (cmdId, name, guildId)
     VALUES (:cmdId, :name, :guildId)
+"""
+
+deleteCommandAlias = """
+    DELETE FROM commands_lookup
+    WHERE (name=:name AND guildId=:guildId)
 """
 
 getCommandId = """

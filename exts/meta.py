@@ -8,15 +8,22 @@ import asyncio
 import discord
 import datetime as dt
 import humanize
+import re
 import TagScriptEngine as tse
 
 
-from core.errors import CCommandNotFound
+from core.errors import CCommandNotFound, CCommandAlreadyExists
 from core.mixin import CogMixin
 from core.objects import CustomCommand
 from exts.utils import dbQuery, infoQuote, tseBlocks
 from exts.utils.format import CMDName
 from discord.ext import commands
+
+
+GIST_REGEX = re.compile(
+    r"http(?:s)?:\/\/gist\.github(?:usercontent)?\.com\/.*\/(\S*)(?:\/)?"
+)
+PASTEBIN_REGEX = re.compile(r"http(?:s)?:\/\/pastebin.com\/(?:raw\/)?(\S*)")
 
 
 async def getCustomCommand(ctx, db, command):
@@ -39,7 +46,7 @@ async def getCustomCommand(ctx, db, command):
         description=firstRes[3],
         category=firstRes[4],
         aliases=[row[2] for row in result if row[2] != row[1]],
-        uses=firstRes[5]+1
+        uses=firstRes[5] + 1,
     )
 
 
@@ -106,7 +113,9 @@ class CustomHelp(commands.HelpCommand):
         )
         e.set_author(name=ctx.author, icon_url=ctx.author.avatar_url)
         e.set_footer(
-            text="Use `{}help [category|command]` for more information".format(ctx.prefix)
+            text="Use `{}help [category|command]` for more information".format(
+                ctx.prefix
+            )
         )
 
         unsorted = mapping.pop(None)
@@ -285,19 +294,33 @@ class Meta(commands.Cog, CogMixin):
         """Run a custom command"""
         return await self.execCustomCommand(ctx, name)
 
-    @commands.command(name="import", aliases=["++"])
-    @modeCheck()
-    async def _import(self, ctx, name: CMDName, url: str):
-        """Import command from pastebin/github gist"""
-        # TODO: Add update and update-url command to update imported command
-        pass
+    async def addCmd(self, ctx, name: str, content: str, **kwargs):
+        """Add cmd to database"""
+        async with self.db.transaction():
+            lastInsert = await self.db.execute(
+                dbQuery.insertToCommands,
+                values={
+                    "name": name,
+                    "content": content,
+                    "ownerId": ctx.author.id,
+                    "createdAt": dt.datetime.utcnow().timestamp(),
+                    "type": kwargs.get("type", "text"),
+                    "url": kwargs.get("url", None),
+                },
+            )
+            lastLastInsert = await self.db.execute(
+                dbQuery.insertToCommandsLookup,
+                values={
+                    "cmdId": lastInsert,
+                    "name": name,
+                    "guildId": ctx.guild.id,
+                },
+            )
+            return lastInsert, lastLastInsert
+        return None, None
 
-    @command.command(aliases=["+", "create"])
-    @modeCheck()
-    async def add(self, ctx, name: CMDName, *, content: str):
-        """Add new command"""
-
-        # Check if command already exists
+    async def isCmdExist(self, ctx, name: str):
+        """Check if command already exists"""
         rows = await self.db.fetch_all(
             """
             SELECT *
@@ -310,31 +333,69 @@ class Meta(commands.Cog, CogMixin):
             values={"name": name, "guildId": ctx.guild.id},
         )
         if rows:
-            return await ctx.try_reply(
-                "A command/alias called `{}` already exists!".format(name)
-            )
+            raise CCommandAlreadyExists(name)
+
+    def getValidLink(self, url):
+        # Link will either be None, pastebin, or gist
+        link = None
+
+        url = url.rstrip("/")
+
+        # Regex stuff
+        # TODO: Find better way of finding "valid" url
+        group = GIST_REGEX.fullmatch(str(url))
+        if group:
+            if group.group(1) == "raw":
+                link = group.group(0)
+            else:
+                link = group.group(0) + "/raw"
+        else:
+            group = PASTEBIN_REGEX.fullmatch(str(url))
+            if not group:
+                raise commands.BadArgument
+            link = "https://pastebin.com/raw/" + group.group(1)
+        return link
+
+    @command.command(name="import", aliases=["++"])
+    @modeCheck()
+    async def _import(self, ctx, name: CMDName, *, url: str):
+        """Import command from pastebin/github gist"""
+        # NOTE: This command will only support pastebin and gist.github,
+        # maybe also hastebin.
+        link = self.getValidLink(url)
+
+        # Check if command already exists
+        await self.isCmdExist(ctx, name)
+
+        request = await self.bot.session.get(link)
+        content = await request.text()
+
+        lastInsert, lastLastInsert = await self.addCmd(
+            ctx, name, content, type="import", url=url
+        )
+        if lastInsert and lastLastInsert:
+            await ctx.send("`{}` has been imported (Source: <{}>)".format(name, link))
+
+    @command.command(name="update-url", aliases=["&u"])
+    async def update_url(self, ctx, name: CMDName, url: str):
+        """Update imported command's source url"""
+        link = self.getValidLink(url)
+
+    @command.command(aliases=["&&"])
+    async def update(self, ctx, name: CMDName):
+        """Update imported command"""
+
+    @command.command(name="add", aliases=["+", "create"])
+    @modeCheck()
+    async def _add(self, ctx, name: CMDName, *, content: str):
+        """Add new command"""
+        # Check if command already exists
+        await self.isCmdExist(ctx, name)
 
         # Adding command to database
-        async with self.db.transaction():
-            lastInsert = await self.db.execute(
-                dbQuery.insertToCommands,
-                values={
-                    "name": name,
-                    "content": content,
-                    "ownerId": ctx.author.id,
-                    "createdAt": dt.datetime.utcnow().timestamp(),
-                },
-            )
-            lastLastInsert = await self.db.execute(
-                dbQuery.insertToCommandsLookup,
-                values={
-                    "cmdId": lastInsert,
-                    "name": name,
-                    "guildId": ctx.guild.id,
-                },
-            )
-            if lastInsert and lastLastInsert:
-                await ctx.send("{} has been created".format(name))
+        lastInsert, lastLastInsert = await self.addCmd(ctx, name, content)
+        if lastInsert and lastLastInsert:
+            await ctx.send("`{}` has been created".format(name))
 
     @command.command(aliases=["/"])
     @modeCheck()
@@ -454,8 +515,7 @@ class Meta(commands.Cog, CogMixin):
         e.add_field(
             name="`>_` | Command Usage (This session)",
             value="{} commands ({} custom commands)".format(
-                self.bot.commandUsage,
-                self.bot.customCommandUsage
+                self.bot.commandUsage, self.bot.customCommandUsage
             ),
             inline=False,
         )

@@ -13,6 +13,7 @@ import sys
 import traceback
 
 
+from core import errors
 from core.mixin import CogMixin
 from discord.ext import commands
 
@@ -38,14 +39,17 @@ class ErrorHandler(commands.Cog, CogMixin):
         # If nothing is found. We keep the exception passed to on_command_error.
         error = getattr(error, "original", error)
 
+        if isinstance(error, commands.CommandNotFound):
+            return
+
+        if isinstance(error, errors.CCommandAlreadyExists):
+            return await ctx.try_reply(error)
+
         if isinstance(error, pytz.exceptions.UnknownTimeZoneError):
             ctx.command.reset_cooldown(ctx)
             return await ctx.reply(
                 "That's not a valid timezone. You can look them up at https://kevinnovak.github.io/Time-Zone-Picker/"
             )
-
-        if isinstance(error, commands.CommandNotFound):
-            return
 
         if isinstance(error, commands.CommandOnCooldown):
             bot_msg = await ctx.send(
