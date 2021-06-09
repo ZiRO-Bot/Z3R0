@@ -11,6 +11,7 @@ import discord
 from core.bot import EXTS_DIR
 from core.mixin import CogMixin
 from exts.utils import infoQuote
+from exts.utils.format import ZEmbed
 from discord.ext import commands
 
 
@@ -81,10 +82,9 @@ class Developer(commands.Cog, CogMixin):
     @commands.command()
     async def reload(self, ctx, extension: str = None):
         """Reload extension."""
-        e = discord.Embed(
+        e = ZEmbed.default(
+            ctx,
             title="Something went wrong!".format(extension),
-            colour=self.bot.colour,
-            timestamp=dt.datetime.utcnow()
         )
         if extension:
             # reason will always return None unless an exception raised
@@ -99,16 +99,11 @@ class Developer(commands.Cog, CogMixin):
             except commands.ExtensionFailed:
                 reason = "{} failed to reload! Check the log for details.".format(extension)
             else:
-                e = discord.Embed(
+                e = ZEmbed.default(
+                    ctx,
                     title="{} has been reloaded!".format(extension),
-                    colour=self.bot.colour,
-                    timestamp=dt.datetime.utcnow()
                 )
             finally:
-                e.set_footer(
-                    text="Requested by {}".format(str(ctx.author)),
-                    icon_url=ctx.author.avatar_url,
-                )
                 if reason:
                     e.add_field(name="Reason", value=f"```{reason}```")
                 return await ctx.send(embed=e)
@@ -121,15 +116,10 @@ class Developer(commands.Cog, CogMixin):
                 status[extension] = ERR
             else:
                 status[extension] = OK
-        e = discord.Embed(
+        e = ZEmbed.default(
+            ctx,
             title="All extensions has been reloaded!",
             description="\n".join(["{} | `{}`".format(v, k) for k, v in status.items()]),
-            colour=self.bot.colour,
-            timestamp=dt.datetime.utcnow()
-        )
-        e.set_footer(
-            text="Requested by {}".format(str(ctx.author)),
-            icon_url=ctx.author.avatar_url,
         )
         return await ctx.send(embed=e)
 

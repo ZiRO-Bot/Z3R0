@@ -16,7 +16,7 @@ from core.errors import CCommandNotFound, CCommandAlreadyExists
 from core.mixin import CogMixin
 from core.objects import CustomCommand
 from exts.utils import dbQuery, infoQuote, tseBlocks
-from exts.utils.format import CMDName
+from exts.utils.format import CMDName, ZEmbed
 from discord.ext import commands
 
 
@@ -102,14 +102,13 @@ class CustomHelp(commands.HelpCommand):
 
         dest = self.get_destination()
 
-        e = discord.Embed(
+        e = ZEmbed(
             description=infoQuote.info(
                 "- () : Required Argument\n"
                 + "+ [] : Optional Argument\n"
                 + "\nDon't literally type `[]`, `()` or `|`!",
                 codeBlock=True,
             ),
-            colour=ctx.bot.colour,
         )
         e.set_author(name=ctx.author, icon_url=ctx.author.avatar_url)
         e.set_footer(
@@ -463,17 +462,12 @@ class Meta(commands.Cog, CogMixin):
         # Z3R0 Banner
         f = discord.File("./assets/img/banner.png", filename="banner.png")
 
-        e = discord.Embed(
+        e = ZEmbed.default(
+            ctx,
             description=self.bot.description
             + "\n\nThis bot is licensed under **{}**.".format(ctx.bot.license),
-            timestamp=ctx.message.created_at,
-            colour=self.bot.colour,
         )
         e.set_author(name=ctx.bot.user.name, icon_url=ctx.bot.user.avatar_url)
-        e.set_footer(
-            text="Requested by {}".format(str(ctx.author)),
-            icon_url=ctx.author.avatar_url,
-        )
         e.set_image(url="attachment://banner.png")
         e.add_field(name="Author", value=ctx.bot.author)
         e.add_field(
@@ -498,16 +492,9 @@ class Meta(commands.Cog, CogMixin):
     @commands.command()
     async def stats(self, ctx):
         uptime = dt.datetime.utcnow() - self.bot.uptime
-        e = discord.Embed(
-            timestamp=ctx.message.created_at,
-            colour=self.bot.colour,
-        )
+        e = ZEmbed.default(ctx)
         e.set_author(
             name=ctx.bot.user.name + "'s stats", icon_url=ctx.bot.user.avatar_url
-        )
-        e.set_footer(
-            text="Requested by {}".format(str(ctx.author)),
-            icon_url=ctx.author.avatar_url,
         )
         e.add_field(
             name="🕙 | Uptime", value=humanize.precisedelta(uptime), inline=False

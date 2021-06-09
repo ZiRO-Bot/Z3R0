@@ -12,6 +12,7 @@ import time
 from api.openweather import OpenWeatherAPI, CityNotFound
 from core.mixin import CogMixin
 from exts.utils import pillow
+from exts.utils.format import ZEmbed
 from exts.utils.infoQuote import *
 from discord.ext import commands
 from typing import Union
@@ -45,18 +46,10 @@ class Info(commands.Cog, CogMixin):
     async def ping(self, ctx):
         """Get bot's response time"""
         start = time.perf_counter()
-        e = discord.Embed(
-            title="Pong!",
-            timestamp=datetime.datetime.utcnow(),
-            colour=self.bot.colour,
-        )
+        e = ZEmbed.default(ctx, title="Pong!")
         e.add_field(
             name="<a:loading:776255339716673566> | Websocket",
             value=f"{round(self.bot.latency*1000)}ms",
-        )
-        e.set_footer(
-            text="Requested by {}".format(str(ctx.author)),
-            icon_url=ctx.author.avatar_url,
         )
         msg = await ctx.try_reply(embed=e)
         end = time.perf_counter()
@@ -75,9 +68,9 @@ class Info(commands.Cog, CogMixin):
             user = await authorOrReferenced(ctx)
 
         # Embed stuff
-        e = discord.Embed(
+        e = ZEmbed.default(
+            ctx,
             title="{}'s Avatar".format(user.name),
-            colour=self.bot.colour,
             description="[`JPEG`]({})".format(user.avatar_url_as(format="jpg"))
             + " | [`PNG`]({})".format(user.avatar_url_as(format="png"))
             + " | [`WEBP`]({})".format(user.avatar_url_as(format="webp"))
@@ -86,13 +79,8 @@ class Info(commands.Cog, CogMixin):
                 if user.is_avatar_animated()
                 else ""
             ),
-            timestamp=datetime.datetime.utcnow(),
         )
         e.set_image(url=user.avatar_url_as(size=1024))
-        e.set_footer(
-            text="Requested by {}".format(str(ctx.author)),
-            icon_url=ctx.author.avatar_url,
-        )
         await ctx.try_reply(embed=e)
 
     @commands.command()
@@ -110,7 +98,8 @@ class Info(commands.Cog, CogMixin):
             # TODO: Also adjust this message
             return await ctx.reply("City not Found!")
 
-        e = discord.Embed(
+        e = ZEmbed(
+            ctx,
             title="{}, {}".format(weatherData.city, weatherData.country),
             description="Feels like {}°C, {}".format(
                 weatherData.tempFeels.celcius, weatherData.weatherDetail
@@ -139,10 +128,14 @@ class Info(commands.Cog, CogMixin):
             h = h.ljust(6, "0")
         except ValueError:
             return await ctx.send("Invalid colour value!")
+        # Convert HEX into RGB
         RGB = tuple(int(h[i : i + 2], 16) for i in (0, 2, 4))
+
         image = await pillow.rectangle(self.bot.loop, *RGB)
         f = discord.File(fp=image, filename="rect.png")
-        e = discord.Embed(
+        
+        e = ZEmbed.default(
+            ctx,
             title="Information on #{}".format(h),
             colour=discord.Colour(int(h, 16) if h != "ffffff" else 0xFFFFF0),
         )
