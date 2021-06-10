@@ -371,7 +371,7 @@ class Meta(commands.Cog, CogMixin):
 
         # Check if command already exists
         await self.isCmdExist(ctx, name)
-        
+
         content = None
         async with self.bot.session.get(link) as request:
             content = await request.text()
@@ -381,12 +381,12 @@ class Meta(commands.Cog, CogMixin):
             name,
             content or "`ERROR`: Failed to retrieve command",
             type="import",
-            url=link
+            url=link,
         )
         if lastInsert and lastLastInsert:
             await ctx.send("`{}` has been imported (Source: <{}>)".format(name, url))
 
-    @command.command(name="update-url", aliases=["&u"])
+    @command.command(name="update-url", aliases=["&u", "set-url"])
     async def update_url(self, ctx, name: CMDName, url: str):
         """Update imported command's source url"""
         link = self.getValidLink(url)
@@ -397,11 +397,19 @@ class Meta(commands.Cog, CogMixin):
         # For both checking if command exists and
         # getting its content for comparation later on
         command = await getCustomCommand(ctx, name)
+        if not command.url:
+            # Incase someone try to update `text` command
+            return await ctx.try_reply(
+                "`{}` is not imported command! Please use '{}command edit' instead!".format(
+                    name, ctx.prefix
+                )
+            )
 
         content = None
         async with self.bot.session.get(command.url) as request:
             content = await request.text()
 
+        # Compare and get changes
         addition = 0
         deletion = 0
         for changes in DIFFER.compare(command.content, content or ""):
@@ -410,14 +418,13 @@ class Meta(commands.Cog, CogMixin):
             if changes.startswith("+ "):
                 addition += 1
         if not addition and not deletion:
+            # Nothing changed, so let's just send a message
             return await ctx.try_reply("Already up to date.")
+
         async with ctx.db.transaction():
             await ctx.db.execute(
                 dbQuery.updateCommandContent,
-                values = {
-                    "content": content,
-                    "id": command.id
-                }
+                values={"content": content, "id": command.id},
             )
             await ctx.try_reply(
                 "Command `{}` has been update\n".format(name)
@@ -464,6 +471,7 @@ class Meta(commands.Cog, CogMixin):
         else:
             # Aliases will be deleted automatically
             # NOTE TO DEVS: You must have `ON DELETE CASCADE`
+            #   also `foreign_keys` enabled if you're using sqlite3
             async with ctx.db.transaction():
                 await ctx.db.execute(dbQuery.deleteCommand, values={"id": command.id})
         # TODO: Adjust removed message
