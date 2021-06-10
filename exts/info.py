@@ -144,7 +144,7 @@ class Info(commands.Cog, CogMixin):
         e.add_field(name="RGB", value=str(RGB))
         return await ctx.try_reply(file=f, embed=e)
 
-    @commands.command(aliases=["lvl"], hidden=True)
+    @commands.command(aliases=["lvl", "rank"], hidden=True)
     async def level(self, ctx):
         """Level"""
         return await ctx.try_reply("https://tenor.com/view/stop-it-get-some-help-gif-7929301")
