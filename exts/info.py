@@ -131,7 +131,7 @@ class Info(commands.Cog, CogMixin):
         # Convert HEX into RGB
         RGB = tuple(int(h[i : i + 2], 16) for i in (0, 2, 4))
 
-        image = await pillow.rectangle(self.bot.loop, *RGB)
+        image = await pillow.rectangle(*RGB)
         f = discord.File(fp=image, filename="rect.png")
         
         e = ZEmbed.default(
