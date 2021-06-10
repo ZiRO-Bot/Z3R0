@@ -400,7 +400,7 @@ class Meta(commands.Cog, CogMixin):
         """Update imported command's source url"""
         link = self.getValidLink(url)
 
-    @command.command(aliases=["&&"])
+    @command.command(aliases=["&&", "pull"])
     async def update(self, ctx, name: CMDName):
         """Update imported command"""
         # For both checking if command exists and
