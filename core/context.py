@@ -13,12 +13,13 @@ class Context(commands.Context):
     def db(self):
         return self.bot.db
 
-    async def try_reply(self, content=None, *, mention=False, **kwargs):
+    async def try_reply(self, content="", *, mention_author=False, **kwargs):
         """Try reply, if failed do send instead"""
         try:
-            return await self.reply(content, mention_author=mention, **kwargs)
+            return await self.reply(content, mention_author=mention_author, **kwargs)
         except:
-            kwargs.pop("mention_author")
+            if mention_author and content:
+                content = f"{self.author.mention}\n{content}"
             return await self.send(content, **kwargs)
 
 

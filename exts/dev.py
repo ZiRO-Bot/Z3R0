@@ -50,6 +50,11 @@ class Developer(commands.Cog, CogMixin):
         await ctx.send(infoQuote.info("Test") + " {}".format(text))
 
     @test.command()
+    async def reply(self, ctx):
+        """Test reply."""
+        await ctx.try_reply("", mention_author=True)
+
+    @test.command()
     async def error(self, ctx):
         """Test error handler."""
         raise RuntimeError("Haha error brrr")
