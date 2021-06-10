@@ -31,11 +31,11 @@ class Utilities(commands.Cog, CogMixin):
         e = ZEmbed.default(
             ctx,
             fields=[
-                ("Equation", equation),
+                ("Equation", discord.utils.escape_markdown(equation)),
                 ("Result", round(float(result), 1) if result != "ERR" else result),
                 ("Result (raw)", result),
             ],
-            field_inline=False
+            field_inline=False,
         )
         e.set_author(name="Simple Math Evaluator", icon_url=ctx.bot.user.avatar_url)
         return await ctx.try_reply(embed=e)
