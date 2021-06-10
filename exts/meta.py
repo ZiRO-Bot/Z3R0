@@ -251,8 +251,8 @@ class Meta(commands.Cog, CogMixin):
     async def execCustomCommand(self, ctx, command, raw: bool=False):
         cmd = await getCustomCommand(ctx, command)
         if raw:
-            # TODO: Escape all the markups
-            return await ctx.try_reply(cmd.content)
+            content = discord.utils.escape_markdown(cmd.content)
+            return await ctx.try_reply(content)
 
         async with self.db.transaction():
             # Increment uses
