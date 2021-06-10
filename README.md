@@ -91,8 +91,9 @@ openweather = "0000000000000000000000000000000"
 - Twitch and YouTube notification (Maybe?)
 - Music Player
 - Image manipulation (Filter and stuff)
-- Re-implement old (`v2.x`) commands to `v3.0.0`
+- Re-implement/improve old (`v2.x`) commands to `v3.0.0`
 - Slash command (Waiting for Dpy `v2.0`)
+- Add flags ('--something', also waiting for Dpy `v2.0`)
 
 ## License
 
