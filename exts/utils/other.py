@@ -16,6 +16,9 @@ import math
 import operator
 
 
+PHI = (1 + math.sqrt(5)) / 2
+
+
 class NumericStringParser(object):
     """
     Most of this code comes from the fourFn.py pyparsing example by Paul McGuire
@@ -61,13 +64,15 @@ class NumericStringParser(object):
         multop = mult | div | mod
         expop = Literal("^") | Literal("**")
         pi = CaselessLiteral("PI")
+        phi = CaselessLiteral("PHI")
+        tau = CaselessLiteral("TAU")
         expr = Forward()
         atom = (
             (
                 Optional(oneOf("- +"))
-                + (ident + lpar + expr + rpar | pi | e | fnumber).setParseAction(
-                    self.pushFirst
-                )
+                + (
+                    ident + lpar + expr + rpar | pi | e | phi | tau | fnumber
+                ).setParseAction(self.pushFirst)
             )
             | Optional(oneOf("- +")) + Group(lpar + expr + rpar)
         ).setParseAction(self.pushUMinus)
@@ -97,6 +102,7 @@ class NumericStringParser(object):
             "sin": math.sin,
             "cos": math.cos,
             "tan": math.tan,
+            "atan": math.atan,
             "exp": math.exp,
             "abs": abs,
             "trunc": lambda a: int(a),
@@ -104,6 +110,7 @@ class NumericStringParser(object):
             "sgn": lambda a: abs(a) > epsilon and cmp(a, 0) or 0,
             "sqrt": math.sqrt,
             "floor": math.floor,
+            "fact": math.factorial,
         }
 
     def evaluateStack(self, s):
@@ -118,6 +125,10 @@ class NumericStringParser(object):
             return math.pi  # 3.1415926535
         elif op == "E":
             return math.e  # 2.718281828
+        if op == "PHI":
+            return PHI
+        if op == "TAU":
+            return math.tau
         elif op in self.fn:
             return self.fn[op](self.evaluateStack(s))
         elif op[0].isalpha():
