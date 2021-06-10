@@ -96,7 +96,7 @@ class Info(commands.Cog, CogMixin):
             weatherData = await self.openweather.get_from_city(city)
         except CityNotFound as err:
             # TODO: Also adjust this message
-            return await ctx.reply("City not Found!")
+            return await ctx.try_reply("City not Found!")
 
         e = ZEmbed(
             ctx,
@@ -114,7 +114,7 @@ class Info(commands.Cog, CogMixin):
         e.add_field(name="Humidity", value=weatherData.humidity)
         e.add_field(name="Wind", value=str(weatherData.wind))
         e.set_thumbnail(url=weatherData.iconUrl)
-        await ctx.send(embed=e)
+        await ctx.try_reply(embed=e)
 
     @commands.command(aliases=["clr", "color"])
     async def colour(self, ctx, value: str):
@@ -142,7 +142,12 @@ class Info(commands.Cog, CogMixin):
         e.set_thumbnail(url="attachment://rect.png")
         e.add_field(name="Hex", value=f"#{h}")
         e.add_field(name="RGB", value=str(RGB))
-        return await ctx.send(file=f, embed=e)
+        return await ctx.try_reply(file=f, embed=e)
+
+    @commands.command(aliases=["lvl"], hidden=True)
+    async def level(self, ctx):
+        """Level"""
+        return await ctx.try_reply("https://tenor.com/view/stop-it-get-some-help-gif-7929301")
 
 
 def setup(bot):
