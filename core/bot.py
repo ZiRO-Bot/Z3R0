@@ -28,6 +28,7 @@ EXTS_DIR= "cogs"
 EXTS_IGNORED = (
     "admin.py",
     "youtube.py",
+    "twitch.py",
     "slash.py",
     "src.py",
     "mcbe.py",
