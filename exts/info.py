@@ -83,7 +83,7 @@ class Info(commands.Cog, CogMixin):
         e.set_image(url=user.avatar_url_as(size=1024))
         await ctx.try_reply(embed=e)
 
-    @commands.command()
+    @commands.command(aliases=["w"])
     async def weather(self, ctx, *, city):
         """Get current weather on specific city"""
         if not self.openweather.apiKey:
@@ -116,7 +116,7 @@ class Info(commands.Cog, CogMixin):
         e.set_thumbnail(url=weatherData.iconUrl)
         await ctx.send(embed=e)
 
-    @commands.command(aliases=["c", "color"])
+    @commands.command(aliases=["clr", "color"])
     async def colour(self, ctx, value: str):
         """Get colour information from hex value"""
         # Pre processing
