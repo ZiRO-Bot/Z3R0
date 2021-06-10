@@ -24,13 +24,15 @@ class Utilities(commands.Cog, CogMixin):
         """Simple math evaluator"""
         try:
             result = NumericStringParser().eval(equation)
-        except:
+        except ZeroDivisionError:
+            result = "ERR"
+        except Exception as exc:
             return await ctx.send("I couldn't read that expression properly.")
         e = ZEmbed.default(
             ctx,
             fields=[
                 ("Equation", equation),
-                ("Result", round(float(result), 1)),
+                ("Result", round(float(result), 1) if result != "ERR" else result),
                 ("Result (raw)", result),
             ],
             field_inline=False
