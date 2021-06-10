@@ -59,10 +59,17 @@ getCommandContent = """
         commands_lookup.name,
         commands.description,
         commands.category,
-        commands.uses
+        commands.uses,
+        commands.url
     FROM commands
     JOIN commands_lookup
         ON commands_lookup.cmdId=commands.id
+    WHERE commands.id=:id
+"""
+
+updateCommandContent = """
+    UPDATE commands
+    SET content=:content
     WHERE commands.id=:id
 """
 

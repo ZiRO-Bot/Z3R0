@@ -5,8 +5,9 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 """
 
 import asyncio
-import discord
 import datetime as dt
+import difflib
+import discord
 import humanize
 import re
 import TagScriptEngine as tse
@@ -26,8 +27,12 @@ GIST_REGEX = re.compile(
 PASTEBIN_REGEX = re.compile(r"http(?:s)?:\/\/pastebin.com\/(?:raw\/)?(\S*)")
 
 
-async def getCustomCommand(ctx, db, command):
+DIFFER = difflib.Differ()
+
+
+async def getCustomCommand(ctx, command):
     """Get custom command from database."""
+    db = ctx.db
     try:
         _id, name = await db.fetch_one(
             dbQuery.getCommandId, values={"name": command, "guildId": ctx.guild.id}
@@ -47,6 +52,7 @@ async def getCustomCommand(ctx, db, command):
         category=firstRes[4],
         aliases=[row[2] for row in result if row[2] != row[1]],
         uses=firstRes[5] + 1,
+        url=firstRes[6],
     )
 
 
@@ -243,7 +249,7 @@ class Meta(commands.Cog, CogMixin):
         return self.engine.process(content, seed)
 
     async def execCustomCommand(self, ctx, command):
-        cmd = await getCustomCommand(ctx, self.db, command)
+        cmd = await getCustomCommand(ctx, command)
         async with self.db.transaction():
             # Increment uses
             await self.db.execute(dbQuery.incrCommandUsage, values={"id": cmd.id})
@@ -322,13 +328,13 @@ class Meta(commands.Cog, CogMixin):
         """Check if command already exists"""
         rows = await self.db.fetch_all(
             """
-            SELECT *
-            FROM commands
-            INNER JOIN commands_lookup ON
-                commands.id = commands_lookup.cmdId
-            WHERE
-                commands_lookup.name = :name AND commands_lookup.guildId = :guildId
-        """,
+                SELECT *
+                FROM commands
+                INNER JOIN commands_lookup ON
+                    commands.id = commands_lookup.cmdId
+                WHERE
+                    commands_lookup.name = :name AND commands_lookup.guildId = :guildId
+            """,
             values={"name": name, "guildId": ctx.guild.id},
         )
         if rows:
@@ -365,15 +371,20 @@ class Meta(commands.Cog, CogMixin):
 
         # Check if command already exists
         await self.isCmdExist(ctx, name)
-
-        request = await self.bot.session.get(link)
-        content = await request.text()
+        
+        content = None
+        async with self.bot.session.get(link) as request:
+            content = await request.text()
 
         lastInsert, lastLastInsert = await self.addCmd(
-            ctx, name, content, type="import", url=url
+            ctx,
+            name,
+            content or "`ERROR`: Failed to retrieve command",
+            type="import",
+            url=link
         )
         if lastInsert and lastLastInsert:
-            await ctx.send("`{}` has been imported (Source: <{}>)".format(name, link))
+            await ctx.send("`{}` has been imported (Source: <{}>)".format(name, url))
 
     @command.command(name="update-url", aliases=["&u"])
     async def update_url(self, ctx, name: CMDName, url: str):
@@ -383,6 +394,36 @@ class Meta(commands.Cog, CogMixin):
     @command.command(aliases=["&&"])
     async def update(self, ctx, name: CMDName):
         """Update imported command"""
+        # For both checking if command exists and
+        # getting its content for comparation later on
+        command = await getCustomCommand(ctx, name)
+
+        content = None
+        async with self.bot.session.get(command.url) as request:
+            content = await request.text()
+
+        addition = 0
+        deletion = 0
+        for changes in DIFFER.compare(command.content, content or ""):
+            if changes.startswith("- "):
+                deletion += 1
+            if changes.startswith("+ "):
+                addition += 1
+        if not addition and not deletion:
+            return await ctx.try_reply("Already up to date.")
+        async with ctx.db.transaction():
+            await ctx.db.execute(
+                dbQuery.updateCommandContent,
+                values = {
+                    "content": content,
+                    "id": command.id
+                }
+            )
+            await ctx.try_reply(
+                "Command `{}` has been update\n".format(name)
+                + "`[+]` {} Additions\n".format(addition)
+                + "`[-]` {} Deletions".format(deletion)
+            )
 
     @command.command(name="add", aliases=["+", "create"])
     @modeCheck()
@@ -412,7 +453,7 @@ class Meta(commands.Cog, CogMixin):
     @modeCheck()
     async def remove(self, ctx, name: CMDName):
         """Remove a command"""
-        command = await getCustomCommand(ctx, ctx.db, name)
+        command = await getCustomCommand(ctx, name)
         isAlias = name in command.aliases
         if isAlias:
             async with ctx.db.transaction():
