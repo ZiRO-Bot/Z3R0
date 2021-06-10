@@ -248,8 +248,12 @@ class Meta(commands.Cog, CogMixin):
             seed.update(guild=guild, server=guild)
         return self.engine.process(content, seed)
 
-    async def execCustomCommand(self, ctx, command):
+    async def execCustomCommand(self, ctx, command, raw: bool=False):
         cmd = await getCustomCommand(ctx, command)
+        if raw:
+            # TODO: Escape all the markups
+            return await ctx.try_reply(cmd.content)
+
         async with self.db.transaction():
             # Increment uses
             await self.db.execute(dbQuery.incrCommandUsage, values={"id": cmd.id})
@@ -298,6 +302,11 @@ class Meta(commands.Cog, CogMixin):
     async def run(self, ctx, name: CMDName, argument: str = None):
         """Run a custom command"""
         return await self.execCustomCommand(ctx, name)
+
+    @command.command()
+    async def raw(self, ctx, name: CMDName):
+        """Get raw content of a custom command"""
+        return await self.execCustomCommand(ctx, name, raw=True)
 
     async def addCmd(self, ctx, name: str, content: str, **kwargs):
         """Add cmd to database"""
