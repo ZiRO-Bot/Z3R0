@@ -6,14 +6,14 @@ from discord.ext import commands
 
 
 class ZEmbed(discord.Embed):
-    def __init__(self, color=0x3DB4FF, timestamp=None, fields=(), field_inline=False, **kwargs):
-        super().__init__(color=color, timestamp=timestamp or dt.datetime.utcnow(), **kwargs)
+    def __init__(self, color=0x3DB4FF, fields=(), field_inline=False, **kwargs):
+        super().__init__(color=color, **kwargs)
         for n, v in fields:
             self.add_field(name=n, value=v, inline=field_inline)
 
     @classmethod
-    def default(cls, ctx, **kwargs):
-        instance = cls(**kwargs)
+    def default(cls, ctx, timestamp=None, **kwargs):
+        instance = cls(timestamp=timestamp or dt.datetime.utcnow(), **kwargs)
         instance.set_footer(text="Requested by {}".format(ctx.author), icon_url=ctx.author.avatar_url)
         return instance
 
