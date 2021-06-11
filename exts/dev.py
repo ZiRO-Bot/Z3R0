@@ -66,22 +66,15 @@ class Developer(commands.Cog, CogMixin):
         pass
 
     def tryReload(self, extension: str):
-        reloadFailMessage = "Failed to reload {}: {}"
+        reloadFailMessage = "Failed to reload {}:"
         try:
             try:
                 self.bot.reload_extension(extension)
             except:
                 self.bot.reload_extension(f"{EXTS_DIR}.{extension}")
-        except commands.ExtensionNotFound as exc:
-            self.bot.logger.error(reloadFailMessage.format(extension, "Doesn't exist."))
-            raise exc
-        except commands.ExtensionNotLoaded as exc:
-            # await ctx.send("{} is not loaded!")
-            self.bot.logger.error(reloadFailMessage.format(extension, "Not loaded."))
-            raise exc
-        except commands.ExtensionFailed as exc:
+        except Exception as exc:
             # await ctx.send("{} failed to reload! Check the log for details.")
-            self.bot.logger.exception(reloadFailMessage.format(extension, ""))
+            self.bot.logger.exception(reloadFailMessage.format(extension))
             raise exc
 
     @commands.command()
@@ -93,24 +86,16 @@ class Developer(commands.Cog, CogMixin):
         )
         if extension:
             # reason will always return None unless an exception raised
-            reason = None
             try:
                 self.tryReload(extension)
-            except commands.ExtensionNotFound:
-                reason = "{} doesn't exist!".format(extension)
-                e.add_field(name="Reason", value=reason)
-            except commands.ExtensionNotLoaded:
-                reason = "{} is not loaded!".format(extension)
-            except commands.ExtensionFailed:
-                reason = "{} failed to reload! Check the log for details.".format(extension)
+            except Exception as exc:
+                e.add_field(name="Reason", value=f"```{exc}```")
             else:
                 e = ZEmbed.default(
                     ctx,
-                    title="{} has been reloaded!".format(extension),
+                    title="{} | {} has been reloaded!".format(OK, extension),
                 )
             finally:
-                if reason:
-                    e.add_field(name="Reason", value=f"```{reason}```")
                 return await ctx.send(embed=e)
         exts = self.bot.extensions.copy()
         status = {}
@@ -128,6 +113,27 @@ class Developer(commands.Cog, CogMixin):
         )
         return await ctx.send(embed=e)
 
+    @commands.command()
+    async def load(self, ctx, extension: str):
+        """Load an extension"""
+        try:
+            try:
+                self.bot.load_extension(extension)
+            except:
+                self.bot.load_extension(f"{EXTS_DIR}.{extension}")
+        except Exception as exc:
+            e = ZEmbed.default(
+                ctx,
+                title="Something went wrong!".format(extension),
+            )
+            e.add_field(name="Reason", value=f"```{exc}```")
+        else:
+            e = ZEmbed.default(
+                ctx,
+                title="{} | {} has been reloaded!".format(OK, extension),
+            )
+        finally:
+            await ctx.send(embed=e)
 
 
 def setup(bot):
