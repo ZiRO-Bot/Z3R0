@@ -32,7 +32,7 @@ class Utilities(commands.Cog, CogMixin):
             ctx,
             fields=[
                 ("Equation", discord.utils.escape_markdown(equation)),
-                ("Result", round(float(result), 1) if result != "ERR" else result),
+                ("Result", ("{0:,.1f}".format(result)) if result != "ERR" else result),
                 ("Result (raw)", result),
             ],
             field_inline=False,
