@@ -136,9 +136,6 @@ class NumericStringParser(object):
         if op in self.opn:
             op2 = self.evaluateStack(s)
             op1 = self.evaluateStack(s)
-            # opRes = self.opn[op](op1,op2)
-            # if opRes > 7e6:
-                # return "Infinity"
             return self.opn[op](op1, op2)
         elif op == "PI":
             return math.pi  # 3.1415926535

@@ -9,7 +9,6 @@ import discord
 import sys
 
 
-from core.decorators import in_executor
 from core.mixin import CogMixin
 from decimal import Overflow, InvalidOperation
 from discord.ext import commands
@@ -36,9 +35,9 @@ class Utilities(commands.Cog, CogMixin):
             formattedResult, result = ("Infinity",)*2
         except InvalidOperation:
             formattedResult, result = ("ERR",)*2
+        except Exception as exc:
+            return await ctx.send("I couldn't read that expression properly.")
 
-        # except Exception as exc:
-        #     return await ctx.send("I couldn't read that expression properly.")
         e = ZEmbed.default(
             ctx,
             fields=[
