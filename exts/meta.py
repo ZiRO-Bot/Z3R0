@@ -248,7 +248,7 @@ class Meta(commands.Cog, CogMixin):
             seed.update(guild=guild, server=guild)
         return self.engine.process(content, seed)
 
-    async def execCustomCommand(self, ctx, command, raw: bool=False):
+    async def execCustomCommand(self, ctx, command, raw: bool = False):
         cmd = await getCustomCommand(ctx, command)
         if raw:
             content = discord.utils.escape_markdown(cmd.content)
@@ -366,7 +366,7 @@ class Meta(commands.Cog, CogMixin):
         else:
             group = PASTEBIN_REGEX.fullmatch(str(url))
             if not group:
-                raise commands.BadArgument
+                raise commands.BadArgument("<{}> is not a valid url!".format(url))
             link = "https://pastebin.com/raw/" + group.group(1)
         return link
 
@@ -376,7 +376,10 @@ class Meta(commands.Cog, CogMixin):
         """Import command from pastebin/github gist"""
         # NOTE: This command will only support pastebin and gist.github,
         # maybe also hastebin.
-        link = self.getValidLink(url)
+        try:
+            link = self.getValidLink(url)
+        except commands.BadArgument as exc:
+            return await ctx.try_reply(str(exc))
 
         # Check if command already exists
         await self.isCmdExist(ctx, name)
@@ -393,16 +396,47 @@ class Meta(commands.Cog, CogMixin):
             url=link,
         )
         if lastInsert and lastLastInsert:
-            await ctx.send("`{}` has been imported (Source: <{}>)".format(name, url))
+            await ctx.try_reply(
+                "`{}` has been imported (Source: <{}>)".format(name, url)
+            )
 
     @command.command(name="update-url", aliases=["&u", "set-url"])
     async def update_url(self, ctx, name: CMDName, url: str):
         """Update imported command's source url"""
-        link = self.getValidLink(url)
+        # NOTE: Can only be run by cmd owner or guild mods/owner
+        command = await getCustomCommand(ctx, name)
+        if not command.url:
+            # Incase someone try to update `text` command
+            return await ctx.try_reply(
+                "`{}` is not imported command! Please use '{}command edit' instead!".format(
+                    name, ctx.prefix
+                )
+            )
+        try:
+            link = self.getValidLink(url)
+        except commands.BadArgument as exc:
+            return await ctx.try_reply(str(exc))
+
+        if link == command.url:
+            return await ctx.try_reply("Nothing changed.")
+
+        async with ctx.db.transaction():
+            await ctx.db.execute(
+                dbQuery.updateCommandUrl,
+                values={"url": link, "id": command.id},
+            )
+            return await ctx.try_reply(
+                "`{}` url has been set to <{}>.".format(name, url)
+                + "\nPlease do `{}command update {}` to update the content!".format(
+                    ctx.prefix, name
+                )
+            )
 
     @command.command(aliases=["&&", "pull"])
     async def update(self, ctx, name: CMDName):
         """Update imported command"""
+        # NOTE: Can only be run by cmd owner or guild mods/owner
+
         # For both checking if command exists and
         # getting its content for comparation later on
         command = await getCustomCommand(ctx, name)
@@ -428,7 +462,10 @@ class Meta(commands.Cog, CogMixin):
                 addition += 1
         if not addition and not deletion:
             # Nothing changed, so let's just send a message
-            return await ctx.try_reply("Already up to date.")
+            return await ctx.try_reply(
+                "Already up to date."
+                + "\n[**Note**]: It takes awhile for the site to be updated!"
+            )
 
         async with ctx.db.transaction():
             await ctx.db.execute(

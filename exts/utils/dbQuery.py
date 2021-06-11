@@ -32,6 +32,12 @@ insertToCommands = """
     VALUES (:name, :content, :ownerId, :createdAt, :type, :url)
 """
 
+updateCommandUrl = """
+    UPDATE commands
+    SET url=:url
+    WHERE commands.id=:id
+"""
+
 deleteCommand = """
     DELETE FROM commands
     WHERE id=:id
