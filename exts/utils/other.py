@@ -1,20 +1,19 @@
 from __future__ import division
 from pyparsing import (
     Literal,
-    CaselessLiteral,
     Word,
-    Combine,
     Group,
-    Optional,
-    ZeroOrMore,
     Forward,
-    nums,
     alphas,
-    oneOf,
+    alphanums,
+    Regex,
+    ParseException,
+    CaselessKeyword,
+    Suppress,
+    delimitedList,
 )
 import math
 import operator
-
 
 PHI = (1 + math.sqrt(5)) / 2
 
@@ -27,12 +26,21 @@ class NumericStringParser(object):
     http://pyparsing.wikispaces.com/message/view/home/15549426
     """
 
-    def pushFirst(self, strg, loc, toks):
+    def pushFirst(self, toks):
         self.exprStack.append(toks[0])
+    # def pushFirst(self, strg, loc, toks):
+    #     self.exprStack.append(toks[0])
 
-    def pushUMinus(self, strg, loc, toks):
-        if toks and toks[0] == "-":
-            self.exprStack.append("unary -")
+    def pushUMinus(self, toks):
+        for t in toks:
+            if t == "-":
+                self.exprStack.append("unary -")
+            else:
+                break
+
+    # def pushUMinus(self, strg, loc, toks):
+    #     if toks and toks[0] == "-":
+    #         self.exprStack.append("unary -")
 
     def __init__(self):
         """
@@ -46,47 +54,55 @@ class NumericStringParser(object):
         expr    :: term [ addop term ]*
         """
         point = Literal(".")
-        e = CaselessLiteral("E")
-        fnumber = Combine(
-            Word("+-" + nums, nums)
-            + Optional(point + Optional(Word(nums)))
-            + Optional(e + Word("+-" + nums, nums))
-        )
-        ident = Word(alphas, alphas + nums + "_$")
-        plus = Literal("+")
-        minus = Literal("-")
-        mult = Literal("*")
-        div = Literal("/")
-        mod = Literal("%")
-        lpar = Literal("(").suppress()
-        rpar = Literal(")").suppress()
+
+        e = CaselessKeyword("E")
+        pi = CaselessKeyword("PI")
+        phi = CaselessKeyword("PHI")
+        tau = CaselessKeyword("TAU")
+
+        # fnumber = Combine(
+        #     Word("+-" + nums, nums)
+        #     + Optional(point + Optional(Word(nums)))
+        #     + Optional(e + Word("+-" + nums, nums))
+        # )
+        fnumber = Regex(r"[+-]?\d+(?:\.\d*)?(?:[eE][+-]?\d+)?")
+        ident = Word(alphas, alphanums + "_$")
+
+        plus, minus, mult, div, mod = map(Literal, "+-*/%")
+        lpar, rpar = map(Suppress, "()")
         addop = plus | minus
         multop = mult | div | mod
         expop = Literal("^") | Literal("**")
-        pi = CaselessLiteral("PI")
-        phi = CaselessLiteral("PHI")
-        tau = CaselessLiteral("TAU")
+
         expr = Forward()
+        expr_list = delimitedList(Group(expr))
+        # add parse action that replaces the function identifier with a (name, number of args) tuple
+        def insert_fn_argcount_tuple(t):
+            fn = t.pop(0)
+            num_args = len(t[0])
+            t.insert(0, (fn, num_args))
+
+        fn_call = (ident + lpar - Group(expr_list) + rpar).setParseAction(
+            insert_fn_argcount_tuple
+        )
         atom = (
-            (
-                Optional(oneOf("- +"))
-                + (
-                    ident + lpar + expr + rpar | pi | e | phi | tau | fnumber
-                ).setParseAction(self.pushFirst)
+            addop[...]
+            + (
+                (fn_call | pi | phi | e | tau | fnumber | ident).setParseAction(self.pushFirst)
+                | Group(lpar + expr + rpar)
             )
-            | Optional(oneOf("- +")) + Group(lpar + expr + rpar)
         ).setParseAction(self.pushUMinus)
+
         # by defining exponentiation as "atom [ ^ factor ]..." instead of
         # "atom [ ^ atom ]...", we get right-to-left exponents, instead of left-to-right
         # that is, 2^3^2 = 2^(3^2), not (2^3)^2.
         factor = Forward()
-        factor << atom + ZeroOrMore((expop + factor).setParseAction(self.pushFirst))
-        term = factor + ZeroOrMore((multop + factor).setParseAction(self.pushFirst))
-        expr << term + ZeroOrMore((addop + term).setParseAction(self.pushFirst))
-        # addop_term = ( addop + term ).setParseAction( self.pushFirst )
-        # general_term = term + ZeroOrMore( addop_term ) | OneOrMore( addop_term)
-        # expr <<  general_term
+        factor <<= atom + (expop + factor).setParseAction(self.pushFirst)[...]
+        term = factor + (multop + factor).setParseAction(self.pushFirst)[...]
+        expr <<= term + (addop + term).setParseAction(self.pushFirst)[...]
+
         self.bnf = expr
+
         # map operator symbols to corresponding arithmetic operations
         epsilon = 1e-12
         self.opn = {
@@ -105,19 +121,27 @@ class NumericStringParser(object):
             "atan": math.atan,
             "exp": math.exp,
             "abs": abs,
-            "trunc": lambda a: int(a),
+            "trunc": int,
             "round": round,
-            "sgn": lambda a: abs(a) > epsilon and cmp(a, 0) or 0,
+            "sgn": lambda a: -1 if a < -epsilon else 1 if a > epsilon else 0,
             "sqrt": math.sqrt,
             "floor": math.floor,
             "fact": math.factorial,
+            # functionsl with multiple arguments
+            "multiply": lambda a, b: a * b,
+            "hypot": math.hypot,
+            # functions with a variable number of arguments
+            "all": lambda *a: all(a),
         }
 
     def evaluateStack(self, s):
-        op = s.pop()
+        op, num_args = s.pop(), 0
+        if isinstance(op, tuple):
+            op, num_args = op
+
         if op == "unary -":
             return -self.evaluateStack(s)
-        if op in self.opn.keys():
+        if op in self.opn:
             op2 = self.evaluateStack(s)
             op1 = self.evaluateStack(s)
             return self.opn[op](op1, op2)
@@ -130,14 +154,24 @@ class NumericStringParser(object):
         if op == "TAU":
             return math.tau
         elif op in self.fn:
-            return self.fn[op](self.evaluateStack(s))
+            # note: args are pushed onto the stack in reverse order
+            args = reversed([self.evaluateStack(s) for _ in range(num_args)])
+            return self.fn[op](*args)
         elif op[0].isalpha():
             return 0
         else:
-            return float(op)
+            # try to evaluate as int first, then as float if int fails
+            try:
+                return int(op)
+            except ValueError:
+                return float(op)
 
     def eval(self, num_string, parseAll=True):
         self.exprStack = []
         results = self.bnf.parseString(num_string, parseAll)
         val = self.evaluateStack(self.exprStack[:])
         return val
+
+if __name__ == "__main__":
+    # For testing
+    NumericStringParser().eval("5+5")
