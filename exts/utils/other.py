@@ -1,4 +1,5 @@
 from __future__ import division
+from decimal import Decimal
 from pyparsing import (
     Literal,
     Word,
@@ -28,19 +29,10 @@ class NumericStringParser(object):
 
     def pushFirst(self, toks):
         self.exprStack.append(toks[0])
-    # def pushFirst(self, strg, loc, toks):
-    #     self.exprStack.append(toks[0])
 
     def pushUMinus(self, toks):
-        for t in toks:
-            if t == "-":
-                self.exprStack.append("unary -")
-            else:
-                break
-
-    # def pushUMinus(self, strg, loc, toks):
-    #     if toks and toks[0] == "-":
-    #         self.exprStack.append("unary -")
+        if toks and toks[0] == "-":
+            self.exprStack.append("unary -")
 
     def __init__(self):
         """
@@ -144,14 +136,17 @@ class NumericStringParser(object):
         if op in self.opn:
             op2 = self.evaluateStack(s)
             op1 = self.evaluateStack(s)
+            # opRes = self.opn[op](op1,op2)
+            # if opRes > 7e6:
+                # return "Infinity"
             return self.opn[op](op1, op2)
         elif op == "PI":
             return math.pi  # 3.1415926535
         elif op == "E":
             return math.e  # 2.718281828
-        if op == "PHI":
+        elif op == "PHI":
             return PHI
-        if op == "TAU":
+        elif op == "TAU":
             return math.tau
         elif op in self.fn:
             # note: args are pushed onto the stack in reverse order
@@ -160,11 +155,7 @@ class NumericStringParser(object):
         elif op[0].isalpha():
             return 0
         else:
-            # try to evaluate as int first, then as float if int fails
-            try:
-                return int(op)
-            except ValueError:
-                return float(op)
+            return Decimal(op)
 
     def eval(self, num_string, parseAll=True):
         self.exprStack = []
@@ -174,4 +165,4 @@ class NumericStringParser(object):
 
 if __name__ == "__main__":
     # For testing
-    NumericStringParser().eval("5+5")
+    print(NumericStringParser().eval("63**57") > 2147483647)

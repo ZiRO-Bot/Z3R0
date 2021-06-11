@@ -6,9 +6,12 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import asyncio
 import discord
+import sys
 
 
+from core.decorators import in_executor
 from core.mixin import CogMixin
+from decimal import Overflow, InvalidOperation
 from discord.ext import commands
 from exts.utils.format import ZEmbed
 from exts.utils.other import NumericStringParser
@@ -22,17 +25,25 @@ class Utilities(commands.Cog, CogMixin):
     @commands.command(aliases=["calc", "c"])
     async def math(self, ctx, *, equation):
         """Simple math evaluator"""
+
         try:
             result = NumericStringParser().eval(equation)
-        except ZeroDivisionError:
-            result = "ERR"
-        except Exception as exc:
-            return await ctx.send("I couldn't read that expression properly.")
+            if result > sys.maxsize:
+                formattedResult = "HUGE NUMBER"
+            else:
+                formattedResult = "{0:,.1f}".format(result)
+        except Overflow:
+            formattedResult, result = ("Infinity",)*2
+        except InvalidOperation:
+            formattedResult, result = ("ERR",)*2
+
+        # except Exception as exc:
+        #     return await ctx.send("I couldn't read that expression properly.")
         e = ZEmbed.default(
             ctx,
             fields=[
                 ("Equation", discord.utils.escape_markdown(equation)),
-                ("Result", ("{0:,.1f}".format(result)) if result != "ERR" else result),
+                ("Result", formattedResult),
                 ("Result (raw)", result),
             ],
             field_inline=False,
