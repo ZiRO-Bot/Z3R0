@@ -595,7 +595,7 @@ class Meta(commands.Cog, CogMixin):
             name="🕙 | Uptime", value=humanize.precisedelta(uptime), inline=False
         )
         e.add_field(
-            name="`>_` | Command Usage (This session)",
+            name="<:terminal:852787866554859591> | Command Usage (This session)",
             value="{} commands ({} custom commands)".format(
                 self.bot.commandUsage, self.bot.customCommandUsage
             ),
