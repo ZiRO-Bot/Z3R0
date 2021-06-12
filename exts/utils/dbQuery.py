@@ -5,7 +5,7 @@ createCommandsTable = """
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         type TEXT,
         name TEXT,
-        category TEXT,
+        category TEXT DEFAULT "unsorted",
         description TEXT,
         content TEXT,
         url TEXT,
@@ -89,7 +89,8 @@ getCommands = """
     FROM commands_lookup
     JOIN commands
         ON commands.id = commands_lookup.cmdId
-    WHERE commands_lookup.guildId=:guildId
+    WHERE
+        commands_lookup.guildId = :guildId
 """
 
 incrCommandUsage = """

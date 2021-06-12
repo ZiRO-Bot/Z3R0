@@ -56,7 +56,7 @@ async def getCustomCommand(ctx, command):
     )
 
 
-async def getCustomCommands(db, guildId):
+async def getCustomCommands(db, guildId, category: str = None):
     """Get all custom commands from guild id."""
 
     # cmd = {
@@ -69,7 +69,14 @@ async def getCustomCommands(db, guildId):
     # }
 
     cmds = {}
-    rows = await db.fetch_all(dbQuery.getCommands, values={"guildId": guildId})
+
+    query = dbQuery.getCommands
+    values = {"guildId": guildId}
+    if category:
+        query += " AND commands.category = :category"
+        values["category"] = category.lower()
+    rows = await db.fetch_all(query, values=values)
+
     # Create temporary dict
     for row in rows:
         isAlias = row[1] != row[2]
@@ -135,47 +142,30 @@ class CustomHelp(commands.HelpCommand):
                     for cog in sortedCog
                     if cog.qualified_name not in ignored
                 ]
-                + ["• ❓ **Unsorted**"]
             ),
         )
 
-        return await dest.send(embed=e)
+        return await ctx.try_reply(embed=e)
 
-        # TODO: Move these stuff below to send_cog_help
-        # Add custom commands to mapping
-        ccs = await getCustomCommands(ctx.db, ctx.guild.id)
+    async def send_cog_help(self, cog):
+        ctx = self.context
+
+        # Getting all the commands
+        filtered = await self.filter_commands(cog.get_commands())
+        ccs = await getCustomCommands(ctx.db, ctx.guild.id, cog.qualified_name)
         for cmd in ccs:
-            mapping[cmd.category] += [cmd]
+            filtered.append(cmd)
+        filtered = sorted(filtered, key=lambda c: c.name)
 
-        unsorted = mapping.pop(None)
-        ignored = ["ErrorHandler"]
-        for cog, commands in sorted(mapping.items(), key=lambda c: c[0].qualified_name):
-            # TODO: filter commands, only show command that can be executed
-            if cog.qualified_name in ignored:
-                continue
-            value = (
-                ", ".join(
-                    [f"`{cmd.name}`" for cmd in sorted(commands, key=lambda c: c.name)]
-                )
-                if commands
-                else "No commands."
-            )
+        e = ZEmbed(title=cog.qualified_name)
+        for cmd in filtered:
             e.add_field(
-                name=cog.qualified_name,
-                value=value,
+                name=cmd.name,
+                value=getattr(cmd, "description", getattr(cmd, "help", None))
+                or "No description",
+                inline=False,
             )
-        value = (
-            ", ".join(
-                [f"`{cmd.name}`" for cmd in sorted(unsorted, key=lambda c: c.name)]
-            )
-            if unsorted
-            else "No commands."
-        )
-        e.add_field(
-            name="Unsorted",
-            value=value,
-        )
-        await dest.send(embed=e)
+        await ctx.try_reply(embed=e)
 
 
 class Meta(commands.Cog, CogMixin):
@@ -530,6 +520,27 @@ class Meta(commands.Cog, CogMixin):
         update = await self.updateCommandContent(ctx, command, content)
         if update:
             return await ctx.try_reply("Command `{}` has been edited\n".format(name))
+
+    @command.command(aliases=["cat", "mv"])
+    @modeCheck()
+    async def category(self, ctx, category: str, command: CMDName):
+        """Move command to a category"""
+        category = category.lower()
+        blacklistedCats = (
+            "errorhandler",
+            "jishaku",
+            "admin",
+            "moderation",
+            "developer",
+        )
+        availableCats = [
+            cog.qualified_name.lower()
+            for cog in ctx.bot.cogs.values()
+            if cog.qualified_name.lower() not in blacklistedCats
+        ]
+        command = await getCustomCommand(ctx, command)
+        if command.category == category:
+            return await ctx.try_reply("{} already in {}!".format(command, category))
 
     @command.command(aliases=["-", "rm"])
     @modeCheck()
