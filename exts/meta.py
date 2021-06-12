@@ -126,7 +126,7 @@ class CustomHelp(commands.HelpCommand):
         unsorted = mapping.pop(None)
         sortedCog = sorted(mapping.keys(), key=lambda c: c.qualified_name)
 
-        ignored = ["ErrorHandler"]
+        ignored = ("ErrorHandler", "Jishaku")
         e.add_field(
             name="Categories",
             value="\n".join(
