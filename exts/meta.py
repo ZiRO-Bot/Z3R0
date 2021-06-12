@@ -161,8 +161,7 @@ class CustomHelp(commands.HelpCommand):
         for cmd in filtered:
             e.add_field(
                 name=cmd.name,
-                value=getattr(cmd, "description", getattr(cmd, "help", None))
-                or "No description",
+                value=cmd.brief or "No description",
                 inline=False,
             )
         await ctx.try_reply(embed=e)
@@ -283,7 +282,11 @@ class Meta(commands.Cog, CogMixin):
     #     2: Full (Can do anything to any existing command in the guild)
     # )
     # TODO: Separate tags from custom command
-    @commands.group(aliases=["cmd", "tag", "script"], invoke_without_command=True)
+    @commands.group(
+        aliases=["cmd", "tag", "script"],
+        invoke_without_command=True,
+        brief="Manage commands",
+    )
     async def command(self, ctx, name: CMDName, argument: str = None):
         """Manage commands"""
         return await self.execCustomCommand(ctx, name)
@@ -541,6 +544,7 @@ class Meta(commands.Cog, CogMixin):
         command = await getCustomCommand(ctx, command)
         if command.category == category:
             return await ctx.try_reply("{} already in {}!".format(command, category))
+        # TODO: Add the actual stuff
 
     @command.command(aliases=["-", "rm"])
     @modeCheck()

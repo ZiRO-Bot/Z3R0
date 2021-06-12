@@ -18,7 +18,9 @@ class CustomCommand:
         "type",
         "name",
         "invokedName",
+        "brief",
         "description",
+        "help",
         "category",
         "content",
         "aliases",
@@ -39,7 +41,10 @@ class CustomCommand:
         # Incase its invoked using its alias
         self.invokedName = kwargs.pop("invokedName", name)
 
+        # TODO: Add "brief"
+        self.brief = None
         self.description = kwargs.pop("description", None)
+        self.help = self.description
         self.content = kwargs.pop("content", "NULL")
         self.category = category
         self.aliases = kwargs.pop("aliases", [])
