@@ -254,9 +254,9 @@ class Meta(commands.Cog, CogMixin):
             content = discord.utils.escape_markdown(cmd.content)
             return await ctx.try_reply(content)
 
-        async with self.db.transaction():
+        async with ctx.db.transaction():
             # Increment uses
-            await self.db.execute(dbQuery.incrCommandUsage, values={"id": cmd.id})
+            await ctx.db.execute(dbQuery.incrCommandUsage, values={"id": cmd.id})
             result = self.processTag(ctx, cmd)
             embed = result.actions.get("embed")
 
@@ -310,8 +310,8 @@ class Meta(commands.Cog, CogMixin):
 
     async def addCmd(self, ctx, name: str, content: str, **kwargs):
         """Add cmd to database"""
-        async with self.db.transaction():
-            lastInsert = await self.db.execute(
+        async with ctx.db.transaction():
+            lastInsert = await ctx.db.execute(
                 dbQuery.insertToCommands,
                 values={
                     "name": name,
@@ -322,7 +322,7 @@ class Meta(commands.Cog, CogMixin):
                     "url": kwargs.get("url", None),
                 },
             )
-            lastLastInsert = await self.db.execute(
+            lastLastInsert = await ctx.db.execute(
                 dbQuery.insertToCommandsLookup,
                 values={
                     "cmdId": lastInsert,
@@ -331,11 +331,11 @@ class Meta(commands.Cog, CogMixin):
                 },
             )
             return lastInsert, lastLastInsert
-        return None, None
+        return (None,) * 2
 
     async def isCmdExist(self, ctx, name: str):
         """Check if command already exists"""
-        rows = await self.db.fetch_all(
+        rows = await ctx.db.fetch_all(
             """
                 SELECT *
                 FROM commands
@@ -432,6 +432,16 @@ class Meta(commands.Cog, CogMixin):
                 )
             )
 
+    async def updateCommandContent(self, ctx, command: CustomCommand, content):
+        """Update command's content"""
+        async with ctx.db.transaction():
+            await ctx.db.execute(
+                dbQuery.updateCommandContent,
+                values={"content": content, "id": command.id},
+            )
+            return True
+        return False
+
     @command.command(aliases=["&&", "pull"])
     async def update(self, ctx, name: CMDName):
         """Update imported command"""
@@ -467,12 +477,9 @@ class Meta(commands.Cog, CogMixin):
                 + "\n[**Note**]: It takes awhile for the site to be updated!"
             )
 
-        async with ctx.db.transaction():
-            await ctx.db.execute(
-                dbQuery.updateCommandContent,
-                values={"content": content, "id": command.id},
-            )
-            await ctx.try_reply(
+        update = await self.updateCommandContent(ctx, command, content)
+        if update:
+            return await ctx.try_reply(
                 "Command `{}` has been update\n".format(name)
                 + "`[+]` {} Additions\n".format(addition)
                 + "`[-]` {} Deletions".format(deletion)
@@ -492,15 +499,37 @@ class Meta(commands.Cog, CogMixin):
 
     @command.command(aliases=["/"])
     @modeCheck()
-    async def alias(self, ctx, alias: CMDName, command):
+    async def alias(self, ctx, alias: CMDName, command: CMDName):
         """Create alias for a command"""
-        pass
+        command = await getCustomCommand(ctx, command)
+        if alias == command.name:
+            return await ctx.try_reply("Alias can't be identical to original name!")
+        if alias in command.aliases:
+            return await ctx.try_reply("Alias `{}` already exists!".format(alias))
+
+        async with ctx.db.transaction():
+            lastInsert = await ctx.db.execute(
+                dbQuery.insertToCommandsLookup,
+                values={
+                    "cmdId": command.id,
+                    "name": alias,
+                    "guildId": ctx.guild.id,
+                },
+            )
+            if lastInsert:
+                return await ctx.try_reply(
+                    "Alias `{}` for `{}` has been created".format(alias, command)
+                )
 
     @command.command(aliases=["&"])
     @modeCheck()
     async def edit(self, ctx, name: CMDName, *, content):
         """Edit existing command"""
-        pass
+        command = await getCustomCommand(ctx, name)
+
+        update = await self.updateCommandContent(ctx, command, content)
+        if update:
+            return await ctx.try_reply("Command `{}` has been edited\n".format(name))
 
     @command.command(aliases=["-", "rm"])
     @modeCheck()
@@ -521,7 +550,9 @@ class Meta(commands.Cog, CogMixin):
             async with ctx.db.transaction():
                 await ctx.db.execute(dbQuery.deleteCommand, values={"id": command.id})
         # TODO: Adjust removed message
-        return await ctx.send("{} has been removed".format(name))
+        return await ctx.try_reply(
+            "{}`{}` has been removed".format("Alias " if isAlias else "", name)
+        )
 
     @command.command()
     @modeCheck()
