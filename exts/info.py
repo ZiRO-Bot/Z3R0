@@ -7,9 +7,11 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 import datetime
 import discord
 import time
+import unicodedata
 
 
 from api.openweather import OpenWeatherAPI, CityNotFound
+from core import checks
 from core.mixin import CogMixin
 from exts.utils import pillow
 from exts.utils.format import ZEmbed
@@ -133,7 +135,7 @@ class Info(commands.Cog, CogMixin):
 
         image = await pillow.rectangle(*RGB)
         f = discord.File(fp=image, filename="rect.png")
-        
+
         e = ZEmbed.default(
             ctx,
             title="Information on #{}".format(h),
@@ -147,7 +149,49 @@ class Info(commands.Cog, CogMixin):
     @commands.command(aliases=["lvl", "rank"], hidden=True)
     async def level(self, ctx):
         """Level"""
-        return await ctx.try_reply("https://tenor.com/view/stop-it-get-some-help-gif-7929301")
+        return await ctx.try_reply(
+            "https://tenor.com/view/stop-it-get-some-help-gif-7929301"
+        )
+
+    @commands.group(aliases=["em"], invoke_without_command=True)
+    async def emoji(self, ctx, emoji: Union[discord.Emoji, discord.PartialEmoji, str]):
+        """Get an emoji's information"""
+        await self.emojiinfo(ctx, emoji)
+
+    @emoji.command(name="info")
+    async def emojiinfo(
+        self, ctx, emoji: Union[discord.Emoji, discord.PartialEmoji, str]
+    ):
+        """Get an emoji's information"""
+        try:
+            e = ZEmbed.default(
+                ctx,
+                title=f":{emoji.name}:",
+                description=f"`ID: {emoji.id}`\n`Type: Custom Emoji`",
+            )
+            e.set_image(url=emoji.url)
+        except AttributeError:
+            try:
+                e = ZEmbed.default(
+                    ctx,
+                    title=" - ".join(
+                        (
+                            emoji,
+                            hex(ord(emoji)).replace("0x", r"\u"),
+                            unicodedata.name(emoji),
+                        )
+                    ),
+                    description="`Type: Unicode`",
+                )
+            except TypeError:
+                return await ctx.try_reply("`{}` is not a valid emoji!".format(emoji))
+        return await ctx.try_reply(embed=e)
+
+    @emoji.command()
+    @checks.mod_or_permissions(**{"manage_emojis": True})
+    async def steal(self, ctx, emoji: Union[discord.Emoji, discord.PartialEmoji]):
+        """Steal an emoji"""
+        pass
 
 
 def setup(bot):
