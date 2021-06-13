@@ -166,21 +166,17 @@ class Developer(commands.Cog, CogMixin):
     async def cog_check(self, ctx):
         """Only bot master able to use debug cogs."""
         return (
-            (self.bot.master
-            and ctx.author.id in self.bot.master)
-            or commands.is_owner().predicate(ctx)
-        )
+            self.bot.master and ctx.author.id in self.bot.master
+        ) or commands.is_owner().predicate(ctx)
 
     def notMe():
         async def pred(ctx):
             return not (
-                (ctx.bot.master
-                and ctx.author.id in ctx.bot.master)
+                (ctx.bot.master and ctx.author.id in ctx.bot.master)
                 or commands.is_owner().predicate(ctx)
             )
 
         return commands.check(pred)
-
 
     @commands.group(invoke_without_command=True)
     async def test(self, ctx, text):
@@ -247,7 +243,9 @@ class Developer(commands.Cog, CogMixin):
         e = ZEmbed.default(
             ctx,
             title="All extensions has been reloaded!",
-            description="\n".join(["{} | `{}`".format(v, k) for k, v in status.items()]),
+            description="\n".join(
+                ["{} | `{}`".format(v, k) for k, v in status.items()]
+            ),
         )
         return await ctx.send(embed=e)
 

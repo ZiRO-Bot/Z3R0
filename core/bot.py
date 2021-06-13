@@ -2,6 +2,7 @@ import aiohttp
 import copy
 import datetime
 import discord
+import json
 import os
 import logging
 import re
@@ -23,18 +24,31 @@ DESC = (
 )
 
 EXTS = []
-EXTS_DIR= "exts"
-EXTS_IGNORED = (
-    "twitch.py",
-    "youtube.py",
-    "slash.py",
-    "music.py"
-)
+EXTS_DIR = "exts"
+EXTS_IGNORED = ("twitch.py", "youtube.py", "slash.py", "music.py")
 for filename in os.listdir("./{}".format(EXTS_DIR)):
     if filename in EXTS_IGNORED:
         continue
     if filename.endswith(".py"):
         EXTS.append("{}.{}".format(EXTS_DIR, filename[:-3]))
+
+
+class Blacklist:
+    __slots__ = ("guilds", "users")
+
+    def __init__(self, filename: str = "blacklist.json"):
+        data = {}
+        try:
+            f = open(filename, "r")
+            data = json.loads(f.read())
+        except FileNotFoundError:
+            with open(filename, "w+") as f:
+                json.dump(data, f, indent=4)
+        self.guilds = data.get("guilds", [])
+        self.users = data.get("users", [])
+
+    def __repl__(self):
+        return f"<Blacklist: guilds:{self.guilds} users:{self.users}"
 
 
 def _callablePrefix(bot, message):
@@ -95,6 +109,8 @@ class Brain(commands.Bot):
         self.issueChannel = (
             None if not hasattr(config, "issueChannel") else int(config.issueChannel)
         )
+
+        self.blacklist = Blacklist("blacklist.json")
 
         self.activityIndex = 0
         self.commandUsage = 0
@@ -183,7 +199,7 @@ class Brain(commands.Bot):
         # Handling custom command priority
         msg = copy.copy(message)
         # Get msg content without prefix
-        msgContent: str = msg.content[len(ctx.prefix):]
+        msgContent: str = msg.content[len(ctx.prefix) :]
         if msgContent.startswith(">") or (unixStyle := msgContent.startswith("./")):
             # `./` for unix-style of launching custom scripts
             priority = priorityPrefix = 1
@@ -235,12 +251,17 @@ class Brain(commands.Bot):
         prefixes.pop(0)
         prefixes = ", ".join([f"`{x}`" for x in prefixes])
         return "My prefixes are: {} or {}".format(
-            prefixes, self.user.mention if not codeblock else ("@" + self.user.display_name)
+            prefixes,
+            self.user.mention if not codeblock else ("@" + self.user.display_name),
         )
 
     async def on_message(self, message):
         # dont accept commands from bot
-        if message.author.bot:
+        if (
+            message.author.bot
+            or message.author.id in self.blacklist.users
+            or message.guild.id in self.blacklist.guilds
+        ) and message.author.id not in self.master:
             return
 
         # if bot is mentioned without any other message, send prefix list
