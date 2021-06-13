@@ -10,6 +10,7 @@ import discord
 
 from core.mixin import CogMixin
 from discord.ext import commands
+from exts.utils import dbQuery
 
 
 def formatDateTime(datetime):
@@ -21,9 +22,19 @@ class Timer(commands.Cog, CogMixin):
 
     icon = "🕑"
 
-    @commands.command()
+    def __init__(self, bot):
+        super().__init__(bot)
+
+        self.currentTimer = None
+        self.task = None
+        self.bot.loop.create_task(self.asyncInit())
+
+    async def asyncInit(self):
+        async with self.bot.db.transaction():
+            await self.bot.db.execute(dbQuery.createTimerTable)
+
+    @commands.command(brief="Get current time")
     async def time(self, ctx):
-        """Get current time."""
         # TODO: Add timezone
         e = discord.Embed(
             title="Current Time",
