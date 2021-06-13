@@ -205,10 +205,10 @@ class Meta(commands.Cog, CogMixin):
     async def reactsToMessage(self, message: discord.Message, reactions: list = []):
         """Simple loop to react to a message."""
         for reaction in reactions:
-            await asyncio.sleep(0.5)
             try:
                 await message.add_reaction(reaction)
             except:
+                # Probably don't have perms to do reaction
                 continue
 
     def processTag(self, ctx, cmd: CustomCommand):
