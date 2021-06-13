@@ -44,9 +44,8 @@ class Info(commands.Cog, CogMixin):
             key=getattr(self.bot.config, "openweather", None), session=self.bot.session
         )
 
-    @commands.command(aliases=["p"])
+    @commands.command(aliases=["p"], brief="Get bot's response time")
     async def ping(self, ctx):
-        """Get bot's response time"""
         start = time.perf_counter()
         e = ZEmbed.default(ctx, title="Pong!")
         e.add_field(
@@ -63,9 +62,10 @@ class Info(commands.Cog, CogMixin):
         )
         await msg.edit(embed=e)
 
-    @commands.command(aliases=["av", "userpfp", "pfp"])
+    @commands.command(
+        aliases=["av", "userpfp", "pfp"], brief="Get member's avatar image"
+    )
     async def avatar(self, ctx, user: discord.User = None):
-        """Get member's avatar image"""
         if not user:
             user = await authorOrReferenced(ctx)
 
@@ -85,9 +85,8 @@ class Info(commands.Cog, CogMixin):
         e.set_image(url=user.avatar_url_as(size=1024))
         await ctx.try_reply(embed=e)
 
-    @commands.command(aliases=["w"])
+    @commands.command(aliases=["w"], brief="Get current weather on specific city")
     async def weather(self, ctx, *, city):
-        """Get current weather on specific city"""
         if not self.openweather.apiKey:
             # TODO: Adjust error message
             return await ctx.send(
@@ -118,9 +117,11 @@ class Info(commands.Cog, CogMixin):
         e.set_thumbnail(url=weatherData.iconUrl)
         await ctx.try_reply(embed=e)
 
-    @commands.command(aliases=["clr", "color"])
+    @commands.command(
+        aliases=["clr", "color"],
+        brief="Get colour information from hex value",
+    )
     async def colour(self, ctx, value: str):
-        """Get colour information from hex value"""
         # Pre processing
         value = value.lstrip("#")[:6]
         value = value.ljust(6, "0")
@@ -146,23 +147,22 @@ class Info(commands.Cog, CogMixin):
         e.add_field(name="RGB", value=str(RGB))
         return await ctx.try_reply(file=f, embed=e)
 
-    @commands.command(aliases=["lvl", "rank"], hidden=True)
+    @commands.command(aliases=["lvl", "rank"], hidden=True, brief="Level")
     async def level(self, ctx):
-        """Level"""
         return await ctx.try_reply(
             "https://tenor.com/view/stop-it-get-some-help-gif-7929301"
         )
 
-    @commands.group(aliases=["em"], invoke_without_command=True)
+    @commands.group(
+        aliases=["em"], invoke_without_command=True, brief="Get an emoji's information"
+    )
     async def emoji(self, ctx, emoji: Union[discord.Emoji, discord.PartialEmoji, str]):
-        """Get an emoji's information"""
         await self.emojiinfo(ctx, emoji)
 
-    @emoji.command(name="info")
+    @emoji.command(name="info", brief="Get an emoji's information")
     async def emojiinfo(
         self, ctx, emoji: Union[discord.Emoji, discord.PartialEmoji, str]
     ):
-        """Get an emoji's information"""
         try:
             e = ZEmbed.default(
                 ctx,
@@ -187,11 +187,48 @@ class Info(commands.Cog, CogMixin):
                 return await ctx.try_reply("`{}` is not a valid emoji!".format(emoji))
         return await ctx.try_reply(embed=e)
 
-    @emoji.command()
+    @emoji.command(brief="Steal an emoji")
     @checks.mod_or_permissions(**{"manage_emojis": True})
     async def steal(self, ctx, emoji: Union[discord.Emoji, discord.PartialEmoji]):
-        """Steal an emoji"""
         pass
+
+    @commands.command(
+        brief="Get japanese word from english/japanese/romaji/text",
+    )
+    async def joshi(self, ctx, *, words):
+        async with ctx.bot.session.get(
+            "https://jisho.org/api/v1/search/words", params={"keyword": words}
+        ) as req:
+            result = await req.json()
+
+            try:
+                result = result["data"][0]
+            except:
+                return await ctx.try_reply(
+                    "Sorry, couldn't find any words matching `{}`".format(words)
+                )
+
+            e = ZEmbed.default(
+                ctx, title=f"{result['slug']}「 {result['japanese'][0]['reading']} 」"
+            )
+            e.set_author(
+                name="joshi.org",
+                icon_url="https://assets.jisho.org/assets/touch-icon-017b99ca4bfd11363a97f66cc4c00b1667613a05e38d08d858aa5e2a35dce055.png",
+                url="https://joshi.org",
+            )
+            for sense in result["senses"]:
+                name = "; ".join(sense["parts_of_speech"]) or "-"
+                if sense["info"]:
+                    name += f"「 {'; '.join(sense['info'])} 」"
+
+                e.add_field(
+                    name=name,
+                    value="; ".join(
+                        f"`{sense}`" for sense in sense["english_definitions"]
+                    ),
+                    inline=False,
+                )
+            await ctx.try_reply(embed=e)
 
 
 def setup(bot):
