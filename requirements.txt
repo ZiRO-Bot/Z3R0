@@ -8,7 +8,7 @@ databases[sqlite] == 0.4.3
 
 click == 7.1.2
 fuzzywuzzy == 0.18.0
-humanize == 3.6.0
+humanize == 3.7.0
 pillow == 8.2.0
 python_dateutil == 2.8.1
 python-Levenshtein == 0.12.1
