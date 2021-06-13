@@ -288,17 +288,14 @@ class Meta(commands.Cog, CogMixin):
         brief="Manage commands",
     )
     async def command(self, ctx, name: CMDName, argument: str = None):
-        """Manage commands"""
         return await self.execCustomCommand(ctx, name)
 
-    @command.command(aliases=["exec"])
+    @command.command(aliases=["exec", "execute"], brief="Execute a custom command")
     async def run(self, ctx, name: CMDName, argument: str = None):
-        """Run a custom command"""
         return await self.execCustomCommand(ctx, name)
 
-    @command.command()
+    @command.command(brief="Get raw content of a custom command")
     async def raw(self, ctx, name: CMDName):
-        """Get raw content of a custom command"""
         return await self.execCustomCommand(ctx, name, raw=True)
 
     async def addCmd(self, ctx, name: str, content: str, **kwargs):
@@ -363,10 +360,13 @@ class Meta(commands.Cog, CogMixin):
             link = "https://pastebin.com/raw/" + group.group(1)
         return link
 
-    @command.command(name="import", aliases=["++"])
+    @command.command(
+        name="import",
+        aliases=["++"],
+        brief="Import a custom command from pastebin/gist.github",
+    )
     @modeCheck()
     async def _import(self, ctx, name: CMDName, *, url: str):
-        """Import command from pastebin/github gist"""
         # NOTE: This command will only support pastebin and gist.github,
         # maybe also hastebin.
         try:
@@ -393,9 +393,12 @@ class Meta(commands.Cog, CogMixin):
                 "`{}` has been imported (Source: <{}>)".format(name, url)
             )
 
-    @command.command(name="update-url", aliases=["&u", "set-url"])
+    @command.command(
+        name="update-url",
+        aliases=["&u", "set-url"],
+        brief="Update imported command's source url",
+    )
     async def update_url(self, ctx, name: CMDName, url: str):
-        """Update imported command's source url"""
         # NOTE: Can only be run by cmd owner or guild mods/owner
         command = await getCustomCommand(ctx, name)
         if not command.url:
@@ -435,9 +438,11 @@ class Meta(commands.Cog, CogMixin):
             return True
         return False
 
-    @command.command(aliases=["&&", "pull"])
+    @command.command(
+        aliases=["&&", "pull"],
+        brief="Update imported command's content",
+    )
     async def update(self, ctx, name: CMDName):
-        """Update imported command"""
         # NOTE: Can only be run by cmd owner or guild mods/owner
 
         # For both checking if command exists and
@@ -478,10 +483,13 @@ class Meta(commands.Cog, CogMixin):
                 + "`[-]` {} Deletions".format(deletion)
             )
 
-    @command.command(name="add", aliases=["+", "create"])
+    @command.command(
+        name="add",
+        aliases=["+", "create"],
+        brief="Create a new custom command",
+    )
     @modeCheck()
     async def _add(self, ctx, name: CMDName, *, content: str):
-        """Add new command"""
         # Check if command already exists
         await self.isCmdExist(ctx, name)
 
@@ -490,10 +498,12 @@ class Meta(commands.Cog, CogMixin):
         if lastInsert and lastLastInsert:
             await ctx.send("`{}` has been created".format(name))
 
-    @command.command(aliases=["/"])
+    @command.command(
+        aliases=["/"],
+        brief="Add an alias to a custom command",
+    )
     @modeCheck()
-    async def alias(self, ctx, alias: CMDName, command: CMDName):
-        """Create alias for a command"""
+    async def alias(self, ctx, command: CMDName, alias: CMDName):
         command = await getCustomCommand(ctx, command)
         if alias == command.name:
             return await ctx.try_reply("Alias can't be identical to original name!")
@@ -514,20 +524,24 @@ class Meta(commands.Cog, CogMixin):
                     "Alias `{}` for `{}` has been created".format(alias, command)
                 )
 
-    @command.command(aliases=["&"])
+    @command.command(
+        aliases=["&"],
+        brief="Edit custom command's content",
+    )
     @modeCheck()
     async def edit(self, ctx, name: CMDName, *, content):
-        """Edit existing command"""
         command = await getCustomCommand(ctx, name)
 
         update = await self.updateCommandContent(ctx, command, content)
         if update:
             return await ctx.try_reply("Command `{}` has been edited\n".format(name))
 
-    @command.command(aliases=["cat", "mv"])
+    @command.command(
+        aliases=["cat", "mv"],
+        brief="Move a custom command to a category",
+    )
     @modeCheck()
-    async def category(self, ctx, category: str, command: CMDName):
-        """Move command to a category"""
+    async def category(self, ctx, command: CMDName, category: CMDName):
         category = category.lower()
         blacklistedCats = (
             "errorhandler",
@@ -546,10 +560,12 @@ class Meta(commands.Cog, CogMixin):
             return await ctx.try_reply("{} already in {}!".format(command, category))
         # TODO: Add the actual stuff
 
-    @command.command(aliases=["-", "rm"])
+    @command.command(
+        aliases=["-", "rm"],
+        brief="Remove a custom command",
+    )
     @modeCheck()
     async def remove(self, ctx, name: CMDName):
-        """Remove a command"""
         command = await getCustomCommand(ctx, name)
         isAlias = name in command.aliases
         if isAlias:
@@ -569,37 +585,31 @@ class Meta(commands.Cog, CogMixin):
             "{}`{}` has been removed".format("Alias " if isAlias else "", name)
         )
 
-    @command.command()
+    @command.command(brief="Disable a command")
     @modeCheck()
     async def disable(self, ctx, name: CMDName):
-        """Disable a command"""
         # This will work for both built-in and user-made commands
         # NOTE: Only mods can enable/disable built-in command
         pass
 
-    @command.command()
+    @command.command(brief="Enable a command")
     @modeCheck()
     async def enable(self, ctx, name: CMDName):
-        """Enable a command"""
         # This will work for both built-in and user-made commands
         # NOTE: Only mods can enable/disable built-in command
         pass
 
-    @command.command(aliases=["?"])
+    @command.command(aliases=["?"], brief="Show command's information")
     async def info(self, ctx, name: CMDName):
-        """Show information about a command"""
         # Executes {prefix}help {name} if its built-in command
         pass
 
-    @commands.command()
+    @commands.command(brief="Get link to my source code")
     async def source(self, ctx):
-        """Get link to my source code."""
         await ctx.send("My source code: {}".format(links["Source Code"]))
 
-    @commands.command(aliases=["botinfo", "bi"])
+    @commands.command(aliases=["botinfo", "bi"], brief="Information about me")
     async def about(self, ctx):
-        """Information about me."""
-
         # Z3R0 Banner
         f = discord.File("./assets/img/banner.png", filename="banner.png")
 
@@ -630,7 +640,7 @@ class Meta(commands.Cog, CogMixin):
         )
         await ctx.try_reply(file=f, embed=e)
 
-    @commands.command()
+    @commands.command(brief="Information about my stats")
     async def stats(self, ctx):
         uptime = dt.datetime.utcnow() - self.bot.uptime
         e = ZEmbed.default(ctx)
