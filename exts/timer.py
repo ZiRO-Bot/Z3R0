@@ -143,8 +143,11 @@ class Timer(commands.Cog, CogMixin):
 
         return timer
 
-    @commands.command()
-    async def remind(self, ctx, *, argument: TimeAndArgument):
+    @commands.command(
+        aliases=["timer", "remind"],
+        brief="Reminds you about something after certain amount of time",
+    )
+    async def reminder(self, ctx, *, argument: TimeAndArgument):
         now = dt.datetime.utcnow()
         when, message, delta = argument
         if not when:
