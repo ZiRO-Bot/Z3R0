@@ -142,8 +142,6 @@ class Timer(commands.Cog, CogMixin):
         if delta <= (86400 * 40):  # 40 days
             self.haveData.set()
 
-        print(self.currentTimer)
-        print(when < self.currentTimer.expires)
         if self.currentTimer and when < self.currentTimer.expires:
             # cancel the task and re-run it
             self.task.cancel()
