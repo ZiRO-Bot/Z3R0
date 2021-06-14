@@ -5,7 +5,8 @@ createTimerTable = """
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         event TEXT,
         extra TEXT,
-        expires REAL
+        expires REAL,
+        created REAL
     )
 """
 
