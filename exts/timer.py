@@ -10,6 +10,7 @@ import discord
 import json
 
 
+from core.converter import TimeAndArgument
 from core.mixin import CogMixin
 from discord.ext import commands
 from exts.utils import dbQuery
@@ -143,10 +144,11 @@ class Timer(commands.Cog, CogMixin):
         return timer
 
     @commands.command()
-    async def remind(self, ctx, *, message):
-        # TODO: Currently hardcoded to 1 minutes,
-        # find a way to parse human time (1d, 1 day, 1min)
-        when = dt.datetime.utcnow() + dt.timedelta(minutes=1)
+    async def remind(self, ctx, *, argument: TimeAndArgument):
+        now = dt.datetime.utcnow()
+        when, message, delta = argument
+        if not when:
+            return await ctx.try_reply("Invalid time.")
         timer = await self.createTimer(
             when,
             "reminder",
@@ -154,10 +156,15 @@ class Timer(commands.Cog, CogMixin):
             ctx.channel.id,
             message,
             messageId=ctx.message.id,
-            created=dt.datetime.utcnow(),
+            created=now,
         )
-        # TODO: Add "humanized" time delta
-        return await ctx.send("{} in {} ({})".format(message, "x", formatDateTime(when)))
+        return await ctx.send(
+            "{} in {} ({})".format(
+                message,
+                delta,
+                formatDateTime(when),
+            )
+        )
 
     @commands.command(brief="Get current time")
     async def time(self, ctx):
