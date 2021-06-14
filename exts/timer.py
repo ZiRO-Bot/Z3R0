@@ -59,7 +59,13 @@ class Timer(commands.Cog, CogMixin):
 
     async def getActiveTimer(self, days: int = 7):
         data = await self.bot.db.fetch_one(
-            "SELECT * FROM timer WHERE expires < :interval",
+            """
+                SELECT * FROM timer
+                WHERE
+                    expires < :interval
+                ORDER BY
+                    expires ASC
+            """,
             values={
                 "interval": (dt.datetime.utcnow() + dt.timedelta(days=days)).timestamp()
             },
@@ -136,6 +142,8 @@ class Timer(commands.Cog, CogMixin):
         if delta <= (86400 * 40):  # 40 days
             self.haveData.set()
 
+        print(self.currentTimer)
+        print(when < self.currentTimer.expires)
         if self.currentTimer and when < self.currentTimer.expires:
             # cancel the task and re-run it
             self.task.cancel()
