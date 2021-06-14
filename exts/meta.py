@@ -157,24 +157,26 @@ class CustomHelp(commands.HelpCommand):
             filtered.append(cmd)
         filtered = sorted(filtered, key=lambda c: c.name)
 
-        desc = ""
-        if filtered:
-            desc = infoQuote.info(
-                "- '*': Custom Command",
-                codeBlock=True,
-            )
+        desc = infoQuote.info(
+            "- 'ᶜ': Custom Command\n+ 'ᵍ': Group (have subcommand(s))",
+            codeBlock=True,
+        )
 
         e = ZEmbed(
             title=f"{getattr(cog, 'icon', '❓')} | {cog.qualified_name}",
             description=desc,
         )
         for cmd in filtered:
+            name = cmd.name
+            if isinstance(cmd, CustomCommand):
+                name += "ᶜ"
+            if isinstance(cmd, commands.Group):
+                name += "ᵍ"
+
             e.add_field(
-                name=("*" if isinstance(cmd, CustomCommand) else "") + cmd.name,
+                name=name,
                 value=cmd.brief or "No description",
-                inline=False,
             )
-        # e.set_footer(text="* = Custom Command")
         await ctx.try_reply(embed=e)
 
 

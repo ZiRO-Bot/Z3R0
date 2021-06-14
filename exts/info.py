@@ -193,9 +193,10 @@ class Info(commands.Cog, CogMixin):
         pass
 
     @commands.command(
+        aliases=["jsh"],
         brief="Get japanese word from english/japanese/romaji/text",
     )
-    async def joshi(self, ctx, *, words):
+    async def jisho(self, ctx, *, words):
         async with ctx.bot.session.get(
             "https://jisho.org/api/v1/search/words", params={"keyword": words}
         ) as req:
@@ -212,9 +213,9 @@ class Info(commands.Cog, CogMixin):
                 ctx, title=f"{result['slug']}「 {result['japanese'][0]['reading']} 」"
             )
             e.set_author(
-                name="joshi.org",
+                name="jisho.org",
                 icon_url="https://assets.jisho.org/assets/touch-icon-017b99ca4bfd11363a97f66cc4c00b1667613a05e38d08d858aa5e2a35dce055.png",
-                url="https://joshi.org",
+                url="https://jisho.org",
             )
             for sense in result["senses"]:
                 name = "; ".join(sense["parts_of_speech"]) or "-"
