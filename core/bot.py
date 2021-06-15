@@ -213,9 +213,6 @@ class Brain(commands.Bot):
         # change bot's presence into guild live count
         self.changing_presence.start()
 
-        # rows = await self.db.fetch_all("SELECT * FROM commands")
-        # print(rows)
-
         async with self.db.transaction():
             await self.db.execute_many(
                 dbQuery.insertToGuilds, values=[{"id": i.id} for i in self.guilds]
@@ -225,6 +222,23 @@ class Brain(commands.Bot):
             self.uptime = datetime.datetime.utcnow()
 
         self.logger.warning("Ready: {0} (ID: {0.id})".format(self.user))
+
+    async def on_guild_join(self, guild):
+        """Executed when bot joins a guild"""
+        async with self.db.transaction():
+            await self.db.execute(
+                dbQuery.insertToGuilds, values={"id": guild.id}
+            )
+
+    async def on_guild_remove(self, guild):
+        """Executed when bot leaves a guild"""
+        # TODO: Add countdown before actually deleting it
+        async with self.db.transaction():
+            # TODO: BUGFIX Cascade removes command lookups but not the real command
+            # Delete the guild's commands from commands table first
+            await self.db.execute(
+                "DELETE FROM guilds WHERE id=:id", values={"id": guild.id}
+            )
 
     async def process_commands(self, message):
         # initial ctx
