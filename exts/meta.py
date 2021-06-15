@@ -297,6 +297,7 @@ class Meta(commands.Cog, CogMixin):
     #     2: Full (Can do anything to any existing command in the guild)
     # )
     # TODO: Separate tags from custom command
+    @commands.guild_only()
     @commands.group(
         aliases=["cmd", "tag", "script"],
         invoke_without_command=True,
