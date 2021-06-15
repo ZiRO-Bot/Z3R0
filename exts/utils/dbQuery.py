@@ -6,7 +6,8 @@ createTimerTable = """
         event TEXT,
         extra TEXT,
         expires REAL,
-        created REAL
+        created REAL,
+        owner INT
     )
 """
 

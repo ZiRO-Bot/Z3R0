@@ -21,9 +21,12 @@ class ZEmbed(discord.Embed):
     def error(cls, title="Error", color=discord.Color.red(), **kwargs):
         return cls(title=title, color=color, **kwargs)
 
-def formatDate(datetime = dt.datetime.utcnow()):
-    # Format: 1 Jan 1970 - 00:00 UTC
-    return datetime.strftime("%d %b %Y - %H:%M %Z")
+# def formatDate(datetime = dt.datetime.utcnow()):
+#     # Format: 1 Jan 1970 - 00:00 UTC
+#     return datetime.strftime("%d %b %Y - %H:%M %Z")
+
+def formatDateTime(datetime):
+    return datetime.strftime("%A, %d %b %Y • %H:%M:%S UTC")
 
 def formatName(name: str):
     return name.strip().lower().replace(" ", "-")

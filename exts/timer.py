@@ -14,14 +14,20 @@ from core.converter import TimeAndArgument
 from core.mixin import CogMixin
 from discord.ext import commands
 from exts.utils import dbQuery
-
-
-def formatDateTime(datetime):
-    return datetime.strftime("%A, %d %b %Y • %H:%M:%S UTC")
+from exts.utils.format import formatDateTime
 
 
 class TimerData:
-    __slots__ = ("id", "event", "args", "kwargs", "extra", "expires", "createdAt")
+    __slots__ = (
+        "id",
+        "event",
+        "args",
+        "kwargs",
+        "extra",
+        "expires",
+        "createdAt",
+        "owner",
+    )
 
     def __init__(self, data):
         self.id = data[0]
@@ -34,10 +40,13 @@ class TimerData:
         self.kwargs = self.extra.pop("kwargs", {})
         self.expires = dt.datetime.fromtimestamp(data[3])
         self.createdAt = dt.datetime.fromtimestamp(data[4])
+        self.owner = data[5]
 
     @classmethod
-    def temporary(cls, expires, created, event, args, kwargs):
-        return cls([None, event, {"args": args, "kwargs": kwargs}, expires, created])
+    def temporary(cls, expires, created, event, owner, args, kwargs):
+        return cls(
+            [None, event, {"args": args, "kwargs": kwargs}, expires, created, owner]
+        )
 
 
 class Timer(commands.Cog, CogMixin):
@@ -113,28 +122,33 @@ class Timer(commands.Cog, CogMixin):
 
     async def createTimer(self, *args, **kwargs):
         when, event, *args = args
-        try:
-            now = kwargs.pop("created")
-        except KeyError:
-            now = dt.datetime.utcnow()
+
+        now = kwargs.pop("created", dt.datetime.utcnow())
+        owner = kwargs.pop("owner", None)
 
         whenTs = when.timestamp()
         nowTs = now.timestamp()
 
         timer: TimerData = TimerData.temporary(
-            event=event, args=args, kwargs=kwargs, expires=whenTs, created=nowTs
+            event=event,
+            args=args,
+            kwargs=kwargs,
+            expires=whenTs,
+            created=nowTs,
+            owner=owner,
         )
         delta = (when - now).total_seconds()
 
         query = """
-            INSERT INTO timer (event, extra, expires, created)
-            VALUES (:event, :extra, :expires, :created)
+            INSERT INTO timer (event, extra, expires, created, owner)
+            VALUES (:event, :extra, :expires, :created, :owner)
         """
         values = {
             "event": event,
             "extra": json.dumps({"args": args, "kwargs": kwargs}),
             "expires": whenTs,
             "created": nowTs,
+            "owner": owner,
         }
         async with self.db.transaction():
             timer.id = await self.db.execute(query, values=values)
@@ -155,21 +169,24 @@ class Timer(commands.Cog, CogMixin):
     )
     async def reminder(self, ctx, *, argument: TimeAndArgument):
         now = dt.datetime.utcnow()
-        when, message, delta = argument
+        when = argument.when
+        message = argument.arg
+        delta = argument.delta
         if not when:
             return await ctx.try_reply("Invalid time.")
+
         timer = await self.createTimer(
             when,
             "reminder",
-            ctx.author.id,
             ctx.channel.id,
-            message,
+            message or "Reminder",
             messageId=ctx.message.id,
             created=now,
+            owner=ctx.author.id,
         )
         return await ctx.send(
             "{} in {} ({})".format(
-                message,
+                message or "Reminder",
                 delta,
                 formatDateTime(when),
             )
@@ -188,7 +205,8 @@ class Timer(commands.Cog, CogMixin):
 
     @commands.Cog.listener()
     async def on_reminder_timer_complete(self, timer: TimerData):
-        authorId, channelId, message = timer.args
+        channelId, message = timer.args
+        authorId = timer.owner
 
         try:
             channel = self.bot.get_channel(channelId) or (

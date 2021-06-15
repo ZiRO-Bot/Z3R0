@@ -24,13 +24,22 @@ TIME_REGEX = re.compile(
 
 class TimeAndArgument(commands.Converter):
     async def convert(self, ctx: Context, argument: str):
-        match = TIME_REGEX.match(argument)
-        if not match:
-            return (None, argument, None)
+        # Default values
+        self.arg = argument
+        self.when = None
+        self.delta = None
 
-        newArg = argument[match.end() :].strip()
-        kwargs = {k: int(v) for k, v in match.groupdict().items() if v}
-        now = dt.datetime.utcnow()
-        when = now + relativedelta(**kwargs)
-        delta = naturaldelta(when, when=now)
-        return (when, newArg, delta)
+        match = TIME_REGEX.match(argument)
+        if match:
+            kwargs = {k: int(v) for k, v in match.groupdict().items() if v}
+            if kwargs:
+                self.arg = argument[match.end() :].strip()
+                now = dt.datetime.utcnow()
+                self.when = now + relativedelta(**kwargs)
+                self.delta = naturaldelta(self.when, when=now)
+                return self
+            # prevent NaN (empty) time like 'min' makes arg empty
+            self.arg = argument
+
+        # TODO: Try to parse "specific time" (8:00am or 16 Jun 2021)
+        return self
