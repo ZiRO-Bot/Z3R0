@@ -14,3 +14,8 @@ class CCommandNotFound(CCException):
 class CCommandAlreadyExists(CCException):
     def __init__(self, name: str = "Unknown"):
         super().__init__("A command/alias called `{}` already exists!".format(name))
+
+
+class CCommandNotInGuild(CCException):
+    def __init__(self, name: str = "Unknown"):
+        super().__init__("Custom command only available in guilds")

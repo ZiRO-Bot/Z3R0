@@ -13,7 +13,7 @@ import re
 import TagScriptEngine as tse
 
 
-from core.errors import CCommandNotFound, CCommandAlreadyExists
+from core.errors import CCommandNotFound, CCommandAlreadyExists, CCommandNotInGuild
 from core.mixin import CogMixin
 from core.objects import CustomCommand
 from exts.utils import dbQuery, infoQuote, tseBlocks
@@ -251,6 +251,8 @@ class Meta(commands.Cog, CogMixin):
         return self.engine.process(content, seed)
 
     async def execCustomCommand(self, ctx, command, raw: bool = False):
+        if not ctx.guild:
+            raise CCommandNotInGuild
         cmd = await getCustomCommand(ctx, command)
         if raw:
             content = discord.utils.escape_markdown(cmd.content)

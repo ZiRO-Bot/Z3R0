@@ -10,7 +10,7 @@ import uuid
 
 
 from core.context import Context
-from core.errors import CCommandNotFound
+from core.errors import CCommandNotFound, CCommandNotInGuild
 from core.objects import Connection
 from exts.utils import dbQuery
 from databases import Database
@@ -276,9 +276,9 @@ class Brain(commands.Bot):
                     await executeCC(*args)
                     self.customCommandUsage += 1
                     return
-                except CCommandNotFound:
+                except (CCommandNotFound, CCommandNotInGuild):
                     # Failed to run custom command, revert to built-in command
-                    pass
+                    return await self.invoke(ctx)
             # Since priority is 0 and it can run the built-in command,
             # no need to try getting custom command
             return await self.invoke(ctx)
@@ -302,7 +302,7 @@ class Brain(commands.Bot):
         if (
             message.author.bot
             or message.author.id in self.blacklist.users
-            or message.guild.id in self.blacklist.guilds
+            or (message.guild and message.guild.id in self.blacklist.guilds)
         ) and message.author.id not in self.master:
             return
 

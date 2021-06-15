@@ -80,7 +80,11 @@ class Moderation(commands.Cog, CogMixin):
             desc += "\n**DM**: Failed to notify user."
 
         try:
-            await ctx.guild.ban(user, reason=reason)
+            await ctx.guild.ban(
+                user,
+                reason=reason
+                + " ({} via {})".format(ctx.author, ctx.bot.user.name),
+            )
         except discord.Forbidden:
             return await ctx.try_reply("I don't have permission to ban a user!")
         if time is not None:
