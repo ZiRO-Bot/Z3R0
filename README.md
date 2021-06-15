@@ -74,18 +74,15 @@ openweather = "0000000000000000000000000000000"
 - [**Relicense**] `GPL-3.0` -> `MPL-2.0`
 - [**BugFix**] Priority doesn't work on user-based input (string, int, etc)
 - [**New**] "Colour Information" command
+- [**New**] `Timer` ext
+- [**Improved**] Temporary ban/mute using the new `Timer` ext
 
 ### Overhaul Plan
 
-- User-made command system, allow user to make command that act similarly to built-in commands.
 - Integrate user-made commands into help commands.
-- Secondary prefix that prioritize user-made commands over built-in commands.
 - Complete moderation command rewrite.
 - Command manager, disable and enable both built-in and user-made command (built-in is the priority).
-- Filter to show/hide user-made command for help commands.
-- Built-in category for user to categorized their commands.
 - Public/Private commands, allowing other user to use each other's command in a different server.
-- Better way of handling temp ban/mute
 - Migration tool, migrate from old database "layout" to newer "layout"
 - i18n (If possible)
 - Twitch and YouTube notification (Maybe?)
@@ -94,6 +91,7 @@ openweather = "0000000000000000000000000000000"
 - Re-implement/improve old (`v2.x`) commands to `v3.0.0`
 - Slash command (Waiting for Dpy `v2.0`)
 - Add flags ('--something', also waiting for Dpy `v2.0`)
+   - Filter to show/hide user-made command for help commands.
 
 ## License
 
