@@ -70,7 +70,7 @@ getCommandId = """
 """
 
 getCommandContent = """
-    SELECT 
+    SELECT
         commands.content,
         commands.name,
         commands_lookup.name,
@@ -91,7 +91,7 @@ updateCommandContent = """
 """
 
 getCommands = """
-    SELECT 
+    SELECT
         commands.id,
         commands_lookup.name,
         commands.name,

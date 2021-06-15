@@ -4,14 +4,18 @@ License, v. 2.0. If a copy of the MPL was not distributed with this
 file, You can obtain one at http://mozilla.org/MPL/2.0/.
 """
 
+import datetime as dt
 import discord
 import humanize
 
 
+from core import checks
 from core.converter import TimeAndArgument
 from core.mixin import CogMixin
 from discord.ext import commands
+from exts.timer import Timer, TimerData
 from exts.utils.format import ZEmbed, formatDateTime
+from typing import Union
 
 
 class Moderation(commands.Cog, CogMixin):
@@ -19,17 +23,41 @@ class Moderation(commands.Cog, CogMixin):
 
     icon = "🛠️"
 
-    @commands.command(usage="(user) [limit] [reason]")
-    async def ban(self, ctx, user: discord.User, *, time: TimeAndArgument = None):
+    @checks.mod_or_permissions(ban_members=True)
+    @commands.command(
+        usage="(user) [limit] [reason]", brief="Ban a user, with optional time limit"
+    )
+    async def ban(
+        self,
+        ctx,
+        user: Union[discord.Member, discord.User],
+        *,
+        time: TimeAndArgument = None
+    ):
         defaultReason = "No reason."
 
+        timer: Timer = self.bot.get_cog("Timer")
+        if not timer:
+            # Incase Timer cog not loaded yet.
+            return await ctx.try_reply(
+                "Sorry, this command is currently not available. Please try again later"
+            )
+
+        # Some checks before attempting to ban the user
         if user.id == ctx.bot.user.id:
             return await ctx.try_reply("Nice try.")
+        if user == ctx.guild.owner:
+            return await ctx.try_reply("You can't ban guild owner!")
+        try:
+            if ctx.me.top_role <= user.top_role:
+                return await ctx.try_reply(
+                    "{}'s top role is higher than mine in the hierarchy!".format(user)
+                )
+        except AttributeError:
+            # Not guild's member
+            pass
 
-        if not self.bot.get_cog("Timer"):
-            # Incase Timer cog not loaded yet.
-            return await ctx.try_reply("Sorry, this command is current not available. Please try again later")
-
+        # Try getting necessary variables
         try:
             reason = time.arg or defaultReason
             delta = time.delta
@@ -38,14 +66,75 @@ class Moderation(commands.Cog, CogMixin):
             reason = defaultReason
 
         desc = "**Reason**: {}".format(reason)
+        guildAndTime = ctx.guild.name
         if time is not None:
             desc += "\n**Duration**: {} ({})".format(delta, formatDateTime(time))
+            guildAndTime += " until " + formatDateTime(time)
+        DMMsg = "You have been banned from {}. Reason: {}".format(guildAndTime, reason)
+
+        try:
+            await user.send(DMMsg)
+            desc += "\n**DM**: User notified with a direct message."
+        except (AttributeError, discord.HTTPException):
+            # Failed to send DM
+            desc += "\n**DM**: Failed to notify user."
+
+        try:
+            await ctx.guild.ban(user, reason=reason)
+        except discord.Forbidden:
+            return await ctx.try_reply("I don't have permission to ban a user!")
+        if time is not None:
+            # Temporary ban
+            await timer.createTimer(
+                time,
+                "ban",
+                ctx.guild.id,
+                ctx.author.id,
+                user.id,
+                created=dt.datetime.utcnow(),
+                owner=ctx.bot.user.id,
+            )
+
         e = ZEmbed.default(
             ctx,
             title="Banned {}".format(user),
             description=desc,
         )
         await ctx.send(embed=e)
+
+    @commands.Cog.listener()
+    async def on_ban_timer_complete(self, timer: TimerData):
+        """Automatically unban."""
+        guildId, modId, userId = timer.args
+        await self.bot.wait_until_ready()
+
+        guild = self.bot.get_guild(guildId)
+        if not guild:
+            return
+
+        try:
+            moderator = guild.get_member(modId) or await guild.fetch_member(modId)
+        except discord.HTTPException:
+            moderator = None
+
+        modTemplate = "{} (ID: {})"
+        if not moderator:
+            try:
+                moderator = self.bot.fetch_user(modId)
+            except:
+                moderator = "Mod ID {}".format(modId)
+            else:
+                moderator = modTemplate.format(moderator, modId)
+        else:
+            moderator = modTemplate.format(moderator, modId)
+
+        await guild.unban(
+            discord.Object(id=userId),
+            reason="Automatically unban from timer on {} by {}".format(
+                formatDateTime(timer.createdAt), moderator
+            ),
+        )
+
 
 def setup(bot):
     bot.add_cog(Moderation(bot))
