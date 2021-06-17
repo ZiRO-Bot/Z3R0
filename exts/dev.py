@@ -184,6 +184,16 @@ class Developer(commands.Cog, CogMixin):
         await ctx.send(infoQuote.info("Test") + " {}".format(text))
 
     @test.command()
+    async def join(self, ctx):
+        """Simulate user joining a guild."""
+        self.bot.dispatch("member_join", ctx.author)
+
+    @test.command(name="leave")
+    async def testleave(self, ctx):
+        """Simulate user leaving a guild."""
+        self.bot.dispatch("member_remove", ctx.author)
+
+    @test.command()
     async def reply(self, ctx):
         """Test reply."""
         await ctx.try_reply("", mention_author=True)
@@ -197,7 +207,7 @@ class Developer(commands.Cog, CogMixin):
     @notMe()
     async def noperm(self, ctx):
         """Test no permission."""
-        pass
+        await ctx.send("You have perm")
 
     def tryReload(self, extension: str):
         reloadFailMessage = "Failed to reload {}:"

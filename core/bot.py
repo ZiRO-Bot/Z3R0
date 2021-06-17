@@ -12,6 +12,7 @@ import uuid
 from core.context import Context
 from core.errors import CCommandNotFound, CCommandNotInGuild
 from core.objects import Connection
+from exts.meta import getCustomCommands
 from exts.utils import dbQuery
 from databases import Database
 from discord.ext import commands, tasks
@@ -100,7 +101,7 @@ def _callablePrefix(bot, message):
     if not message.guild:
         base.extend([bot.defPrefix])
     else:
-        # per-server prefix, soon (TM)
+        # TODO: per-server prefix
         #   base.extend(
         #       sorted(bot.cache[message.guild.id].get("prefixes", [bot.defPrefix]))
         #   )
@@ -225,6 +226,7 @@ class Brain(commands.Bot):
 
     async def on_guild_join(self, guild):
         """Executed when bot joins a guild"""
+        await self.wait_until_ready()
         async with self.db.transaction():
             await self.db.execute(
                 dbQuery.insertToGuilds, values={"id": guild.id}
@@ -232,10 +234,15 @@ class Brain(commands.Bot):
 
     async def on_guild_remove(self, guild):
         """Executed when bot leaves a guild"""
-        # TODO: Add countdown before actually deleting it
+        await self.wait_until_ready()
+        # TODO: Add countdown before actually deleting the guild
         async with self.db.transaction():
-            # TODO: BUGFIX Cascade removes command lookups but not the real command
-            # Delete the guild's commands from commands table first
+            # Delete all guild's custom command
+            commands = await getCustomCommands(self.db, guild.id)
+            await self.db.execute_many(
+                "DELETE FROM commands WHERE id=:id", values=[{"id": i.id} for i in commands]
+            )
+            # Delete guild from guilds table
             await self.db.execute(
                 "DELETE FROM guilds WHERE id=:id", values={"id": guild.id}
             )
