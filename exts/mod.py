@@ -24,8 +24,20 @@ class Moderation(commands.Cog, CogMixin):
     icon = "🛠️"
 
     @checks.mod_or_permissions(ban_members=True)
-    @commands.command(
-        usage="(user) [limit] [reason]", brief="Ban a user, with optional time limit"
+    @commands.group(
+        usage="(user) [limit] [reason]",
+        brief="Ban a user, with optional time limit",
+        description=(
+            "Ban a user, with optional time limit.\n\n"
+            "Will delete user's message, use `save` subcommand "
+            "to ban a user without deleting their message"
+        ),
+        example=(
+            "ban @User#0000 4y absolutely no reason",
+            "ban @User#0000 scam",
+            "ban @User#0000 1 minutes",
+        ),
+        invoke_without_command=True,
     )
     async def ban(
         self,
@@ -34,6 +46,31 @@ class Moderation(commands.Cog, CogMixin):
         *,
         time: TimeAndArgument = None
     ):
+        await self.doBan(ctx, user, time)
+
+    @ban.command(
+        usage="(user) [limit] [reason]",
+        brief="Ban a user, with time limit without deleting their message",
+        description=(
+            "Ban a user, with optional time limit without deleting their message"
+        ),
+        example=(
+            "ban save @User#0000 30m bye",
+            "ban save @User#0000 annoying",
+            "ban save @User#0000 1 minutes",
+        ),
+    )
+    async def save(
+        self,
+        ctx,
+        user: Union[discord.Member, discord.User],
+        *,
+        time: TimeAndArgument = None
+    ):
+        await self.doBan(ctx, user, time, saveMsg=True)
+
+    async def doBan(self, ctx, user, time: TimerData, saveMsg=False):
+        """Ban function, self-explanatory"""
         defaultReason = "No reason."
 
         timer: Timer = self.bot.get_cog("Timer")
@@ -82,8 +119,8 @@ class Moderation(commands.Cog, CogMixin):
         try:
             await ctx.guild.ban(
                 user,
-                reason=reason
-                + " ({} via {})".format(ctx.author, ctx.bot.user.name),
+                reason=reason + " ({} via {})".format(ctx.author, ctx.bot.user.name),
+                delete_message_days=0 if saveMsg else 1,
             )
         except discord.Forbidden:
             return await ctx.try_reply("I don't have permission to ban a user!")
