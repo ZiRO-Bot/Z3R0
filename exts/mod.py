@@ -28,9 +28,9 @@ class Moderation(commands.Cog, CogMixin):
         usage="(user) [limit] [reason]",
         brief="Ban a user, with optional time limit",
         description=(
-            "Ban a user, with optional time limit.\n\n"
-            "Will delete user's message, use `save` subcommand "
-            "to ban a user without deleting their message"
+            "Ban a user, with optional time limit.\n\n Will delete user's"
+            "message, use `save` subcommand to ban a user without deleting their"
+            "message"
         ),
         example=(
             "ban @User#0000 4y absolutely no reason",
