@@ -179,6 +179,59 @@ class CustomHelp(commands.HelpCommand):
             )
         await ctx.try_reply(embed=e)
 
+    def formatCmd(self, command):
+        try:
+            parent = command.parent
+        except AttributeError:
+            parent = None
+
+        entries = []
+        while parent is not None:
+            if not parent.signature or parent.invoke_without_command:
+                entries.append(parent.name)
+            else:
+                entries.append(parent.name + " " + parent.signature)
+            parent = parent.parent
+        names = " ".join(reversed([command.name] + entries))
+
+        return discord.utils.escape_markdown(f"{self.clean_prefix}{names}")
+
+    async def send_command_help(self, command):
+        ctx = self.context
+
+        e = ZEmbed(
+            title=self.formatCmd(command),
+            description=command.description,
+        )
+        examples = getattr(command, "example", [])
+        if examples:
+            e.add_field(
+                name="Example",
+                value="\n".join([f"> `{self.clean_prefix}{x}`" for x in examples]),
+            )
+        await ctx.try_reply(embed=e)
+
+    async def send_group_help(self, group):
+        ctx = self.context
+
+        e = ZEmbed(
+            title=self.formatCmd(group),
+            description=group.description,
+        )
+        examples = getattr(group, "example", [])
+        if examples:
+            e.add_field(
+                name="Example",
+                value="\n".join([f"> `{self.clean_prefix}{x}`" for x in examples]),
+            )
+        subcmds = sorted(group.commands, key=lambda c: c.name)
+        if subcmds:
+            e.add_field(
+                name="Subcommands",
+                value="\n".join([f"> `{self.formatCmd(cmd)}`" for cmd in subcmds]),
+            )
+        await ctx.try_reply(embed=e)
+
 
 class Meta(commands.Cog, CogMixin):
     """Bot-related commands."""
