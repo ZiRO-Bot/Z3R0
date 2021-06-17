@@ -175,7 +175,7 @@ class CustomHelp(commands.HelpCommand):
 
             e.add_field(
                 name=name,
-                value=cmd.brief or "No description",
+                value="> " + (cmd.brief or "No description"),
             )
         await ctx.try_reply(embed=e)
 
