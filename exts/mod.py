@@ -23,7 +23,6 @@ class Moderation(commands.Cog, CogMixin):
 
     icon = "🛠️"
 
-    @checks.mod_or_permissions(ban_members=True)
     @commands.group(
         usage="(user) [limit] [reason]",
         brief="Ban a user, with optional time limit",
@@ -39,6 +38,7 @@ class Moderation(commands.Cog, CogMixin):
         ),
         invoke_without_command=True,
     )
+    @checks.mod_or_permissions(ban_members=True)
     async def ban(
         self,
         ctx,

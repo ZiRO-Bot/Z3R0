@@ -380,6 +380,11 @@ class Meta(commands.Cog, CogMixin):
         name="import",
         aliases=["++"],
         brief="Import a custom command from pastebin/gist.github",
+        example=(
+            "command import pastebin-cmd https://pastebin.com/ZxvGqEAs",
+            "command ++ gist "
+            "https://gist.github.com/null2264/87c89d2b5e2453529e29c2cae3b57729",
+        ),
     )
     @modeCheck()
     async def _import(self, ctx, name: CMDName, *, url: str):
@@ -552,13 +557,26 @@ class Meta(commands.Cog, CogMixin):
         if update:
             return await ctx.try_reply("Command `{}` has been edited\n".format(name))
 
-    @command.command(
+    @command.group(
+        name="set",
+        brief="Set custom command's property",
+        example=(
+            "command set category test-command info",
+            "cmd set cat test-embed unsorted",
+        ),
+    )
+    async def cmdSet(self, ctx):
+        """Do nothing by itself."""
+        pass
+
+    @cmdSet.command(
         aliases=["cat", "mv"],
         brief="Move a custom command to a category",
     )
     @modeCheck()
     async def category(self, ctx, command: CMDName, category: CMDName):
         category = category.lower()
+
         blacklistedCats = (
             "errorhandler",
             "jishaku",
@@ -571,6 +589,9 @@ class Meta(commands.Cog, CogMixin):
             for cog in ctx.bot.cogs.values()
             if cog.qualified_name.lower() not in blacklistedCats
         ]
+        if category not in availableCats:
+            return await ctx.try_reply("Invalid category")
+
         command = await getCustomCommand(ctx, command)
         if command.category == category:
             return await ctx.try_reply("{} already in {}!".format(command, category))
