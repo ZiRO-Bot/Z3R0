@@ -215,6 +215,7 @@ class Brain(commands.Bot):
         self.changing_presence.start()
 
         async with self.db.transaction():
+            # TODO: Delete guilds that kick the bot when its offline
             await self.db.execute_many(
                 dbQuery.insertToGuilds, values=[{"id": i.id} for i in self.guilds]
             )
@@ -227,21 +228,23 @@ class Brain(commands.Bot):
     async def on_guild_join(self, guild):
         """Executed when bot joins a guild"""
         await self.wait_until_ready()
+
         async with self.db.transaction():
-            await self.db.execute(
-                dbQuery.insertToGuilds, values={"id": guild.id}
-            )
+            await self.db.execute(dbQuery.insertToGuilds, values={"id": guild.id})
 
     async def on_guild_remove(self, guild):
         """Executed when bot leaves a guild"""
         await self.wait_until_ready()
+
         # TODO: Add countdown before actually deleting the guild
         async with self.db.transaction():
             # Delete all guild's custom command
             commands = await getCustomCommands(self.db, guild.id)
             await self.db.execute_many(
-                "DELETE FROM commands WHERE id=:id", values=[{"id": i.id} for i in commands]
+                "DELETE FROM commands WHERE id=:id",
+                values=[{"id": i.id} for i in commands],
             )
+
             # Delete guild from guilds table
             await self.db.execute(
                 "DELETE FROM guilds WHERE id=:id", values={"id": guild.id}
@@ -256,7 +259,6 @@ class Brain(commands.Bot):
 
         # 0 = Built-In, 1 = Custom
         priority = 0
-        priorityPrefix = 0
         unixStyle = False
 
         # Handling custom command priority
@@ -264,20 +266,20 @@ class Brain(commands.Bot):
         # Get msg content without prefix
         msgContent: str = msg.content[len(ctx.prefix) :]
         if msgContent.startswith(">") or (unixStyle := msgContent.startswith("./")):
-            # `./` for unix-style of launching custom scripts
-            priority = priorityPrefix = 1
+            # Also support `./` for unix-style of launching custom scripts
+            priority = 1
+
             # Turn `>command` into `command`
-            # So it can properly checked
-            if unixStyle:
-                priorityPrefix = 2
+            msgContent = msgContent[2 if unixStyle else 1 :]
+
             # Properly get command when priority is 1
-            msg.content = ctx.prefix + msgContent[priorityPrefix:]
+            msg.content = ctx.prefix + msgContent
 
             # This fixes the problem, idk how ._.
             ctx = await self.get_context(msg, cls=Context)
 
         # Get arguments for custom commands
-        tmp = msgContent[priorityPrefix:].split(" ")
+        tmp = msgContent.split(" ")
         args = (ctx, tmp.pop(0), " ".join(tmp))
 
         # Check if user can run the command
@@ -292,7 +294,7 @@ class Brain(commands.Bot):
         executeCC = self.get_command("command run")
         # Handling command invoke with priority
         if canRun:
-            if priority == 1:
+            if priority >= 1:
                 try:
                     await executeCC(*args)
                     self.customCommandUsage += 1
@@ -303,10 +305,11 @@ class Brain(commands.Bot):
             # Since priority is 0 and it can run the built-in command,
             # no need to try getting custom command
             return await self.invoke(ctx)
-        # Can't run built-in command, straight to trying custom command
-        await executeCC(*args)
-        self.customCommandUsage += 1
-        return
+        else:
+            # Can't run built-in command, straight to trying custom command
+            await executeCC(*args)
+            self.customCommandUsage += 1
+            return
 
     def formattedPrefixes(self, message, codeblock: bool = False):
         prefixes = _callablePrefix(self, message)
