@@ -14,7 +14,7 @@ from core.converter import TimeAndArgument
 from core.mixin import CogMixin
 from discord.ext import commands
 from exts.utils import dbQuery
-from exts.utils.format import formatDateTime
+from exts.utils.format import formatDateTime, ZEmbed
 
 
 class TimerData:
@@ -34,10 +34,12 @@ class TimerData:
         self.event = data[1]
         try:
             self.extra = json.loads(data[2])
+            self.args = self.extra.pop("args", [])
+            self.kwargs = self.extra.pop("kwargs", {})
         except TypeError:
             self.extra = data[2]
-        self.args = self.extra.pop("args", [])
-        self.kwargs = self.extra.pop("kwargs", {})
+            self.args = None
+            self.kwargs = None
         self.expires = dt.datetime.fromtimestamp(data[3])
         self.createdAt = dt.datetime.fromtimestamp(data[4])
         self.owner = data[5]
@@ -170,7 +172,7 @@ class Timer(commands.Cog, CogMixin):
     async def reminder(self, ctx, *, argument: TimeAndArgument):
         now = dt.datetime.utcnow()
         when = argument.when
-        message = argument.arg
+        message = argument.arg or "Reminder"
         delta = argument.delta
         if not when:
             return await ctx.try_reply("Invalid time.")
@@ -179,14 +181,14 @@ class Timer(commands.Cog, CogMixin):
             when,
             "reminder",
             ctx.channel.id,
-            message or "Reminder",
+            message,
             messageId=ctx.message.id,
             created=now,
             owner=ctx.author.id,
         )
         return await ctx.send(
             "{} in {} ({})".format(
-                message or "Reminder",
+                message,
                 delta,
                 formatDateTime(when),
             )
@@ -219,9 +221,13 @@ class Timer(commands.Cog, CogMixin):
             channel.guild.id if isinstance(channel, discord.TextChannel) else "@me"
         )
         messageId = timer.kwargs.get("messageId")
-        msg = "<@{}>: {}".format(authorId, message)
+        msgUrl = f"https://discord.com/channels/{guildId}/{channelId}/{messageId}"
 
-        await channel.send(msg)
+        e = ZEmbed(
+            description="{} [`[?]`]({})".format(message, msgUrl),
+        )
+
+        await channel.send("<@{}>".format(authorId), embed=e)
 
 
 def setup(bot):
