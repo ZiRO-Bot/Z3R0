@@ -77,6 +77,7 @@ openweather = "0000000000000000000000000000000"
 - [**New**] `Timer` ext
 - [**Improved**] Temporary ban/mute using the new `Timer` ext
 - [**Improved**] Guild data will countdown up to 30 days before deleting when the bot leave the guild instead of instantly deleting the data
+- [**Improved**] Prefixes now separated to custom and built-in/default (bot mention and ">" by default)
 
 ### Overhaul Plan
 
