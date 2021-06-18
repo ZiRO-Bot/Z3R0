@@ -76,6 +76,7 @@ openweather = "0000000000000000000000000000000"
 - [**New**] "Colour Information" command
 - [**New**] `Timer` ext
 - [**Improved**] Temporary ban/mute using the new `Timer` ext
+- [**Improved**] Guild data will countdown up to 30 days before deleting when the bot leave the guild instead of instantly deleting the data
 
 ### Overhaul Plan
 
