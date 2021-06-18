@@ -68,6 +68,10 @@ class Timer(commands.Cog, CogMixin):
             await self.bot.db.execute(dbQuery.createTimerTable)
         self.task = self.bot.loop.create_task(self.dispatchTimers())
 
+    def restartTimer(self):
+        self.task.cancel()
+        self.task = self.bot.loop.create_task(self.dispatchTimers())
+
     async def getActiveTimer(self, days: int = 7):
         data = await self.bot.db.fetch_one(
             """
@@ -119,8 +123,7 @@ class Timer(commands.Cog, CogMixin):
         except asyncio.CancelledError:
             raise
         except (OSError, discord.ConnectionClosed):
-            self.task.cancel()
-            self.task = self.bot.loop.create_task(self.dispatchTimers())
+            self.restartTimer()
 
     async def createTimer(self, *args, **kwargs):
         when, event, *args = args
@@ -160,8 +163,7 @@ class Timer(commands.Cog, CogMixin):
 
         if self.currentTimer and when < self.currentTimer.expires:
             # cancel the task and re-run it
-            self.task.cancel()
-            self.task = self.bot.loop.create_task(self.dispatchTimers())
+            self.restartTimer()
 
         return timer
 

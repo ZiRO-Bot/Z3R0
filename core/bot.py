@@ -13,6 +13,7 @@ from core.context import Context
 from core.errors import CCommandNotFound, CCommandNotInGuild
 from core.objects import Connection
 from exts.meta import getCustomCommands
+from exts.timer import TimerData, Timer
 from exts.utils import dbQuery
 from databases import Database
 from discord.ext import commands, tasks
@@ -158,6 +159,8 @@ class Brain(commands.Bot):
         self.activityIndex = 0
         self.commandUsage = 0
         self.customCommandUsage = 0
+        # How many days before guild data get wiped when bot leaves the guild
+        self.guildDelDays = 30
 
         # bot's default prefix
         self.defPrefix = ">" if not hasattr(config, "prefix") else config.prefix
@@ -215,10 +218,54 @@ class Brain(commands.Bot):
         self.changing_presence.start()
 
         async with self.db.transaction():
-            # TODO: Delete guilds that kick the bot when its offline
+            timer: Timer = self.get_cog("Timer")
+
+            dbGuilds = await self.db.fetch_all("SELECT id FROM guilds")
+            dbGuilds = [i[0] for i in dbGuilds]
+            guildIds = [i.id for i in self.guilds]
+
+            # Insert new guilds
+            guildToAdd = [{"id": i} for i in guildIds if i not in dbGuilds]
             await self.db.execute_many(
-                dbQuery.insertToGuilds, values=[{"id": i.id} for i in self.guilds]
+                dbQuery.insertToGuilds,
+                values=guildToAdd,
             )
+
+            # Delete deletion timer for guild where bot is in
+            scheduledGuilds = await self.db.fetch_all(
+                """
+                    SELECT owner
+                    FROM timer
+                    WHERE event = "guild_del"
+                """
+            )
+            scheduledGuilds = [i[0] for i in scheduledGuilds]
+            await self.db.execute_many(
+                "DELETE FROM timer WHERE owner=:guildId",
+                values=[{"guildId": i} for i in scheduledGuilds if i in guildIds],
+            )
+
+            # Schedule delete guild where the bot no longer in
+            now = datetime.datetime.utcnow()
+            when = now + datetime.timedelta(days=self.guildDelDays)
+            await self.db.execute_many(
+                """
+                    INSERT INTO timer (event, extra, expires, created, owner)
+                    VALUES ("guild_del", :extra, :expires, :created, :owner)
+                """,
+                values=[
+                    {
+                        "extra": json.dumps({"args": [], "kwargs": {}}),
+                        "expires": when.timestamp(),
+                        "created": now.timestamp(),
+                        "owner": i,
+                    }
+                    for i in list(dbGuilds)
+                    if i not in guildIds and i not in scheduledGuilds
+                ],
+            )
+            # Restart timer task
+            timer.restartTimer()
 
         if not hasattr(self, "uptime"):
             self.uptime = datetime.datetime.utcnow()
@@ -230,16 +277,50 @@ class Brain(commands.Bot):
         await self.wait_until_ready()
 
         async with self.db.transaction():
-            await self.db.execute(dbQuery.insertToGuilds, values={"id": guild.id})
+            dbGuilds = await self.db.fetch_all("SELECT * FROM guilds")
+            if guild.id not in dbGuilds:
+                return await self.db.execute(
+                    dbQuery.insertToGuilds, values={"id": guild.id}
+                )
+            # Cancel deletion
+            await self.cancelDeletion(guild)
 
     async def on_guild_remove(self, guild):
         """Executed when bot leaves a guild"""
         await self.wait_until_ready()
+        # Schedule deletion
+        await self.scheduleDeletion(guild.id, days=self.guildDelDays)
 
-        # TODO: Add countdown before actually deleting the guild
+    async def scheduleDeletion(self, guildId: int, days: int = 30):
+        """Schedule guild deletion from `guilds` table"""
+        timer: Timer = self.get_cog("Timer")
+        now = datetime.datetime.utcnow()
+        when = now + datetime.timedelta(days=days)
+        await timer.createTimer(when, "guild_del", created=now, owner=guild.id)
+
+    async def cancelDeletion(self, guild: discord.Guild):
+        """Cancel guild deletion"""
+        timer: Timer = self.get_cog("Timer")
+        # Remove the deletion timer and restart timer task
+        async with self.db.transaction():
+            await self.db.execute(
+                "DELETE FROM timer WHERE owner=:guildId", values={"guildId": guild.id}
+            )
+            timer.restartTimer()
+
+    async def on_guild_del_timer_complete(self, timer: TimerData):
+        """Executed when guild deletion timer completed"""
+        await self.wait_until_ready()
+        guildId = timer.owner
+
+        guildIds = [i.id for i in self.guilds]
+        if guildId in guildIds:
+            # The bot rejoin, about the function
+            return
+
         async with self.db.transaction():
             # Delete all guild's custom command
-            commands = await getCustomCommands(self.db, guild.id)
+            commands = await getCustomCommands(self.db, guildId)
             await self.db.execute_many(
                 "DELETE FROM commands WHERE id=:id",
                 values=[{"id": i.id} for i in commands],
@@ -247,7 +328,7 @@ class Brain(commands.Bot):
 
             # Delete guild from guilds table
             await self.db.execute(
-                "DELETE FROM guilds WHERE id=:id", values={"id": guild.id}
+                "DELETE FROM guilds WHERE id=:id", values={"id": guildId}
             )
 
     async def process_commands(self, message):
