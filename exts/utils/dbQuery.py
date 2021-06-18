@@ -109,6 +109,14 @@ incrCommandUsage = """
     WHERE commands.id=:id
 """
 
+createPrefixesTable = """
+    CREATE TABLE IF NOT EXISTS prefixes (
+        guildId INTEGER NOT NULL,
+        prefix TEXT,
+        FOREIGN KEY ("guildId") REFERENCES guilds ("id") ON DELETE CASCADE
+    )
+"""
+
 createGuildsTable = """
     CREATE TABLE IF NOT EXISTS guilds (
         id INTEGER NOT NULL PRIMARY KEY UNIQUE

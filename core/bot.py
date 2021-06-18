@@ -15,6 +15,7 @@ from core.objects import Connection
 from exts.meta import getCustomCommands
 from exts.timer import TimerData, Timer
 from exts.utils import dbQuery
+from exts.utils.format import cleanifyPrefix
 from databases import Database
 from discord.ext import commands, tasks
 from typing import Union
@@ -100,14 +101,11 @@ def _callablePrefix(bot, message):
     user_id = bot.user.id
     base = [f"<@!{user_id}> ", f"<@{user_id}> "]
     if not message.guild:
+        # Use default prefix in DM
         base.extend([bot.defPrefix])
     else:
-        # TODO: per-server prefix
-        #   base.extend(
-        #       sorted(bot.cache[message.guild.id].get("prefixes", [bot.defPrefix]))
-        #   )
-
-        base.extend([bot.defPrefix])
+        # Per-guild prefixes
+        base.extend(sorted(bot.prefixes.get(message.guild.id, []) + [bot.defPrefix]))
     return base
 
 
@@ -164,6 +162,8 @@ class Brain(commands.Bot):
 
         # bot's default prefix
         self.defPrefix = ">" if not hasattr(config, "prefix") else config.prefix
+        self.prefixes = {}
+        self.prefixLimit = 15
 
         # database
         self.db = Database(config.sql, factory=Connection)
@@ -178,8 +178,59 @@ class Brain(commands.Bot):
         """`__init__` but async"""
         # self.db = await aiosqlite.connect("data/database.db")
         await self.db.connect()
+
         async with self.db.transaction():
+            # Creating all the necessary tables
             await self.db.execute(dbQuery.createGuildsTable)
+            await self.db.execute(dbQuery.createPrefixesTable)
+
+        # Cache prefixes right away
+        prefixes = await self.db.fetch_all("SELECT * FROM prefixes")
+        for g, p in prefixes:
+            try:
+                self.prefixes[g].append(p)
+            except:
+                self.prefixes[g] = [p]
+
+    async def addPrefix(self, guildId, prefix):
+        """Add a prefix"""
+        prefixes = self.prefixes.get(guildId, [])
+        if len(prefixes) >= self.prefixLimit:
+            raise IndexError(
+                "Custom prefixes is full! (Only allowed to add up to `{}` prefixes)".format(
+                    self.prefixLimit
+                )
+            )
+        if prefix not in prefixes:
+            async with self.db.transaction():
+                await self.db.execute(
+                    "INSERT INTO prefixes VALUES (:guildId, :prefix)",
+                    values={"guildId": guildId, "prefix": prefix},
+                )
+            self.prefixes[guildId] = prefixes + [prefix]
+            return prefix
+        raise commands.BadArgument(
+            "Prefix `{}` is already exists".format(cleanifyPrefix(self, prefix))
+        )
+
+    async def rmPrefix(self, guildId, prefix):
+        """Remove a prefix"""
+        prefixes = self.prefixes.get(guildId, [])
+        if prefix in prefixes:
+            async with self.db.transaction():
+                await self.db.execute(
+                    """
+                        DELETE FROM prefixes
+                        WHERE
+                            guildId=:guildId AND prefix=:prefix
+                    """,
+                    values={"guildId": guildId, "prefix": prefix},
+                )
+            self.prefixes[guildId].remove(prefix)
+            return prefix
+        raise commands.BadArgument(
+            "Prefix `{}` is not exists".format(cleanifyPrefix(self, prefix))
+        )
 
     @tasks.loop(seconds=15)
     async def changing_presence(self):
@@ -217,6 +268,15 @@ class Brain(commands.Bot):
         # change bot's presence into guild live count
         self.changing_presence.start()
 
+        await self.manageGuildDeletion()
+
+        if not hasattr(self, "uptime"):
+            self.uptime = datetime.datetime.utcnow()
+
+        self.logger.warning("Ready: {0} (ID: {0.id})".format(self.user))
+
+    async def manageGuildDeletion(self):
+        """Manages guild deletion from database on boot"""
         async with self.db.transaction():
             timer: Timer = self.get_cog("Timer")
 
@@ -274,11 +334,6 @@ class Brain(commands.Bot):
                 timer.restartTimer()
             elif not timer.currentTimer:
                 timer.restartTimer()
-
-        if not hasattr(self, "uptime"):
-            self.uptime = datetime.datetime.utcnow()
-
-        self.logger.warning("Ready: {0} (ID: {0.id})".format(self.user))
 
     async def on_guild_join(self, guild):
         """Executed when bot joins a guild"""
@@ -408,15 +463,18 @@ class Brain(commands.Bot):
             self.customCommandUsage += 1
             return
 
-    def formattedPrefixes(self, message, codeblock: bool = False):
-        prefixes = _callablePrefix(self, message)
-        prefixes.pop(0)
-        prefixes.pop(0)
-        prefixes = ", ".join([f"`{x}`" for x in prefixes])
-        return "My prefixes are: {} or {}".format(
-            prefixes,
-            self.user.mention if not codeblock else ("@" + self.user.display_name),
+    def formattedPrefixes(self, guildId):
+        prefixes = ", ".join([f"`{x}`" for x in self.prefixes.get(guildId, [])])
+        result = "My default prefixes are `{}` or {}".format(
+            self.defPrefix, self.user.mention
         )
+        if prefixes:
+            result += "\n\nCustom prefixes: {}".format(prefixes)
+        return result
+        # return "My prefixes are: {} or {}".format(
+        #     prefixes,
+        #     self.user.mention if not codeblock else ("@" + self.user.display_name),
+        # )
 
     async def on_message(self, message):
         # dont accept commands from bot
@@ -431,7 +489,7 @@ class Brain(commands.Bot):
         pattern = f"<@(!?){self.user.id}>"
         if re.fullmatch(pattern, message.content):
             e = discord.Embed(
-                description=self.formattedPrefixes(message),
+                description=self.formattedPrefixes(message.guild.id),
                 colour=discord.Colour.rounded(),
             )
             e.set_footer(

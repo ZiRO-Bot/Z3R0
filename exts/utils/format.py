@@ -1,5 +1,6 @@
 import datetime as dt
 import discord
+import re
 
 
 from discord.ext import commands
@@ -34,3 +35,11 @@ def formatName(name: str):
 class CMDName(commands.Converter):
     async def convert(self, ctx, argument: str):
         return formatName(argument)
+
+def cleanifyPrefix(bot, prefix):
+    """Cleanify prefix (similar to context.clean_prefix)"""
+    pattern = re.compile(r"<@!?{}>".format(bot.user.id))
+    return pattern.sub(
+        "@{}".format(bot.user.display_name.replace("\\", r"\\")), prefix
+    )
+

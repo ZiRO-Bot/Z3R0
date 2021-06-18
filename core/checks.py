@@ -40,7 +40,7 @@ def has_guild_permissions(*, check=all, **perms):
     return commands.check(pred)
 
 
-# Is mod, is admid thingy
+# Is mod, is admin thingy
 
 
 def is_botmaster():
@@ -51,6 +51,7 @@ def is_botmaster():
 
 
 def is_mod():
+    # TODO: Add "mod role"
     async def pred(ctx):
         return await check_guild_permissions(ctx, {"manage_channels": True})
 

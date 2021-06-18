@@ -13,11 +13,12 @@ import re
 import TagScriptEngine as tse
 
 
+from core import checks
 from core.errors import CCommandNotFound, CCommandAlreadyExists, CCommandNotInGuild
 from core.mixin import CogMixin
 from core.objects import CustomCommand
 from exts.utils import dbQuery, infoQuote, tseBlocks
-from exts.utils.format import CMDName, ZEmbed
+from exts.utils.format import CMDName, ZEmbed, cleanifyPrefix
 from discord.ext import commands
 
 
@@ -201,7 +202,7 @@ class CustomHelp(commands.HelpCommand):
 
         e = ZEmbed(
             title=self.formatCmd(command),
-            description=command.description,
+            description=command.description or command.brief,
         )
         examples = getattr(command, "example", [])
         if examples:
@@ -216,7 +217,7 @@ class CustomHelp(commands.HelpCommand):
 
         e = ZEmbed(
             title=self.formatCmd(group),
-            description=group.description,
+            description=group.description or group.brief,
         )
         examples = getattr(group, "example", [])
         if examples:
@@ -748,6 +749,61 @@ class Meta(commands.Cog, CogMixin):
             inline=False,
         )
         await ctx.try_reply(embed=e)
+
+    @commands.group(
+        aliases=["pref"],
+        brief="Manages bot's custom prefix",
+        example=(
+            "prefix add ?",
+            "pref remove !",
+        ),
+    )
+    async def prefix(self, ctx):
+        pass
+
+    @prefix.command(
+        name="add",
+        aliases=["+"],
+        brief="Add a custom prefix",
+        description=(
+            'Add a custom prefix.\n\n Tips: Use quotation mark (`""`) to add '
+            "spaces to your prefix."
+        ),
+        example=("prefix add ?", 'prefix + "please do "', "pref + z!"),
+    )
+    @checks.is_mod()
+    async def prefAdd(self, ctx, *prefix):
+        prefix = " ".join(prefix).lstrip()
+        if not prefix:
+            return await ctx.try_reply("Prefix can't be empty!")
+
+        try:
+            await self.bot.addPrefix(ctx.guild.id, prefix)
+            await ctx.try_reply(
+                "Prefix `{}` has been added".format(cleanifyPrefix(self.bot, prefix))
+            )
+        except Exception as exc:
+            await ctx.try_reply(exc)
+
+    @prefix.command(
+        name="remove",
+        aliases=["-", "rm"],
+        brief="Remove a custom prefix",
+        example=("prefix rm ?", 'prefix - "please do "', "pref remove z!"),
+    )
+    @checks.is_mod()
+    async def prefRm(self, ctx, *prefix):
+        prefix = " ".join(prefix).lstrip()
+        if not prefix:
+            return await ctx.try_reply("Prefix can't be empty!")
+
+        try:
+            await self.bot.rmPrefix(ctx.guild.id, prefix)
+            await ctx.try_reply(
+                "Prefix `{}` has been removed".format(cleanifyPrefix(self.bot, prefix))
+            )
+        except Exception as exc:
+            await ctx.try_reply(exc)
 
 
 def setup(bot):
