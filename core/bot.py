@@ -240,9 +240,10 @@ class Brain(commands.Bot):
                 """
             )
             scheduledGuilds = [i[0] for i in scheduledGuilds]
+            canceledScheduleGuilds = [i for i in scheduledGuilds if i in guildIds]
             await self.db.execute_many(
                 "DELETE FROM timer WHERE owner=:guildId",
-                values=[{"guildId": i} for i in scheduledGuilds if i in guildIds],
+                values=[{"guildId": i} for i in canceledScheduleGuilds],
             )
 
             # Schedule delete guild where the bot no longer in
@@ -251,7 +252,7 @@ class Brain(commands.Bot):
             await self.db.execute_many(
                 """
                     INSERT INTO timer (event, extra, expires, created, owner)
-                    VALUES ("guild_del", :extra, :expires, :created, :owner)
+                    VALUES ('guild_del', :extra, :expires, :created, :owner)
                 """,
                 values=[
                     {
@@ -260,12 +261,19 @@ class Brain(commands.Bot):
                         "created": now.timestamp(),
                         "owner": i,
                     }
-                    for i in list(dbGuilds)
+                    for i in dbGuilds
                     if i not in guildIds and i not in scheduledGuilds
                 ],
             )
+
             # Restart timer task
-            timer.restartTimer()
+            if timer.currentTimer and (
+                timer.currentTimer.owner in canceledScheduleGuilds
+                or when < timer.currentTimer.expires
+            ):
+                timer.restartTimer()
+            elif not timer.currentTimer:
+                timer.restartTimer()
 
         if not hasattr(self, "uptime"):
             self.uptime = datetime.datetime.utcnow()
@@ -277,8 +285,10 @@ class Brain(commands.Bot):
         await self.wait_until_ready()
 
         async with self.db.transaction():
-            dbGuilds = await self.db.fetch_all("SELECT * FROM guilds")
-            if guild.id not in dbGuilds:
+            dbGuild = await self.db.fetch_one(
+                "SELECT * FROM guilds WHERE id=:id", values={"id": guild.id}
+            )
+            if not dbGuild:
                 return await self.db.execute(
                     dbQuery.insertToGuilds, values={"id": guild.id}
                 )
@@ -296,7 +306,7 @@ class Brain(commands.Bot):
         timer: Timer = self.get_cog("Timer")
         now = datetime.datetime.utcnow()
         when = now + datetime.timedelta(days=days)
-        await timer.createTimer(when, "guild_del", created=now, owner=guild.id)
+        await timer.createTimer(when, "guild_del", created=now, owner=guildId)
 
     async def cancelDeletion(self, guild: discord.Guild):
         """Cancel guild deletion"""
@@ -304,9 +314,15 @@ class Brain(commands.Bot):
         # Remove the deletion timer and restart timer task
         async with self.db.transaction():
             await self.db.execute(
-                "DELETE FROM timer WHERE owner=:guildId", values={"guildId": guild.id}
+                """
+                    DELETE FROM timer
+                    WHERE
+                        owner=:id AND event='guild_del'
+                """,
+                values={"id": guild.id},
             )
-            timer.restartTimer()
+            if timer.currentTimer and timer.currentTimer.owner == guild.id:
+                timer.restartTimer()
 
     async def on_guild_del_timer_complete(self, timer: TimerData):
         """Executed when guild deletion timer completed"""
