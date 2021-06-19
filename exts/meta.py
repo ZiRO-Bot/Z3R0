@@ -253,6 +253,7 @@ class Meta(commands.Cog, CogMixin):
     """Bot-related commands."""
 
     icon = "🤖"
+    cc = True
 
     def __init__(self, bot):
         super().__init__(bot)
@@ -646,17 +647,10 @@ class Meta(commands.Cog, CogMixin):
     async def category(self, ctx, command: CMDName, category: CMDName):
         category = category.lower()
 
-        blacklistedCats = (
-            "errorhandler",
-            "jishaku",
-            "admin",
-            "moderation",
-            "developer",
-        )
         availableCats = [
             cog.qualified_name.lower()
             for cog in ctx.bot.cogs.values()
-            if cog.qualified_name.lower() not in blacklistedCats
+            if getattr(cog, "cc", False)
         ]
         if category not in availableCats:
             return await ctx.try_reply("Invalid category")

@@ -15,6 +15,7 @@ class Admin(commands.Cog, CogMixin):
     """Admin-only commands to configure the bot."""
 
     icon = "\u2699"
+    cc = True
 
 
 def setup(bot):

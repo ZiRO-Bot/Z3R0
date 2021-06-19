@@ -37,6 +37,7 @@ class Info(commands.Cog, CogMixin):
     """Commands that gives you information."""
 
     icon = "<:info:783206485051441192>"
+    cc = True
 
     def __init__(self, bot):
         super().__init__(bot)

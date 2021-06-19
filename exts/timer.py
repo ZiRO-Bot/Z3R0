@@ -55,6 +55,7 @@ class Timer(commands.Cog, CogMixin):
     """Time-related commands."""
 
     icon = "🕑"
+    cc = True
 
     def __init__(self, bot):
         super().__init__(bot)

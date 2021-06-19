@@ -16,7 +16,9 @@ from random import choice
 
 class Fun(commands.Cog, CogMixin):
     """Meme and other fun commands."""
+
     icon = "🎉"
+    cc = True
 
     def __init__(self, bot):
         super().__init__(bot)

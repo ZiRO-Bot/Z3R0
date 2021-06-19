@@ -20,6 +20,7 @@ class Utilities(commands.Cog, CogMixin):
     """Useful commands."""
 
     icon = "🔧"
+    cc = True
 
     @commands.command(aliases=["calc", "c"])
     async def math(self, ctx, *, equation):
