@@ -11,9 +11,11 @@ from core.mixin import CogMixin
 from discord.ext import commands
 
 
-class Unsorted(commands.Cog, CogMixin):
-    """Placeholder cog."""
+class Admin(commands.Cog, CogMixin):
+    """Admin-only commands to configure the bot."""
+
+    icon = "\u2699"
 
 
 def setup(bot):
-    bot.add_cog(Unsorted(bot))
+    bot.add_cog(Admin(bot))
