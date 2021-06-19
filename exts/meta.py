@@ -197,6 +197,16 @@ class CustomHelp(commands.HelpCommand):
 
         return discord.utils.escape_markdown(f"{self.clean_prefix}{names}")
 
+    # TODO: Bruh, try something else
+    # async def command_not_found(self, string):
+    #     ctx = self.context
+    #     try:
+    #         command = await getCustomCommand(ctx, string)
+    #         return await self.send_command_help(command)
+    #     except CCommandNotFound:
+    #         return "No command called `{}` found.".format(string)
+
+    # TODO: Add aliases to group and command help
     async def send_command_help(self, command):
         ctx = self.context
 

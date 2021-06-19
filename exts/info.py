@@ -85,7 +85,11 @@ class Info(commands.Cog, CogMixin):
         e.set_image(url=user.avatar_url_as(size=1024))
         await ctx.try_reply(embed=e)
 
-    @commands.command(aliases=["w"], brief="Get current weather on specific city")
+    @commands.command(
+        aliases=["w"],
+        brief="Get current weather for specific city",
+        example=("weather Palembang", "w London"),
+    )
     async def weather(self, ctx, *, city):
         if not self.openweather.apiKey:
             # TODO: Adjust error message
@@ -105,7 +109,7 @@ class Info(commands.Cog, CogMixin):
             description="Feels like {}°C, {}".format(
                 weatherData.tempFeels.celcius, weatherData.weatherDetail
             ),
-            color=discord.Colour(0xEA6D4A),
+            colour=discord.Colour(0xEA6D4A),
         )
         e.set_author(
             name="OpenWeather",
@@ -120,6 +124,11 @@ class Info(commands.Cog, CogMixin):
     @commands.command(
         aliases=["clr", "color"],
         brief="Get colour information from hex value",
+        description=(
+            "Get colour information from hex value\n\nCan use either `0x` or "
+            "`#` prefix (`0xFFFFFF` or `#FFFFFF`)"
+        ),
+        example=("colour ffffff", "clr 0xffffff", "color #ffffff"),
     )
     async def colour(self, ctx, value: str):
         # Pre processing
@@ -154,12 +163,33 @@ class Info(commands.Cog, CogMixin):
         )
 
     @commands.group(
-        aliases=["em"], invoke_without_command=True, brief="Get an emoji's information"
+        aliases=["em"],
+        brief="Get an emoji's information",
+        description=(
+            "Get an emoji's information\n\nWill execute `emoji info` by "
+            "default when there's no any subcommands used"
+        ),
+        example=(
+            "emoji info :thonk:",
+            "em ? :thinkies:",
+            "emoji steal :KEKW:",
+        ),
+        invoke_without_command=True,
     )
     async def emoji(self, ctx, emoji: Union[discord.Emoji, discord.PartialEmoji, str]):
         await self.emojiinfo(ctx, emoji)
 
-    @emoji.command(name="info", brief="Get an emoji's information")
+    @emoji.command(
+        name="info",
+        aliases=["?"],
+        brief="Get an emoji's information",
+        description="Get an emoji's information\n\nSupports Unicode/built-in emojis",
+        example=(
+            "emoji info :pog:",
+            "em info :KEKW:",
+            "em ? 🤔",
+        ),
+    )
     async def emojiinfo(
         self, ctx, emoji: Union[discord.Emoji, discord.PartialEmoji, str]
     ):
@@ -187,14 +217,44 @@ class Info(commands.Cog, CogMixin):
                 return await ctx.try_reply("`{}` is not a valid emoji!".format(emoji))
         return await ctx.try_reply(embed=e)
 
-    @emoji.command(brief="Steal an emoji")
-    @checks.mod_or_permissions(**{"manage_emojis": True})
+    @emoji.command(
+        brief="Steal a custom emoji",
+        description="Steal a custom emoji\n\nUnicode emojis are not supported!",
+        example=("emoji steal :shuba:", "em steal :thonk:", "emoji steal :LULW:"),
+    )
+    @checks.mod_or_permissions(manage_emojis=True)
     async def steal(self, ctx, emoji: Union[discord.Emoji, discord.PartialEmoji]):
-        pass
+        async with self.bot.session.get(str(emoji.url)) as req:
+            emojiByte = await req.read()
+        try:
+            addedEmoji = await ctx.guild.create_custom_emoji(
+                name=emoji.name, image=emojiByte
+            )
+        except discord.Forbidden:
+            return await ctx.try_reply("I don't have permission to `Manage Emojis`!")
+
+        e = ZEmbed.default(
+            ctx,
+            title="{} `:{}:` has been added to the server".format(
+                addedEmoji, addedEmoji.name
+            ),
+        )
+        return await ctx.try_reply(embed=e)
+
+    @steal.error
+    async def stealErr(self, ctx, error):
+        if isinstance(error, commands.BadUnionArgument):
+            await ctx.try_reply("Unicode is not supported!")
 
     @commands.command(
         aliases=["jsh"],
-        brief="Get japanese word from english/japanese/romaji/text",
+        brief="Get japanese word",
+        description="Get japanese word from english/japanese/romaji/text",
+        example=(
+            "joshi こんにちは",
+            "jsh konbanha",
+            "joshi hello",
+        ),
     )
     async def jisho(self, ctx, *, words):
         async with ctx.bot.session.get(
