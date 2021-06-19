@@ -31,6 +31,46 @@ PASTEBIN_REGEX = re.compile(r"http(?:s)?:\/\/pastebin.com\/(?:raw\/)?(\S*)")
 DIFFER = difflib.Differ()
 
 
+def formatCmd(prefix, command):
+    try:
+        parent = command.parent
+    except AttributeError:
+        parent = None
+
+    entries = []
+    while parent is not None:
+        if not parent.signature or parent.invoke_without_command:
+            entries.append(parent.name)
+        else:
+            entries.append(parent.name + " " + parent.signature)
+        parent = parent.parent
+    names = " ".join(reversed([command.name] + entries))
+
+    return discord.utils.escape_markdown(f"{prefix}{names}")
+
+
+async def formatCommandInfo(prefix, command):
+    """Format command help"""
+    e = ZEmbed(
+        title=formatCmd(prefix, command),
+        description=command.description or command.brief or "No description",
+    )
+    examples = getattr(command, "example", [])
+    if examples:
+        e.add_field(
+            name="Example",
+            value="\n".join([f"> `{prefix}{x}`" for x in examples]),
+        )
+    if isinstance(command, commands.Group):
+        subcmds = sorted(command.commands, key=lambda c: c.name)
+        if subcmds:
+            e.add_field(
+                name="Subcommands",
+                value="\n".join([f"> `{formatCmd(prefix, cmd)}`" for cmd in subcmds]),
+            )
+    return e
+
+
 async def getCustomCommand(ctx, command):
     """Get custom command from database."""
     db = ctx.db
@@ -178,23 +218,6 @@ class CustomHelp(commands.HelpCommand):
             )
         await ctx.try_reply(embed=e)
 
-    def formatCmd(self, command):
-        try:
-            parent = command.parent
-        except AttributeError:
-            parent = None
-
-        entries = []
-        while parent is not None:
-            if not parent.signature or parent.invoke_without_command:
-                entries.append(parent.name)
-            else:
-                entries.append(parent.name + " " + parent.signature)
-            parent = parent.parent
-        names = " ".join(reversed([command.name] + entries))
-
-        return discord.utils.escape_markdown(f"{self.clean_prefix}{names}")
-
     async def command_not_found(self, string):
         ctx = self.context
         try:
@@ -213,37 +236,15 @@ class CustomHelp(commands.HelpCommand):
     async def send_command_help(self, command):
         ctx = self.context
 
-        e = ZEmbed(
-            title=self.formatCmd(command),
-            description=command.description or command.brief or "No description",
-        )
-        examples = getattr(command, "example", [])
-        if examples:
-            e.add_field(
-                name="Example",
-                value="\n".join([f"> `{self.clean_prefix}{x}`" for x in examples]),
-            )
+        e = await formatCommandInfo(self.clean_prefix, command)
+
         await ctx.try_reply(embed=e)
 
     async def send_group_help(self, group):
         ctx = self.context
 
-        e = ZEmbed(
-            title=self.formatCmd(group),
-            description=group.description or group.brief or "No description",
-        )
-        examples = getattr(group, "example", [])
-        if examples:
-            e.add_field(
-                name="Example",
-                value="\n".join([f"> `{self.clean_prefix}{x}`" for x in examples]),
-            )
-        subcmds = sorted(group.commands, key=lambda c: c.name)
-        if subcmds:
-            e.add_field(
-                name="Subcommands",
-                value="\n".join([f"> `{self.formatCmd(cmd)}`" for cmd in subcmds]),
-            )
+        e = await formatCommandInfo(self.clean_prefix, group)
+
         await ctx.try_reply(embed=e)
 
 
@@ -576,6 +577,10 @@ class Meta(commands.Cog, CogMixin):
         name="add",
         aliases=["+", "create"],
         brief="Create a new custom command",
+        example=(
+            "command add example-cmd Just an example",
+            "cmd + hello Hello World!",
+        ),
     )
     @modeCheck()
     async def _add(self, ctx, name: CMDName, *, content: str):
@@ -590,6 +595,10 @@ class Meta(commands.Cog, CogMixin):
     @command.command(
         aliases=["/"],
         brief="Add an alias to a custom command",
+        example=(
+            "command alias example-cmd test-cmd",
+            "command alias leaderboard board",
+        ),
     )
     @modeCheck()
     async def alias(self, ctx, command: CMDName, alias: CMDName):
@@ -616,6 +625,10 @@ class Meta(commands.Cog, CogMixin):
     @command.command(
         aliases=["&"],
         brief="Edit custom command's content",
+        example=(
+            "command edit example-cmd Edit 1",
+            "cmd & example-cmd Idk",
+        ),
     )
     @modeCheck()
     async def edit(self, ctx, name: CMDName, *, content):
@@ -683,7 +696,19 @@ class Meta(commands.Cog, CogMixin):
             "{}`{}` has been removed".format("Alias " if isAlias else "", name)
         )
 
-    @command.command(brief="Disable a command")
+    @command.command(
+        brief="Disable a command",
+        description=(
+            "Disable a command.\n\nSupport both custom and built-in "
+            "command.\nNote: Server admin/mods still able to use disabled "
+            "command."
+        ),
+        example=(
+            "command disable userinfo",
+            "cmd disable about",
+            "cmd disable weather",
+        ),
+    )
     @modeCheck()
     async def disable(self, ctx, name: CMDName):
         # This will work for both built-in and user-made commands
@@ -697,14 +722,27 @@ class Meta(commands.Cog, CogMixin):
         # NOTE: Only mods can enable/disable built-in command
         pass
 
-    @command.command(aliases=["?"], brief="Show command's information")
-    async def info(self, ctx, name: CMDName):
+    @command.command(
+        aliases=["?"],
+        brief="Show command's information",
+        description=(
+            "Show command's information.\n\nSimilar to `help` but "
+            "prioritize custom commands"
+        ),
+        example=("command info help", "cmd info command", "cmd ? example-cmd"),
+    )
+    async def info(self, ctx, *, name):
         # Executes {prefix}help {name} if its built-in command
-        pass
+        try:
+            command = await getCustomCommand(ctx, name)
+            e = await formatCommandInfo(cleanifyPrefix(self.bot, ctx.prefix), command)
+            return await ctx.try_reply(embed=e)
+        except CCommandNotFound:
+            return await ctx.send_help(name)
 
     @commands.command(brief="Get link to my source code")
     async def source(self, ctx):
-        await ctx.send("My source code: {}".format(links["Source Code"]))
+        await ctx.send("My source code: {}".format(self.bot.links["Source Code"]))
 
     @commands.command(aliases=["botinfo", "bi"], brief="Information about me")
     async def about(self, ctx):
