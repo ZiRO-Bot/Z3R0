@@ -182,6 +182,7 @@ class Brain(commands.Bot):
         async with self.db.transaction():
             # Creating all the necessary tables
             await self.db.execute(dbQuery.createGuildsTable)
+            await self.db.execute(dbQuery.createGuildConfigsTable)
             await self.db.execute(dbQuery.createPrefixesTable)
 
         # Cache prefixes right away

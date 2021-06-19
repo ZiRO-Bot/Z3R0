@@ -642,8 +642,9 @@ class Meta(commands.Cog, CogMixin):
         name="set",
         brief="Set custom command's property",
         example=(
-            "command set category test-command info",
+            "command set category example-cmd info",
             "cmd set cat test-embed unsorted",
+            "command set mode 0",
         ),
     )
     async def cmdSet(self, ctx):
@@ -670,6 +671,54 @@ class Meta(commands.Cog, CogMixin):
         if command.category == category:
             return await ctx.try_reply("{} already in {}!".format(command, category))
         # TODO: Add the actual stuff
+
+    @cmdSet.command(
+        name="mode",
+        brief="Set custom command 'mode'",
+        description=(
+            "Set custom command 'mode'\n\n__**Modes:**__\n> `0`: Mods-only\n> "
+            "`1`: Member can add command but only able to manage their own "
+            "command\n> `2`: Member can add AND manage custom command (Anarchy "
+            "mode)"
+        ),
+        example=(
+            "command set mode 0",
+            "cmd set mode 1",
+            "cmd set mode 2",
+        ),
+    )
+    async def setMode(self, ctx, mode: int):
+        if mode > 2:
+            return await ctx.try_reply("There's only 3 (0, 1, 2) mode!")
+
+        async with ctx.db.transaction():
+            await ctx.db.execute(
+                """
+                    INSERT INTO guildConfigs
+                        (guildId, ccMode)
+                    VALUES (
+                        :guildId,
+                        :ccMode
+                    ) ON CONFLICT (guildId) DO
+                    UPDATE SET
+                        ccMode=:ccModeUp
+                    WHERE
+                        guildId=:guildIdUp
+                """,
+                # Doubled cuz sqlite3 uses ? (probably also affecting MySQL
+                # since they use something similar, "%s").
+                # while psql use $1, $2, ... which can make this code so much
+                # cleaner
+                values = {
+                    "ccMode": mode,
+                    "ccModeUp": mode,
+                    "guildId": ctx.guild.id,
+                    "guildIdUp": ctx.guild.id,
+                }
+            )
+            return await ctx.try_reply(
+                "Custom command mode has been set to `{}`".format(mode)
+            )
 
     @command.command(
         aliases=["-", "rm"],

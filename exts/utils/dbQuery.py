@@ -109,6 +109,14 @@ incrCommandUsage = """
     WHERE commands.id=:id
 """
 
+createGuildsTable = """
+    CREATE TABLE IF NOT EXISTS guilds (
+        id INTEGER NOT NULL PRIMARY KEY UNIQUE
+    )
+"""
+
+insertToGuilds = "INSERT OR IGNORE INTO guilds (id) VALUES (:id)"
+
 createPrefixesTable = """
     CREATE TABLE IF NOT EXISTS prefixes (
         guildId INTEGER NOT NULL,
@@ -117,13 +125,16 @@ createPrefixesTable = """
     )
 """
 
-createGuildsTable = """
-    CREATE TABLE IF NOT EXISTS guilds (
-        id INTEGER NOT NULL PRIMARY KEY UNIQUE
+createGuildConfigsTable = """
+    CREATE TABLE IF NOT EXISTS guildConfigs (
+        guildId INTEGER PRIMARY KEY,
+        ccMode INTEGER DEFAULT 0,
+        tagMode INTEGER DEFAULT 0,
+        welcomeMsg TEXT,
+        farewellMsg TEXT,
+        FOREIGN KEY ("guildId") REFERENCES guilds ("id") ON DELETE CASCADE
     )
 """
-
-insertToGuilds = "INSERT OR IGNORE INTO guilds (id) VALUES (:id)"
 
 # --- Alpha feature, not pushed to git yet (Still debating if i should add it or not).
 createYTChannelTable = """
