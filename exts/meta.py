@@ -114,8 +114,6 @@ class CustomHelp(commands.HelpCommand):
     async def send_bot_help(self, mapping):
         ctx = self.context
 
-        dest = self.get_destination()
-
         e = ZEmbed(
             description=infoQuote.info(
                 "- () : Required Argument\n"
@@ -134,7 +132,7 @@ class CustomHelp(commands.HelpCommand):
         unsorted = mapping.pop(None)
         sortedCog = sorted(mapping.keys(), key=lambda c: c.qualified_name)
 
-        ignored = ("ErrorHandler", "Jishaku")
+        ignored = ("ErrorHandler", "Jishaku", "NSFW")
         e.add_field(
             name="Categories",
             value="\n".join(
