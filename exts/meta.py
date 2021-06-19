@@ -197,14 +197,19 @@ class CustomHelp(commands.HelpCommand):
 
         return discord.utils.escape_markdown(f"{self.clean_prefix}{names}")
 
-    # TODO: Bruh, try something else
-    # async def command_not_found(self, string):
-    #     ctx = self.context
-    #     try:
-    #         command = await getCustomCommand(ctx, string)
-    #         return await self.send_command_help(command)
-    #     except CCommandNotFound:
-    #         return "No command called `{}` found.".format(string)
+    async def command_not_found(self, string):
+        ctx = self.context
+        try:
+            command = await getCustomCommand(ctx, string)
+            await self.send_command_help(command)
+            return command
+        except:
+            return "No command called `{}` found.".format(string)
+
+    async def send_error_message(self, error):
+        if isinstance(error, CustomCommand):
+            return
+        await self.context.try_reply(error)
 
     # TODO: Add aliases to group and command help
     async def send_command_help(self, command):
@@ -212,7 +217,7 @@ class CustomHelp(commands.HelpCommand):
 
         e = ZEmbed(
             title=self.formatCmd(command),
-            description=command.description or command.brief,
+            description=command.description or command.brief or "No description",
         )
         examples = getattr(command, "example", [])
         if examples:
@@ -227,7 +232,7 @@ class CustomHelp(commands.HelpCommand):
 
         e = ZEmbed(
             title=self.formatCmd(group),
-            description=group.description or group.brief,
+            description=group.description or group.brief or "No description",
         )
         examples = getattr(group, "example", [])
         if examples:
