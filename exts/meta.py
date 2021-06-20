@@ -166,7 +166,8 @@ class CustomHelp(commands.HelpCommand):
                 + "+ [] : Optional Argument\n"
                 + "\nDon't literally type `[]`, `()` or `|`!",
                 codeBlock=True,
-            ),
+            )
+            + " | ".join("[{}]({})".format(k, v) for k, v in ctx.bot.links.items()),
         )
         e.set_author(name=ctx.author, icon_url=ctx.author.avatar_url)
         e.set_footer(
@@ -463,6 +464,8 @@ class Meta(commands.Cog, CogMixin):
             raise CCommandAlreadyExists(name)
 
     def getValidLink(self, url):
+        # TODO: Find better way to parse valid link
+        # TODO: Add support for hastebin and mystb.in
         # Link will either be None, pastebin, or gist
         link = None
 
