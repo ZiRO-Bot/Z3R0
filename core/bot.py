@@ -96,17 +96,13 @@ class Blacklist:
         return value
 
 
-def _callablePrefix(bot, message):
+async def _callablePrefix(bot, message):
     """Callable Prefix for the bot."""
-    user_id = bot.user.id
-    base = [f"<@!{user_id}> ", f"<@{user_id}> "]
-    if not message.guild:
-        # Use default prefix in DM
-        base.extend([bot.defPrefix])
-    else:
-        # Per-guild prefixes
-        base.extend(sorted(bot.prefixes.get(message.guild.id, []) + [bot.defPrefix]))
-    return base
+    base = [bot.defPrefix]
+    if message.guild:
+        prefixes = await bot.getGuildPrefix(message.guild.id)
+        base.extend(prefixes)
+    return commands.when_mentioned_or(*sorted(base))(bot, message)
 
 
 class Brain(commands.Bot):
@@ -188,17 +184,16 @@ class Brain(commands.Bot):
             await self.db.execute(dbQuery.createGuildConfigsTable)
             await self.db.execute(dbQuery.createPrefixesTable)
 
-        # Cache prefixes right away
-        prefixes = await self.db.fetch_all("SELECT * FROM prefixes")
-        for g, p in prefixes:
-            try:
-                self.prefixes[g].append(p)
-            except:
-                self.prefixes[g] = [p]
+    async def getGuildPrefix(self, guildId):
+        if self.prefixes.get(guildId) is None:
+            # Only executed when there's no cache for guild's prefix
+            dbPrefixes = await self.db.fetch_all("SELECT * FROM prefixes WHERE guildId=:id", values={"id": guildId})
+            self.prefixes[guildId] = [p for _, p in dbPrefixes]
+        return self.prefixes.get(guildId, [])
 
     async def addPrefix(self, guildId, prefix):
         """Add a prefix"""
-        prefixes = self.prefixes.get(guildId, [])
+        prefixes = await self.getGuildPrefix(guildId)
         if len(prefixes) >= self.prefixLimit:
             raise IndexError(
                 "Custom prefixes is full! (Only allowed to add up to `{}` prefixes)".format(
@@ -219,7 +214,7 @@ class Brain(commands.Bot):
 
     async def rmPrefix(self, guildId, prefix):
         """Remove a prefix"""
-        prefixes = self.prefixes.get(guildId, [])
+        prefixes = await self.getGuildPrefix(guildId)
         if prefix in prefixes:
             async with self.db.transaction():
                 await self.db.execute(
