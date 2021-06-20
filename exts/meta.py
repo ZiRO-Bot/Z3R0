@@ -14,7 +14,12 @@ import TagScriptEngine as tse
 
 
 from core import checks
-from core.errors import CCommandNotFound, CCommandAlreadyExists, CCommandNotInGuild
+from core.errors import (
+    CCommandNotFound,
+    CCommandAlreadyExists,
+    CCommandNotInGuild,
+    CCommandNoPerm,
+)
 from core.mixin import CogMixin
 from core.objects import CustomCommand
 from exts.utils import dbQuery, infoQuote, tseBlocks
@@ -94,6 +99,7 @@ async def getCustomCommand(ctx, command):
         aliases=[row[2] for row in result if row[2] != row[1]],
         uses=firstRes[5] + 1,
         url=firstRes[6],
+        owner=firstRes[7],
     )
 
 
@@ -351,20 +357,52 @@ class Meta(commands.Cog, CogMixin):
             if react:
                 self.bot.loop.create_task(self.reactsToMessage(msg, react))
 
-    def modeCheck():
+    async def ccModeCheck(
+        self, ctx, _type: str = "manage", command: CustomCommand = None
+    ):
         """Check for custom command's modes."""
+        # 0: Only mods,
+        # 1: Partial (Can add but only able to manage their own command),
+        # 2: Full (Anarchy mode)
 
-        async def pred(ctx):
-            return True
-            # return await check_permissions(ctx, perms, check=check)
+        # Getting the mode out of cache/db
+        try:
+            mode = self.bot.guildConfigs[ctx.guild.id]["ccMode"]
+        except KeyError:
+            # Cache the row right after getting it from db
+            row = (
+                await ctx.db.fetch_one(
+                    "SELECT ccMode FROM guildConfigs WHERE guildId=:id",
+                    values={"id": ctx.guild.id},
+                )
+                # No config added yet for the guild
+                or (0,)
+            )
+            try:
+                mode = self.bot.guildConfigs[ctx.guild.id]["ccMode"] = row[0]
+            except KeyError:
+                mode = row[0]
+                self.bot.guildConfigs[ctx.guild.id] = {"ccMode": mode}
 
-        return commands.check(pred)
+        # TODO: Make mod role
+        isMod = ctx.author.guild_permissions.manage_guild
+        if _type == "manage":
+            # Manage = edit, update, update-url, etc
+            if not command:
+                # How?
+                return False
 
-    # TODO: Adds custom check with usage limit (
-    #     0: Only mods,
-    #     1: Partial (Can only add/edit/remove their own command),
-    #     2: Full (Can do anything to any existing command in the guild)
-    # )
+            isCmdOwner = ctx.author.id == command.owner
+            return {
+                0: isMod,
+                1: isCmdOwner or isMod,
+                2: True,
+            }.get(mode, False)
+        elif _type == "add":
+            return isMod if mode == 0 else True
+        # Fallback to false
+        return False
+
     # TODO: Separate tags from custom command
     @commands.guild_only()
     @commands.group(
@@ -455,8 +493,11 @@ class Meta(commands.Cog, CogMixin):
             "https://gist.github.com/null2264/87c89d2b5e2453529e29c2cae3b57729",
         ),
     )
-    @modeCheck()
     async def _import(self, ctx, name: CMDName, *, url: str):
+        perm = await self.ccModeCheck(ctx, "add")
+        if not perm:
+            raise CCommandNoPerm
+
         # NOTE: This command will only support pastebin and gist.github,
         # maybe also hastebin.
         try:
@@ -491,6 +532,11 @@ class Meta(commands.Cog, CogMixin):
     async def update_url(self, ctx, name: CMDName, url: str):
         # NOTE: Can only be run by cmd owner or guild mods/owner
         command = await getCustomCommand(ctx, name)
+
+        perm = await self.ccModeCheck(ctx, command=command)
+        if not perm:
+            raise CCommandNoPerm
+
         if not command.url:
             # Incase someone try to update `text` command
             return await ctx.try_reply(
@@ -538,6 +584,11 @@ class Meta(commands.Cog, CogMixin):
         # For both checking if command exists and
         # getting its content for comparation later on
         command = await getCustomCommand(ctx, name)
+
+        perm = await self.ccModeCheck(ctx, command=command)
+        if not perm:
+            raise CCommandNoPerm
+
         if not command.url:
             # Incase someone try to update `text` command
             return await ctx.try_reply(
@@ -582,8 +633,11 @@ class Meta(commands.Cog, CogMixin):
             "cmd + hello Hello World!",
         ),
     )
-    @modeCheck()
     async def _add(self, ctx, name: CMDName, *, content: str):
+        perm = await self.ccModeCheck(ctx, "add")
+        if not perm:
+            raise CCommandNoPerm
+
         # Check if command already exists
         await self.isCmdExist(ctx, name)
 
@@ -600,9 +654,13 @@ class Meta(commands.Cog, CogMixin):
             "command alias leaderboard board",
         ),
     )
-    @modeCheck()
     async def alias(self, ctx, command: CMDName, alias: CMDName):
         command = await getCustomCommand(ctx, command)
+
+        perm = await self.ccModeCheck(ctx, command=command)
+        if not perm:
+            raise CCommandNoPerm
+
         if alias == command.name:
             return await ctx.try_reply("Alias can't be identical to original name!")
         if alias in command.aliases:
@@ -630,9 +688,12 @@ class Meta(commands.Cog, CogMixin):
             "cmd & example-cmd Idk",
         ),
     )
-    @modeCheck()
     async def edit(self, ctx, name: CMDName, *, content):
         command = await getCustomCommand(ctx, name)
+
+        perm = await self.ccModeCheck(ctx, command=command)
+        if not perm:
+            raise CCommandNoPerm
 
         update = await self.updateCommandContent(ctx, command, content)
         if update:
@@ -655,7 +716,6 @@ class Meta(commands.Cog, CogMixin):
         aliases=["cat", "mv"],
         brief="Move a custom command to a category",
     )
-    @modeCheck()
     async def category(self, ctx, command: CMDName, category: CMDName):
         category = category.lower()
 
@@ -668,6 +728,11 @@ class Meta(commands.Cog, CogMixin):
             return await ctx.try_reply("Invalid category")
 
         command = await getCustomCommand(ctx, command)
+
+        perm = await self.ccModeCheck(ctx, command=command)
+        if not perm:
+            raise CCommandNoPerm
+
         if command.category == category:
             return await ctx.try_reply("{} already in {}!".format(command, category))
         # TODO: Add the actual stuff
@@ -687,6 +752,7 @@ class Meta(commands.Cog, CogMixin):
             "cmd set mode 2",
         ),
     )
+    @checks.is_mod()
     async def setMode(self, ctx, mode: int):
         if mode > 2:
             return await ctx.try_reply("There's only 3 (0, 1, 2) mode!")
@@ -709,13 +775,19 @@ class Meta(commands.Cog, CogMixin):
                 # since they use something similar, "%s").
                 # while psql use $1, $2, ... which can make this code so much
                 # cleaner
-                values = {
+                values={
                     "ccMode": mode,
                     "ccModeUp": mode,
                     "guildId": ctx.guild.id,
                     "guildIdUp": ctx.guild.id,
-                }
+                },
             )
+
+            try:
+                self.bot.guildConfigs[ctx.guild.id]["ccMode"] = mode
+            except KeyError:
+                self.bot.guildConfigs[ctx.guild.id] = {"ccMode": mode}
+
             return await ctx.try_reply(
                 "Custom command mode has been set to `{}`".format(mode)
             )
@@ -724,9 +796,13 @@ class Meta(commands.Cog, CogMixin):
         aliases=["-", "rm"],
         brief="Remove a custom command",
     )
-    @modeCheck()
     async def remove(self, ctx, name: CMDName):
         command = await getCustomCommand(ctx, name)
+
+        perm = await self.ccModeCheck(ctx, command=command)
+        if not perm:
+            raise CCommandNoPerm
+
         isAlias = name in command.aliases
         if isAlias:
             async with ctx.db.transaction():
@@ -758,17 +834,27 @@ class Meta(commands.Cog, CogMixin):
             "cmd disable weather",
         ),
     )
-    @modeCheck()
     async def disable(self, ctx, name: CMDName):
         # This will work for both built-in and user-made commands
         # NOTE: Only mods can enable/disable built-in command
+        command = await getCustomCommand(ctx, name)
+
+        perm = await self.ccModeCheck(ctx, command=command)
+        if not perm:
+            raise CCommandNoPerm
+
         pass
 
     @command.command(brief="Enable a command")
-    @modeCheck()
     async def enable(self, ctx, name: CMDName):
         # This will work for both built-in and user-made commands
         # NOTE: Only mods can enable/disable built-in command
+        command = await getCustomCommand(ctx, name)
+
+        perm = await self.ccModeCheck(ctx, command=command)
+        if not perm:
+            raise CCommandNoPerm
+
         pass
 
     @command.command(

@@ -167,14 +167,11 @@ class Developer(commands.Cog, CogMixin):
         """Only bot master able to use debug cogs."""
         return (
             self.bot.master and ctx.author.id in self.bot.master
-        ) or commands.is_owner().predicate(ctx)
+        )
 
     def notMe():
         async def pred(ctx):
-            return not (
-                (ctx.bot.master and ctx.author.id in ctx.bot.master)
-                or commands.is_owner().predicate(ctx)
-            )
+            return not (ctx.bot.master and ctx.author.id in ctx.bot.master)
 
         return commands.check(pred)
 

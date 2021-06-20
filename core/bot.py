@@ -165,6 +165,9 @@ class Brain(commands.Bot):
         self.prefixes = {}
         self.prefixLimit = 15
 
+        # cache guild's configs
+        self.guildConfigs = {}
+
         # database
         self.db = Database(config.sql, factory=Connection)
 

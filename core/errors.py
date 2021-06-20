@@ -19,3 +19,7 @@ class CCommandAlreadyExists(CCException):
 class CCommandNotInGuild(CCException):
     def __init__(self, name: str = "Unknown"):
         super().__init__("Custom command only available in guilds")
+
+class CCommandNoPerm(CCException):
+    def __init__(self, name: str = "Unknown"):
+        super().__init__("You have no permissions to use this command")

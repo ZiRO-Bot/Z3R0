@@ -26,6 +26,7 @@ class CustomCommand:
         "aliases",
         "url",
         "uses",
+        "owner",
     )
 
     def __init__(self, id, name, category, **kwargs):
@@ -49,6 +50,7 @@ class CustomCommand:
         self.category = category
         self.aliases = kwargs.pop("aliases", [])
         self.uses = kwargs.pop("uses", -1)
+        self.owner = kwargs.pop("owner", None)
 
     def __str__(self):
         return self.name
