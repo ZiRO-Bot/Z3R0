@@ -121,6 +121,14 @@ createGuildsTable = """
 
 insertToGuilds = "INSERT OR IGNORE INTO guilds (id) VALUES (:id)"
 
+createDisabledTable = """
+    CREATE TABLE IF NOT EXISTS disabled (
+        guildId INTEGER NOT NULL,
+        command TEXT,
+        FOREIGN KEY ("guildId") REFERENCES guilds ("id") ON DELETE CASCADE
+    )
+"""
+
 createPrefixesTable = """
     CREATE TABLE IF NOT EXISTS prefixes (
         guildId INTEGER NOT NULL,

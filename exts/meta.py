@@ -295,6 +295,30 @@ class Meta(commands.Cog, CogMixin):
                 # Probably don't have perms to do reaction
                 continue
 
+    def formatCmdName(self, command):
+        commands = []
+
+        parent = command.parent
+        while parent is not None:
+            commands.append(parent.name)
+            parent = parent.parent
+        return " ".join(reversed([command.name] + commands))
+
+    async def bot_check(self, ctx):
+        """Global check"""
+        guildId = ctx.guild.id
+        if self.bot.disabled.get(guildId) is None:
+            dbDisabled = await ctx.db.fetch_all(
+                "SELECT command FROM disabled WHERE guildId=:id", values={"id": guildId}
+            )
+            self.bot.disabled[guildId] = [c[0] for c in dbDisabled]
+
+        cmdName = self.formatCmdName(ctx.command)
+        if cmdName in self.bot.disabled.get(guildId, []):
+            if discord.Permissions.manage_guild not in ctx.author.guild_permissions:
+                return False
+        return True
+
     def processTag(self, ctx, cmd: CustomCommand):
         """Process tags from CC's content with TSE."""
         author = tse.MemberAdapter(ctx.author)

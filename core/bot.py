@@ -163,6 +163,8 @@ class Brain(commands.Bot):
 
         # cache guild's configs
         self.guildConfigs = {}
+        # disabled commands
+        self.disabled = {}
 
         # database
         self.db = Database(config.sql, factory=Connection)
@@ -183,11 +185,14 @@ class Brain(commands.Bot):
             await self.db.execute(dbQuery.createGuildsTable)
             await self.db.execute(dbQuery.createGuildConfigsTable)
             await self.db.execute(dbQuery.createPrefixesTable)
+            await self.db.execute(dbQuery.createDisabledTable)
 
     async def getGuildPrefix(self, guildId):
         if self.prefixes.get(guildId) is None:
             # Only executed when there's no cache for guild's prefix
-            dbPrefixes = await self.db.fetch_all("SELECT * FROM prefixes WHERE guildId=:id", values={"id": guildId})
+            dbPrefixes = await self.db.fetch_all(
+                "SELECT * FROM prefixes WHERE guildId=:id", values={"id": guildId}
+            )
             self.prefixes[guildId] = [p for _, p in dbPrefixes]
         return self.prefixes.get(guildId, [])
 
