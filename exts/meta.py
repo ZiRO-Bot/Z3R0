@@ -858,7 +858,25 @@ class Meta(commands.Cog, CogMixin):
         if not perm:
             raise CCommandNoPerm
 
-        pass
+        # TODO: Make mod role
+        isMod = discord.Permissions.manage_guild in ctx.author.guild_permissions
+
+        if not command.enabled:
+            if not isMod:
+                return await ctx.try_reply("Command already disabled!")
+            # Disable built-in command
+            return
+
+        async with ctx.db.transaction():
+            await ctx.db.execute(
+                """
+                    UPDATE commands
+                    SET commands.enabled=0
+                    WHERE commands.id=:id
+                """,
+                values={"id": command.id}
+            )
+            return await ctx.try_reply("Command has been disabled")
 
     @command.command(brief="Enable a command")
     async def enable(self, ctx, name: CMDName):
@@ -870,7 +888,25 @@ class Meta(commands.Cog, CogMixin):
         if not perm:
             raise CCommandNoPerm
 
-        pass
+        # TODO: Make mod role
+        isMod = discord.Permissions.manage_guild in ctx.author.guild_permissions
+
+        if command.enabled:
+            if not isMod:
+                return await ctx.try_reply("Command already enabled!")
+            # Enable built-in command
+            return
+
+        async with ctx.db.transaction():
+            await ctx.db.execute(
+                """
+                    UPDATE commands
+                    SET commands.enabled=1
+                    WHERE commands.id=:id
+                """,
+                values={"id": command.id}
+            )
+            return await ctx.try_reply("Command has been enabled")
 
     @command.command(
         aliases=["?"],

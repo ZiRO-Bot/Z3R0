@@ -52,7 +52,8 @@ class CustomCommand:
         self.aliases = kwargs.pop("aliases", [])
         self.uses = kwargs.pop("uses", -1)
         self.owner = kwargs.pop("owner", None)
-        self.enabled = kwargs.pop("enabled", True)
+        enabled = kwargs.pop("enabled", 1)
+        self.enabled = True if enabled == 1 else False
 
     def __str__(self):
         return self.name
