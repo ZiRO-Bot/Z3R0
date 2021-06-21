@@ -407,6 +407,10 @@ class Meta(commands.Cog, CogMixin):
         aliases=["cmd", "tag", "script"],
         invoke_without_command=True,
         brief="Manage commands",
+        description=(
+            "Manage commands\n\n**NOTE**: Custom Commands only available for "
+            "guilds/servers!"
+        ),
     )
     async def command(self, ctx, name: CMDName, argument: str = None):
         return await self.execCustomCommand(ctx, name)
