@@ -100,6 +100,7 @@ async def getCustomCommand(ctx, command):
         uses=firstRes[5] + 1,
         url=firstRes[6],
         owner=firstRes[7],
+        enabled=firstRes[8],
     )
 
 
@@ -137,6 +138,8 @@ async def getCustomCommands(db, guildId, category: str = None):
                 "name": row[2],  # "real" name
                 "description": row[3],
                 "category": row[4],
+                "owner": row[5],
+                "enabled": row[6],
             }
         else:
             try:
@@ -144,16 +147,7 @@ async def getCustomCommands(db, guildId, category: str = None):
             except KeyError:
                 cmds[row[0]]["aliases"] = [row[1]]
 
-    return [
-        CustomCommand(
-            id=k,
-            name=v["name"],
-            description=v["description"],
-            category=v["category"],
-            aliases=v.get("aliases", []),
-        )
-        for k, v in cmds.items()
-    ]
+    return [CustomCommand(id=k, **v) for k, v in cmds.items()]
 
 
 class CustomHelp(commands.HelpCommand):
@@ -683,15 +677,31 @@ class Meta(commands.Cog, CogMixin):
                     "Alias `{}` for `{}` has been created".format(alias, command)
                 )
 
-    @command.command(
-        aliases=["&"],
-        brief="Edit custom command's content",
-        example=(
-            "command edit example-cmd Edit 1",
-            "cmd & example-cmd Idk",
+    @command.group(
+        name="edit",
+        aliases=["&", "set"],
+        brief="Edit custom command's property",
+        description=(
+            "Edit custom command's property\n\nBy default, will edit command's "
+            "content when there is no subcommand specified"
         ),
+        example=(
+            "cmd set category example-cmd info",
+            "cmd edit cat test-embed unsorted",
+            "command & mode 0",
+            "command & example-cmd This is an edit",
+        ),
+        invoke_without_command=True,
     )
-    async def edit(self, ctx, name: CMDName, *, content):
+    async def cmdSet(self, ctx, name: CMDName, *, content):
+        await self.setContent(ctx, name, content)
+
+    @cmdSet.command(
+        name="content",
+        aliases=["cont"],
+        brief="Edit custom command's content",
+    )
+    async def setContent(self, ctx, name: CMDName, *, content):
         command = await getCustomCommand(ctx, name)
 
         perm = await self.ccModeCheck(ctx, command=command)
@@ -702,18 +712,20 @@ class Meta(commands.Cog, CogMixin):
         if update:
             return await ctx.try_reply("Command `{}` has been edited\n".format(name))
 
-    @command.group(
-        name="set",
-        brief="Set custom command's property",
-        example=(
-            "command set category example-cmd info",
-            "cmd set cat test-embed unsorted",
-            "command set mode 0",
-        ),
+    @cmdSet.command(
+        name="url",
+        aliases=["u"],
+        brief="Alias for `command update-url`",
     )
-    async def cmdSet(self, ctx):
-        """Do nothing by itself."""
-        pass
+    async def setUrl(self, ctx, name: CMDName, url: str):
+        await self.update_url(ctx, name, url)
+
+    @cmdSet.command(
+        name="alias",
+        brief="Alias for `command alias`",
+    )
+    async def setAlias(self, ctx, command: CMDName, alias: CMDName):
+        await self.alias(ctx, command, alias)
 
     @cmdSet.command(
         aliases=["cat", "mv"],

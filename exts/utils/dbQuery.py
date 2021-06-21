@@ -78,7 +78,8 @@ getCommandContent = """
         commands.category,
         commands.uses,
         commands.url,
-        commands.ownerId
+        commands.ownerId,
+        commands.enabled
     FROM commands
     JOIN commands_lookup
         ON commands_lookup.cmdId=commands.id
@@ -97,7 +98,9 @@ getCommands = """
         commands_lookup.name,
         commands.name,
         commands.description,
-        commands.category
+        commands.category,
+        commands.ownerId,
+        commands.enabled
     FROM commands_lookup
     JOIN commands
         ON commands.id = commands_lookup.cmdId
