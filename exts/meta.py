@@ -304,17 +304,19 @@ class Meta(commands.Cog, CogMixin):
             parent = parent.parent
         return " ".join(reversed([command.name] + commands))
 
-    async def bot_check(self, ctx):
-        """Global check"""
-        guildId = ctx.guild.id
+    async def getDisabledCommands(self, ctx, guildId):
         if self.bot.disabled.get(guildId) is None:
             dbDisabled = await ctx.db.fetch_all(
                 "SELECT command FROM disabled WHERE guildId=:id", values={"id": guildId}
             )
             self.bot.disabled[guildId] = [c[0] for c in dbDisabled]
+        return self.bot.disabled.get(guildId, [])
 
+    async def bot_check(self, ctx):
+        """Global check"""
+        disableCmds = await self.getDisabledCommands(ctx, ctx.guild.id)
         cmdName = self.formatCmdName(ctx.command)
-        if cmdName in self.bot.disabled.get(guildId, []):
+        if cmdName in disableCmds:
             if discord.Permissions.manage_guild not in ctx.author.guild_permissions:
                 return False
         return True
@@ -880,7 +882,12 @@ class Meta(commands.Cog, CogMixin):
             "cmd disable weather",
         ),
     )
-    async def disable(self, ctx, name: CMDName):
+    async def disable(self, ctx, name):
+        # TODO: Find a way to specify built-in or custom command
+        # Probably using flags,
+        # -b for built-in
+        # -c for custom command
+
         # This will work for both built-in and user-made commands
         # NOTE: Only mods can enable/disable built-in command
         command = await getCustomCommand(ctx, name)
@@ -896,6 +903,7 @@ class Meta(commands.Cog, CogMixin):
             if not isMod:
                 return await ctx.try_reply("Command already disabled!")
             # Disable built-in command
+            immuneRoot = ("help", "command")
             return
 
         async with ctx.db.transaction():
@@ -910,7 +918,7 @@ class Meta(commands.Cog, CogMixin):
             return await ctx.try_reply("Command has been disabled")
 
     @command.command(brief="Enable a command")
-    async def enable(self, ctx, name: CMDName):
+    async def enable(self, ctx, name):
         # This will work for both built-in and user-made commands
         # NOTE: Only mods can enable/disable built-in command
         command = await getCustomCommand(ctx, name)
