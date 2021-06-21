@@ -19,6 +19,7 @@ from core.errors import (
     CCommandAlreadyExists,
     CCommandNotInGuild,
     CCommandNoPerm,
+    CCommandDisabled,
 )
 from core.mixin import CogMixin
 from core.objects import CustomCommand
@@ -324,6 +325,8 @@ class Meta(commands.Cog, CogMixin):
         if not ctx.guild:
             raise CCommandNotInGuild
         cmd = await getCustomCommand(ctx, command)
+        if not cmd.enabled:
+            raise CCommandDisabled
         if raw:
             content = discord.utils.escape_markdown(cmd.content)
             return await ctx.try_reply(content)
@@ -871,8 +874,8 @@ class Meta(commands.Cog, CogMixin):
             await ctx.db.execute(
                 """
                     UPDATE commands
-                    SET commands.enabled=0
-                    WHERE commands.id=:id
+                    SET enabled=0
+                    WHERE id=:id
                 """,
                 values={"id": command.id}
             )
@@ -901,8 +904,8 @@ class Meta(commands.Cog, CogMixin):
             await ctx.db.execute(
                 """
                     UPDATE commands
-                    SET commands.enabled=1
-                    WHERE commands.id=:id
+                    SET enabled=1
+                    WHERE id=:id
                 """,
                 values={"id": command.id}
             )

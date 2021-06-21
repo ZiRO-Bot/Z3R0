@@ -10,7 +10,7 @@ import uuid
 
 
 from core.context import Context
-from core.errors import CCommandNotFound, CCommandNotInGuild
+from core.errors import CCommandNotFound, CCommandNotInGuild, CCommandDisabled
 from core.objects import Connection
 from exts.meta import getCustomCommands
 from exts.timer import TimerData, Timer
@@ -450,7 +450,7 @@ class Brain(commands.Bot):
                     await executeCC(*args)
                     self.customCommandUsage += 1
                     return
-                except (CCommandNotFound, CCommandNotInGuild):
+                except (CCommandNotFound, CCommandNotInGuild, CCommandDisabled):
                     # Failed to run custom command, revert to built-in command
                     return await self.invoke(ctx)
             # Since priority is 0 and it can run the built-in command,
