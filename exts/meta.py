@@ -319,7 +319,7 @@ class Meta(commands.Cog, CogMixin):
         disableCmds = await self.getDisabledCommands(ctx, ctx.guild.id)
         cmdName = self.formatCmdName(ctx.command)
         if cmdName in disableCmds:
-            if discord.Permissions.manage_guild not in ctx.author.guild_permissions:
+            if not ctx.author.guild_permissions.manage_guild:
                 return False
         return True
 
@@ -875,99 +875,98 @@ class Meta(commands.Cog, CogMixin):
         brief="Disable a command",
         description=(
             "Disable a command.\n\nSupport both custom and built-in "
-            "command.\nNote: Server admin/mods still able to use disabled "
-            "command.\n\n__**Options:**__\n`--built-in` | `-b`: Prioritize "
-            "built-in command"
+            "command.\n(Will try to disable custom command by default)\nNote: "
+            "Server admin/mods still able to use disabled **built-in** "
+            "command.\n\n__**Options:**__\n`--built-in` | `-b`: Disable "
+            "built-in command\n`--custom` | `-c`: Disable custom command "
+            "(Always overrides `--built-in`)"
         ),
         example=(
-            "command disable userinfo",
-            "cmd disable about",
-            "cmd disable weather",
+            "command disable example",
+            "cmd disable -b weather",
+            "cmd disable -c test",
         ),
     )
     async def disable(self, ctx, *, arguments):
-        # TODO: I think it's better to make this thing handles built-in and
-        # custom command separately
-        # --built-in | -b = Disable built-in command
-        # --custom | -c = Disable custom command (default)
-
-        return
-
         # parse name and flags from arguments
         parser = argparse.ArgumentParser(allow_abbrev=False, add_help=False)
         parser.add_argument("--built-in", "-b", action="store_true")
+        parser.add_argument("--custom", "-c", action="store_true")
         parser.add_argument("name", nargs="+")
 
         parsed, _ = parser.parse_known_args(shlex.split(arguments))
-        builtInPriority = parsed.built_in
+        mode = "custom"
+        if parsed.built_in and not parsed.custom:
+            mode = "built-in"
         name = " ".join(parsed.name)
 
         # TODO: Make mod role
-        isMod = discord.Permissions.manage_guild in ctx.author.guild_permissions
+        isMod = ctx.author.guild_permissions.manage_guild
 
-        # NOTE: Only mods can enable/disable built-in command
-        # if builtInPriority:
-        #     immuneRoot = ("help", "command")
-        #     command = self.bot.get_command(name)
-        #     if not command or str(command.root_parent) in immuneRoot:
-        #         command = await getCustomCommand(ctx, name)
-        # else:
-        #     try:
-        #         command = await getCustomCommand(ctx, name)
-        #     except CCommandNotFound:
-        #         command = self.bot.get_command(name)
+        successMsg = "`{}` has been disabled"
+        alreadyMsg = "`{}` already disabled!"
+        notFoundMsg = "There is not {} command called `{}`"
 
-        # if isinstance(command, CustomCommand):
-        #     # Disabling custom command
-        #     perm = await self.ccModeCheck(ctx, command=command)
-        #     if not perm:
-        #         raise CCommandNoPerm
+        if mode == "built-in":
+            if not isMod:
+                return await ctx.try_reply(
+                    "Only mods allowed to disable custom command"
+                )
+            immuneRoot = ("help", "command")
+            command = self.bot.get_command(name)
+            if not command:
+                # check if command exists
+                return await ctx.try_reply(notFoundMsg.format(mode, name))
 
-        #     if not command.enabled:
-        #         if not isMod or builtInPriority:
-        #             return await ctx.try_reply("Command already disabled!")
-        #         # Fallback to built-in command, and try disabling it instead
-        #         command = self.bot.get_command(name)
-        #     else:
-        #         async with ctx.db.transaction():
-        #             await ctx.db.execute(
-        #                 """
-        #                     UPDATE commands
-        #                     SET enabled=0
-        #                     WHERE id=:id
-        #                 """,
-        #                 values={"id": command.id}
-        #             )
-        #             return await ctx.try_reply("Command has been disabled")
+            # format command name
+            cmdName = self.formatCmdName(command)
 
-        # if not isMod:
-        #     # Not a mod
-        #     return await ctx.try_reply("Only mod allowed to disable built-in command")
+            if str(command.root_parent or cmdName) in immuneRoot:
+                # check if command root parent is immune
+                return await ctx.try_reply("This command can't be disabled!")
 
-        # # Disabling built-in command
-        # cmdName = self.formatCmdName(command)
+            disabled = await self.getDisabledCommands(ctx, ctx.guild.id)
+            if cmdName in disabled:
+                # check if command already disabled
+                return await ctx.try_reply(alreadyMsg.format(cmdName))
 
-        # if str(command.root_parent) in immuneRoot:
-        #     # check if command is immune
-        #     return await ctx.try_reply("This command can't be disabled")
+            async with ctx.db.transaction():
+                await ctx.db.execute(
+                    """
+                    INSERT INTO disabled VALUES (:guildId, :command)
+                    """,
+                    values={"guildId": ctx.guild.id, "command": cmdName}
+                )
 
-        # disabled = await self.getDisabledCommands(ctx, ctx.guild.id)
-        # if cmdName in disabled:
-        #     # check if command already disabled
-        #     return await ctx.try_reply("{} already disabled".format(cmdName))
+                try:
+                    self.bot.disabled[ctx.guild.id].append(cmdName)
+                except KeyError:
+                    self.bot.disabled[ctx.guild.id] = [cmdName]
 
-        # async with ctx.db.transaction():
-        #     await ctx.db.execute(
-        #         """
-        #         INSERT INTO disabled VALUES (:guildId, :command)
-        #         """,
-        #         values={"guildId": ctx.guild.id, "command": cmdName}
-        #     )
-        #     try:
-        #         self.bot.disabled[ctx.guild.id].append(cmdName)
-        #     except KeyError:
-        #         self.bot.disabled[ctx.guild.id] = [cmdName]
-        #     return await ctx.try_reply("{} has been disabled".format(cmdName))
+                return await ctx.try_reply(successMsg.format(cmdName))
+        else:
+            try:
+                command = await getCustomCommand(ctx, name)
+            except CCommandNotFound:
+                return await ctx.try_reply(notFoundMsg.format(mode, name))
+
+            perm = await self.ccModeCheck(ctx, command=command)
+            if not perm:
+                raise CCommandNoPerm
+
+            if not command.enabled:
+                return await ctx.try_reply(alreadyMsg.format(name))
+
+            async with ctx.db.transaction():
+                await ctx.db.execute(
+                    """
+                        UPDATE commands
+                        SET enabled=0
+                        WHERE id=:id
+                    """,
+                    values={"id": command.id}
+                )
+                return await ctx.try_reply(successMsg.format(name))
 
     @command.command(brief="Enable a command")
     async def enable(self, ctx, *, arguments):
@@ -981,7 +980,7 @@ class Meta(commands.Cog, CogMixin):
         name = " ".join(parsed.name)
 
         # TODO: Make mod role
-        isMod = discord.Permissions.manage_guild in ctx.author.guild_permissions
+        isMod = ctx.author.guild_permissions.manage_guild
 
         # This will work for both built-in and user-made commands
         # NOTE: Only mods can enable/disable built-in command
@@ -1004,7 +1003,7 @@ class Meta(commands.Cog, CogMixin):
                     SET enabled=1
                     WHERE id=:id
                 """,
-                values={"id": command.id}
+                values={"id": command.id},
             )
             return await ctx.try_reply("Command has been enabled")
 
