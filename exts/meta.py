@@ -879,11 +879,13 @@ class Meta(commands.Cog, CogMixin):
             "Server admin/mods still able to use disabled **built-in** "
             "command.\n\n__**Options:**__\n`--built-in` | `-b`: Disable "
             "built-in command\n`--custom` | `-c`: Disable custom command "
-            "(Always overrides `--built-in`)"
+            "(Always overrides `--built-in`)\n`--category` | `-C`: Disable all "
+            "commands in a specific category (Requires `-b`)"
         ),
         example=(
             "command disable example",
             "cmd disable -b weather",
+            "command disable -bC info",
             "cmd disable -c test",
         ),
     )
@@ -892,12 +894,15 @@ class Meta(commands.Cog, CogMixin):
         parser = argparse.ArgumentParser(allow_abbrev=False, add_help=False)
         parser.add_argument("--built-in", "-b", action="store_true")
         parser.add_argument("--custom", "-c", action="store_true")
+        # TODO disable all built-in commands from a specific category
+        parser.add_argument("--category", "-C", action="store_true")
         parser.add_argument("name", nargs="+")
 
         parsed, _ = parser.parse_known_args(shlex.split(arguments))
         mode = "custom"
         if parsed.built_in and not parsed.custom:
-            mode = "built-in"
+            # mode = "built-in"
+            mode = "built-in" if not parsed.category else "category"
         name = " ".join(parsed.name)
 
         # TODO: Make mod role
@@ -906,13 +911,13 @@ class Meta(commands.Cog, CogMixin):
         successMsg = "`{}` has been disabled"
         alreadyMsg = "`{}` already disabled!"
         notFoundMsg = "There is not {} command called `{}`"
+        immuneRoot = ("help", "command")
 
         if mode == "built-in":
             if not isMod:
                 return await ctx.try_reply(
                     "Only mods allowed to disable built-in command"
                 )
-            immuneRoot = ("help", "command")
             command = self.bot.get_command(name)
             if not command:
                 # check if command exists
@@ -938,13 +943,19 @@ class Meta(commands.Cog, CogMixin):
                     values={"guildId": ctx.guild.id, "command": cmdName},
                 )
 
-                try:
-                    self.bot.disabled[ctx.guild.id].append(cmdName)
-                except KeyError:
-                    self.bot.disabled[ctx.guild.id] = [cmdName]
+                disabled.append(cmdName)
+                self.bot.disabled[ctx.guild.id] = disabled
 
                 return await ctx.try_reply(successMsg.format(cmdName))
-        else:
+
+        elif mode == "category":
+            category = self.bot.get_cog(name)
+            commands = [
+                c.name for c in category.get_commands() if c.name not in immuneRoot
+            ]
+            return await ctx.try_reply("Not implemented yet.")
+
+        elif mode == "custom":
             try:
                 command = await getCustomCommand(ctx, name)
             except CCommandNotFound:
@@ -1032,10 +1043,8 @@ class Meta(commands.Cog, CogMixin):
                     values={"guildId": ctx.guild.id, "command": cmdName},
                 )
 
-                try:
-                    self.bot.disabled[ctx.guild.id].remove(cmdName)
-                except KeyError:
-                    self.bot.disabled[ctx.guild.id] = []
+                disabled.remove(cmdName)
+                self.bot.disabled[ctx.guild.id] = disabled
 
                 return await ctx.try_reply(successMsg.format(cmdName))
         else:
