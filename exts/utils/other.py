@@ -16,6 +16,7 @@ from pyparsing import (
 import math
 import operator
 
+
 PHI = (1 + math.sqrt(5)) / 2
 
 
@@ -80,7 +81,9 @@ class NumericStringParser(object):
         atom = (
             addop[...]
             + (
-                (fn_call | pi | phi | e | tau | fnumber | ident).setParseAction(self.pushFirst)
+                (fn_call | pi | phi | e | tau | fnumber | ident).setParseAction(
+                    self.pushFirst
+                )
                 | Group(lpar + expr + rpar)
             )
         ).setParseAction(self.pushUMinus)
@@ -159,6 +162,7 @@ class NumericStringParser(object):
         results = self.bnf.parseString(num_string, parseAll)
         val = self.evaluateStack(self.exprStack[:])
         return val
+
 
 if __name__ == "__main__":
     # For testing
