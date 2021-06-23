@@ -39,46 +39,6 @@ PASTEBIN_REGEX = re.compile(r"http(?:s)?:\/\/pastebin.com\/(?:raw\/)?(\S*)")
 DIFFER = difflib.Differ()
 
 
-def formatCmd(prefix, command):
-    try:
-        parent = command.parent
-    except AttributeError:
-        parent = None
-
-    entries = []
-    while parent is not None:
-        if not parent.signature or parent.invoke_without_command:
-            entries.append(parent.name)
-        else:
-            entries.append(parent.name + " " + parent.signature)
-        parent = parent.parent
-    names = " ".join(reversed([command.name] + entries))
-
-    return discord.utils.escape_markdown(f"{prefix}{names}")
-
-
-async def formatCommandInfo(prefix, command):
-    """Format command help"""
-    e = ZEmbed(
-        title=formatCmd(prefix, command),
-        description=command.description or command.brief or "No description",
-    )
-    examples = getattr(command, "example", [])
-    if examples:
-        e.add_field(
-            name="Example",
-            value="\n".join([f"> `{prefix}{x}`" for x in examples]),
-        )
-    if isinstance(command, commands.Group):
-        subcmds = sorted(command.commands, key=lambda c: c.name)
-        if subcmds:
-            e.add_field(
-                name="Subcommands",
-                value="\n".join([f"> `{formatCmd(prefix, cmd)}`" for cmd in subcmds]),
-            )
-    return e
-
-
 async def getCustomCommand(ctx, command):
     """Get custom command from database."""
     db = ctx.db
@@ -153,6 +113,46 @@ async def getCustomCommands(db, guildId, category: str = None):
     return [CustomCommand(id=k, **v) for k, v in cmds.items()]
 
 
+def formatCmd(prefix, command):
+    try:
+        parent = command.parent
+    except AttributeError:
+        parent = None
+
+    entries = []
+    while parent is not None:
+        if not parent.signature or parent.invoke_without_command:
+            entries.append(parent.name)
+        else:
+            entries.append(parent.name + " " + parent.signature)
+        parent = parent.parent
+    names = " ".join(reversed([command.name] + entries))
+
+    return discord.utils.escape_markdown(f"{prefix}{names}")
+
+
+async def formatCommandInfo(prefix, command):
+    """Format command help"""
+    e = ZEmbed(
+        title=formatCmd(prefix, command),
+        description=command.description or command.brief or "No description",
+    )
+    examples = getattr(command, "example", [])
+    if examples:
+        e.add_field(
+            name="Example",
+            value="\n".join([f"> `{prefix}{x}`" for x in examples]),
+        )
+    if isinstance(command, commands.Group):
+        subcmds = sorted(command.commands, key=lambda c: c.name)
+        if subcmds:
+            e.add_field(
+                name="Subcommands",
+                value="\n".join([f"> `{formatCmd(prefix, cmd)}`" for cmd in subcmds]),
+            )
+    return e
+
+
 class CustomHelp(commands.HelpCommand):
     async def send_bot_help(self, mapping):
         ctx = self.context
@@ -206,7 +206,7 @@ class CustomHelp(commands.HelpCommand):
         )
 
         e = ZEmbed(
-            title=f"{getattr(cog, 'icon', '❓')} | {cog.qualified_name}",
+            title=f"{getattr(cog, 'icon', '❓')} | Category: {cog.qualified_name}",
             description=desc,
         )
         for cmd in filtered:
@@ -894,7 +894,6 @@ class Meta(commands.Cog, CogMixin):
         parser = argparse.ArgumentParser(allow_abbrev=False, add_help=False)
         parser.add_argument("--built-in", "-b", action="store_true")
         parser.add_argument("--custom", "-c", action="store_true")
-        # TODO disable all built-in commands from a specific category
         parser.add_argument("--category", "-C", action="store_true")
         parser.add_argument("name", nargs="+")
 
@@ -913,11 +912,14 @@ class Meta(commands.Cog, CogMixin):
         notFoundMsg = "There is not {} command called `{}`"
         immuneRoot = ("help", "command")
 
-        if mode == "built-in":
+        if mode in ("built-in", "category"):
+            # check if executor is a mod for built-in and category mode
             if not isMod:
                 return await ctx.try_reply(
                     "Only mods allowed to disable built-in command"
                 )
+
+        if mode == "built-in":
             command = self.bot.get_command(name)
             if not command:
                 # check if command exists
@@ -953,7 +955,29 @@ class Meta(commands.Cog, CogMixin):
             commands = [
                 c.name for c in category.get_commands() if c.name not in immuneRoot
             ]
-            return await ctx.try_reply("Not implemented yet.")
+            disabled = await self.getDisabledCommands(ctx, ctx.guild.id)
+
+            added = []
+            for c in commands:
+                if c in disabled:
+                    continue
+                added.append(c)
+                disabled.append(c)
+
+            if not added:
+                return await ctx.try_reply("No commands succesfully disabled")
+
+            async with ctx.db.transaction():
+                await ctx.db.execute_many(
+                    """
+                    INSERT INTO disabled VALUES (:guildId, :command)
+                    """,
+                    values=[{"guildId": ctx.guild.id, "command": cmd} for cmd in added],
+                )
+                self.bot.disabled[ctx.guild.id] = disabled
+                return await ctx.try_reply(
+                    "`{}` commands has been disabled".format(len(added))
+                )
 
         elif mode == "custom":
             try:
@@ -999,6 +1023,7 @@ class Meta(commands.Cog, CogMixin):
         parser = argparse.ArgumentParser(allow_abbrev=False, add_help=False)
         parser.add_argument("--built-in", "-b", action="store_true")
         parser.add_argument("--custom", "-c", action="store_true")
+        # TODO: Add category enabler (enable all commands in a category)
         parser.add_argument("name", nargs="+")
 
         parsed, _ = parser.parse_known_args(shlex.split(arguments))
