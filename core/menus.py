@@ -11,9 +11,6 @@ class ZMenu(menus.MenuPages):
         self.init_msg = init_msg
 
     async def start(self, ctx):
-        if not self.init_msg:
-            e = discord.Embed(title="Loading...", colour=discord.Colour.blue())
-            self.init_msg = await ctx.channel.send(embed=e)
         await super().start(ctx)
 
     async def send_initial_message(self, ctx, channel):
@@ -21,6 +18,10 @@ class ZMenu(menus.MenuPages):
         kwargs = await self._get_kwargs_from_page(page)
         if self.init_msg:
             await self.init_msg.edit(**kwargs)
+            return self.init_msg
+        else:
+            e = discord.Embed(title="Loading...", colour=discord.Colour.blue())
+            self.init_msg = await ctx.channel.send(embed=e)
             return self.init_msg
 
     async def update(self, payload):
@@ -46,18 +47,20 @@ class ZReplyMenu(ZMenu):
         super().__init__(source=source, check_embeds=True)
 
     async def start(self, ctx):
-        if not self.init_msg:
-            e = discord.Embed(title="Loading...", colour=discord.Colour.blue())
-            self.init_msg = await ctx.reply(
-                embed=e, mention_author=False if not self.ping else True
-            )
         await super().start(ctx)
 
     async def send_initial_message(self, ctx, channel):
         page = await self._source.get_page(0)
         kwargs = await self._get_kwargs_from_page(page)
-        await self.init_msg.edit(**kwargs)
-        return self.init_msg
+        if self.init_msg:
+            await self.init_msg.edit(**kwargs)
+            return self.init_msg
+        else:
+            e = discord.Embed(title="Loading...", colour=discord.Colour.blue())
+            self.init_msg = await ctx.reply(
+                embed=e, mention_author=False if not self.ping else True
+            )
+            return self.init_msg
 
     async def _get_kwargs_from_page(self, page):
         no_ping = {"mention_author": False if not self.ping else True}
