@@ -61,7 +61,7 @@ def init_bot():
     loop = asyncio.get_event_loop()
     logger = logging.getLogger()
 
-    bot = _bot.Brain()
+    bot = _bot.ziBot()
     bot.uptime = datetime.datetime.utcnow()
     bot.run()
 

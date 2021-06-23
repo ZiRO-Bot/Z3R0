@@ -187,6 +187,7 @@ class CustomHelp(commands.HelpCommand):
                 ]
             ),
         )
+        e.add_field(name="News | Updated: {}".format("?"), value="Nothing.")
 
         return await ctx.try_reply(embed=e)
 

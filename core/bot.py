@@ -105,7 +105,7 @@ async def _callablePrefix(bot, message):
     return commands.when_mentioned_or(*sorted(base))(bot, message)
 
 
-class Brain(commands.Bot):
+class ziBot(commands.Bot):
 
     # --- NOTE: Information about the bot
     author = "ZiRO2264#4572"
