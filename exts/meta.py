@@ -172,7 +172,6 @@ def formatCmd(prefix, command):
 
     entries = []
     while parent is not None:
-        print(parent.clean_params)
         if not parent.signature or parent.invoke_without_command:
             entries.append(parent.name)
         else:
