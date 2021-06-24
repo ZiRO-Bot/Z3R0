@@ -20,8 +20,7 @@ class ZMenu(menus.MenuPages):
             await self.init_msg.edit(**kwargs)
             return self.init_msg
         else:
-            e = discord.Embed(title="Loading...", colour=discord.Colour.blue())
-            self.init_msg = await ctx.channel.send(embed=e)
+            self.init_msg = await ctx.channel.send(**kwargs)
             return self.init_msg
 
     async def update(self, payload):
@@ -58,7 +57,7 @@ class ZReplyMenu(ZMenu):
         else:
             e = discord.Embed(title="Loading...", colour=discord.Colour.blue())
             self.init_msg = await ctx.reply(
-                embed=e, mention_author=False if not self.ping else True
+                mention_author=False if not self.ping else True, **kwargs
             )
             return self.init_msg
 

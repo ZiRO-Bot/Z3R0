@@ -23,11 +23,12 @@ from core.errors import (
     CCommandNoPerm,
     CCommandDisabled,
 )
+from core.menus import ZMenu
 from core.mixin import CogMixin
 from core.objects import CustomCommand
 from exts.utils import dbQuery, infoQuote, tseBlocks
 from exts.utils.format import CMDName, ZEmbed, cleanifyPrefix
-from discord.ext import commands
+from discord.ext import commands, menus
 
 
 GIST_REGEX = re.compile(
@@ -37,6 +38,32 @@ PASTEBIN_REGEX = re.compile(r"http(?:s)?:\/\/pastebin.com\/(?:raw\/)?(\S*)")
 
 
 DIFFER = difflib.Differ()
+
+
+class PrefixesPageSource(menus.ListPageSource):
+    def __init__(self, ctx, prefixes):
+        self.prefixes = prefixes
+        self.ctx = ctx
+
+        super().__init__(prefixes, per_page=6)
+
+    async def format_page(self, menu: menus.MenuPages, prefixes: list):
+        ctx = self.ctx
+
+        e = ZEmbed(title="{} Prefixes".format(ctx.guild), description="**Custom Prefixes**:\n")
+
+        if menu.current_page == 0:
+            prefixes.pop(0)
+            prefixes.pop(0)
+            e.description = (
+                "**Default Prefixes**: `{}` or `{} `\n\n**Custom Prefixes**:\n".format(
+                    ctx.bot.defPrefix, cleanifyPrefix(ctx.bot, ctx.me.mention)
+                )
+            )
+        e.description += "\n".join(
+            [f"• `{cleanifyPrefix(ctx.bot, p)}`" for p in prefixes]
+        )
+        return e
 
 
 async def getCustomCommand(ctx, command):
@@ -1206,9 +1233,21 @@ class Meta(commands.Cog, CogMixin):
             "prefix add ?",
             "pref remove !",
         ),
+        invoke_without_command=True,
     )
     async def prefix(self, ctx):
-        pass
+        await self.prefList(ctx)
+
+    @prefix.command(
+        name="list",
+        aliases=["ls"],
+        brief="Get all prefixes",
+        exemple=("prefix ls", "pref list"),
+    )
+    async def prefList(self, ctx):
+        prefixes = await self.bot.getGuildPrefix(ctx.guild.id)
+        menu = ZMenu(source=PrefixesPageSource(ctx, ["placeholder"] * 2 + prefixes))
+        await menu.start(ctx)
 
     @prefix.command(
         name="add",
@@ -1224,7 +1263,7 @@ class Meta(commands.Cog, CogMixin):
     async def prefAdd(self, ctx, *prefix):
         prefix = " ".join(prefix).lstrip()
         if not prefix:
-            return await ctx.try_reply("Prefix can't be empty!")
+            return await ctx.error("Prefix can't be empty!")
 
         try:
             await self.bot.addPrefix(ctx.guild.id, prefix)
@@ -1232,7 +1271,7 @@ class Meta(commands.Cog, CogMixin):
                 "Prefix `{}` has been added".format(cleanifyPrefix(self.bot, prefix))
             )
         except Exception as exc:
-            await ctx.try_reply(exc)
+            await ctx.error(exc)
 
     @prefix.command(
         name="remove",
@@ -1244,7 +1283,7 @@ class Meta(commands.Cog, CogMixin):
     async def prefRm(self, ctx, *prefix):
         prefix = " ".join(prefix).lstrip()
         if not prefix:
-            return await ctx.try_reply("Prefix can't be empty!")
+            return await ctx.error("Prefix can't be empty!")
 
         try:
             await self.bot.rmPrefix(ctx.guild.id, prefix)
@@ -1252,7 +1291,7 @@ class Meta(commands.Cog, CogMixin):
                 "Prefix `{}` has been removed".format(cleanifyPrefix(self.bot, prefix))
             )
         except Exception as exc:
-            await ctx.try_reply(exc)
+            await ctx.error(exc)
 
 
 def setup(bot):
