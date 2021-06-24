@@ -901,7 +901,6 @@ class Meta(commands.Cog, CogMixin):
         parsed, _ = parser.parse_known_args(shlex.split(arguments))
         mode = "custom"
         if parsed.built_in and not parsed.custom:
-            # mode = "built-in"
             mode = "built-in" if not parsed.category else "category"
         name = " ".join(parsed.name)
 
@@ -1011,11 +1010,13 @@ class Meta(commands.Cog, CogMixin):
             "command.\n(Will try to enable custom command by default)\n\n"
             "__**Options:**__\n`--built-in` | `-b`: Enable built-in "
             "command\n`--custom` | `-c`: Enable custom command "
-            "(Always overrides `--built-in`)"
+            "(Always overrides `--built-in`)\n`--category` | `-C`: Enable all "
+            "commands in a specific category (Requires `-b`)"
         ),
         example=(
             "command enable example",
             "cmd enable -b weather",
+            "cmd enable -bC info",
             "cmd enable -c test",
         ),
     )
@@ -1024,13 +1025,13 @@ class Meta(commands.Cog, CogMixin):
         parser = argparse.ArgumentParser(allow_abbrev=False, add_help=False)
         parser.add_argument("--built-in", "-b", action="store_true")
         parser.add_argument("--custom", "-c", action="store_true")
-        # TODO: Add category enabler (enable all commands in a category)
+        parser.add_argument("--category", "-C", action="store_true")
         parser.add_argument("name", nargs="+")
 
         parsed, _ = parser.parse_known_args(shlex.split(arguments))
         mode = "custom"
         if parsed.built_in and not parsed.custom:
-            mode = "built-in"
+            mode = "built-in" if not parsed.category else "category"
         name = " ".join(parsed.name)
 
         # TODO: Make mod role
@@ -1040,12 +1041,14 @@ class Meta(commands.Cog, CogMixin):
         alreadyMsg = "`{}` already enabled!"
         notFoundMsg = "There is not {} command called `{}`"
 
-        if mode == "built-in":
+        if mode in ("built-in", "category"):
+            # check if executor is a mod for built-in and category mode
             if not isMod:
                 return await ctx.try_reply(
                     "Only mods allowed to enable built-in command"
                 )
 
+        if mode == "built-in":
             command = self.bot.get_command(name)
             if not command:
                 # check if command exists
@@ -1073,7 +1076,33 @@ class Meta(commands.Cog, CogMixin):
                 self.bot.disabled[ctx.guild.id] = disabled
 
                 return await ctx.try_reply(successMsg.format(cmdName))
-        else:
+
+        elif mode == "category":
+            category = self.bot.get_cog(name)
+            disabled = await self.getDisabledCommands(ctx, ctx.guild.id)
+            commands = [c.name for c in category.get_commands() if c.name in disabled]
+
+            if not commands:
+                return await ctx.try_reply("No commands succesfully enabled")
+
+            for c in commands:
+                disabled.remove(c)
+
+            async with ctx.db.transaction():
+                await ctx.db.execute_many(
+                    """
+                    DELETE FROM disabled WHERE guildId=:guildId AND command=:command
+                    """,
+                    values=[
+                        {"guildId": ctx.guild.id, "command": cmd} for cmd in commands
+                    ],
+                )
+                self.bot.disabled[ctx.guild.id] = disabled
+                return await ctx.try_reply(
+                    "`{}` commands has been enabled".format(len(commands))
+                )
+
+        elif mode == "custom":
             try:
                 command = await getCustomCommand(ctx, name)
             except CCommandNotFound:
