@@ -22,10 +22,16 @@ class Utilities(commands.Cog, CogMixin):
     icon = "🔧"
     cc = True
 
-    @commands.command(aliases=["calc", "c"])
+    @commands.command(
+        aliases=["calc", "c"],
+        brief="Simple math evaluator",
+        example=(
+            "calc 12*6",
+            "c 5^5",
+            "math 50/2",
+        ),
+    )
     async def math(self, ctx, *, equation):
-        """Simple math evaluator"""
-
         try:
             result = NumericStringParser().eval(equation)
             if result > sys.maxsize:
@@ -33,9 +39,9 @@ class Utilities(commands.Cog, CogMixin):
             else:
                 formattedResult = "{0:,.1f}".format(result)
         except Overflow:
-            formattedResult, result = ("Infinity",)*2
+            formattedResult, result = ("Infinity",) * 2
         except InvalidOperation:
-            formattedResult, result = ("ERR",)*2
+            formattedResult, result = ("ERR",) * 2
         except Exception as exc:
             return await ctx.send("I couldn't read that expression properly.")
 
@@ -44,9 +50,8 @@ class Utilities(commands.Cog, CogMixin):
             fields=[
                 ("Equation", discord.utils.escape_markdown(equation)),
                 ("Result", formattedResult),
-                ("Result (raw)", result),
+                ("Raw Result", result),
             ],
-            field_inline=False,
         )
         e.set_author(name="Simple Math Evaluator", icon_url=ctx.bot.user.avatar_url)
         return await ctx.try_reply(embed=e)

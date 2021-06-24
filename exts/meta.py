@@ -186,7 +186,7 @@ async def formatCommandInfo(prefix, command):
     """Format command help"""
     e = ZEmbed(
         title=formatCmd(prefix, command),
-        description="**Aliases**: `{}`\n".format(", ".join(command.aliases))
+        description="**Aliases**: `{}`\n".format(", ".join(command.aliases) if command.aliases else "No alias")
         + (command.description or command.brief or "No description"),
     )
     examples = getattr(command, "example", [])
