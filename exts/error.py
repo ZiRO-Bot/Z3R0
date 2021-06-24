@@ -21,6 +21,7 @@ from exts.utils.format import formatMissingArgError
 
 class ErrorHandler(commands.Cog, CogMixin):
     """Handle errors."""
+
     def __init__(self, bot):
         super().__init__(bot)
 
@@ -44,7 +45,7 @@ class ErrorHandler(commands.Cog, CogMixin):
             return
 
         if isinstance(error, commands.MissingRequiredArgument):
-            e = formatMissingArgError(ctx.command, error)
+            e = formatMissingArgError(ctx, error)
             return await ctx.try_reply(embed=e)
 
         if isinstance(error, errors.CCommandAlreadyExists):
@@ -62,7 +63,7 @@ class ErrorHandler(commands.Cog, CogMixin):
             )
             await asyncio.sleep(round(error.retry_after))
             return await bot_msg.delete()
-        
+
         if isinstance(error, commands.CheckFailure):
             # TODO: Change the message
             return await ctx.send("You have no permissions!")

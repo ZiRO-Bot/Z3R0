@@ -54,7 +54,7 @@ def formatCmdParams(command):
     return " ".join(result)
 
 
-def formatCmd(prefix, command):
+def formatCmd(prefix, command, params=True):
     try:
         parent = command.parent
     except AttributeError:
@@ -69,12 +69,22 @@ def formatCmd(prefix, command):
         parent = parent.parent
     names = " ".join(reversed([command.name] + entries))
 
-    return discord.utils.escape_markdown(f"{prefix}{names} {formatCmdParams(command)}")
+    return discord.utils.escape_markdown(
+        f"{prefix}{names}" + (f" {formatCmdParams(command)}" if params else "")
+    )
 
 
-def formatMissingArgError(command, error):
-    e = ZEmbed.error(description=f"```{error}```")
-    e.add_field(name="Usage", value=f"```{formatCmd('', command)}```")
+def formatMissingArgError(ctx, error):
+    command = ctx.command
+    e = ZEmbed.error(
+        title="ERROR: Missing required arguments!",
+        description="Usage: `{}`".format(formatCmd("", command)),
+    )
+    e.set_footer(
+        text="{}help {} for more information.".format(
+            ctx.clean_prefix, formatCmd("", command, params=False)
+        )
+    )
     return e
 
 

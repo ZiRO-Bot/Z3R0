@@ -1156,7 +1156,7 @@ class Meta(commands.Cog, CogMixin):
         # Executes {prefix}help {name} if its built-in command
         try:
             command = await getCustomCommand(ctx, name)
-            e = await formatCommandInfo(cleanifyPrefix(self.bot, ctx.prefix), command)
+            e = await formatCommandInfo(ctx.clean_prefix, command)
             return await ctx.try_reply(embed=e)
         except CCommandNotFound:
             return await ctx.send_help(name)
