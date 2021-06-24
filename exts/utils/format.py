@@ -19,7 +19,7 @@ class ZEmbed(discord.Embed):
         return instance
 
     @classmethod
-    def error(cls, title="Error", color=discord.Color.red(), **kwargs):
+    def error(cls, title="<:error:783265883228340245> Error", color=discord.Color.red(), **kwargs):
         return cls(title=title, color=color, **kwargs)
 
 # def formatDate(datetime = dt.datetime.utcnow()):

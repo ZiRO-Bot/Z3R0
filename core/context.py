@@ -1,4 +1,5 @@
 from discord.ext import commands
+from exts.utils.format import ZEmbed
 
 
 class Context(commands.Context):
@@ -22,7 +23,6 @@ class Context(commands.Context):
                 content = f"{self.author.mention}\n{content}"
             return await self.send(content, **kwargs)
 
-
     async def safe_send(self, content, *, escape_mentions=True, **kwargs):
         if escape_mentions:
             content = discord.utils.escape_mentions(content)
@@ -35,3 +35,7 @@ class Context(commands.Context):
             )
         else:
             return await self.send(content)
+
+    async def error(self, error_message: str):
+        e = ZEmbed.error(description=error_message)
+        return await self.try_reply(embed=e)

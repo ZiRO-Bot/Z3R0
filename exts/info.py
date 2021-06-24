@@ -245,7 +245,7 @@ class Info(commands.Cog, CogMixin):
     @steal.error
     async def stealErr(self, ctx, error):
         if isinstance(error, commands.BadUnionArgument):
-            await ctx.try_reply("Unicode is not supported!")
+            await ctx.error("Unicode is not supported!")
 
     @commands.command(
         aliases=["jsh"],
