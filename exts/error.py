@@ -16,6 +16,7 @@ import traceback
 from core import errors
 from core.mixin import CogMixin
 from discord.ext import commands
+from exts.utils.format import formatMissingArgError
 
 
 class ErrorHandler(commands.Cog, CogMixin):
@@ -41,6 +42,10 @@ class ErrorHandler(commands.Cog, CogMixin):
 
         if isinstance(error, commands.CommandNotFound):
             return
+
+        if isinstance(error, commands.MissingRequiredArgument):
+            e = formatMissingArgError(ctx.command, error)
+            return await ctx.try_reply(embed=e)
 
         if isinstance(error, errors.CCommandAlreadyExists):
             return await ctx.try_reply(error)

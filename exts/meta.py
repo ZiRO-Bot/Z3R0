@@ -27,7 +27,7 @@ from core.menus import ZMenu
 from core.mixin import CogMixin
 from core.objects import CustomCommand
 from exts.utils import dbQuery, infoQuote, tseBlocks
-from exts.utils.format import CMDName, ZEmbed, cleanifyPrefix
+from exts.utils.format import CMDName, ZEmbed, cleanifyPrefix, formatCmd, formatCmdParams
 from discord.ext import commands, menus
 
 
@@ -140,46 +140,6 @@ async def getCustomCommands(db, guildId, category: str = None):
                 cmds[row[0]]["aliases"] = [row[1]]
 
     return [CustomCommand(id=k, **v) for k, v in cmds.items()]
-
-
-def formatCmdParams(command):
-    if isinstance(command, CustomCommand):
-        return ""
-
-    usage = command.usage
-    if usage:
-        return usage
-
-    params = command.clean_params
-    if not params:
-        return ""
-
-    result = []
-    for name, param in params.items():
-        if param.default is not param.empty or param.kind == param.VAR_POSITIONAL:
-            result.append(f"[{name}]")
-        else:
-            result.append(f"({name})")
-
-    return " ".join(result)
-
-
-def formatCmd(prefix, command):
-    try:
-        parent = command.parent
-    except AttributeError:
-        parent = None
-
-    entries = []
-    while parent is not None:
-        if not parent.signature or parent.invoke_without_command:
-            entries.append(parent.name)
-        else:
-            entries.append(parent.name + " " + formatCmdParams(parent))
-        parent = parent.parent
-    names = " ".join(reversed([command.name] + entries))
-
-    return discord.utils.escape_markdown(f"{prefix}{names} {formatCmdParams(command)}")
 
 
 async def formatCommandInfo(prefix, command):
