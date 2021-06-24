@@ -93,16 +93,14 @@ class Info(commands.Cog, CogMixin):
     )
     async def weather(self, ctx, *, city):
         if not self.openweather.apiKey:
-            # TODO: Adjust error message
-            return await ctx.send(
+            return await ctx.error(
                 "OpenWeather's API Key is not set! Please contact the bot owner to solve this issue."
             )
 
         try:
             weatherData = await self.openweather.get_from_city(city)
         except CityNotFound as err:
-            # TODO: Also adjust this message
-            return await ctx.try_reply("City not Found!")
+            return await ctx.error("City '{}' not Found!".format(city))
 
         e = ZEmbed(
             ctx,
@@ -140,7 +138,8 @@ class Info(commands.Cog, CogMixin):
             h = str(hex(int(value, 16)))[2:]
             h = h.ljust(6, "0")
         except ValueError:
-            return await ctx.send("Invalid colour value!")
+            return await ctx.error("Invalid colour value!")
+
         # Convert HEX into RGB
         RGB = tuple(int(h[i : i + 2], 16) for i in (0, 2, 4))
 
@@ -154,7 +153,7 @@ class Info(commands.Cog, CogMixin):
         )
         e.set_thumbnail(url="attachment://rect.png")
         e.add_field(name="Hex", value=f"#{h}")
-        e.add_field(name="RGB", value=str(RGB))
+        e.add_field(name="RGB", value=", ".join([str(x) for x in RGB]))
         return await ctx.try_reply(file=f, embed=e)
 
     @commands.command(aliases=["lvl", "rank"], hidden=True, brief="Level")
@@ -215,7 +214,7 @@ class Info(commands.Cog, CogMixin):
                     description="`Type: Unicode`",
                 )
             except TypeError:
-                return await ctx.try_reply("`{}` is not a valid emoji!".format(emoji))
+                return await ctx.error("`{}` is not a valid emoji!".format(emoji))
         return await ctx.try_reply(embed=e)
 
     @emoji.command(
@@ -232,7 +231,7 @@ class Info(commands.Cog, CogMixin):
                 name=emoji.name, image=emojiByte
             )
         except discord.Forbidden:
-            return await ctx.try_reply("I don't have permission to `Manage Emojis`!")
+            return await ctx.error("I don't have permission to `Manage Emojis`!")
 
         e = ZEmbed.default(
             ctx,
@@ -266,7 +265,7 @@ class Info(commands.Cog, CogMixin):
             try:
                 result = result["data"][0]
             except:
-                return await ctx.try_reply(
+                return await ctx.error(
                     "Sorry, couldn't find any words matching `{}`".format(words)
                 )
 
