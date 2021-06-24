@@ -50,7 +50,9 @@ class PrefixesPageSource(menus.ListPageSource):
     async def format_page(self, menu: menus.MenuPages, prefixes: list):
         ctx = self.ctx
 
-        e = ZEmbed(title="{} Prefixes".format(ctx.guild), description="**Custom Prefixes**:\n")
+        e = ZEmbed(
+            title="{} Prefixes".format(ctx.guild), description="**Custom Prefixes**:\n"
+        )
 
         if menu.current_page == 0:
             prefixes.pop(0)
@@ -140,6 +142,28 @@ async def getCustomCommands(db, guildId, category: str = None):
     return [CustomCommand(id=k, **v) for k, v in cmds.items()]
 
 
+def formatCmdParams(command):
+    if isinstance(command, CustomCommand):
+        return ""
+
+    usage = command.usage
+    if usage:
+        return usage
+
+    params = command.clean_params
+    if not params:
+        return ""
+
+    result = []
+    for name, param in params.items():
+        if param.default is not param.empty or param.kind == param.VAR_POSITIONAL:
+            result.append(f"[{name}]")
+        else:
+            result.append(f"({name})")
+
+    return " ".join(result)
+
+
 def formatCmd(prefix, command):
     try:
         parent = command.parent
@@ -148,21 +172,23 @@ def formatCmd(prefix, command):
 
     entries = []
     while parent is not None:
+        print(parent.clean_params)
         if not parent.signature or parent.invoke_without_command:
             entries.append(parent.name)
         else:
-            entries.append(parent.name + " " + parent.signature)
+            entries.append(parent.name + " " + formatCmdParams(parent))
         parent = parent.parent
     names = " ".join(reversed([command.name] + entries))
 
-    return discord.utils.escape_markdown(f"{prefix}{names}")
+    return discord.utils.escape_markdown(f"{prefix}{names} {formatCmdParams(command)}")
 
 
 async def formatCommandInfo(prefix, command):
     """Format command help"""
     e = ZEmbed(
         title=formatCmd(prefix, command),
-        description=command.description or command.brief or "No description",
+        description="**Aliases**: `{}`\n".format(", ".join(command.aliases))
+        + (command.description or command.brief or "No description"),
     )
     examples = getattr(command, "example", [])
     if examples:
@@ -248,6 +274,11 @@ class CustomHelp(commands.HelpCommand):
                 name=name,
                 value="> " + (cmd.brief or "No description"),
             )
+        e.set_footer(
+            text="Use `{}command info command-name` to check custom command's information".format(
+                self.clean_prefix
+            )
+        )
         await ctx.try_reply(embed=e)
 
     async def command_not_found(self, string):
