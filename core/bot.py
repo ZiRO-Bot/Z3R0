@@ -187,6 +187,71 @@ class ziBot(commands.Bot):
             await self.db.execute(dbQuery.createPrefixesTable)
             await self.db.execute(dbQuery.createDisabledTable)
 
+    async def getGuildConfigs(self, guildId: int):
+        # Get guild configs and maybe cache it
+        if self.guildConfigs.get(guildId) is None:
+            # Executed when guild configs is not in the cache
+            row = await self.db.fetch_one(
+                """
+                    SELECT
+                        ccMode,
+                        tagMode,
+                        welcomeMsg,
+                        farewellMsg
+                    FROM guildConfigs
+                    WHERE guildId=:id
+                """,
+                values={"id": guildId},
+            )
+            if row:
+                self.guildConfigs[guildId] = {
+                    "ccMode": row[0],
+                    "tagMode": row[1],
+                    "welcomeMsg": row[2],
+                    "farewellMsg": row[3],
+                }
+
+        return self.guildConfigs.get(guildId, {})
+
+    async def getGuildConfig(self, guildId: int, configType: str):
+        # Get guild's specific config
+        configs = await self.getGuildConfigs(guildId)
+        return configs.get(configType, None)
+
+    async def setGuildConfig(self, guildId: int, configType: str, configValue):
+        # Set/edit guild's specific config
+        async with self.db.transaction():
+            await self.db.execute(
+                f"""
+                    INSERT INTO guildConfigs
+                        (guildId, {configType})
+                    VALUES (
+                        :guildId,
+                        :{configType}
+                    ) ON CONFLICT (guildId) DO
+                    UPDATE SET
+                        {configType}=:{configType}Up
+                    WHERE
+                        guildId=:guildIdUp
+                """,
+                # Doubled cuz sqlite3 uses ? (probably also affecting MySQL
+                # since they use something similar, "%s").
+                # while psql use $1, $2, ... which can make this code so much
+                # cleaner
+                values={
+                    configType: configValue,
+                    configType + "Up": configValue,
+                    "guildId": guildId,
+                    "guildIdUp": guildId,
+                },
+            )
+            # Overwrite current configs
+            try:
+                self.guildConfigs[guildId][configType] = configValue
+            except KeyError:
+                self.guildConfigs[guildId] = {configType: configValue}
+        return self.guildConfigs.get(guildId, {}).get(configType, None)
+
     async def getGuildPrefix(self, guildId):
         if self.prefixes.get(guildId) is None:
             # Only executed when there's no cache for guild's prefix

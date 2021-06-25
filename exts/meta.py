@@ -27,7 +27,13 @@ from core.menus import ZMenu
 from core.mixin import CogMixin
 from core.objects import CustomCommand
 from exts.utils import dbQuery, infoQuote, tseBlocks
-from exts.utils.format import CMDName, ZEmbed, cleanifyPrefix, formatCmd, formatCmdParams
+from exts.utils.format import (
+    CMDName,
+    ZEmbed,
+    cleanifyPrefix,
+    formatCmd,
+    formatCmdParams,
+)
 from discord.ext import commands, menus
 
 
@@ -146,7 +152,9 @@ async def formatCommandInfo(prefix, command):
     """Format command help"""
     e = ZEmbed(
         title=formatCmd(prefix, command),
-        description="**Aliases**: `{}`\n".format(", ".join(command.aliases) if command.aliases else "No alias")
+        description="**Aliases**: `{}`\n".format(
+            ", ".join(command.aliases) if command.aliases else "No alias"
+        )
         + (command.description or command.brief or "No description"),
     )
     examples = getattr(command, "example", [])
@@ -409,24 +417,8 @@ class Meta(commands.Cog, CogMixin):
         # 1: Partial (Can add but only able to manage their own command),
         # 2: Full (Anarchy mode)
 
-        # Getting the mode out of cache/db
-        try:
-            mode = self.bot.guildConfigs[ctx.guild.id]["ccMode"]
-        except KeyError:
-            # Cache the row right after getting it from db
-            row = (
-                await ctx.db.fetch_one(
-                    "SELECT ccMode FROM guildConfigs WHERE guildId=:id",
-                    values={"id": ctx.guild.id},
-                )
-                # No config added yet for the guild
-                or (0,)
-            )
-            try:
-                mode = self.bot.guildConfigs[ctx.guild.id]["ccMode"] = row[0]
-            except KeyError:
-                mode = row[0]
-                self.bot.guildConfigs[ctx.guild.id] = {"ccMode": mode}
+        # Getting config
+        mode = await self.bot.getGuildConfig(ctx.guild.id, "ccMode")
 
         # TODO: Make mod role
         isMod = ctx.author.guild_permissions.manage_guild
@@ -747,7 +739,7 @@ class Meta(commands.Cog, CogMixin):
         invoke_without_command=True,
     )
     async def cmdSet(self, ctx, name: CMDName, *, content):
-        await self.setContent(ctx, name, content)
+        await self.setContent(ctx, name, content=content)
 
     @cmdSet.command(
         name="content",
@@ -825,37 +817,8 @@ class Meta(commands.Cog, CogMixin):
         if mode > 2:
             return await ctx.try_reply("There's only 3 (0, 1, 2) mode!")
 
-        async with ctx.db.transaction():
-            await ctx.db.execute(
-                """
-                    INSERT INTO guildConfigs
-                        (guildId, ccMode)
-                    VALUES (
-                        :guildId,
-                        :ccMode
-                    ) ON CONFLICT (guildId) DO
-                    UPDATE SET
-                        ccMode=:ccModeUp
-                    WHERE
-                        guildId=:guildIdUp
-                """,
-                # Doubled cuz sqlite3 uses ? (probably also affecting MySQL
-                # since they use something similar, "%s").
-                # while psql use $1, $2, ... which can make this code so much
-                # cleaner
-                values={
-                    "ccMode": mode,
-                    "ccModeUp": mode,
-                    "guildId": ctx.guild.id,
-                    "guildIdUp": ctx.guild.id,
-                },
-            )
-
-            try:
-                self.bot.guildConfigs[ctx.guild.id]["ccMode"] = mode
-            except KeyError:
-                self.bot.guildConfigs[ctx.guild.id] = {"ccMode": mode}
-
+        result = await self.bot.setGuildConfig(ctx.guild.id, "ccMode", mode)
+        if result:
             return await ctx.try_reply(
                 "Custom command mode has been set to `{}`".format(mode)
             )
