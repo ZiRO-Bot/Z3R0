@@ -818,7 +818,7 @@ class Meta(commands.Cog, CogMixin):
             return await ctx.try_reply("There's only 3 (0, 1, 2) mode!")
 
         result = await self.bot.setGuildConfig(ctx.guild.id, "ccMode", mode)
-        if result:
+        if result is not None:
             return await ctx.try_reply(
                 "Custom command mode has been set to `{}`".format(mode)
             )
