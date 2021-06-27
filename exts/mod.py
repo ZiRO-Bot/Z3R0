@@ -119,7 +119,7 @@ class Moderation(commands.Cog, CogMixin):
         try:
             await ctx.guild.ban(
                 user,
-                reason=reason + " ({} via {})".format(ctx.author, ctx.bot.user.name),
+                reason="[{} (ID: {})]:".format(ctx.author, ctx.author.id) + reason,
                 delete_message_days=0 if saveMsg else 1,
             )
         except discord.Forbidden:
