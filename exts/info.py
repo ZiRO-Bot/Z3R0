@@ -241,11 +241,6 @@ class Info(commands.Cog, CogMixin):
         )
         return await ctx.try_reply(embed=e)
 
-    @steal.error
-    async def stealErr(self, ctx, error):
-        if isinstance(error, commands.BadUnionArgument):
-            await ctx.error("Unicode is not supported!")
-
     @commands.command(
         aliases=["jsh"],
         brief="Get japanese word",
