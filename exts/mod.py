@@ -124,6 +124,7 @@ class Moderation(commands.Cog, CogMixin):
             )
         except discord.Forbidden:
             return await ctx.try_reply("I don't have permission to ban a user!")
+
         if time is not None:
             # Temporary ban
             await timer.createTimer(
