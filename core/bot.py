@@ -206,6 +206,7 @@ class ziBot(commands.Bot):
 
     async def setGuildConfig(self, guildId: int, configType: str, configValue):
         # Set/edit guild's specific config
+        configs = await self.getGuildConfigs(guildId)
         async with self.db.transaction():
             await self.db.execute(
                 f"""

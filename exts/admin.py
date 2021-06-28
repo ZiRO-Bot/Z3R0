@@ -19,6 +19,8 @@ class Admin(commands.Cog, CogMixin):
 
     icon = "\u2699"
 
+    # TODO: Add cog_check
+
     @commands.command(
         aliases=["wel"],
         brief="Set welcome message and/or channel",

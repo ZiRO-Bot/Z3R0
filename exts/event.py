@@ -11,11 +11,13 @@ import prettify_exceptions
 import pytz
 import sys
 import traceback
+import TagScriptEngine as tse
 
 
 from core import errors
 from core.mixin import CogMixin
 from discord.ext import commands
+from exts.utils import tseBlocks
 from exts.utils.format import formatMissingArgError
 
 
@@ -25,10 +27,31 @@ class EventHandler(commands.Cog, CogMixin):
     def __init__(self, bot):
         super().__init__(bot)
 
+        # TSE stuff
+        blocks = [
+            tse.LooseVariableGetterBlock(),
+            tse.RandomBlock(),
+            tse.AssignmentBlock(),
+            tse.RequireBlock(),
+            tse.EmbedBlock(),
+            tseBlocks.ReactBlock(),
+        ]
+        self.engine = tse.Interpreter(blocks)
+
+    def getGreetSeed(self, member: discord.Member):
+        """For welcome and farewell message"""
+        target = tse.MemberAdapter(member)
+        guild = tse.GuildAdapter(member.guild)
+        return {
+            "user": target,
+            "member": target,
+            "guild": guild,
+            "server": guild,
+        }
+
     @commands.Cog.listener()
     async def on_member_join(self, member: discord.Member):
         """Welcome message"""
-        # TODO: Implement TagScript
         welcomeCh = await self.bot.getGuildConfig(member.guild.id, "welcomeCh")
         welcomeCh = self.bot.get_channel(welcomeCh)
         if not welcomeCh:
@@ -36,14 +59,14 @@ class EventHandler(commands.Cog, CogMixin):
 
         welcomeMsg = await self.bot.getGuildConfig(member.guild.id, "welcomeMsg")
         if not welcomeMsg:
-            welcomeMsg = "Welcome {}!".format(member.display_name)
+            welcomeMsg = "Welcome {member}!"
 
-        await welcomeCh.send(welcomeMsg)
+        processed = self.engine.process(welcomeMsg, self.getGreetSeed(member))
+        await welcomeCh.send(processed.body)
 
     @commands.Cog.listener()
     async def on_member_remove(self, member: discord.Member):
         """Farewell message"""
-        # TODO: Implement TagScript
         farewellCh = await self.bot.getGuildConfig(member.guild.id, "farewellCh")
         farewellCh = self.bot.get_channel(farewellCh)
         if not farewellCh:
@@ -51,9 +74,10 @@ class EventHandler(commands.Cog, CogMixin):
 
         farewellMsg = await self.bot.getGuildConfig(member.guild.id, "farewellMsg")
         if not farewellMsg:
-            farewellMsg = "Goodbye {}!".format(member.display_name)
+            farewellMsg = "Goodbye {member}!"
 
-        await farewellCh.send(farewellMsg)
+        processed = self.engine.process(farewellMsg, self.getGreetSeed(member))
+        await farewellCh.send(processed.body)
 
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
