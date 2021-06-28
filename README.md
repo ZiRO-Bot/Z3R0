@@ -99,4 +99,4 @@ openweather = "0000000000000000000000000000000"
 
 ## License
 
-[Mozilla Public License, v. 2.0 (MPL-2.0)](/LICENSE)
+This bot is licensed under [**Mozilla Public License, v. 2.0 (MPL-2.0)**](/LICENSE)
