@@ -29,7 +29,7 @@ class Admin(commands.Cog, CogMixin):
             "editing, will prevent you from setting farewell message/channel) "
             "\n`--disable` | `d`: Disable farewell event"
         ),
-        usage="[message] [-c #channel] [-r] [-d]",
+        usage="[message] [options]",
         example=(
             "farewell Bye -c #userlog",
             "farewell Goodbye, {user(name)}!",
