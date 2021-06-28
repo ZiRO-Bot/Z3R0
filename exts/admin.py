@@ -26,13 +26,15 @@ class Admin(commands.Cog, CogMixin):
             "Set farewell message and/or channel\n`TagScript` is "
             "supported!\n\n__**Options:**__\n`--channel` | `-c`: Set farewell "
             "channel\n`--raw` | `-r`: Send farewell's raw message (Useful for "
-            "editing, will prevent you from setting farewell message/channel)"
+            "editing, will prevent you from setting farewell message/channel) "
+            "\n`--disable` | `d`: Disable farewell event"
         ),
-        usage="[message] [-c #channel] [-r]",
+        usage="[message] [-c #channel] [-r] [-d]",
         example=(
             "farewell Bye -c #userlog",
             "farewell Goodbye, {user(name)}!",
-            "farewell -r"
+            "farewell -r",
+            "farewell --disable"
         )
     )
     async def farewell(self, ctx, *, arguments):
@@ -44,24 +46,31 @@ class Admin(commands.Cog, CogMixin):
         parser = argparse.ArgumentParser(allow_abbrev=False, add_help=False)
         parser.add_argument("--channel", "-c")
         parser.add_argument("--raw", "-r", action="store_true")
+        parser.add_argument("--disable", "-d", action="store_true")
         parser.add_argument("message", nargs="*")
 
         parsed, _ = parser.parse_known_args(shlex.split(arguments))
 
+        disable = parsed.disable
         raw = parsed.raw
 
         changeMsg = False
-        if not raw and parsed.message:
+        if not raw and not disable and parsed.message:
             changeMsg = True
             message = " ".join(parsed.message)
 
         channel = None
-        if not raw and parsed.channel:
+        if not raw and not disable and parsed.channel:
             channel = await commands.TextChannelConverter().convert(ctx, parsed.channel)
 
         e = ZEmbed(
             title="Farewell config has been updated",
         )
+
+        if disable:
+            await self.bot.setGuildConfig(ctx.guild.id, "farewellCh", None)
+            e.add_field(name="Status", value="`Disabled`")
+            return await ctx.try_reply(embed=e)
 
         if raw:
             message = await self.bot.getGuildConfig(ctx.guild.id, "farewellMsg")

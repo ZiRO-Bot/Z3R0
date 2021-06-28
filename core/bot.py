@@ -247,9 +247,13 @@ class ziBot(commands.Bot):
             )
             # Overwrite current configs
             try:
-                self.guildConfigs[guildId][configType] = configValue
+                if configValue is None:
+                    del self.guildConfigs[guildId][configType]
+                else:
+                    self.guildConfigs[guildId][configType] = configValue
             except KeyError:
-                self.guildConfigs[guildId] = {configType: configValue}
+                if configValue is not None:
+                    self.guildConfigs[guildId] = {configType: configValue}
         return self.guildConfigs.get(guildId, {}).get(configType, None)
 
     async def getGuildPrefix(self, guildId):
