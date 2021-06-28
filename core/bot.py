@@ -196,7 +196,9 @@ class ziBot(commands.Bot):
                 values={"id": guildId},
             )
             if row:
-                self.guildConfigs[guildId] = dict(row)
+                row = dict(row)
+                row.pop("guildId")
+                self.guildConfigs[guildId] = row
         return self.guildConfigs.get(guildId, {})
 
     async def getGuildConfig(self, guildId: int, configType: str):
