@@ -1,5 +1,6 @@
 from __future__ import division
 from decimal import Decimal
+from discord.ext import commands
 from pyparsing import (
     Literal,
     Word,
@@ -175,6 +176,12 @@ async def reactsToMessage(message: discord.Message, reactions: list = []):
         except:
             # Probably don't have perms to do reaction
             continue
+
+
+async def tryInvoke(ctx, command: commands.Command, *args, **kwargs):
+    canRun = await command.can_run(ctx)
+    if canRun:
+        await command(ctx, *args, **kwargs)
 
 
 if __name__ == "__main__":
