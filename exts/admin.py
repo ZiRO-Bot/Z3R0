@@ -49,7 +49,8 @@ class Admin(commands.Cog, CogMixin):
             channel = await commands.TextChannelConverter().convert(ctx, parsed.channel)
 
         e = ZEmbed(
-            title=("Welcome" if type == "welcome" else "Farewell") + " config has been updated",
+            title=("Welcome" if type == "welcome" else "Farewell")
+            + " config has been updated",
         )
 
         if disable:
@@ -85,8 +86,8 @@ class Admin(commands.Cog, CogMixin):
             "welcome Welcome to {guild}, {user(name)}! -c #userlog",
             "welcome Hello, {user(name)} 👋",
             "welcome -r",
-            "welcome --disable"
-        )
+            "welcome --disable",
+        ),
     )
     async def welcome(self, ctx, *, arguments):
         await self.handleGreetingConfig(ctx, arguments, type="welcome")
@@ -106,11 +107,44 @@ class Admin(commands.Cog, CogMixin):
             "farewell Bye -c #userlog",
             "farewell Goodbye, {user(name)}!",
             "farewell -r",
-            "farewell --disable"
-        )
+            "farewell --disable",
+        ),
     )
     async def farewell(self, ctx, *, arguments):
         await self.handleGreetingConfig(ctx, arguments, type="farewell")
+
+    @commands.command(
+        aliases=["ml"],
+        brief="Set modlog channel",
+        description=(
+            "Set modlog channel\n\n__**Options:**__\n`--disable` | `-d`: "
+            "Disable modlog"
+        ),
+        usage="[channel] [options]",
+        example=("modlog #modlog", "modlog -d", "ml --disable"),
+    )
+    async def modlog(self, ctx, *, arguments):
+        # Parsing arguments
+        parser = argparse.ArgumentParser(allow_abbrev=False, add_help=False)
+        parser.add_argument("--disable", "-d", action="store_true")
+        parser.add_argument("channel")
+
+        parsed, _ = parser.parse_known_args(shlex.split(arguments))
+
+        disable = parsed.disable
+
+        e = ZEmbed(title="Modlog config has been updated")
+
+        if disable:
+            await self.bot.setGuildConfig(ctx.guild.id, "modlogCh", None)
+            e.add_field(name="Status", value="`Disabled`")
+            return await ctx.try_reply(embed=e)
+
+        if parsed.channel:
+            channel = await commands.TextChannelConverter().convert(ctx, parsed.channel)
+            await self.bot.setGuildConfig(ctx.guild.id, "modlogCh", channel.id)
+            e.add_field(name="Channel", value=channel.mention)
+            return await ctx.try_reply(embed=e)
 
 
 def setup(bot):
