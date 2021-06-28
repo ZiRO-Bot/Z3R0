@@ -130,6 +130,9 @@ class EventHandler(commands.Cog, CogMixin):
             # TODO: Change the message
             return await ctx.send("You have no permissions!")
 
+        if isinstance(error, commands.DisabledCommand):
+            return
+
         # Give details about the error
         _traceback = "".join(
             prettify_exceptions.DefaultFormatter().format_exception(

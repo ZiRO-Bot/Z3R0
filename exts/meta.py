@@ -339,7 +339,7 @@ class Meta(commands.Cog, CogMixin):
         cmdName = self.formatCmdName(ctx.command)
         if cmdName in disableCmds:
             if not ctx.author.guild_permissions.manage_guild:
-                return False
+                raise commands.DisabledCommand
         return True
 
     def processTag(self, ctx, cmd: CustomCommand):
