@@ -45,24 +45,6 @@ class Info(commands.Cog, CogMixin):
             key=getattr(self.bot.config, "openweather", None), session=self.bot.session
         )
 
-    @commands.command(aliases=["p"], brief="Get bot's response time")
-    async def ping(self, ctx):
-        start = time.perf_counter()
-        e = ZEmbed.default(ctx, title="Pong!")
-        e.add_field(
-            name="<a:loading:776255339716673566> | Websocket",
-            value=f"{round(self.bot.latency*1000)}ms",
-        )
-        msg = await ctx.try_reply(embed=e)
-        end = time.perf_counter()
-        msg_ping = (end - start) * 1000
-        e.add_field(
-            name="<a:typing:785053882664878100> | Typing",
-            value=f"{round(msg_ping)}ms",
-            inline=False,
-        )
-        await msg.edit(embed=e)
-
     @commands.command(
         aliases=["av", "userpfp", "pfp"], brief="Get member's avatar image"
     )

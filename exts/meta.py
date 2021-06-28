@@ -13,6 +13,7 @@ import humanize
 import re
 import shlex
 import TagScriptEngine as tse
+import time
 
 
 from core import checks
@@ -1245,6 +1246,24 @@ class Meta(commands.Cog, CogMixin):
             )
         except Exception as exc:
             await ctx.error(exc)
+
+    @commands.command(aliases=["p"], brief="Get bot's response time")
+    async def ping(self, ctx):
+        start = time.perf_counter()
+        e = ZEmbed.default(ctx, title="Pong!")
+        e.add_field(
+            name="<a:discordLoading:857138980192911381> | Websocket",
+            value=f"{round(self.bot.latency*1000)}ms",
+        )
+        msg = await ctx.try_reply(embed=e)
+        end = time.perf_counter()
+        msg_ping = (end - start) * 1000
+        e.add_field(
+            name="<a:typing:785053882664878100> | Typing",
+            value=f"{round(msg_ping)}ms",
+            inline=False,
+        )
+        await msg.edit(embed=e)
 
 
 def setup(bot):
