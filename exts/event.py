@@ -26,6 +26,20 @@ class EventHandler(commands.Cog, CogMixin):
         super().__init__(bot)
 
     @commands.Cog.listener()
+    async def on_member_join(self, member: discord.Member):
+        """Welcome message"""
+        welcomeCh = self.bot.getGuildConfig(member.guild.id, "welcomeCh")
+        if not welcomeCh:
+            return
+        welcomeCh = self.bot.get_channel(welcomeCh)
+
+        welcomeMsg = self.bot.getGuildConfig(member.guild.id, "welcomeMsg")
+        if not welcomeMsg:
+            welcomeMsg = "Welcome {}!".format(member.display_name)
+
+        await welcomeCh.send(welcomeMsg)
+
+    @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
         # This prevents any commands with local handlers being handled here in on_command_error.
         if hasattr(ctx.command, "on_error"):
@@ -163,4 +177,4 @@ class EventHandler(commands.Cog, CogMixin):
 
 
 def setup(bot):
-    bot.add_cog(ErrorHandler(bot))
+    bot.add_cog(EventHandler(bot))
