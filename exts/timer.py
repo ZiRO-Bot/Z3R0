@@ -69,6 +69,11 @@ class Timer(commands.Cog, CogMixin):
             await self.bot.db.execute(dbQuery.createTimerTable)
         self.task = self.bot.loop.create_task(self.dispatchTimers())
 
+    def cog_unload(self):
+        task = getattr(self, "task", None)
+        if task:
+            task.cancel()
+
     def restartTimer(self):
         self.task.cancel()
         self.task = self.bot.loop.create_task(self.dispatchTimers())
