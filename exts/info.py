@@ -16,6 +16,7 @@ from core.mixin import CogMixin
 from exts.utils import pillow
 from exts.utils.format import ZEmbed
 from exts.utils.infoQuote import *
+from exts.utils.other import tryInvoke
 from discord.ext import commands
 from typing import Union
 
@@ -159,7 +160,7 @@ class Info(commands.Cog, CogMixin):
         invoke_without_command=True,
     )
     async def emoji(self, ctx, emoji: Union[discord.Emoji, discord.PartialEmoji, str]):
-        await self.emojiinfo(ctx, emoji)
+        await tryInvoke(ctx, self.emojiInfo, emoji)
 
     @emoji.command(
         name="info",
@@ -172,7 +173,7 @@ class Info(commands.Cog, CogMixin):
             "em ? 🤔",
         ),
     )
-    async def emojiinfo(
+    async def emojiInfo(
         self, ctx, emoji: Union[discord.Emoji, discord.PartialEmoji, str]
     ):
         try:
