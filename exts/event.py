@@ -28,12 +28,12 @@ class EventHandler(commands.Cog, CogMixin):
     @commands.Cog.listener()
     async def on_member_join(self, member: discord.Member):
         """Welcome message"""
-        welcomeCh = self.bot.getGuildConfig(member.guild.id, "welcomeCh")
+        welcomeCh = await self.bot.getGuildConfig(member.guild.id, "welcomeCh")
+        welcomeCh = self.bot.get_channel(welcomeCh)
         if not welcomeCh:
             return
-        welcomeCh = self.bot.get_channel(welcomeCh)
 
-        welcomeMsg = self.bot.getGuildConfig(member.guild.id, "welcomeMsg")
+        welcomeMsg = await self.bot.getGuildConfig(member.guild.id, "welcomeMsg")
         if not welcomeMsg:
             welcomeMsg = "Welcome {}!".format(member.display_name)
 

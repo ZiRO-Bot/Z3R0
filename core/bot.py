@@ -192,25 +192,11 @@ class ziBot(commands.Bot):
         if self.guildConfigs.get(guildId) is None:
             # Executed when guild configs is not in the cache
             row = await self.db.fetch_one(
-                """
-                    SELECT
-                        ccMode,
-                        tagMode,
-                        welcomeMsg,
-                        farewellMsg
-                    FROM guildConfigs
-                    WHERE guildId=:id
-                """,
+                "SELECT * FROM guildConfigs WHERE guildId=:id",
                 values={"id": guildId},
             )
             if row:
-                self.guildConfigs[guildId] = {
-                    "ccMode": row[0],
-                    "tagMode": row[1],
-                    "welcomeMsg": row[2],
-                    "farewellMsg": row[3],
-                }
-
+                self.guildConfigs[guildId] = dict(row)
         return self.guildConfigs.get(guildId, {})
 
     async def getGuildConfig(self, guildId: int, configType: str):
