@@ -13,6 +13,9 @@ from pyparsing import (
     Suppress,
     delimitedList,
 )
+
+
+import discord
 import math
 import operator
 
@@ -162,6 +165,16 @@ class NumericStringParser(object):
         results = self.bnf.parseString(num_string, parseAll)
         val = self.evaluateStack(self.exprStack[:])
         return val
+
+
+async def reactsToMessage(message: discord.Message, reactions: list = []):
+    """Simple loop to react to a message."""
+    for reaction in reactions:
+        try:
+            await message.add_reaction(reaction)
+        except:
+            # Probably don't have perms to do reaction
+            continue
 
 
 if __name__ == "__main__":

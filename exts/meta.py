@@ -35,6 +35,7 @@ from exts.utils.format import (
     formatCmd,
     formatCmdParams,
 )
+from exts.utils.other import reactsToMessage
 from discord.ext import commands, menus
 
 
@@ -315,15 +316,6 @@ class Meta(commands.Cog, CogMixin):
             # commands_lookup database table
             await self.db.execute(dbQuery.createCommandsLookupTable)
 
-    async def reactsToMessage(self, message: discord.Message, reactions: list = []):
-        """Simple loop to react to a message."""
-        for reaction in reactions:
-            try:
-                await message.add_reaction(reaction)
-            except:
-                # Probably don't have perms to do reaction
-                continue
-
     def formatCmdName(self, command):
         commands = []
 
@@ -406,9 +398,9 @@ class Meta(commands.Cog, CogMixin):
             react = result.actions.get("react")
             reactu = result.actions.get("reactu")
             if reactu:
-                self.bot.loop.create_task(self.reactsToMessage(ctx.message, reactu))
+                self.bot.loop.create_task(reactsToMessage(ctx.message, reactu))
             if react:
-                self.bot.loop.create_task(self.reactsToMessage(msg, react))
+                self.bot.loop.create_task(reactsToMessage(msg, react))
 
     async def ccModeCheck(
         self, ctx, _type: str = "manage", command: CustomCommand = None

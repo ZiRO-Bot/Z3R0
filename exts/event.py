@@ -19,6 +19,7 @@ from core.mixin import CogMixin
 from discord.ext import commands
 from exts.utils import tseBlocks
 from exts.utils.format import formatMissingArgError
+from exts.utils.other import reactsToMessage
 
 
 class EventHandler(commands.Cog, CogMixin):
@@ -60,7 +61,17 @@ class EventHandler(commands.Cog, CogMixin):
             message = ("Welcome" if type == "welcome" else "Goodbye") + ", {member}!"
 
         result = self.engine.process(message, self.getGreetSeed(member))
-        await channel.send(result.body)
+        embed = result.actions.get("embed")
+        try:
+            msg = await channel.send(
+                result.body or ("\u200b" if not embed else ""), embed=embed
+            )
+        except discord.HTTPException:
+            msg = await channel.send(result.body or ("\u200b" if not embed else ""))
+
+        if msg:
+            if react := result.actions.get("react"):
+                self.bot.loop.create_task(reactsToMessage(msg, react))
 
     @commands.Cog.listener()
     async def on_member_join(self, member: discord.Member):
