@@ -19,8 +19,8 @@ from discord.ext import commands
 from exts.utils.format import formatMissingArgError
 
 
-class ErrorHandler(commands.Cog, CogMixin):
-    """Handle errors."""
+class EventHandler(commands.Cog, CogMixin):
+    """Place for to put random events."""
 
     def __init__(self, bot):
         super().__init__(bot)
