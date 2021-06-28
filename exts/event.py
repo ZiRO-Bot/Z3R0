@@ -49,35 +49,28 @@ class EventHandler(commands.Cog, CogMixin):
             "server": guild,
         }
 
+    async def handleGreeting(self, member: discord.Member, type: str):
+        channel = await self.bot.getGuildConfig(member.guild.id, f"{type}Ch")
+        channel = self.bot.get_channel(channel)
+        if not channel:
+            return
+
+        message = await self.bot.getGuildConfig(member.guild.id, f"{type}Msg")
+        if not message:
+            message = ("Welcome" if type == "welcome" else "Goodbye") + ", {member}!"
+
+        result = self.engine.process(message, self.getGreetSeed(member))
+        await channel.send(result.body)
+
     @commands.Cog.listener()
     async def on_member_join(self, member: discord.Member):
         """Welcome message"""
-        welcomeCh = await self.bot.getGuildConfig(member.guild.id, "welcomeCh")
-        welcomeCh = self.bot.get_channel(welcomeCh)
-        if not welcomeCh:
-            return
-
-        welcomeMsg = await self.bot.getGuildConfig(member.guild.id, "welcomeMsg")
-        if not welcomeMsg:
-            welcomeMsg = "Welcome {member}!"
-
-        processed = self.engine.process(welcomeMsg, self.getGreetSeed(member))
-        await welcomeCh.send(processed.body)
+        await self.handleGreeting(member, "welcome")
 
     @commands.Cog.listener()
     async def on_member_remove(self, member: discord.Member):
         """Farewell message"""
-        farewellCh = await self.bot.getGuildConfig(member.guild.id, "farewellCh")
-        farewellCh = self.bot.get_channel(farewellCh)
-        if not farewellCh:
-            return
-
-        farewellMsg = await self.bot.getGuildConfig(member.guild.id, "farewellMsg")
-        if not farewellMsg:
-            farewellMsg = "Goodbye {member}!"
-
-        processed = self.engine.process(farewellMsg, self.getGreetSeed(member))
-        await farewellCh.send(processed.body)
+        await self.handleGreeting(member, "farewell")
 
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
