@@ -78,6 +78,7 @@ openweather = "0000000000000000000000000000000"
 - [**Improved**] Temporary ban/mute using the new `Timer` ext
 - [**Improved**] Guild data will countdown up to 30 days before deleting when the bot leave the guild instead of instantly deleting the data
 - [**Improved**] Prefixes now separated to custom and built-in/default (bot mention and `>` by default)
+- [**Changed**] Split greeting, now its possible to have farewell and welcome message in separate channel
 
 ### Overhaul Plan
 
@@ -92,7 +93,8 @@ openweather = "0000000000000000000000000000000"
 - Image manipulation (Filter and stuff)
 - Re-implement/improve old (`v2.x`) commands to `v3.0.0`
 - Slash command (Waiting for Dpy `v2.0`)
-- Add flags ('--something', also waiting for Dpy `v2.0`)
+- ~~Add flags ('--something', also waiting for Dpy `v2.0`)~~
+   - Use flags from Dpy `v2.0` when it released.
    - Filter to show/hide user-made command for help commands.
 
 ## License
