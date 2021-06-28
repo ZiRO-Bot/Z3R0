@@ -147,7 +147,7 @@ createGuildConfigsTable = """
         farewellMsg TEXT,
         farewellCh INTEGER,
         modlogCh INTEGER,
-        purgatoryCh INTEGER
+        purgatoryCh INTEGER,
         FOREIGN KEY ("guildId") REFERENCES guilds ("id") ON DELETE CASCADE
     )
 """

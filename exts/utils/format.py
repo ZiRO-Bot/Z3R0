@@ -84,7 +84,7 @@ def formatMissingArgError(ctx, error):
         description="Usage: `{}`".format(formatCmd("", command)),
     )
     e.set_footer(
-        text="{}help {} for more information.".format(
+        text="`{}help {}` for more information.".format(
             ctx.clean_prefix, formatCmd("", command, params=False)
         )
     )

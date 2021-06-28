@@ -70,7 +70,7 @@ class PrefixesPageSource(menus.ListPageSource):
             )
         e.description += "\n".join(
             [f"• `{cleanifyPrefix(ctx.bot, p)}`" for p in prefixes]
-        )
+        ) or "No custom prefix."
         return e
 
 
