@@ -28,6 +28,7 @@ class EventHandler(commands.Cog, CogMixin):
     @commands.Cog.listener()
     async def on_member_join(self, member: discord.Member):
         """Welcome message"""
+        # TODO: Implement TagScript
         welcomeCh = await self.bot.getGuildConfig(member.guild.id, "welcomeCh")
         welcomeCh = self.bot.get_channel(welcomeCh)
         if not welcomeCh:
@@ -38,6 +39,21 @@ class EventHandler(commands.Cog, CogMixin):
             welcomeMsg = "Welcome {}!".format(member.display_name)
 
         await welcomeCh.send(welcomeMsg)
+
+    @commands.Cog.listener()
+    async def on_member_remove(self, member: discord.Member):
+        """Farewell message"""
+        # TODO: Implement TagScript
+        farewellCh = await self.bot.getGuildConfig(member.guild.id, "farewellCh")
+        farewellCh = self.bot.get_channel(farewellCh)
+        if not farewellCh:
+            return
+
+        farewellMsg = await self.bot.getGuildConfig(member.guild.id, "farewellMsg")
+        if not farewellMsg:
+            farewellMsg = "Goodbye {}!".format(member.display_name)
+
+        await farewellCh.send(farewellMsg)
 
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
