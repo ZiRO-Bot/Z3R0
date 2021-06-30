@@ -525,8 +525,9 @@ class ziBot(commands.Bot):
             self.customCommandUsage += 1
             return
 
-    def formattedPrefixes(self, guildId):
-        prefixes = ", ".join([f"`{x}`" for x in self.prefixes.get(guildId, [])])
+    async def formattedPrefixes(self, guildId):
+        prefixes = await self.getGuildPrefix(guildId)
+        prefixes = ", ".join([f"`{x}`" for x in prefixes])
         result = "My default prefixes are `{}` or {}".format(
             self.defPrefix, self.user.mention
         )
@@ -551,7 +552,7 @@ class ziBot(commands.Bot):
         pattern = f"<@(!?){self.user.id}>"
         if re.fullmatch(pattern, message.content):
             e = discord.Embed(
-                description=self.formattedPrefixes(message.guild.id),
+                description=await self.formattedPrefixes(message.guild.id),
                 colour=discord.Colour.rounded(),
             )
             e.set_footer(
