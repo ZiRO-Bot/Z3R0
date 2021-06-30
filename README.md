@@ -79,6 +79,7 @@ openweather = "0000000000000000000000000000000"
 - [**Improved**] Guild data will countdown up to 30 days before deleting when the bot leave the guild instead of instantly deleting the data
 - [**Improved**] Prefixes now separated to custom and built-in/default (bot mention and `>` by default)
 - [**Changed**] Split greeting, now its possible to have farewell and welcome message in separate channel
+- [**Improved**] `>command disable` and `>command enable` will now try to disable/enable built-in command if you're a guild moderator
 
 ### Overhaul Plan
 
