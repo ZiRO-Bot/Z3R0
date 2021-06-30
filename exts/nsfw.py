@@ -33,6 +33,16 @@ class NekoMenu(menus.Menu):
         e = await self.getNeko()
         return await channel.send(embed=e)
 
+    async def update(self, payload):
+        if self._can_remove_reactions:
+            if payload.event_type == "REACTION_ADD":
+                channel = self.bot.get_channel(payload.channel_id)
+                msg = channel.get_partial_message(payload.message_id)
+                await msg.remove_reaction(payload.emoji, payload.member)
+            elif payload.event_type == "REACTION_REMOVE":
+                return
+        await super().update(payload)
+
     @menus.button("\N{BLACK SQUARE FOR STOP}\ufe0f", position=menus.First(0))
     async def stopNeko(self, payload):
         self.stop()
