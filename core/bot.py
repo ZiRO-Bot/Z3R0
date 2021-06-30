@@ -464,6 +464,12 @@ class ziBot(commands.Bot):
                 "DELETE FROM guilds WHERE id=:id", values={"id": guildId}
             )
 
+            for dataType in ("prefixes", "guildConfigs", "disabled"):
+                try:
+                    del getattr(self, dataType)[guildId]
+                except KeyError:
+                    pass
+
     async def process_commands(self, message):
         # initial ctx
         ctx = await self.get_context(message, cls=Context)

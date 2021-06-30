@@ -153,6 +153,19 @@ class Admin(commands.Cog, CogMixin):
     async def modlog(self, ctx, *, arguments):
         await self.handleLogConfig(ctx, arguments, "modlog")
 
+    @commands.command(
+        aliases=["purge", "userlog"],
+        brief="Set purgatory channel",
+        description=(
+            "Set purgatory channel\n\n__**Options:**__\n`--disable` | `-d`: "
+            "Disable purgatory"
+        ),
+        usage="[channel] [options]",
+        example=("purgatory #userlog", "purge -d", "userlog --disable"),
+    )
+    async def purgatory(self, ctx, *, arguments):
+        await self.handleLogConfig(ctx, arguments, "purgatory")
+
 
 def setup(bot):
     bot.add_cog(Admin(bot))
