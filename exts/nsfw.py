@@ -13,7 +13,7 @@ from discord.ext import commands, menus
 from exts.utils.format import ZEmbed
 
 
-NEKO_API = "https://nekos.life/api/v2"
+NEKO_API = "https://api.nekos.dev/api/v3"
 
 
 class NekoMenu(menus.Menu):
@@ -33,11 +33,11 @@ class NekoMenu(menus.Menu):
         e = await self.getNeko()
         return await channel.send(embed=e)
 
-    @menus.button('\N{BLACK SQUARE FOR STOP}\ufe0f', position=menus.First(0))
+    @menus.button("\N{BLACK SQUARE FOR STOP}\ufe0f", position=menus.First(0))
     async def stopNeko(self, payload):
         self.stop()
 
-    @menus.button('\N{BLACK RIGHT-POINTING TRIANGLE}\ufe0f', position=menus.First(1))
+    @menus.button("\N{BLACK RIGHT-POINTING TRIANGLE}\ufe0f", position=menus.First(1))
     async def getNewNeko(self, payload):
         e = await self.getNeko()
         await self.message.edit(embed=e)
@@ -61,7 +61,11 @@ class NekoPageSource(menus.PageSource):
     async def getNeko(self):
         async with self.session.get(NEKO_API + self.endpoint) as req:
             img = await req.json()
-            return ZEmbed().set_image(url=img["url"])
+            return (
+                ZEmbed()
+                .set_image(url=img["data"]["response"]["url"].replace(" ", "%20"))
+                .set_footer(text="Powered by nekos.life")
+            )
 
 
 class NSFW(commands.Cog, CogMixin):
@@ -75,7 +79,26 @@ class NSFW(commands.Cog, CogMixin):
 
     @commands.command()
     async def pussy(self, ctx):
-        menus = NekoMenu(NekoPageSource(self.bot.session, "/img/pussy"))
+        menus = NekoMenu(
+            NekoPageSource(self.bot.session, "/images/nsfw/img/pussy_lewd")
+        )
+        await menus.start(ctx)
+
+    @commands.command()
+    async def pantyhose(self, ctx):
+        menus = NekoMenu(
+            NekoPageSource(self.bot.session, "/images/nsfw/img/pantyhose_lewd")
+        )
+        await menus.start(ctx)
+
+    @commands.command(aliases=["boobs"])
+    async def tits(self, ctx):
+        menus = NekoMenu(NekoPageSource(self.bot.session, "/images/nsfw/img/tits_lewd"))
+        await menus.start(ctx)
+
+    @commands.command()
+    async def yuri(self, ctx):
+        menus = NekoMenu(NekoPageSource(self.bot.session, "/images/nsfw/img/yuri_lewd"))
         await menus.start(ctx)
 
 
