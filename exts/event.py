@@ -19,7 +19,7 @@ from core.mixin import CogMixin
 from discord.ext import commands
 from exts.utils import tseBlocks
 from exts.utils.format import formatMissingArgError
-from exts.utils.other import reactsToMessage
+from exts.utils.other import reactsToMessage, logAction
 
 
 class EventHandler(commands.Cog, CogMixin):
@@ -221,6 +221,20 @@ class EventHandler(commands.Cog, CogMixin):
             await ctx.send(embed=e)
 
         return
+
+    @commands.Cog.listener()
+    async def on_message_edit(self, before, after):
+        if before.author.bot:
+            return
+
+        return await logAction(self.bot, "msgEdit", before, after)
+
+    @commands.Cog.listener()
+    async def on_message_delete(self, message):
+        if message.author.bot:
+            return
+
+        return await logAction(self.bot, "msgDel", message)
 
 
 def setup(bot):

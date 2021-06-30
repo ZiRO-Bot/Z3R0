@@ -118,7 +118,7 @@ class Admin(commands.Cog, CogMixin):
         # Parsing arguments
         parser = argparse.ArgumentParser(allow_abbrev=False, add_help=False)
         parser.add_argument("--disable", "-d", action="store_true")
-        parser.add_argument("channel")
+        parser.add_argument("channel", nargs="?", default="")
 
         parsed, _ = parser.parse_known_args(shlex.split(arguments))
 
