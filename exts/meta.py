@@ -70,9 +70,10 @@ class PrefixesPageSource(menus.ListPageSource):
                     ctx.bot.defPrefix, cleanifyPrefix(ctx.bot, ctx.me.mention)
                 )
             )
-        e.description += "\n".join(
-            [f"• `{cleanifyPrefix(ctx.bot, p)}`" for p in prefixes]
-        ) or "No custom prefix."
+        e.description += (
+            "\n".join([f"• `{cleanifyPrefix(ctx.bot, p)}`" for p in prefixes])
+            or "No custom prefix."
+        )
         return e
 
 
@@ -849,7 +850,8 @@ class Meta(commands.Cog, CogMixin):
         brief="Disable a command",
         description=(
             "Disable a command.\n\nSupport both custom and built-in "
-            "command.\n(Will try to disable custom command by default)\nNote: "
+            "command.\n(Will try to disable custom command or built-in if "
+            "you're a moderator by default)\nNote: "
             "Server admin/mods still able to use disabled **built-in** "
             "command.\n\n__**Options:**__\n`--built-in` | `-b`: Disable "
             "built-in command\n`--custom` | `-c`: Disable custom command "
@@ -872,13 +874,19 @@ class Meta(commands.Cog, CogMixin):
         parser.add_argument("name", nargs="+")
 
         parsed, _ = parser.parse_known_args(shlex.split(arguments))
-        mode = "custom"
-        if parsed.built_in and not parsed.custom:
-            mode = "built-in" if not parsed.category else "category"
-        name = " ".join(parsed.name)
 
         # TODO: Make mod role
         isMod = ctx.author.guild_permissions.manage_guild
+
+        # default mode
+        mode = "built-in" if isMod else "custom"
+
+        if parsed.built_in and not parsed.custom:
+            mode = "built-in" if not parsed.category else "category"
+        if not parsed.built_in and parsed.custom:
+            mode = "custom"
+
+        name = " ".join(parsed.name)
 
         successMsg = "`{}` has been disabled"
         alreadyMsg = "`{}` already disabled!"
@@ -980,7 +988,8 @@ class Meta(commands.Cog, CogMixin):
         brief="Enable a command",
         description=(
             "Enable a command.\n\nSupport both custom and built-in "
-            "command.\n(Will try to enable custom command by default)\n\n"
+            "command.\n(Will try to enable custom command or built-in if "
+            "you're a moderator by default)\nNote: "
             "__**Options:**__\n`--built-in` | `-b`: Enable built-in "
             "command\n`--custom` | `-c`: Enable custom command "
             "(Always overrides `--built-in`)\n`--category` | `-C`: Enable all "
@@ -1002,13 +1011,19 @@ class Meta(commands.Cog, CogMixin):
         parser.add_argument("name", nargs="+")
 
         parsed, _ = parser.parse_known_args(shlex.split(arguments))
-        mode = "custom"
-        if parsed.built_in and not parsed.custom:
-            mode = "built-in" if not parsed.category else "category"
-        name = " ".join(parsed.name)
 
         # TODO: Make mod role
         isMod = ctx.author.guild_permissions.manage_guild
+
+        # default mode
+        mode = "built-in" if isMod else "custom"
+
+        if parsed.built_in and not parsed.custom:
+            mode = "built-in" if not parsed.category else "category"
+        if not parsed.built_in and parsed.custom:
+            mode = "custom"
+
+        name = " ".join(parsed.name)
 
         successMsg = "`{}` has been enabled"
         alreadyMsg = "`{}` already enabled!"
