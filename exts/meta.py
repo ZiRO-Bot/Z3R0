@@ -4,7 +4,6 @@ License, v. 2.0. If a copy of the MPL was not distributed with this
 file, You can obtain one at http://mozilla.org/MPL/2.0/.
 """
 
-import argparse
 import asyncio
 import datetime as dt
 import difflib
@@ -35,7 +34,7 @@ from exts.utils.format import (
     formatCmd,
     formatCmdParams,
 )
-from exts.utils.other import reactsToMessage, tryInvoke
+from exts.utils.other import reactsToMessage, tryInvoke, ArgumentParser
 from discord.ext import commands, menus
 
 
@@ -867,7 +866,7 @@ class Meta(commands.Cog, CogMixin):
     )
     async def disable(self, ctx, *, arguments):
         # parse name and flags from arguments
-        parser = argparse.ArgumentParser(allow_abbrev=False, add_help=False)
+        parser = ArgumentParser(allow_abbrev=False)
         parser.add_argument("--built-in", "-b", action="store_true")
         parser.add_argument("--custom", "-c", action="store_true")
         parser.add_argument("--category", "-C", action="store_true")
@@ -1004,7 +1003,7 @@ class Meta(commands.Cog, CogMixin):
     )
     async def enable(self, ctx, *, arguments):
         # parse name and flags from arguments
-        parser = argparse.ArgumentParser(allow_abbrev=False, add_help=False)
+        parser = ArgumentParser(allow_abbrev=False)
         parser.add_argument("--built-in", "-b", action="store_true")
         parser.add_argument("--custom", "-c", action="store_true")
         parser.add_argument("--category", "-C", action="store_true")

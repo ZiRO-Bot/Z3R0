@@ -242,7 +242,7 @@ async def logAction(bot, actionType: str, *args, **kwargs):
                     )
 
         if actionType == "msgDel":
-            message, = args
+            (message,) = args
 
             guildId = message.guild.id
 
@@ -265,12 +265,17 @@ async def logAction(bot, actionType: str, *args, **kwargs):
 
 class ArgumentError(commands.CommandError):
     """Error class for ArgumentParser"""
+
     def __init__(self, message):
         super().__init__(discord.escape_mentions(message))
 
 
 class ArgumentParser(argparse.ArgumentParser):
     """Argument parser that don't exit on error"""
+
+    def __init__(self, *args, add_help=False, **kwargs):
+        super().__init__(*args, add_help=add_help, **kwargs)
+
     def error(self, message):
         raise ArgumentError(message)
 

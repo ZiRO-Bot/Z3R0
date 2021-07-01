@@ -4,7 +4,6 @@ License, v. 2.0. If a copy of the MPL was not distributed with this
 file, You can obtain one at http://mozilla.org/MPL/2.0/.
 """
 
-import argparse
 import discord
 import shlex
 
@@ -12,6 +11,7 @@ import shlex
 from core.mixin import CogMixin
 from discord.ext import commands
 from exts.utils.format import ZEmbed
+from exts.utils.other import ArgumentParser
 
 
 class Admin(commands.Cog, CogMixin):
@@ -19,7 +19,13 @@ class Admin(commands.Cog, CogMixin):
 
     icon = "\u2699"
 
-    # TODO: Add cog_check
+    def cog_check(self, ctx):
+        if not ctx.guild:
+            # Configuration only for Guild
+            return False
+
+        # TODO: Add check for moderator role
+        return True
 
     async def handleGreetingConfig(self, ctx, arguments, type: str):
         """Handle welcome and farewell configuration."""
@@ -28,7 +34,7 @@ class Admin(commands.Cog, CogMixin):
             return
 
         # Parsing arguments
-        parser = argparse.ArgumentParser(allow_abbrev=False, add_help=False)
+        parser = ArgumentParser(allow_abbrev=False)
         parser.add_argument("--channel", "-c")
         parser.add_argument("--raw", "-r", action="store_true")
         parser.add_argument("--disable", "-d", action="store_true")
@@ -116,7 +122,7 @@ class Admin(commands.Cog, CogMixin):
     async def handleLogConfig(self, ctx, arguments, type: str):
         """Handle configuration for logs (modlog, purgatory)"""
         # Parsing arguments
-        parser = argparse.ArgumentParser(allow_abbrev=False, add_help=False)
+        parser = ArgumentParser(allow_abbrev=False)
         parser.add_argument("--disable", "-d", action="store_true")
         parser.add_argument("channel", nargs="?", default="")
 
@@ -165,6 +171,49 @@ class Admin(commands.Cog, CogMixin):
     )
     async def purgatory(self, ctx, *, arguments):
         await self.handleLogConfig(ctx, arguments, "purgatory")
+
+    @commands.group(
+        name="role", brief="Manage guild's role", invoke_without_command=True
+    )
+    async def _role(self, ctx):
+        # Role manager
+        pass
+
+    @_role.command(
+        name="create",
+        aliases=["+", "make"],
+        brief="Create new role",
+        usage="(name) [-t type]",
+    )
+    async def roleMake(self, ctx, *, arguments):
+        availableTypes = ("moderator", "mod", "mute", "muted", "regular")
+
+        parser = ArgumentParser(allow_abbrev=False)
+        parser.add_argument("--type", "-t")
+        parser.add_argument("name", nargs="+")
+
+        parsed, _ = parser.parse_known_args(shlex.split(arguments))
+
+        name = " ".join(parsed.name)
+        type = parsed.type or "regular"
+
+        if (type := type.lower()) in availableTypes:
+            role = None
+
+            if type == "regular":
+                role = await ctx.guild.create_role(name=name)
+            if any(type == "moderator", type == "mod"):
+                return
+
+            if role:
+                return await ctx.try_reply(
+                    "Role '{}' has been created".format(role.mention)
+                )
+            return
+
+        return await ctx.try_reply(
+            "Available role type: {}".format(", ".join(availableTypes))
+        )
 
 
 def setup(bot):
