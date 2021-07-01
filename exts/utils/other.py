@@ -17,6 +17,7 @@ from pyparsing import (
 )
 
 
+import argparse
 import datetime as dt
 import discord
 import math
@@ -260,6 +261,18 @@ async def logAction(bot, actionType: str, *args, **kwargs):
             return
 
         return await logCh.send(embed=e)
+
+
+class ArgumentError(commands.CommandError):
+    """Error class for ArgumentParser"""
+    def __init__(self, message):
+        super().__init__(discord.escape_mentions(message))
+
+
+class ArgumentParser(argparse.ArgumentParser):
+    """Argument parser that don't exit on error"""
+    def error(self, message):
+        raise ArgumentError(message)
 
 
 if __name__ == "__main__":
