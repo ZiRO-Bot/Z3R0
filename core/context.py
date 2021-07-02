@@ -3,6 +3,7 @@ import re
 
 from discord.ext import commands
 from exts.utils.format import ZEmbed
+from typing import Union
 
 
 class Context(commands.Context):
@@ -46,4 +47,15 @@ class Context(commands.Context):
     @property
     def clean_prefix(self):
         pattern = re.compile(r"<@!?{}>".format(self.me.id))
-        return pattern.sub("@{}".format(self.me.display_name.replace("\\", r"\\")), self.prefix)
+        return pattern.sub(
+            "@{}".format(self.me.display_name.replace("\\", r"\\")), self.prefix
+        )
+
+    async def try_invoke(self, command: Union[commands.Command, str], *args, **kwargs):
+        """Similar to invoke() except it triggers checks"""
+        if isinstance(command, str):
+            command = self.bot.get_command(command)
+
+        canRun = await command.can_run(self)
+        if canRun:
+            await command(self, *args, **kwargs)
