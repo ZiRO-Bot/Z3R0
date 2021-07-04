@@ -34,7 +34,7 @@ from exts.utils.format import (
     formatCmd,
     formatCmdParams,
 )
-from exts.utils.other import reactsToMessage, tryInvoke, ArgumentParser
+from exts.utils.other import reactsToMessage, ArgumentParser
 from discord.ext import commands, menus
 
 
@@ -1196,7 +1196,7 @@ class Meta(commands.Cog, CogMixin):
         invoke_without_command=True,
     )
     async def prefix(self, ctx):
-        await tryInvoke(ctx, self.prefList)
+        await ctx.try_invoke(self.prefList)
 
     @prefix.command(
         name="list",
