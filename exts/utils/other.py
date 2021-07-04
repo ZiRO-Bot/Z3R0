@@ -15,6 +15,7 @@ from pyparsing import (
     Suppress,
     delimitedList,
 )
+from typing import Union
 
 
 import argparse
@@ -179,12 +180,6 @@ async def reactsToMessage(message: discord.Message, reactions: list = []):
         except:
             # Probably don't have perms to do reaction
             continue
-
-
-async def tryInvoke(ctx, command: commands.Command, *args, **kwargs):
-    canRun = await command.can_run(ctx)
-    if canRun:
-        await command(ctx, *args, **kwargs)
 
 
 async def logAction(bot, actionType: str, *args, **kwargs):
