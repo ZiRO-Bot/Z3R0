@@ -15,7 +15,6 @@ from core.objects import Connection
 from exts.meta import getCustomCommands
 from exts.timer import TimerData, Timer
 from exts.utils import dbQuery
-from exts.utils.cache import ExpiringDict
 from exts.utils.format import cleanifyPrefix
 from databases import Database
 from discord.ext import commands, tasks
@@ -202,7 +201,7 @@ class ziBot(commands.Bot):
                 values={"id": guildId},
             )
             if row:
-                row = ExpiringDict(row)
+                row = dict(row)
                 row.pop("guildId", None)
                 try:
                     cached[guildId].update(row)
@@ -254,7 +253,7 @@ class ziBot(commands.Bot):
             )
             # Overwrite current configs
             cached = getattr(self, table)
-            newData = ExpiringDict({configType: configValue})
+            newData = {configType: configValue}
             try:
                 cached[guildId].update(newData)
             except KeyError:
