@@ -8,6 +8,7 @@ import discord
 import shlex
 
 
+from core import checks
 from core.mixin import CogMixin
 from discord.ext import commands
 from exts.utils import dbQuery
@@ -29,13 +30,13 @@ class Admin(commands.Cog, CogMixin):
     async def setGuildRole(self, guildId: int, roleType: str, roleId: int):
         return await self.bot.setGuildConfig(guildId, roleType, roleId, "guildRoles")
 
-    def cog_check(self, ctx):
+    async def cog_check(self, ctx):
         if not ctx.guild:
             # Configuration only for Guild
             return False
 
-        # TODO: Add check for moderator role
-        return True
+        # Check if member can manage_channels or have mod role
+        return await checks.isMod(ctx)
 
     async def handleGreetingConfig(self, ctx, arguments, type: str):
         """Handle welcome and farewell configuration."""
@@ -182,9 +183,7 @@ class Admin(commands.Cog, CogMixin):
     async def purgatory(self, ctx, *, arguments):
         await self.handleLogConfig(ctx, arguments, "purgatory")
 
-    @commands.group(
-        name="role", brief="Manage guild's role", invoke_without_command=True
-    )
+    @commands.group(name="role", brief="Manage guild's role")
     async def _role(self, ctx):
         # Role manager
         pass

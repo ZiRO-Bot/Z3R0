@@ -1,6 +1,19 @@
 from discord.ext import commands
 
 
+async def isMod(ctx):
+    roleId = await ctx.bot.getGuildConfig(ctx.guild.id, "modRole", "guildRoles")
+    role = ctx.guild.get_role(roleId)
+
+    return role in ctx.author.roles or await check_guild_permissions(
+        ctx, {"manage_guild": True}
+    )
+
+
+async def isModOrPerms(ctx, perms, check=all):
+    return await isMod(ctx) or await check_guild_permissions(ctx, perms, check=check)
+
+
 async def check_permissions(ctx, perms, *, check=all):
     is_owner = await ctx.bot.is_owner(ctx.author)
     if is_owner:
@@ -51,9 +64,8 @@ def is_botmaster():
 
 
 def is_mod():
-    # TODO: Add "mod role"
     async def pred(ctx):
-        return await check_guild_permissions(ctx, {"manage_channels": True})
+        return await isMod(ctx)
 
     return commands.check(pred)
 
@@ -66,10 +78,8 @@ def is_admin():
 
 
 def mod_or_permissions(**perms):
-    perms["manage_guild"] = True
-
     async def predicate(ctx):
-        return await check_guild_permissions(ctx, perms, check=any)
+        return await isModOrPerms(ctx, perms, check=any)
 
     return commands.check(predicate)
 
