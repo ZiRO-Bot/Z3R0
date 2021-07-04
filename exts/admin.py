@@ -10,6 +10,7 @@ import shlex
 
 from core.mixin import CogMixin
 from discord.ext import commands
+from exts.utils import dbQuery
 from exts.utils.format import ZEmbed
 from exts.utils.other import ArgumentParser
 
@@ -18,6 +19,15 @@ class Admin(commands.Cog, CogMixin):
     """Admin-only commands to configure the bot."""
 
     icon = "\u2699"
+
+    def __init__(self, bot):
+        super().__init__(bot)
+
+    async def getGuildRole(self, guildId: int, roleType: str):
+        return await self.bot.getGuildConfig(guildId, roleType, "guildRoles")
+
+    async def setGuildRole(self, guildId: int, roleType: str, roleId: int):
+        return await self.bot.setGuildConfig(guildId, roleType, roleId, "guildRoles")
 
     def cog_check(self, ctx):
         if not ctx.guild:
@@ -186,7 +196,13 @@ class Admin(commands.Cog, CogMixin):
         usage="(name) [-t type]",
     )
     async def roleMake(self, ctx, *, arguments):
-        availableTypes = ("moderator", "mod", "mute", "muted", "regular")
+        availableTypes = (
+            "moderator",
+            "mod",
+            "mute",
+            "muted",
+            "regular",
+        )
 
         parser = ArgumentParser(allow_abbrev=False)
         parser.add_argument("--type", "-t")
@@ -198,12 +214,15 @@ class Admin(commands.Cog, CogMixin):
         type = parsed.type or "regular"
 
         if (type := type.lower()) in availableTypes:
-            role = None
+            role = await ctx.guild.create_role(name=name)
 
-            if type == "regular":
-                role = await ctx.guild.create_role(name=name)
-            if any(type == "moderator", type == "mod"):
-                return
+            if any([type == "mute", type == "muted"]):
+                await self.setGuildRole(ctx.guild.id, "mutedRole", role.id)
+                for cat in ctx.guild.categories:
+                    await cat.set_permissions(role, send_messages=False, speak=False)
+
+            if any([type == "mod", type == "moderator"]):
+                await self.setGuildRole(ctx.guild.id, "modRole", role.id)
 
             if role:
                 return await ctx.try_reply(

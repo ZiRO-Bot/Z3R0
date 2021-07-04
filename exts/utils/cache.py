@@ -5,12 +5,13 @@ from typing import Any, Tuple
 
 
 # https://github.com/Rapptz/RoboDanny/blob/rewrite/cogs/utils/cache.py#L22-L43
-class ExpiringCache(dict):
-    """Subclassed dict"""
+class ExpiringDict(dict):
+    """Subclassed dict for expiring cache"""
 
-    def __init__(self, maxAgeSeconds: int = 5) -> None:
-        self.maxAgeSeconds: int = maxAgeSeconds
-        super().__init__()
+    def __init__(self, items: dict = {}, maxAgeSeconds: int = 3600) -> None:
+        self.maxAgeSeconds: int = maxAgeSeconds #(Default: 3600 seconds (1 hour))
+        curTime: float = time.monotonic()
+        super().__init__({k: (v, curTime) for k, v in items.items()})
 
     def verifyCache(self) -> None:
         curTime: float = time.monotonic()
@@ -24,7 +25,17 @@ class ExpiringCache(dict):
         self.verifyCache()
         return super().__contains__(key)
 
-    def __getitem__(self, key: Any) -> Tuple[Any]:
+    def __getitem__(self, key: Any) -> Any:
+        self.verifyCache()
+        return super().__getitem__(key)[0]
+
+    def get(self, key: Any, fallback: Any = None) -> Any:
+        try:
+            return self.__getitem__(key)
+        except KeyError:
+            return fallback
+
+    def getRaw(self, key: Any) -> Tuple[Any]:
         self.verifyCache()
         return super().__getitem__(key)
 

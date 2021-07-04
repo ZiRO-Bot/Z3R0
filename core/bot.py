@@ -15,6 +15,7 @@ from core.objects import Connection
 from exts.meta import getCustomCommands
 from exts.timer import TimerData, Timer
 from exts.utils import dbQuery
+from exts.utils.cache import ExpiringDict
 from exts.utils.format import cleanifyPrefix
 from databases import Database
 from discord.ext import commands, tasks
@@ -163,6 +164,7 @@ class ziBot(commands.Bot):
 
         # cache guild's configs
         self.guildConfigs = {}
+        self.guildRoles = {}
         # disabled commands
         self.disabled = {}
 
@@ -186,33 +188,49 @@ class ziBot(commands.Bot):
             await self.db.execute(dbQuery.createGuildConfigsTable)
             await self.db.execute(dbQuery.createPrefixesTable)
             await self.db.execute(dbQuery.createDisabledTable)
+            await self.db.execute(dbQuery.createGuildRolesTable)
 
-    async def getGuildConfigs(self, guildId: int):
+    async def getGuildConfigs(
+        self, guildId: int, filters: list = [], table: str = "guildConfigs"
+    ):
         # Get guild configs and maybe cache it
-        if self.guildConfigs.get(guildId) is None:
+        cached: dict = getattr(self, table)
+        if cached.get(guildId) is None:
             # Executed when guild configs is not in the cache
             row = await self.db.fetch_one(
-                "SELECT * FROM guildConfigs WHERE guildId=:id",
+                f"SELECT {', '.join(filters) or '*'} FROM {table} WHERE guildId=:id",
                 values={"id": guildId},
             )
             if row:
-                row = dict(row)
-                row.pop("guildId")
-                self.guildConfigs[guildId] = row
-        return self.guildConfigs.get(guildId, {})
+                row = ExpiringDict(row)
+                row.pop("guildId", None)
+                try:
+                    cached[guildId].update(row)
+                except:
+                    cached.update({guildId: row})
+        return cached.get(guildId, {})
 
-    async def getGuildConfig(self, guildId: int, configType: str):
+    async def getGuildConfig(
+        self, guildId: int, configType: str, table: str = "guildConfigs"
+    ):
         # Get guild's specific config
-        configs = await self.getGuildConfigs(guildId)
-        return configs.get(configType, None)
+        configs: dict = await self.getGuildConfigs(guildId, [configType], table)
+        return configs.get(configType)
 
-    async def setGuildConfig(self, guildId: int, configType: str, configValue):
+    async def setGuildConfig(
+        self, guildId: int, configType: str, configValue, table: str = "guildConfigs"
+    ):
         # Set/edit guild's specific config
-        configs = await self.getGuildConfigs(guildId)
+        config = await self.getGuildConfig(guildId, configType, table)
+        if config == configValue:
+            # cached value is equal to new value
+            # No need to overwrite database value
+            return config
+
         async with self.db.transaction():
             await self.db.execute(
                 f"""
-                    INSERT INTO guildConfigs
+                    INSERT INTO {table}
                         (guildId, {configType})
                     VALUES (
                         :guildId,
@@ -235,15 +253,13 @@ class ziBot(commands.Bot):
                 },
             )
             # Overwrite current configs
+            cached = getattr(self, table)
+            newData = ExpiringDict({configType: configValue})
             try:
-                if configValue is None:
-                    del self.guildConfigs[guildId][configType]
-                else:
-                    self.guildConfigs[guildId][configType] = configValue
+                cached[guildId].update(newData)
             except KeyError:
-                if configValue is not None:
-                    self.guildConfigs[guildId] = {configType: configValue}
-        return self.guildConfigs.get(guildId, {}).get(configType, None)
+                cached.update({guildId: newData})
+        return cached.get(guildId, {}).get(configType, None)
 
     async def getGuildPrefix(self, guildId):
         if self.prefixes.get(guildId) is None:

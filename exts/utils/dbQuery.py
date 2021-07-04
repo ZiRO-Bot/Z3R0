@@ -152,6 +152,15 @@ createGuildConfigsTable = """
     )
 """
 
+createGuildRolesTable = """
+    CREATE TABLE IF NOT EXISTS guildRoles (
+        guildId INTEGER PRIMARY KEY,
+        modRole INTEGER,
+        mutedRole INTEGER,
+        FOREIGN KEY ("guildId") REFERENCES guilds ("id") ON DELETE CASCADE
+    )
+"""
+
 # --- Alpha feature, not pushed to git yet (Still debating if i should add it or not).
 createYTChannelTable = """
     CREATE TABLE IF NOT EXISTS yt_channels (
