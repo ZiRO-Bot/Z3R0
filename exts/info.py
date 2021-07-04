@@ -82,7 +82,7 @@ class Info(commands.Cog, CogMixin):
         try:
             weatherData = await self.openweather.get_from_city(city)
         except CityNotFound as err:
-            return await ctx.error("City '{}' not Found!".format(city))
+            return await ctx.error(str(err))
 
         e = ZEmbed(
             ctx,

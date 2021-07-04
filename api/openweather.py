@@ -1,16 +1,20 @@
 import asyncio
 import aiohttp
-import json
 
 
 class CityNotFound(Exception):
-    pass
+    def __init__(self, city):
+        super().__init__(f"City '{city}' not found!")
 
 
 class Temperature:
     def __init__(self, temperature):
         """Uses kelvin by default"""
-        self.temperature = round(temperature, 2)
+        self._temperature = round(temperature, 2)
+
+    @property
+    def temperature(self):
+        return self._temperature
 
     def __str__(self):
         return "{} K".format(round(self.temperature, 2))
@@ -20,18 +24,21 @@ class Temperature:
 
     @property
     def kelvin(self):
-        return round(self.temperature, 2)
+        return round(self._temperature, 2)
 
     @property
     def fahrenheit(self):
-        return round((self.temperature - 273.15) * 1.8 + 32, 2)
+        return round((self._temperature - 273.15) * 1.8 + 32, 2)
 
     @property
     def celcius(self):
-        return round(self.temperature - 273.15, 2)
+        return round(self._temperature - 273.15, 2)
 
 
 class Wind:
+
+    __slots__ = ("speed", "degree")
+
     def __init__(self, windData):
         """Speed uses m/s by default."""
         self.speed = windData["speed"]
@@ -45,6 +52,22 @@ class Wind:
 
 
 class Weather:
+
+    __slots__ = (
+        "rawData",
+        "city",
+        "country",
+        "wind",
+        "icon",
+        "iconUrl",
+        "temp",
+        "tempMin",
+        "tempMax",
+        "tempFeels",
+        "weather",
+        "weatherDetail",
+    )
+
     def __init__(self, data):
         self.rawData = data
         self.city = data["name"]
@@ -93,9 +116,9 @@ class OpenWeatherAPI:
         async with self.session.get(
             self.baseUrl.format(type=_type, query=query, key=self.apiKey)
         ) as res:
-            weatherData = json.loads(await res.text())
+            weatherData = await res.json()
             if weatherData["cod"] == "404":
-                raise CityNotFound("City not found.")
+                raise CityNotFound(query)
             return Weather(weatherData)
 
     async def get_from_city(self, city):
