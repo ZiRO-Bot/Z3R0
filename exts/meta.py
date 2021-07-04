@@ -413,8 +413,7 @@ class Meta(commands.Cog, CogMixin):
         # Getting config
         mode = await self.bot.getGuildConfig(ctx.guild.id, "ccMode")
 
-        # TODO: Make mod role
-        isMod = ctx.author.guild_permissions.manage_guild
+        isMod = await checks.isMod(ctx)
         if _type == "manage":
             # Manage = edit, update, update-url, etc
             if not command:
@@ -874,8 +873,7 @@ class Meta(commands.Cog, CogMixin):
 
         parsed, _ = parser.parse_known_args(shlex.split(arguments))
 
-        # TODO: Make mod role
-        isMod = ctx.author.guild_permissions.manage_guild
+        isMod = await checks.isMod(ctx)
 
         # default mode
         mode = "built-in" if isMod else "custom"
@@ -1011,8 +1009,7 @@ class Meta(commands.Cog, CogMixin):
 
         parsed, _ = parser.parse_known_args(shlex.split(arguments))
 
-        # TODO: Make mod role
-        isMod = ctx.author.guild_permissions.manage_guild
+        isMod = await checks.isMod(ctx)
 
         # default mode
         mode = "built-in" if isMod else "custom"
