@@ -179,9 +179,9 @@ class ziBot(commands.Bot):
             # Creating all the necessary tables
             await self.db.execute(dbQuery.createGuildsTable)
             await self.db.execute(dbQuery.createGuildConfigsTable)
+            await self.db.execute(dbQuery.createGuildRolesTable)
             await self.db.execute(dbQuery.createPrefixesTable)
             await self.db.execute(dbQuery.createDisabledTable)
-            await self.db.execute(dbQuery.createGuildRolesTable)
 
     async def getGuildConfigs(
         self, guildId: int, filters: list = [], table: str = "guildConfigs"
