@@ -43,13 +43,16 @@ class Blacklist:
 
     def __init__(self, filename: str = "blacklist.json"):
         self.filename = filename
+
         data = {}
+
         try:
             f = open(filename, "r")
             data = json.loads(f.read())
         except FileNotFoundError:
             with open(filename, "w+") as f:
                 json.dump(data, f, indent=4)
+
         self.guilds = data.get("guilds", [])
         self.users = data.get("users", [])
 
@@ -65,20 +68,14 @@ class Blacklist:
         os.replace(temp, self.filename)
         return True
 
-    def append(self, key: str, value: Union[list, int], **kwargs):
+    def append(self, key: str, value: int, **kwargs):
         """Add users/guilds to the blacklist"""
         _type = getattr(self, key)
         if value in _type:
             return
 
-        if isinstance(value, list):
-            _type += value
-        else:
-            try:
-                value = int(value)
-                _type.append(value)
-            except:
-                return
+        _type.append(value)
+
         self.dump(**kwargs)
         return value
 
@@ -87,11 +84,8 @@ class Blacklist:
         if value not in _type:
             return
 
-        try:
-            value = int(value)
-            _type.remove(value)
-        except:
-            return
+        _type.remove(value)
+
         self.dump(**kwargs)
         return value
 
