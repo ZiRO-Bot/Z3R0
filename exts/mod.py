@@ -4,7 +4,6 @@ License, v. 2.0. If a copy of the MPL was not distributed with this
 file, You can obtain one at http://mozilla.org/MPL/2.0/.
 """
 
-import datetime as dt
 import discord
 import humanize
 
@@ -15,6 +14,7 @@ from core.mixin import CogMixin
 from discord.ext import commands
 from exts.timer import Timer, TimerData
 from exts.utils.format import ZEmbed, formatDateTime
+from exts.utils.other import utcnow
 from typing import Union
 
 
@@ -133,7 +133,7 @@ class Moderation(commands.Cog, CogMixin):
                 ctx.guild.id,
                 ctx.author.id,
                 user.id,
-                created=dt.datetime.utcnow(),
+                created=utcnow(),
                 owner=ctx.bot.user.id,
             )
 

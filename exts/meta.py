@@ -5,7 +5,6 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 """
 
 import asyncio
-import datetime as dt
 import difflib
 import discord
 import humanize
@@ -34,7 +33,7 @@ from exts.utils.format import (
     formatCmd,
     formatCmdParams,
 )
-from exts.utils.other import reactsToMessage, ArgumentParser
+from exts.utils.other import reactsToMessage, ArgumentParser, utcnow
 from discord.ext import commands, menus
 
 
@@ -359,7 +358,7 @@ class Meta(commands.Cog, CogMixin):
             "target": target,
             "member": target,
             "channel": channel,
-            "unix": tse.IntAdapter(int(dt.datetime.utcnow().timestamp())),
+            "unix": tse.IntAdapter(int(utcnow().timestamp())),
             "prefix": ctx.prefix,
             "uses": tse.IntAdapter(cmd.uses),
         }
@@ -462,7 +461,7 @@ class Meta(commands.Cog, CogMixin):
                     "name": name,
                     "content": content,
                     "ownerId": ctx.author.id,
-                    "createdAt": dt.datetime.utcnow().timestamp(),
+                    "createdAt": utcnow().timestamp(),
                     "type": kwargs.get("type", "text"),
                     "url": kwargs.get("url", None),
                 },
@@ -1166,7 +1165,7 @@ class Meta(commands.Cog, CogMixin):
 
     @commands.command(brief="Information about my stats")
     async def stats(self, ctx):
-        uptime = dt.datetime.utcnow() - self.bot.uptime
+        uptime = utcnow() - self.bot.uptime
         e = ZEmbed.default(ctx)
         e.set_author(
             name=ctx.bot.user.name + "'s stats", icon_url=ctx.bot.user.avatar_url
