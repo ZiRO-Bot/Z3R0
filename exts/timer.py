@@ -88,9 +88,7 @@ class Timer(commands.Cog, CogMixin):
                 ORDER BY
                     expires ASC
             """,
-            values={
-                "interval": (utcnow() + dt.timedelta(days=days)).timestamp()
-            },
+            values={"interval": (utcnow() + dt.timedelta(days=days)).timestamp()},
         )
         return TimerData(data) if data else None
 
@@ -233,10 +231,17 @@ class Timer(commands.Cog, CogMixin):
         msgUrl = f"https://discord.com/channels/{guildId}/{channelId}/{messageId}"
 
         e = ZEmbed(
-            description="{} [`[?]`]({})".format(message, msgUrl),
+            description="[<:upArrow:862301023749406760> Jump to Source]({})".format(
+                msgUrl
+            ),
         )
 
-        await channel.send("<@{}>".format(authorId), embed=e)
+        await channel.send(
+            "<@{}>, <t:{}:R>: {}".format(
+                authorId, int(timer.createdAt.timestamp()), message
+            ),
+            embed=e,
+        )
 
 
 def setup(bot):
