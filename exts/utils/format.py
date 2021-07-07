@@ -1,10 +1,10 @@
+import datetime as dt
 import discord
 import re
 
 
 from core.objects import CustomCommand
 from discord.ext import commands
-from exts.utils.other import utcnow
 
 
 class ZEmbed(discord.Embed):
@@ -15,7 +15,7 @@ class ZEmbed(discord.Embed):
 
     @classmethod
     def default(cls, ctx, timestamp=None, **kwargs):
-        instance = cls(timestamp=timestamp or utcnow(), **kwargs)
+        instance = cls(timestamp=timestamp or dt.datetime.now(dt.timezone.utc), **kwargs)
         instance.set_footer(
             text="Requested by {}".format(ctx.author), icon_url=ctx.author.avatar_url
         )
