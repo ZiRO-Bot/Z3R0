@@ -236,9 +236,11 @@ class Timer(commands.Cog, CogMixin):
             ),
         )
 
-        await channel.safe_send(
+        await channel.send(
             "<@{}>, <t:{}:R>: {}".format(
-                authorId, int(timer.createdAt.timestamp()), message
+                authorId,
+                int(timer.createdAt.timestamp()),
+                discord.utils.escape_mentions(message),
             ),
             embed=e,
         )
