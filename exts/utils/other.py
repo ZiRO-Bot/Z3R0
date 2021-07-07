@@ -327,6 +327,10 @@ class Blacklist:
         self.dump(**kwargs)
         return value
 
+def utcnow():
+    # utcnow but timezone aware
+    return dt.datetime.now(dt.timezone.utc)
+
 
 if __name__ == "__main__":
     # For testing

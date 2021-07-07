@@ -16,7 +16,7 @@ from exts.meta import getCustomCommands
 from exts.timer import TimerData, Timer
 from exts.utils import dbQuery
 from exts.utils.format import cleanifyPrefix
-from exts.utils.other import Blacklist
+from exts.utils.other import Blacklist, utcnow
 from databases import Database
 from discord.ext import commands, tasks
 from typing import Union
@@ -151,7 +151,7 @@ class ziBot(commands.Bot):
         await self.manageGuildDeletion()
 
         if not hasattr(self, "uptime"):
-            self.uptime = datetime.datetime.utcnow()
+            self.uptime = utcnow()
 
     async def getGuildConfigs(
         self, guildId: int, filters: list = [], table: str = "guildConfigs"
@@ -330,7 +330,7 @@ class ziBot(commands.Bot):
             )
 
             # Schedule delete guild where the bot no longer in
-            now = datetime.datetime.utcnow()
+            now = utcnow()
             when = now + datetime.timedelta(days=self.guildDelDays)
             await self.db.execute_many(
                 """
@@ -382,7 +382,7 @@ class ziBot(commands.Bot):
     async def scheduleDeletion(self, guildId: int, days: int = 30):
         """Schedule guild deletion from `guilds` table"""
         timer: Timer = self.get_cog("Timer")
-        now = datetime.datetime.utcnow()
+        now = utcnow()
         when = now + datetime.timedelta(days=days)
         await timer.createTimer(when, "guild_del", created=now, owner=guildId)
 

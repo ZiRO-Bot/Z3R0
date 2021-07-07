@@ -14,6 +14,7 @@ from core.converter import TimeAndArgument
 from core.mixin import CogMixin
 from discord.ext import commands
 from exts.utils import dbQuery
+from exts.utils.other import utcnow
 from exts.utils.format import formatDateTime, ZEmbed
 
 
@@ -40,8 +41,8 @@ class TimerData:
             self.extra = data[2]
             self.args = None
             self.kwargs = None
-        self.expires = dt.datetime.fromtimestamp(data[3])
-        self.createdAt = dt.datetime.fromtimestamp(data[4])
+        self.expires = dt.datetime.fromtimestamp(data[3], dt.timezone.utc)
+        self.createdAt = dt.datetime.fromtimestamp(data[4], dt.timezone.utc)
         self.owner = data[5]
 
     @classmethod
@@ -88,7 +89,7 @@ class Timer(commands.Cog, CogMixin):
                     expires ASC
             """,
             values={
-                "interval": (dt.datetime.utcnow() + dt.timedelta(days=days)).timestamp()
+                "interval": (utcnow() + dt.timedelta(days=days)).timestamp()
             },
         )
         return TimerData(data) if data else None
@@ -119,7 +120,7 @@ class Timer(commands.Cog, CogMixin):
         try:
             while not self.bot.is_closed():
                 timer = self.currentTimer = await self.waitForActiveTimer(days=40)
-                now = dt.datetime.utcnow()
+                now = utcnow()
 
                 if timer.expires >= now:
                     sleepAmount = (timer.expires - now).total_seconds()
@@ -134,7 +135,7 @@ class Timer(commands.Cog, CogMixin):
     async def createTimer(self, *args, **kwargs):
         when, event, *args = args
 
-        now = kwargs.pop("created", dt.datetime.utcnow())
+        now = kwargs.pop("created", utcnow())
         owner = kwargs.pop("owner", None)
 
         whenTs = when.timestamp()
@@ -178,10 +179,10 @@ class Timer(commands.Cog, CogMixin):
         brief="Reminds you about something after certain amount of time",
     )
     async def reminder(self, ctx, *, argument: TimeAndArgument):
-        now = dt.datetime.utcnow()
+        now = utcnow()
         when = argument.when
         message = argument.arg or "Reminder"
-        delta = argument.delta
+        delta = f"<t:{int(when.timestamp())}:R>"
         if not when:
             return await ctx.try_reply("Invalid time.")
 
@@ -195,7 +196,7 @@ class Timer(commands.Cog, CogMixin):
             owner=ctx.author.id,
         )
         return await ctx.send(
-            "{} in {} ({})".format(
+            '"{}" {} ({})'.format(
                 message,
                 delta,
                 formatDateTime(when),
@@ -207,7 +208,7 @@ class Timer(commands.Cog, CogMixin):
         # TODO: Add timezone
         e = discord.Embed(
             title="Current Time",
-            description=formatDateTime(dt.datetime.utcnow()),
+            description=formatDateTime(utcnow()),
             colour=self.bot.colour,
         )
         e.set_footer(text="Timezone coming soon\u2122!")

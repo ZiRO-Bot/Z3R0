@@ -5,6 +5,7 @@ import re
 from core.context import Context
 from dateutil.relativedelta import relativedelta
 from discord.ext import commands
+from exts.utils.other import utcnow
 from humanize import naturaldelta
 
 
@@ -34,7 +35,7 @@ class TimeAndArgument(commands.Converter):
             kwargs = {k: int(v) for k, v in match.groupdict().items() if v}
             if kwargs:
                 self.arg = argument[match.end() :].strip()
-                now = dt.datetime.utcnow()
+                now = utcnow()
                 self.when = now + relativedelta(**kwargs)
                 self.delta = naturaldelta(self.when, when=now)
                 return self
