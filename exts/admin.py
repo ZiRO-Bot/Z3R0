@@ -184,6 +184,7 @@ class Admin(commands.Cog, CogMixin):
         await self.handleLogConfig(ctx, arguments, "purgatory")
 
     @commands.group(name="role", brief="Manage guild's role")
+    @checks.is_admin()
     async def _role(self, ctx):
         # Role manager
         pass
