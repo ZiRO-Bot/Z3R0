@@ -165,10 +165,11 @@ class ziBot(commands.Bot):
         self.db = Database(config.sql, factory=Connection)
 
         # async init
-        self.loop.create_task(self.asyncInit())
         self.session = aiohttp.ClientSession(
             headers={"User-Agent": "Discord/Z3RO (ziBot/3.0 by ZiRO2264)"}
         )
+        self.loop.create_task(self.asyncInit())
+        self.loop.create_task(self.startUp())
 
     async def asyncInit(self):
         """`__init__` but async"""
@@ -182,6 +183,27 @@ class ziBot(commands.Bot):
             await self.db.execute(dbQuery.createGuildRolesTable)
             await self.db.execute(dbQuery.createPrefixesTable)
             await self.db.execute(dbQuery.createDisabledTable)
+
+    async def startUp(self):
+        """Will run when the bot ready"""
+        await self.wait_until_ready()
+        if not self.master:
+            # If self.master not set, warn the hoster
+            self.logger.warning(
+                "No master is set, you may not able to use certain commands! (Unless you own the Bot Application)"
+            )
+        # Add application owner into bot master list
+        owner = (await self.application_info()).owner
+        if owner and owner.id not in self.master:
+            self.master += (owner.id,)
+
+        # change bot's presence into guild live count
+        self.changing_presence.start()
+
+        await self.manageGuildDeletion()
+
+        if not hasattr(self, "uptime"):
+            self.uptime = datetime.datetime.utcnow()
 
     async def getGuildConfigs(
         self, guildId: int, filters: list = [], table: str = "guildConfigs"
@@ -326,24 +348,6 @@ class ziBot(commands.Bot):
             self.activityIndex = 0
 
     async def on_ready(self):
-        if not self.master:
-            # If self.master not set, warn the hoster
-            self.logger.warning(
-                "No master is set, you may not able to use certain commands! (Unless you own the Bot Application)"
-            )
-        # Add application owner into bot master list
-        owner = (await self.application_info()).owner
-        if owner and owner.id not in self.master:
-            self.master += (owner.id,)
-
-        # change bot's presence into guild live count
-        self.changing_presence.start()
-
-        await self.manageGuildDeletion()
-
-        if not hasattr(self, "uptime"):
-            self.uptime = datetime.datetime.utcnow()
-
         self.logger.warning("Ready: {0} (ID: {0.id})".format(self.user))
 
     async def manageGuildDeletion(self):
