@@ -19,16 +19,25 @@ class Context(commands.Context):
     def db(self):
         return self.bot.db
 
-    async def try_reply(self, content="", *, mention_author=False, **kwargs):
+    async def try_reply(self, content=None, *, mention_author=False, **kwargs):
         """Try reply, if failed do send instead"""
         try:
-            return await self.safe_reply(content, mention_author=mention_author, **kwargs)
+            action = self.safe_reply
+            if not content:
+                action = self.reply
+            return await action(content, mention_author=mention_author, **kwargs)
         except:
-            if mention_author and content:
-                content = f"{self.author.mention}\n{content}"
+            if mention_author:
+                content = f"{self.author.mention} " + content if content else ""
+
+            action = self.send
+            if not content:
+                action = self.safe_send
             return await self.safe_send(content, **kwargs)
 
-    async def safe_send_reply(self, content, *, escape_mentions=True, type="send", **kwargs):
+    async def safe_send_reply(
+        self, content, *, escape_mentions=True, type="send", **kwargs
+    ):
         action = getattr(self, type)
 
         if escape_mentions:
@@ -44,10 +53,14 @@ class Context(commands.Context):
             return await action(content)
 
     async def safe_send(self, content, *, escape_mentions=True, **kwargs):
-        return await self.safe_send_reply(content, escape_mentions=True, type="send", **kwargs)
+        return await self.safe_send_reply(
+            content, escape_mentions=True, type="send", **kwargs
+        )
 
     async def safe_reply(self, content, *, escape_mentions=True, **kwargs):
-        return await self.safe_send_reply(content, escape_mentions=True, type="reply", **kwargs)
+        return await self.safe_send_reply(
+            content, escape_mentions=True, type="reply", **kwargs
+        )
 
     async def error(self, error_message: str):
         e = ZEmbed.error(description=error_message)
