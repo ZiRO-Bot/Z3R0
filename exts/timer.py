@@ -193,7 +193,7 @@ class Timer(commands.Cog, CogMixin):
             created=now,
             owner=ctx.author.id,
         )
-        return await ctx.send(
+        return await ctx.try_reply(
             '"{}" {} ({})'.format(
                 message,
                 delta,
@@ -236,7 +236,7 @@ class Timer(commands.Cog, CogMixin):
             ),
         )
 
-        await channel.send(
+        await channel.safe_send(
             "<@{}>, <t:{}:R>: {}".format(
                 authorId, int(timer.createdAt.timestamp()), message
             ),

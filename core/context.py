@@ -1,3 +1,4 @@
+import discord
 import re
 
 
@@ -21,24 +22,32 @@ class Context(commands.Context):
     async def try_reply(self, content="", *, mention_author=False, **kwargs):
         """Try reply, if failed do send instead"""
         try:
-            return await self.reply(content, mention_author=mention_author, **kwargs)
+            return await self.safe_reply(content, mention_author=mention_author, **kwargs)
         except:
             if mention_author and content:
                 content = f"{self.author.mention}\n{content}"
-            return await self.send(content, **kwargs)
+            return await self.safe_send(content, **kwargs)
 
-    async def safe_send(self, content, *, escape_mentions=True, **kwargs):
+    async def safe_send_reply(self, content, *, escape_mentions=True, type="send", **kwargs):
+        action = getattr(self, type)
+
         if escape_mentions:
             content = discord.utils.escape_mentions(content)
 
         if len(content) > 2000:
             fp = io.BytesIO(content.encode())
             kwargs.pop("file", None)
-            return await self.send(
+            return await action(
                 file=discord.File(fp, filename="message_too_long.txt"), **kwargs
             )
         else:
-            return await self.send(content)
+            return await action(content)
+
+    async def safe_send(self, content, *, escape_mentions=True, **kwargs):
+        return await self.safe_send_reply(content, escape_mentions=True, type="send", **kwargs)
+
+    async def safe_reply(self, content, *, escape_mentions=True, **kwargs):
+        return await self.safe_send_reply(content, escape_mentions=True, type="reply", **kwargs)
 
     async def error(self, error_message: str):
         e = ZEmbed.error(description=error_message)
