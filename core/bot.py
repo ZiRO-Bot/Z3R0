@@ -16,6 +16,7 @@ from exts.meta import getCustomCommands
 from exts.timer import TimerData, Timer
 from exts.utils import dbQuery
 from exts.utils.format import cleanifyPrefix
+from exts.utils.other import Blacklist
 from databases import Database
 from discord.ext import commands, tasks
 from typing import Union
@@ -23,10 +24,6 @@ from typing import Union
 
 import config
 
-DESC = (
-    "A **free and open source** multi-purpose **discord bot** created by"
-    + " ZiRO2264, formerly called `ziBot`."
-)
 
 EXTS = []
 EXTS_DIR = "exts"
@@ -36,58 +33,6 @@ for filename in os.listdir("./{}".format(EXTS_DIR)):
         continue
     if filename.endswith(".py"):
         EXTS.append("{}.{}".format(EXTS_DIR, filename[:-3]))
-
-
-class Blacklist:
-    __slots__ = ("filename", "guilds", "users")
-
-    def __init__(self, filename: str = "blacklist.json"):
-        self.filename = filename
-
-        data = {}
-
-        try:
-            f = open(filename, "r")
-            data = json.loads(f.read())
-        except FileNotFoundError:
-            with open(filename, "w+") as f:
-                json.dump(data, f, indent=4)
-
-        self.guilds = data.get("guilds", [])
-        self.users = data.get("users", [])
-
-    def __repl__(self):
-        return f"<Blacklist: guilds:{self.guilds} users:{self.users}>"
-
-    def dump(self, indent: int = 4, **kwargs):
-        temp = "{}-{}.tmp".format(uuid.uuid4(), self.filename)
-        data = {"guilds": self.guilds, "users": self.users}
-        with open(temp, "w") as tmp:
-            json.dump(data.copy(), tmp, indent=indent, **kwargs)
-
-        os.replace(temp, self.filename)
-        return True
-
-    def append(self, key: str, value: int, **kwargs):
-        """Add users/guilds to the blacklist"""
-        _type = getattr(self, key)
-        if value in _type:
-            return
-
-        _type.append(value)
-
-        self.dump(**kwargs)
-        return value
-
-    def remove(self, key: str, value: int, **kwargs):
-        _type = getattr(self, key)
-        if value not in _type:
-            return
-
-        _type.remove(value)
-
-        self.dump(**kwargs)
-        return value
 
 
 async def _callablePrefix(bot, message):
@@ -115,7 +60,10 @@ class ziBot(commands.Bot):
     def __init__(self):
         super().__init__(
             command_prefix=_callablePrefix,
-            description=DESC,
+            description=(
+                "A **free and open source** multi-purpose **discord bot** "
+                "created by ZiRO2264, formerly called `ziBot`."
+            ),
             case_insensitive=True,
             intents=discord.Intents.all(),
             heartbeat_timeout=150.0,

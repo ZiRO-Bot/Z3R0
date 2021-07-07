@@ -21,6 +21,7 @@ from typing import Union
 import argparse
 import datetime as dt
 import discord
+import json
 import math
 import operator
 
@@ -273,6 +274,58 @@ class ArgumentParser(argparse.ArgumentParser):
 
     def error(self, message):
         raise ArgumentError(message)
+
+
+class Blacklist:
+    __slots__ = ("filename", "guilds", "users")
+
+    def __init__(self, filename: str = "blacklist.json"):
+        self.filename = filename
+
+        data = {}
+
+        try:
+            f = open(filename, "r")
+            data = json.loads(f.read())
+        except FileNotFoundError:
+            with open(filename, "w+") as f:
+                json.dump(data, f, indent=4)
+
+        self.guilds = data.get("guilds", [])
+        self.users = data.get("users", [])
+
+    def __repl__(self):
+        return f"<Blacklist: guilds:{self.guilds} users:{self.users}>"
+
+    def dump(self, indent: int = 4, **kwargs):
+        temp = "{}-{}.tmp".format(uuid.uuid4(), self.filename)
+        data = {"guilds": self.guilds, "users": self.users}
+        with open(temp, "w") as tmp:
+            json.dump(data.copy(), tmp, indent=indent, **kwargs)
+
+        os.replace(temp, self.filename)
+        return True
+
+    def append(self, key: str, value: int, **kwargs):
+        """Add users/guilds to the blacklist"""
+        _type = getattr(self, key)
+        if value in _type:
+            return
+
+        _type.append(value)
+
+        self.dump(**kwargs)
+        return value
+
+    def remove(self, key: str, value: int, **kwargs):
+        _type = getattr(self, key)
+        if value not in _type:
+            return
+
+        _type.remove(value)
+
+        self.dump(**kwargs)
+        return value
 
 
 if __name__ == "__main__":
