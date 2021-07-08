@@ -177,6 +177,20 @@ class Moderation(commands.Cog, CogMixin):
             ),
         )
 
+    @commands.group(invoke_without_command=True)
+    async def mute(
+        self,
+        ctx,
+        user: Union[discord.Member, discord.User],
+        *,
+        time: TimeAndArgument = None
+    ):
+        pass
+
+    @mute.command(name="create", brief="Create muted role for mute command")
+    async def muteCreate(self, ctx, name: str = "Muted"):
+        await ctx.try_invoke("role create", arguments=name + " -t muted")
+
 
 def setup(bot):
     bot.add_cog(Moderation(bot))
