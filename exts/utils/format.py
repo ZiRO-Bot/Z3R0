@@ -168,13 +168,8 @@ def formatMissingArgError(ctx, error):
     return e
 
 
-# def formatDate(datetime = dt.datetime.utcnow()):
-#     # Format: 1 Jan 1970 - 00:00 UTC
-#     return datetime.strftime("%d %b %Y - %H:%M %Z")
-
-
 def formatDateTime(datetime):
-    return datetime.strftime("%A, %d %b %Y • %H:%M:%S UTC")
+    return datetime.strftime("%A, %d %b %Y • %H:%M:%S %Z")
 
 
 def formatName(name: str):
