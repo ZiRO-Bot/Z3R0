@@ -5,6 +5,7 @@ import re
 
 from core.objects import CustomCommand
 from discord.ext import commands
+from exts.utils.other import utcnow
 
 
 class ZEmbed(discord.Embed):
@@ -15,7 +16,7 @@ class ZEmbed(discord.Embed):
 
     @classmethod
     def default(cls, ctx, timestamp=None, **kwargs):
-        instance = cls(timestamp=timestamp or dt.datetime.now(dt.timezone.utc), **kwargs)
+        instance = cls(timestamp=timestamp or utcnow(), **kwargs)
         instance.set_footer(
             text="Requested by {}".format(ctx.author), icon_url=ctx.author.avatar_url
         )
@@ -30,6 +31,82 @@ class ZEmbed(discord.Embed):
         **kwargs,
     ):
         return cls(title="{} {}".format(emoji, title), color=color, **kwargs)
+
+
+async def logAction(bot, actionType: str, *args, **kwargs):
+    """For case log (ban, kick, possibly warn) and purgatory."""
+    e = ZEmbed(timestamp=utcnow())
+
+    if actionType.startswith("msg"):
+        if actionType == "msgEdit":
+            before, after = args
+
+            guildId = before.guild.id
+
+            e.title = "Edited Message"
+
+            e.set_author(name=before.author, icon_url=before.author.avatar_url)
+
+            e.add_field(
+                name="Before",
+                value=before.content[:1020] + " ..."
+                if len(before.content) > 1024
+                else before.content,
+            )
+            e.add_field(
+                name="After",
+                value=after.content[:1020] + " ..."
+                if len(after.content) > 1024
+                else after.content,
+            )
+
+            if before.embeds:
+                data = before.embeds[0]
+                if data.type == "image" and not self.is_url_spoiler(
+                    before.content, data.url
+                ):
+                    e.set_image(url=data.url)
+
+            if before.attachments:
+                _file = before.attachments[0]
+                spoiler = _file.is_spoiler()
+                if not spoiler and _file.url.lower().endswith(
+                    ("png", "jpeg", "jpg", "gif", "webp")
+                ):
+                    e.set_image(url=_file.url)
+                elif spoiler:
+                    e.add_field(
+                        name="📎 Attachment",
+                        value=f"||[{_file.filename}]({_file.url})||",
+                        inline=False,
+                    )
+                else:
+                    e.add_field(
+                        name="📎 Attachment",
+                        value=f"[{_file.filename}]({_file.url})",
+                        inline=False,
+                    )
+
+        if actionType == "msgDel":
+            (message,) = args
+
+            guildId = message.guild.id
+
+            e.title = "Deleted Message"
+
+            e.set_author(name=message.author, icon_url=message.author.avatar_url)
+
+            e.description = (
+                message.content[:1020] + " ..."
+                if len(message.content) > 1024
+                else message.content
+            )
+
+        logCh = bot.get_channel(await bot.getGuildConfig(guildId, "purgatoryCh"))
+        if not logCh:
+            return
+
+        return await logCh.send(embed=e)
 
 
 def formatCmdParams(command):

@@ -18,8 +18,8 @@ from core import errors
 from core.mixin import CogMixin
 from discord.ext import commands
 from exts.utils import tseBlocks
-from exts.utils.format import formatMissingArgError
-from exts.utils.other import reactsToMessage, logAction
+from exts.utils.format import formatMissingArgError, logAction
+from exts.utils.other import reactsToMessage
 
 
 class EventHandler(commands.Cog, CogMixin):
