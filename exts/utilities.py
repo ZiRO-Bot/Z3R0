@@ -78,9 +78,11 @@ class Utilities(commands.Cog, CogMixin):
         e.set_author(name="Piston API", icon_url="attachment://piston.png")
 
         if executed.message:
-            e.description = "```zsh\n{}```".format(executed.message)
+            e.description = "```diff\n- {}```".format(executed.message)
         else:
-            e.description = "```zsh\n{}\n[status] Return code {}```".format(executed.stderr or executed.stdout, executed.code)
+            e.description = "```ini\n{}\n[status] Return code {}```".format(
+                executed.stderr or executed.stdout, executed.code
+            )
 
         await ctx.try_reply(embed=e, file=f)
 
