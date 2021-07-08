@@ -2,11 +2,11 @@ import asyncio
 import click
 import contextlib
 import core.bot as _bot
-import datetime
 import logging
 import os
 
 
+from exts.utils.other import utcnow
 from logging.handlers import RotatingFileHandler
 
 
@@ -62,7 +62,7 @@ def init_bot():
     logger = logging.getLogger()
 
     bot = _bot.ziBot()
-    bot.uptime = datetime.datetime.utcnow()
+    bot.uptime = utcnow()
     bot.run()
 
 
