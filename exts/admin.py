@@ -226,7 +226,8 @@ class Admin(commands.Cog, CogMixin):
 
             if role:
                 return await ctx.try_reply(
-                    "Role '{}' has been created".format(role.mention)
+                    "Role '{}' has been created".format(role.mention),
+                    escape_mentions=False,
                 )
             return
 
