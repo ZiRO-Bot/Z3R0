@@ -54,12 +54,12 @@ class Context(commands.Context):
 
     async def safe_send(self, content, *, escape_mentions=True, **kwargs):
         return await self.safe_send_reply(
-            content, escape_mentions=True, type="send", **kwargs
+            content, escape_mentions=escape_mentions, type="send", **kwargs
         )
 
     async def safe_reply(self, content, *, escape_mentions=True, **kwargs):
         return await self.safe_send_reply(
-            content, escape_mentions=True, type="reply", **kwargs
+            content, escape_mentions=escape_mentions, type="reply", **kwargs
         )
 
     async def error(self, error_message: str):
