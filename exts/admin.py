@@ -231,7 +231,9 @@ class Admin(commands.Cog, CogMixin):
             return
 
         return await ctx.try_reply(
-            "Available role type: {}".format(", ".join(availableTypes))
+            "Available role type: {}".format(
+                ", ".join([f"`{type}`" for type in availableTypes])
+            )
         )
 
 
