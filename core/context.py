@@ -50,7 +50,7 @@ class Context(commands.Context):
                 file=discord.File(fp, filename="message_too_long.txt"), **kwargs
             )
         else:
-            return await action(content)
+            return await action(content, **kwargs)
 
     async def safe_send(self, content, *, escape_mentions=True, **kwargs):
         return await self.safe_send_reply(
