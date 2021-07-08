@@ -9,9 +9,9 @@ import time
 import unicodedata
 
 
-from api.openweather import OpenWeatherAPI, CityNotFound
 from core import checks
 from core.mixin import CogMixin
+from exts.api.openweather import OpenWeatherAPI, CityNotFound
 from exts.utils import pillow
 from exts.utils.format import ZEmbed
 from exts.utils.infoQuote import *

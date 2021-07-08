@@ -8,9 +8,9 @@ import asyncio
 import discord
 
 
-from api import reddit
 from core.mixin import CogMixin
 from discord.ext import commands
+from exts.api import reddit
 from random import choice
 
 
