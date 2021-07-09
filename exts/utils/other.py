@@ -14,7 +14,7 @@ from pyparsing import (
     Suppress,
     delimitedList,
 )
-from typing import Union
+from typing import Union, Tuple
 
 
 import argparse
@@ -256,6 +256,26 @@ def utcnow():
     return dt.datetime.now(dt.timezone.utc)
 
 
+def parseCodeBlock(string: str) -> Tuple[str, str]:
+    # Removes ```py\n```
+    if string.startswith("```") and string.endswith("```"):
+        string = string[3:-3].split("\n")
+        if string[0].endswith(" "):
+            lang = "py"
+            code = string
+        else:
+            lang = string[0]
+            code = string[1:]
+        return lang, "\n".join(code)
+
+    # Removes `foo`
+    return "py", string.strip("` \n")
+
+
 if __name__ == "__main__":
     # For testing
-    print(NumericStringParser().eval("63**57") > 2147483647)
+    # print(NumericStringParser().eval("63**57") > 2147483647)
+    print(parseCodeBlock("```py \ntest\ntest2```"))
+    print("---")
+    print(parseCodeBlock("```\ntest\ntest2```"))
+    print(parseCodeBlock("`test\ntest2`"))

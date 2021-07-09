@@ -32,6 +32,15 @@ class ZEmbed(discord.Embed):
     ):
         return cls(title="{} {}".format(emoji, title), color=color, **kwargs)
 
+    @classmethod
+    def loading(
+        cls,
+        emoji="<a:loading:776255339716673566>",
+        title="Loading...",
+        **kwargs,
+    ):
+        return cls(title="{} {}".format(emoji, title), **kwargs)
+
 
 async def logAction(bot, actionType: str, *args, **kwargs):
     """For case log (ban, kick, possibly warn) and purgatory."""

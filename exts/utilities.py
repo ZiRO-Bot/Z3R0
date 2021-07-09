@@ -15,10 +15,7 @@ from decimal import Overflow, InvalidOperation
 from discord.ext import commands
 from exts.api.piston import Piston
 from exts.utils.format import ZEmbed
-from exts.utils.other import NumericStringParser
-
-
-codeBlockRegex = re.compile(r"`{3}(\S+)(?:\n([^`]+))+`{3}")
+from exts.utils.other import NumericStringParser, parseCodeBlock
 
 
 class Utilities(commands.Cog, CogMixin):
@@ -29,7 +26,7 @@ class Utilities(commands.Cog, CogMixin):
 
     def __init__(self, bot):
         super().__init__(bot)
-        self.piston = Piston()
+        self.piston = Piston(session=self.bot.session, loop=self.bot.loop)
 
     @commands.command(
         aliases=["calc", "c"],
@@ -65,14 +62,25 @@ class Utilities(commands.Cog, CogMixin):
         e.set_author(name="Simple Math Evaluator", icon_url=ctx.bot.user.avatar_url)
         return await ctx.try_reply(embed=e)
 
-    @commands.command()
-    async def run(self, ctx, *, argument):
-        try:
-            lang, code = codeBlockRegex.match(argument).groups()
-        except AttributeError:
-            return await ctx.error("Invalid codeblock!")
-        executed = await self.piston.run(lang, code)
+    @commands.command(
+        aliases=("exec", "run"),
+        brief="Execute a code",
+        description="Execute a code\nWill executes python code by default",
+        example=('execute print("Hello World")',),
+    )
+    async def execute(self, ctx, *, argument):
+        lang, code = parseCodeBlock(argument)
+
         f = discord.File("./assets/img/piston.png", filename="piston.png")
+
+        msg = await ctx.try_reply(
+            embed=ZEmbed.loading().set_author(
+                name="Piston API", icon_url="attachment://piston.png"
+            ),
+            file=f,
+        )
+
+        executed = await self.piston.run(lang, code)
 
         e = ZEmbed.default(ctx)
         e.set_author(name="Piston API", icon_url="attachment://piston.png")
@@ -84,7 +92,7 @@ class Utilities(commands.Cog, CogMixin):
                 executed.stderr or executed.stdout, executed.code
             )
 
-        await ctx.try_reply(embed=e, file=f)
+        await msg.edit(embed=e)
 
 
 def setup(bot):
