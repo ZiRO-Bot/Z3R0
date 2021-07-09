@@ -11,6 +11,7 @@ import discord
 from core.mixin import CogMixin
 from discord.ext import commands
 from exts.api import reddit
+from exts.utils.format import ZEmbed
 from random import choice
 
 
@@ -37,9 +38,10 @@ class Fun(commands.Cog, CogMixin):
         else:
             submission = choice([post for post in posts if not post.is18])
 
-        e = discord.Embed(
+        e = ZEmbed.default(
+            ctx,
             title=f"{subreddit} - {submission.title}",
-            colour=discord.Colour(0xFF4500),
+            color=discord.Colour(0xFF4500),
         )
         e.set_author(
             name="Reddit",
