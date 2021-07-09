@@ -244,7 +244,7 @@ class CustomHelp(commands.HelpCommand):
             )
         e.set_footer(
             text="Use `{}command info command-name` to check custom command's information".format(
-                self.clean_prefix
+                ctx.clean_prefix
             )
         )
         await ctx.try_reply(embed=e)
@@ -267,16 +267,20 @@ class CustomHelp(commands.HelpCommand):
     async def send_command_help(self, command):
         ctx = self.context
 
-        e = await formatCommandInfo(self.clean_prefix, command)
+        e = await formatCommandInfo(ctx.clean_prefix, command)
 
         await ctx.try_reply(embed=e)
 
     async def send_group_help(self, group):
         ctx = self.context
 
-        e = await formatCommandInfo(self.clean_prefix, group)
+        e = await formatCommandInfo(ctx.clean_prefix, group)
 
         await ctx.try_reply(embed=e)
+
+    # TODO: Override command_callback to get custom command properly, flags,
+    # filter, etc
+    # async def command_callback(self, ctx, *, command=None):
 
 
 class Meta(commands.Cog, CogMixin):
