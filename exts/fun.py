@@ -30,7 +30,13 @@ class Fun(commands.Cog, CogMixin):
         """Get memes from subreddit r/memes."""
         # TODO: Add more meme subreddits
         memeSubreddits = ("memes", "funny")
+
+        redditColour = discord.Colour(0xFF4500)
+
+        msg = await ctx.try_reply(embed=ZEmbed.loading(color=redditColour))
+
         subreddit = await self.reddit.hot(choice(memeSubreddits))
+
         # Exclude videos since discord embed don't support video
         posts = [post for post in subreddit.posts if not post.isVideo]
         if ctx.channel.is_nsfw:
@@ -41,7 +47,7 @@ class Fun(commands.Cog, CogMixin):
         e = ZEmbed.default(
             ctx,
             title=f"{subreddit} - {submission.title}",
-            color=discord.Colour(0xFF4500),
+            color=redditColour,
         )
         e.set_author(
             name="Reddit",
@@ -54,7 +60,7 @@ class Fun(commands.Cog, CogMixin):
         if submission.url:
             e.set_image(url=submission.url)
 
-        await ctx.send(embed=e)
+        await msg.edit(embed=e)
 
 
 def setup(bot):
