@@ -57,20 +57,24 @@ Not ready yet.
 
 ### Overhaul Plan
 
-- Integrate user-made commands into help commands.
-- Complete moderation command rewrite.
-- Command manager, disable and enable both built-in and user-made command (built-in is the priority).
-- Public/Private commands, allowing other user to use each other's command in a different server.
+- ~~Integrate user-made commands into help commands.~~
+    - Add user-made/built-in priority to help command
+- Complete moderation command rewrite. (Currently only ban is fully implemented)
 - Migration tool, migrate from old database "layout" to newer "layout"
 - i18n (If possible)
 - Twitch and YouTube notification (Maybe?)
-- Music Player
 - Image manipulation (Filter and stuff)
 - Re-implement/improve old (`v2.x`) commands to `v3.0.0`
 - Slash command (Waiting for Dpy `v2.0`)
 - ~~Add flags ('--something', also waiting for Dpy `v2.0`)~~
    - Use flags from Dpy `v2.0` when it released.
    - Filter to show/hide user-made command for help commands.
+
+### Scrapped Plan
+
+> Plan that unfortunately not possible (atleast for now)
+- Music Player
+- Public/Private commands, allowing other user to use each other's command in a different server.
 
 ## License
 
