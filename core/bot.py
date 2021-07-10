@@ -15,6 +15,12 @@ from core.objects import Connection
 from exts.meta import getCustomCommands
 from exts.timer import TimerData, Timer
 from exts.utils import dbQuery
+from exts.utils.cache import (
+    Cache,
+    CacheListProperty,
+    CacheUniqueViolation,
+    CacheListFull,
+)
 from exts.utils.format import cleanifyPrefix
 from exts.utils.other import Blacklist, utcnow
 from databases import Database
@@ -100,8 +106,13 @@ class ziBot(commands.Bot):
 
         # bot's default prefix
         self.defPrefix = ">" if not hasattr(config, "prefix") else config.prefix
-        self.prefixes = {}
-        self.prefixLimit = 15
+        self.cache = Cache()
+        self.cache.add(
+            "prefixes",
+            cls=CacheListProperty,
+            unique=True,
+            limit=15,
+        )
 
         # cache guild's configs
         self.guildConfigs = {}
@@ -225,53 +236,67 @@ class ziBot(commands.Bot):
         return cached.get(guildId, {}).get(configType, None)
 
     async def getGuildPrefix(self, guildId):
-        if self.prefixes.get(guildId) is None:
+        if self.cache.prefixes.get(guildId) is None:
             # Only executed when there's no cache for guild's prefix
             dbPrefixes = await self.db.fetch_all(
                 "SELECT * FROM prefixes WHERE guildId=:id", values={"id": guildId}
             )
-            self.prefixes[guildId] = [p for _, p in dbPrefixes]
-        return self.prefixes.get(guildId, [])
+
+            try:
+                self.cache.prefixes.add(guildId, [p for _, p in dbPrefixes])
+            except ValueError:
+                return []
+
+        return self.cache.prefixes[guildId]
 
     async def addPrefix(self, guildId, prefix):
         """Add a prefix"""
-        prefixes = await self.getGuildPrefix(guildId)
-        if len(prefixes) >= self.prefixLimit:
+        # Fetch prefixes incase there's no cache
+        await self.getGuildPrefix(guildId)
+
+        try:
+            self.cache.prefixes.add(guildId, prefix)
+        except CacheUniqueViolation:
+            raise commands.BadArgument(
+                "Prefix `{}` is already exists".format(cleanifyPrefix(self, prefix))
+            )
+        except CacheListFull:
             raise IndexError(
                 "Custom prefixes is full! (Only allowed to add up to `{}` prefixes)".format(
-                    self.prefixLimit
+                    self.cache.prefixes.limit
                 )
             )
-        if prefix not in prefixes:
-            async with self.db.transaction():
-                await self.db.execute(
-                    "INSERT INTO prefixes VALUES (:guildId, :prefix)",
-                    values={"guildId": guildId, "prefix": prefix},
-                )
-            self.prefixes[guildId] = prefixes + [prefix]
-            return prefix
-        raise commands.BadArgument(
-            "Prefix `{}` is already exists".format(cleanifyPrefix(self, prefix))
-        )
+
+        async with self.db.transaction():
+            await self.db.execute(
+                "INSERT INTO prefixes VALUES (:guildId, :prefix)",
+                values={"guildId": guildId, "prefix": prefix},
+            )
+
+        return prefix
 
     async def rmPrefix(self, guildId, prefix):
         """Remove a prefix"""
-        prefixes = await self.getGuildPrefix(guildId)
-        if prefix in prefixes:
-            async with self.db.transaction():
-                await self.db.execute(
-                    """
-                        DELETE FROM prefixes
-                        WHERE
-                            guildId=:guildId AND prefix=:prefix
-                    """,
-                    values={"guildId": guildId, "prefix": prefix},
-                )
-            self.prefixes[guildId].remove(prefix)
-            return prefix
-        raise commands.BadArgument(
-            "Prefix `{}` is not exists".format(cleanifyPrefix(self, prefix))
-        )
+        await self.getGuildPrefix(guildId)
+
+        try:
+            self.cache.prefixes.remove(guildId, prefix)
+        except IndexError:
+            raise commands.BadArgument(
+                "Prefix `{}` is not exists".format(cleanifyPrefix(self, prefix))
+            )
+
+        async with self.db.transaction():
+            await self.db.execute(
+                """
+                    DELETE FROM prefixes
+                    WHERE
+                        guildId=:guildId AND prefix=:prefix
+                """,
+                values={"guildId": guildId, "prefix": prefix},
+            )
+
+        return prefix
 
     @tasks.loop(seconds=15)
     async def changing_presence(self):
