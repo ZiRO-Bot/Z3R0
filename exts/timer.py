@@ -15,7 +15,7 @@ from core.mixin import CogMixin
 from discord.ext import commands
 from exts.utils import dbQuery
 from exts.utils.other import utcnow
-from exts.utils.format import formatDateTime, ZEmbed
+from exts.utils.format import formatDateTime, ZEmbed, formatDiscordDT
 
 
 class TimerData:
@@ -180,7 +180,6 @@ class Timer(commands.Cog, CogMixin):
         now = utcnow()
         when = argument.when
         message = argument.arg or "Reminder"
-        delta = f"<t:{int(when.timestamp())}:R>"
         if not when:
             return await ctx.try_reply("Invalid time.")
 
@@ -196,8 +195,8 @@ class Timer(commands.Cog, CogMixin):
         return await ctx.try_reply(
             '"{}" {} ({})'.format(
                 message,
-                delta,
-                formatDateTime(when),
+                formatDiscordDT(when, "R"),
+                formatDiscordDT(when, "F"),
             )
         )
 
@@ -237,9 +236,9 @@ class Timer(commands.Cog, CogMixin):
         )
 
         await channel.send(
-            "<@{}>, <t:{}:R>: {}".format(
+            "<@{}>, {}: {}".format(
                 authorId,
-                int(timer.createdAt.timestamp()),
+                formatDiscordDT(timer.createdAt, "R"),
                 discord.utils.escape_mentions(message),
             ),
             embed=e,

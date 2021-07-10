@@ -6,6 +6,7 @@ import re
 from core.objects import CustomCommand
 from discord.ext import commands
 from exts.utils.other import utcnow
+from typing import Union
 
 
 class ZEmbed(discord.Embed):
@@ -175,6 +176,16 @@ def formatMissingArgError(ctx, error):
         )
     )
     return e
+
+
+def formatDiscordDT(dt: Union[dt.datetime, float], style: str = None) -> str:
+    # Format datetime using new timestamp formatting
+    try:
+        ts = int(dt.timestamp())
+    except AttributeError:
+        # Incase dt is a unix timestamp
+        ts = int(dt)
+    return f"<t:{ts}:{style}>" if style else f"<t:{ts}>"
 
 
 def formatDateTime(datetime):
