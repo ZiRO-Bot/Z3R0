@@ -55,6 +55,11 @@ class CacheUniqueViolation(CacheError):
         super().__init__("Unique Value Violation")
 
 
+class CacheListFull(CacheError):
+    def __init__(self):
+        super().__init__("Cache list is already full!")
+
+
 class CacheProperty:
     """Base Class for Cache Property"""
 
@@ -95,7 +100,11 @@ class CacheListProperty(CacheProperty):
     """Cache List Property with Optional "unique" toggle"""
 
     def __init__(
-        self, unique: bool = False, blacklist: Iterable = [], ttl: int = 0
+        self,
+        unique: bool = False,
+        ttl: int = 0,
+        blacklist: Iterable = [],
+        limit: int = 0,
     ) -> None:
         """
         Usage
@@ -113,24 +122,68 @@ class CacheListProperty(CacheProperty):
         """
         super().__init__(unique=unique, ttl=ttl)
         self.blacklist: Iterable = blacklist
+        self.limit: int = limit
 
     def add(self, key: str, value: Any) -> CacheListProperty:
         key: str = str(key)
+        items = self._items.get(key, [])
 
-        if self.unique and (value in self._items.get(key, [])):
-            raise CacheUniqueViolation
+        if not isinstance(value, int) and not value:
+            self._items[key] = []
+            raise ValueError("value can't be empty")
+
+        if (
+            self.limit
+            and len(items)
+            + (1 if isinstance(value, str) or isinstance(value, int) else len(value))
+            > self.limit
+        ):
+            raise CacheListFull
+
+        if self.unique:
+            if isinstance(value, Iterable) and not isinstance(value, str):
+                value = [
+                    v for v in set(value) if v not in items or v not in self.blacklist
+                ]
+                if not value:
+                    raise CacheUniqueViolation
+            else:
+                if value in items:
+                    raise CacheUniqueViolation
+
         if value in self.blacklist:
             raise CacheError(f"'{value}' is blacklisted")
 
         try:
-            self._items[key].append(value)
+            if isinstance(value, Iterable) and not isinstance(value, str):
+                self._items[key].extend(value)
+            else:
+                self._items[key].append(value)
         except KeyError:
-            self._items[key] = [value]
+            self._items[key] = (
+                [value]
+                if isinstance(value, str) or isinstance(value, int)
+                else list(value)
+            )
 
         return self
 
     # Alias add as append
     append = add
+
+    def remove(self, key: str, value: Any) -> CacheListProperty:
+        key: str = str(key)
+        items = self._items.get(key, [])
+
+        if not items:
+            raise IndexError("List is empty!")
+
+        try:
+            self._items[key].remove(value)
+        except ValueError:
+            raise ValueError(f"'{value}' not in the list")
+
+        return self
 
 
 class Cache:
@@ -156,8 +209,10 @@ class Cache:
 
 if __name__ == "__main__":
     cache = Cache()
-    cache.add("prefix", cls=CacheListProperty, unique=True).add(0, ">").add(1, ">")
-    cache.add("test", unique=True).add(0, "test").add(1, "test")
-    print(cache)
+    cache.add("prefix", cls=CacheListProperty, unique=True, limit=15).add(0, 0)
+    # for i in range(16):
+    cache.prefix.remove(0, ">")
+    # cache.add("test", unique=True).add(0, "test").add(1, "test")
+    print(cache.prefix)
     # print(cache.prefix.get(0))
     # cache.prefix.append(0, ">")
