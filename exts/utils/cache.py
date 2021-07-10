@@ -125,6 +125,7 @@ class CacheListProperty(CacheProperty):
         self.limit: int = limit
 
     def add(self, key: str, value: Any) -> CacheListProperty:
+        # TODO: Move Iterable handler to `extend()` function
         key: str = str(key)
         items = self._items.get(key, [])
 
