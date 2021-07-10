@@ -83,7 +83,10 @@ class Utilities(commands.Cog, CogMixin):
         executed = await self.piston.run(lang, code)
 
         e = ZEmbed.default(ctx)
-        e.set_author(name="Piston API", icon_url="attachment://piston.png")
+        e.set_author(
+            name="Piston API - {}-{}".format(executed.language, executed.version),
+            icon_url="attachment://piston.png",
+        )
 
         if executed.message:
             e.description = "```diff\n- {}```".format(executed.message)
