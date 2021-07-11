@@ -127,9 +127,6 @@ class ziBot(commands.Bot):
             )
         )
 
-        # disabled commands
-        self.disabled = {}
-
         # database
         self.db = Database(config.sql, factory=Connection)
 
