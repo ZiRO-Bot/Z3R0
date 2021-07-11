@@ -124,8 +124,31 @@ class CacheListProperty(CacheProperty):
         self.blacklist: Iterable = blacklist
         self.limit: int = limit
 
+    def extend(self, key: str, values: Iterable) -> CacheListProperty:
+        key: str = str(key)
+        items = self._items.get(key, [])
+        values = set(values)  # Remove duplicates
+
+        if not values:
+            self._items[key] = []
+            raise ValueError("value can't be empty")
+
+        if self.limit and (len(items) + len(values)) > self.limit:
+            raise CacheListFull
+
+        if self.unique:
+            values = [v for v in values if v not in items or v not in self.blacklist]
+            if not values:
+                raise CacheUniqueViolation
+
+        try:
+            self._items[key].extend(values)
+        except KeyError:
+            self._items[key] = list(values)
+
+        return self
+
     def add(self, key: str, value: Any) -> CacheListProperty:
-        # TODO: Move Iterable handler to `extend()` function
         key: str = str(key)
         items = self._items.get(key, [])
 
@@ -133,39 +156,19 @@ class CacheListProperty(CacheProperty):
             self._items[key] = []
             raise ValueError("value can't be empty")
 
-        if (
-            self.limit
-            and len(items)
-            + (1 if isinstance(value, str) or isinstance(value, int) else len(value))
-            > self.limit
-        ):
+        if self.limit and (len(items) + 1) > self.limit:
             raise CacheListFull
 
-        if self.unique:
-            if isinstance(value, Iterable) and not isinstance(value, str):
-                value = [
-                    v for v in set(value) if v not in items or v not in self.blacklist
-                ]
-                if not value:
-                    raise CacheUniqueViolation
-            else:
-                if value in items:
-                    raise CacheUniqueViolation
+        if self.unique and value in items:
+            raise CacheUniqueViolation
 
         if value in self.blacklist:
             raise CacheError(f"'{value}' is blacklisted")
 
         try:
-            if isinstance(value, Iterable) and not isinstance(value, str):
-                self._items[key].extend(value)
-            else:
-                self._items[key].append(value)
+            self._items[key].append(value)
         except KeyError:
-            self._items[key] = (
-                [value]
-                if isinstance(value, str) or isinstance(value, int)
-                else list(value)
-            )
+            self._items[key] = [value]
 
         return self
 
@@ -210,9 +213,9 @@ class Cache:
 
 if __name__ == "__main__":
     cache = Cache()
-    cache.add("prefix", cls=CacheListProperty, unique=True, limit=15).add(0, 0)
+    cache.add("prefix", cls=CacheListProperty, unique=True, limit=15).add(0, "0")
     # for i in range(16):
-    cache.prefix.remove(0, ">")
+    cache.prefix.extend(0, [str(i) for i in range(15)])
     # cache.add("test", unique=True).add(0, "test").add(1, "test")
     print(cache.prefix)
     # print(cache.prefix.get(0))

@@ -243,7 +243,7 @@ class ziBot(commands.Bot):
             )
 
             try:
-                self.cache.prefixes.add(guildId, [p for _, p in dbPrefixes])
+                self.cache.prefixes.extend(guildId, [p for _, p in dbPrefixes])
             except ValueError:
                 return []
 
