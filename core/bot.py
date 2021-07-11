@@ -20,12 +20,13 @@ from exts.utils.cache import (
     CacheListProperty,
     CacheUniqueViolation,
     CacheListFull,
+    CacheDictProperty,
 )
 from exts.utils.format import cleanifyPrefix
 from exts.utils.other import Blacklist, utcnow
 from databases import Database
 from discord.ext import commands, tasks
-from typing import Union
+from typing import Union, Iterable
 
 
 import config
@@ -106,6 +107,8 @@ class ziBot(commands.Bot):
 
         # bot's default prefix
         self.defPrefix = ">" if not hasattr(config, "prefix") else config.prefix
+
+        # Caches
         self.cache = Cache()
         self.cache.add(
             "prefixes",
@@ -113,10 +116,15 @@ class ziBot(commands.Bot):
             unique=True,
             limit=15,
         )
+        self.cache.add(
+            "guildConfigs",
+            cls=CacheDictProperty,
+        )
+        self.cache.add(
+            "guildRoles",
+            cls=CacheDictProperty,
+        )
 
-        # cache guild's configs
-        self.guildConfigs = {}
-        self.guildRoles = {}
         # disabled commands
         self.disabled = {}
 
@@ -165,38 +173,36 @@ class ziBot(commands.Bot):
             self.uptime = utcnow()
 
     async def getGuildConfigs(
-        self, guildId: int, filters: list = [], table: str = "guildConfigs"
+        self, guildId: int, filters: Iterable = "*", table: str = "guildConfigs"
     ):
         # Get guild configs and maybe cache it
-        cached: dict = getattr(self, table)
+        cached: CacheDictProperty = getattr(self.cache, table)
         if cached.get(guildId) is None:
             # Executed when guild configs is not in the cache
             row = await self.db.fetch_one(
-                f"SELECT {', '.join(filters) or '*'} FROM {table} WHERE guildId=:id",
+                f"SELECT {', '.join(filters)} FROM {table} WHERE guildId=:id",
                 values={"id": guildId},
             )
             if row:
                 row = dict(row)
                 row.pop("guildId", None)
-                try:
-                    cached[guildId].update(row)
-                except:
-                    cached.update({guildId: row})
-        return cached.get(guildId, {})
+                cached.set(guildId, row)
+        return cached[guildId]
 
     async def getGuildConfig(
         self, guildId: int, configType: str, table: str = "guildConfigs"
     ):
         # Get guild's specific config
-        configs: dict = await self.getGuildConfigs(guildId, [configType], table)
+        configs: dict = await self.getGuildConfigs(guildId, (configType,), table)
         return configs.get(configType)
 
     async def setGuildConfig(
         self, guildId: int, configType: str, configValue, table: str = "guildConfigs"
     ):
         # Set/edit guild's specific config
-        config = await self.getGuildConfig(guildId, configType, table)
-        if config == configValue:
+        if (
+            config := await self.getGuildConfig(guildId, configType, table)
+        ) == configValue:
             # cached value is equal to new value
             # No need to overwrite database value
             return config
@@ -227,12 +233,9 @@ class ziBot(commands.Bot):
                 },
             )
             # Overwrite current configs
-            cached = getattr(self, table)
+            cached: CacheDictProperty = getattr(self.cache, table)
             newData = {configType: configValue}
-            try:
-                cached[guildId].update(newData)
-            except KeyError:
-                cached.update({guildId: newData})
+            cached.set(guildId, newData)
         return cached.get(guildId, {}).get(configType, None)
 
     async def getGuildPrefix(self, guildId):
@@ -388,13 +391,10 @@ class ziBot(commands.Bot):
         await self.wait_until_ready()
 
         async with self.db.transaction():
-            dbGuild = await self.db.fetch_one(
-                "SELECT * FROM guilds WHERE id=:id", values={"id": guild.id}
+            return await self.db.execute(
+                dbQuery.insertToGuilds, values={"id": guild.id}
             )
-            if not dbGuild:
-                return await self.db.execute(
-                    dbQuery.insertToGuilds, values={"id": guild.id}
-                )
+
             # Cancel deletion
             await self.cancelDeletion(guild)
 
@@ -452,7 +452,7 @@ class ziBot(commands.Bot):
 
             for dataType in ("prefixes", "guildConfigs", "disabled"):
                 try:
-                    del getattr(self, dataType)[guildId]
+                    getattr(self.cache, dataType).clear(guildId)
                 except KeyError:
                     pass
 

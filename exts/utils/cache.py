@@ -74,15 +74,20 @@ class CacheProperty:
     def items(self) -> dict:
         return self._items
 
-    def add(self, key: str, value: Any) -> CacheListProperty:
+    def set(self, key: str, value: Any) -> CacheProperty:
+        # Will bypass unique check
+        key: str = str(key)
+
+        self._items.update({key: value})
+        return self
+
+    def add(self, key: str, value: Any) -> CacheProperty:
         key: str = str(key)
 
         if self.unique and key in self._items:
             raise CacheUniqueViolation
 
-        self._items[key] = value
-
-        return self
+        return self.set(key, value)
 
     def __getitem__(self, key: str) -> Any:
         key = str(key)
@@ -95,6 +100,41 @@ class CacheProperty:
         except KeyError:
             return fallback
 
+    def clear(self, key: str) -> None:
+        try:
+            del self._items[str(key)]
+        except KeyError:
+            # Not exists
+            pass
+
+
+class CacheDictProperty(CacheProperty):
+    """Cache Dict Property"""
+
+    def __init__(
+        self,
+        unique: bool = False,
+        ttl: int = 0,
+    ) -> None:
+        super().__init__(unique=unique, ttl=ttl)
+        self._items: Dict[str, Any] = {}
+
+    def set(self, key: str, value: Dict[str, Any]) -> CacheDictProperty:
+        key = str(key)
+
+        if not isinstance(value, Dict):
+            raise RuntimeError("Only dict value is allowed!")
+
+        super().set(key, value)
+        return self
+
+    # def add(self, key: str, value: Dict[str, Any]) -> CacheDictProperty:
+    #     key = str(key)
+
+    #     return self.set(key, value)
+
+    add = set
+
 
 class CacheListProperty(CacheProperty):
     """Cache List Property with Optional "unique" toggle"""
@@ -102,14 +142,14 @@ class CacheListProperty(CacheProperty):
     def __init__(
         self,
         unique: bool = False,
-        ttl: int = 0,
         blacklist: Iterable = [],
         limit: int = 0,
     ) -> None:
         """
         Usage
         -----
-        >>> cache = Cache().add(cls=CacheListProperty, unique=True).append(0, ">")
+        >>> cache = Cache()
+        >>> cache.add(cls=CacheListProperty, unique=True).append(0, ">")
         >>> cache.prefix.append(1, ">")
         >>> cache.prefix.append(0, ">")
         Traceback (most recent call last):
@@ -120,7 +160,7 @@ class CacheListProperty(CacheProperty):
         __main__.CacheUniqueViolation: Unique Value Violation
         ...
         """
-        super().__init__(unique=unique, ttl=ttl)
+        super().__init__(unique=unique)
         self.blacklist: Iterable = blacklist
         self.limit: int = limit
 
@@ -130,7 +170,7 @@ class CacheListProperty(CacheProperty):
         values = set(values)  # Remove duplicates
 
         if not values:
-            self._items[key] = []
+            self.set(key, [])
             raise ValueError("value can't be empty")
 
         if self.limit and (len(items) + len(values)) > self.limit:
@@ -144,7 +184,7 @@ class CacheListProperty(CacheProperty):
         try:
             self._items[key].extend(values)
         except KeyError:
-            self._items[key] = list(values)
+            self.set(key, list(values))
 
         return self
 
@@ -168,7 +208,7 @@ class CacheListProperty(CacheProperty):
         try:
             self._items[key].append(value)
         except KeyError:
-            self._items[key] = [value]
+            self.set(key, [value])
 
         return self
 
@@ -206,6 +246,11 @@ class Cache:
     def add(self, name: str, *, cls: Any = CacheProperty, **kwargs) -> CacheProperty:
         name = str(name)
 
+        if not issubclass(cls, CacheProperty) or isinstance(cls, CacheProperty):
+            raise RuntimeError(
+                "cls has to be CacheProperty or subclass of CacheProperty"
+            )
+
         self._property.append(name)
         setattr(self, name, cls(**kwargs))
         return getattr(self, name)
@@ -213,10 +258,9 @@ class Cache:
 
 if __name__ == "__main__":
     cache = Cache()
-    cache.add("prefix", cls=CacheListProperty, unique=True, limit=15).add(0, "0")
-    # for i in range(16):
-    cache.prefix.extend(0, [str(i) for i in range(15)])
-    # cache.add("test", unique=True).add(0, "test").add(1, "test")
-    print(cache.prefix)
-    # print(cache.prefix.get(0))
-    # cache.prefix.append(0, ">")
+    cache.add("guildConfigs", cls=CacheDictProperty)
+    cache.guildConfigs.add(0, {"test": "hello"}).add(1, {})
+    print(cache.guildConfigs)
+    print(cache.guildConfigs.add(1, {"test": "test"}))
+    cache.guildConfigs.clear(1)
+    print(cache.guildConfigs)
