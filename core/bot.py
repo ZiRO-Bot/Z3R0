@@ -119,12 +119,13 @@ class ziBot(commands.Bot):
 
         self.master = [186713080841895936]
 
-        self.changing_presence.start()
-
         self.loop.create_task(self.start_up())
 
     async def start_up(self):
         await self.wait_until_ready()
+
+        self.changing_presence.start()
+
         for server in self.guilds:
             self.add_empty_data(server)
 
