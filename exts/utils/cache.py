@@ -219,6 +219,9 @@ class CacheListProperty(CacheProperty):
         key: str = str(key)
         items = self._items.get(key, [])
 
+        if not value:
+            raise ValueError("value can't be empty!")
+
         if not items:
             raise IndexError("List is empty!")
 

@@ -26,6 +26,7 @@ from core.menus import ZMenu
 from core.mixin import CogMixin
 from core.objects import CustomCommand
 from exts.utils import dbQuery, infoQuote, tseBlocks
+from exts.utils.cache import CacheListProperty, CacheUniqueViolation, CacheError
 from exts.utils.format import (
     CMDName,
     ZEmbed,
@@ -295,6 +296,10 @@ class Meta(commands.Cog, CogMixin):
         self._original_help_command = bot.help_command
         self.bot.help_command = CustomHelp()
         self.bot.help_command.cog = self
+        self.bot.cache.add(
+            "disabled",
+            cls=CacheListProperty,
+        )
 
         # TSE stuff
         blocks = [
@@ -329,12 +334,15 @@ class Meta(commands.Cog, CogMixin):
         return " ".join(reversed([command.name] + commands))
 
     async def getDisabledCommands(self, ctx, guildId):
-        if self.bot.disabled.get(guildId) is None:
+        if self.bot.cache.disabled.get(guildId) is None:
             dbDisabled = await ctx.db.fetch_all(
                 "SELECT command FROM disabled WHERE guildId=:id", values={"id": guildId}
             )
-            self.bot.disabled[guildId] = [c[0] for c in dbDisabled]
-        return self.bot.disabled.get(guildId, [])
+            try:
+                self.bot.cache.disabled.extend(guildId, [c[0] for c in dbDisabled])
+            except ValueError:
+                return []
+        return self.bot.cache.disabled.get(guildId, [])
 
     async def bot_check(self, ctx):
         """Global check"""
@@ -913,8 +921,12 @@ class Meta(commands.Cog, CogMixin):
                 # check if command root parent is immune
                 return await ctx.try_reply("This command can't be disabled!")
 
-            disabled = await self.getDisabledCommands(ctx, ctx.guild.id)
-            if cmdName in disabled:
+            # Make sure disable command is cached from database
+            await self.getDisabledCommands(ctx, ctx.guild.id)
+
+            try:
+                self.bot.cache.disabled.append(ctx.guild.id, cmdName)
+            except CacheUniqueViolation:
                 # check if command already disabled
                 return await ctx.try_reply(alreadyMsg.format(cmdName))
 
@@ -926,9 +938,6 @@ class Meta(commands.Cog, CogMixin):
                     values={"guildId": ctx.guild.id, "command": cmdName},
                 )
 
-                disabled.append(cmdName)
-                self.bot.disabled[ctx.guild.id] = disabled
-
                 return await ctx.try_reply(successMsg.format(cmdName))
 
         elif mode == "category":
@@ -936,14 +945,17 @@ class Meta(commands.Cog, CogMixin):
             commands = [
                 c.name for c in category.get_commands() if c.name not in immuneRoot
             ]
-            disabled = await self.getDisabledCommands(ctx, ctx.guild.id)
+
+            # Make sure disable command is cached from database
+            await self.getDisabledCommands(ctx, ctx.guild.id)
 
             added = []
             for c in commands:
-                if c in disabled:
+                try:
+                    self.bot.cache.disabled.append(ctx.guild.id, c)
+                    added.append(c)
+                except CacheUniqueViolation:
                     continue
-                added.append(c)
-                disabled.append(c)
 
             if not added:
                 return await ctx.try_reply("No commands succesfully disabled")
@@ -955,7 +967,7 @@ class Meta(commands.Cog, CogMixin):
                     """,
                     values=[{"guildId": ctx.guild.id, "command": cmd} for cmd in added],
                 )
-                self.bot.disabled[ctx.guild.id] = disabled
+
                 return await ctx.try_reply(
                     "`{}` commands has been disabled".format(len(added))
                 )
@@ -1044,8 +1056,11 @@ class Meta(commands.Cog, CogMixin):
             # format command name
             cmdName = self.formatCmdName(command)
 
-            disabled = await self.getDisabledCommands(ctx, ctx.guild.id)
-            if cmdName not in disabled:
+            await self.getDisabledCommands(ctx, ctx.guild.id)
+
+            try:
+                self.bot.cache.disabled.remove(ctx.guild.id, cmdName)
+            except ValueError:
                 # check if command already enabled
                 return await ctx.try_reply(alreadyMsg.format(cmdName))
 
@@ -1059,21 +1074,23 @@ class Meta(commands.Cog, CogMixin):
                     values={"guildId": ctx.guild.id, "command": cmdName},
                 )
 
-                disabled.remove(cmdName)
-                self.bot.disabled[ctx.guild.id] = disabled
-
                 return await ctx.try_reply(successMsg.format(cmdName))
 
         elif mode == "category":
             category = self.bot.get_cog(name)
-            disabled = await self.getDisabledCommands(ctx, ctx.guild.id)
-            commands = [c.name for c in category.get_commands() if c.name in disabled]
+            await self.getDisabledCommands(ctx, ctx.guild.id)
+            commands = [c.name for c in category.get_commands()]
 
-            if not commands:
-                return await ctx.try_reply("No commands succesfully enabled")
-
+            removed = []
             for c in commands:
-                disabled.remove(c)
+                try:
+                    self.bot.cache.disabled.remove(c)
+                    removed.append(c)
+                except ValueError:
+                    continue
+
+            if not removed:
+                return await ctx.try_reply("No commands succesfully enabled")
 
             async with ctx.db.transaction():
                 await ctx.db.execute_many(
@@ -1081,12 +1098,12 @@ class Meta(commands.Cog, CogMixin):
                     DELETE FROM disabled WHERE guildId=:guildId AND command=:command
                     """,
                     values=[
-                        {"guildId": ctx.guild.id, "command": cmd} for cmd in commands
+                        {"guildId": ctx.guild.id, "command": cmd} for cmd in removed
                     ],
                 )
-                self.bot.disabled[ctx.guild.id] = disabled
+
                 return await ctx.try_reply(
-                    "`{}` commands has been enabled".format(len(commands))
+                    "`{}` commands has been enabled".format(len(removed))
                 )
 
         elif mode == "custom":
