@@ -31,16 +31,16 @@ class GraphQL:
         self.baseUrl = baseUrl
         self.session = kwargs.pop("session", aiohttp.ClientSession())
 
-    async def query(self, query, method: str = "POST", **kwargs):
+    async def query(self, query, /, method: str = "POST", **kwargs):
         async with getattr(self.session, method.lower())(
             self.baseUrl, json={"query": query, "variables": kwargs}
         ) as req:
             return await req.json()
 
-    async def queryPost(self, query, **kwargs):
+    async def queryPost(self, query, /, **kwargs):
         return await self.query(query, method="POST", **kwargs)
 
-    async def queryGet(self, query, **kwargs):
+    async def queryGet(self, query, /, **kwargs):
         return await self.query(query, method="GET", **kwargs)
 
 
