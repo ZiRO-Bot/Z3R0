@@ -316,11 +316,14 @@ class ziBot(commands.Bot):
             ),
             discord.Activity(name=f"bot war", type=discord.ActivityType.competing),
         )
-        await self.change_presence(activity=activities[self.activityIndex])
-
-        self.activityIndex += 1
-        if self.activityIndex > len(activities) - 1:
+        try:
+            self.activityIndex += 1
+            activity=activities[self.activityIndex]
+        except IndexError:
             self.activityIndex = 0
+            activity=activities[self.activityIndex]
+
+        await self.change_presence(activity=activities[self.activityIndex])
 
     async def on_ready(self):
         self.logger.warning("Ready: {0} (ID: {0.id})".format(self.user))
