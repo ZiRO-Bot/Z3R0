@@ -109,20 +109,22 @@ class ziBot(commands.Bot):
         self.defPrefix = ">" if not hasattr(config, "prefix") else config.prefix
 
         # Caches
-        self.cache = Cache()
-        self.cache.add(
-            "prefixes",
-            cls=CacheListProperty,
-            unique=True,
-            limit=15,
-        )
-        self.cache.add(
-            "guildConfigs",
-            cls=CacheDictProperty,
-        )
-        self.cache.add(
-            "guildRoles",
-            cls=CacheDictProperty,
+        self.cache = (
+            Cache()
+            .add(
+                "prefixes",
+                cls=CacheListProperty,
+                unique=True,
+                limit=15,
+            )
+            .add(
+                "guildConfigs",
+                cls=CacheDictProperty,
+            )
+            .add(
+                "guildRoles",
+                cls=CacheDictProperty,
+            )
         )
 
         # disabled commands

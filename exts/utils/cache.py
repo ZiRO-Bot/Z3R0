@@ -148,8 +148,8 @@ class CacheListProperty(CacheProperty):
         """
         Usage
         -----
-        >>> cache = Cache()
-        >>> cache.add(cls=CacheListProperty, unique=True).append(0, ">")
+        >>> cache = Cache().add(cls=CacheListProperty, unique=True)
+        >>> cache.prefix.append(0, ">")
         >>> cache.prefix.append(1, ">")
         >>> cache.prefix.append(0, ">")
         Traceback (most recent call last):
@@ -243,7 +243,7 @@ class Cache:
     def __repr__(self) -> str:
         return "<Properties: {}>".format(set(self._property))
 
-    def add(self, name: str, *, cls: Any = CacheProperty, **kwargs) -> CacheProperty:
+    def add(self, name: str, *, cls: Any = CacheProperty, **kwargs) -> Cache:
         name = str(name)
 
         if not issubclass(cls, CacheProperty) or isinstance(cls, CacheProperty):
@@ -253,12 +253,11 @@ class Cache:
 
         self._property.append(name)
         setattr(self, name, cls(**kwargs))
-        return getattr(self, name)
+        return self
 
 
 if __name__ == "__main__":
-    cache = Cache()
-    cache.add("guildConfigs", cls=CacheDictProperty)
+    cache = Cache().add("guildConfigs", cls=CacheDictProperty)
     cache.guildConfigs.add(0, {"test": "hello"}).add(1, {})
     print(cache.guildConfigs)
     print(cache.guildConfigs.add(1, {"test": "test"}))
