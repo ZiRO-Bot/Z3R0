@@ -24,7 +24,7 @@ except FileExistsError:
 
 
 EXTS = []
-EXTS_DIR= "cogs"
+EXTS_DIR = "cogs"
 EXTS_IGNORED = (
     "admin.py",
     "youtube.py",
@@ -32,7 +32,7 @@ EXTS_IGNORED = (
     "slash.py",
     "src.py",
     "mcbe.py",
-    "music.py"
+    "music.py",
 )
 for filename in os.listdir("./{}".format(EXTS_DIR)):
     if filename in EXTS_IGNORED:
@@ -54,7 +54,9 @@ def _callable_prefix(bot, message):
         base.extend(bot.prefixes.get(message.guild.id, [">"]))
     return base
 
+
 get_prefix = _callable_prefix
+
 
 class ziBot(commands.Bot):
     def __init__(self):
@@ -91,7 +93,7 @@ class ziBot(commands.Bot):
         # Create tables
         self.c.execute(
             """CREATE TABLE IF NOT EXISTS servers
-                (id text unique, prefixes text, anime_ch int, 
+                (id text unique, prefixes text, anime_ch int,
                 greeting_ch int, meme_ch int, purge_ch int,
                 pingme_ch int, announcement_ch int)"""
         )
@@ -110,12 +112,21 @@ class ziBot(commands.Bot):
         )
         self.c.execute(
             """CREATE TABLE IF NOT EXISTS settings
-                (id text unique, send_error_msg int, 
-                disabled_cmds text, welcome_msg text, 
+                (id text unique, send_error_msg int,
+                disabled_cmds text, welcome_msg text,
                 farewell_msg text, mods_only text)"""
         )
 
         self.master = [186713080841895936]
+
+        self.changing_presence.start()
+
+        self.loop.create_task(self.start_up())
+
+    async def start_up(self):
+        await self.wait_until_ready()
+        for server in self.guilds:
+            self.add_empty_data(server)
 
     def init_tagscript(
         self,
@@ -183,7 +194,7 @@ class ziBot(commands.Bot):
 
     def remove_guild_data(self, guild):
         self.c.execute(
-            """DELETE FROM servers 
+            """DELETE FROM servers
             WHERE id=?""",
             (str(guild.id),),
         )
@@ -217,17 +228,17 @@ class ziBot(commands.Bot):
     async def changing_presence(self):
         activities = [
             discord.Activity(
-                name=f"over {len(self.guilds)} servers", type=discord.ActivityType.watching
+                name=f"over {len(self.guilds)} servers",
+                type=discord.ActivityType.watching,
             ),
             discord.Activity(
                 name=f"over {len(self.users)} users", type=discord.ActivityType.watching
             ),
             discord.Activity(
-                name=f"commands | Ping me to get prefix list!", type=discord.ActivityType.listening
+                name=f"commands | Ping me to get prefix list!",
+                type=discord.ActivityType.listening,
             ),
-            discord.Activity(
-                name=f"bot war", type=discord.ActivityType.competing
-            ),
+            discord.Activity(name=f"bot war", type=discord.ActivityType.competing),
         ]
         await self.change_presence(activity=activities[self.activityIndex])
 
@@ -236,15 +247,7 @@ class ziBot(commands.Bot):
             self.activityIndex = 0
 
     async def on_ready(self):
-        self.changing_presence.start()
-
-        for extension in EXTS:
-            self.load_extension(extension)
-
         self.logger.warning(f"Online: {self.user} (ID: {self.user.id})")
-
-        for server in self.guilds:
-            self.add_empty_data(server)
 
     async def process_commands(self, message):
         ctx = await self.get_context(message)
@@ -282,7 +285,9 @@ class ziBot(commands.Bot):
             prefixes.pop(0)
             prefixes = ", ".join([f"`{x}`" for x in prefixes])
             embed = discord.Embed(
-                description="My prefixes are: {} or {}".format(prefixes, self.user.mention),
+                description="My prefixes are: {} or {}".format(
+                    prefixes, self.user.mention
+                ),
                 colour=discord.Colour.rounded(),
             )
             await message.reply(embed=embed)
@@ -294,4 +299,7 @@ class ziBot(commands.Bot):
         await self.session.close()
 
     def run(self):
+        for extension in EXTS:
+            self.load_extension(extension)
+
         super().run(self.config["bot_token"], reconnect=True)
