@@ -15,6 +15,15 @@ from exts.utils import dbQuery
 from exts.utils.format import ZEmbed
 from exts.utils.other import ArgumentParser
 
+# Also includes aliases
+ROLE_TYPES = (
+    "moderator",
+    "mod",
+    "mute",
+    "muted",
+    "regular",
+)
+
 
 class Admin(commands.Cog, CogMixin):
     """Admin-only commands to configure the bot."""
@@ -196,14 +205,6 @@ class Admin(commands.Cog, CogMixin):
         usage="(name) [-t type]",
     )
     async def roleMake(self, ctx, *, arguments):
-        availableTypes = (
-            "moderator",
-            "mod",
-            "mute",
-            "muted",
-            "regular",
-        )
-
         parser = ArgumentParser(allow_abbrev=False)
         parser.add_argument("--type", "-t")
         parser.add_argument("name", nargs="+")
@@ -213,7 +214,7 @@ class Admin(commands.Cog, CogMixin):
         name = " ".join(parsed.name)
         type = parsed.type or "regular"
 
-        if (type := type.lower()) in availableTypes:
+        if (type := type.lower()) in ROLE_TYPES:
             role = await ctx.guild.create_role(name=name)
 
             if any([type == "mute", type == "muted"]):
@@ -233,7 +234,7 @@ class Admin(commands.Cog, CogMixin):
 
         return await ctx.try_reply(
             "Available role type: {}".format(
-                ", ".join([f"`{type}`" for type in availableTypes])
+                ", ".join([f"`{type}`" for type in ROLE_TYPES])
             )
         )
 
