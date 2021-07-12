@@ -19,7 +19,7 @@ from core.mixin import CogMixin
 from discord.ext import commands
 from exts.utils import tseBlocks
 from exts.utils.format import formatMissingArgError, logAction
-from exts.utils.other import reactsToMessage
+from exts.utils.other import reactsToMessage, ArgumentError
 
 
 class EventHandler(commands.Cog, CogMixin):
@@ -106,7 +106,7 @@ class EventHandler(commands.Cog, CogMixin):
             if ctx.command.root_parent.name == "emoji" and ctx.command.name == "steal":
                 return await ctx.error("Unicode is not supported!")
 
-        if isinstance(error, commands.MissingRequiredArgument):
+        if isinstance(error, commands.MissingRequiredArgument) or isinstance(error, ArgumentError):
             e = formatMissingArgError(ctx, error)
             return await ctx.try_reply(embed=e)
 
