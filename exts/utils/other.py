@@ -186,7 +186,7 @@ class ArgumentError(commands.CommandError):
     """Error class for ArgumentParser"""
 
     def __init__(self, message):
-        super().__init__(discord.escape_mentions(message))
+        super().__init__(discord.utils.escape_mentions(message))
 
 
 class ArgumentParser(argparse.ArgumentParser):
