@@ -303,15 +303,15 @@ class Meta(commands.Cog, CogMixin):
 
         # TSE stuff
         blocks = [
-            tse.LooseVariableGetterBlock(),
-            tse.RandomBlock(),
             tse.AssignmentBlock(),
-            tse.RequireBlock(),
             tse.EmbedBlock(),
+            tse.LooseVariableGetterBlock(),
             tse.RedirectBlock(),
-            tseBlocks.SilentBlock(),
+            tse.RequireBlock(),
+            tseBlocks.RandomBlock(),
             tseBlocks.ReactBlock(),
             tseBlocks.ReactUBlock(),
+            tseBlocks.SilentBlock(),
         ]
         self.engine = tse.Interpreter(blocks)
 
