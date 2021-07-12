@@ -67,7 +67,7 @@ class Context(commands.Context):
         return await self.try_reply(embed=e)
 
     async def success(self, success_message: str, /):
-        e = ZEmbed.success(description=error_message)
+        e = ZEmbed.success(description=success_message)
         return await self.try_reply(embed=e)
 
     @property
