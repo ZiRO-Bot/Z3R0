@@ -34,6 +34,16 @@ class ZEmbed(discord.Embed):
         return cls(title="{} {}".format(emoji, title), color=color, **kwargs)
 
     @classmethod
+    def success(
+        cls,
+        emoji="<:ok:864033138832703498>",
+        title="Success",
+        color=discord.Color.green(),
+        **kwargs,
+    ):
+        return cls(title="{} {}".format(emoji, title), color=color, **kwargs)
+
+    @classmethod
     def loading(
         cls,
         emoji="<a:loading:776255339716673566>",
