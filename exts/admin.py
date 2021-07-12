@@ -16,13 +16,13 @@ from exts.utils.format import ZEmbed
 from exts.utils.other import ArgumentParser
 
 # Also includes aliases
-ROLE_TYPES = (
-    "moderator",
-    "mod",
-    "mute",
-    "muted",
-    "regular",
-)
+ROLE_TYPES = {
+    "moderator": "modRole",
+    "mod": "modRole",
+    "mute": "mutedRole",
+    "muted": "mutedRole",
+    "regular": "",
+}
 
 
 class Admin(commands.Cog, CogMixin):
@@ -217,24 +217,62 @@ class Admin(commands.Cog, CogMixin):
         if (type := type.lower()) in ROLE_TYPES:
             role = await ctx.guild.create_role(name=name)
 
-            if any([type == "mute", type == "muted"]):
-                await self.setGuildRole(ctx.guild.id, "mutedRole", role.id)
-                for cat in ctx.guild.categories:
-                    await cat.set_permissions(role, send_messages=False, speak=False)
+            if not role:
+                # TODO: Maybe return a message to tell user that the command fail
+                return
 
-            if any([type == "mod", type == "moderator"]):
-                await self.setGuildRole(ctx.guild.id, "modRole", role.id)
+            if type != "regular":
+                await self.setGuildRole(ctx.guild.id, ROLE_TYPES[type], role.id)
 
-            if role:
-                return await ctx.try_reply(
-                    "Role '{}' has been created".format(role.mention),
-                    escape_mentions=False,
-                )
-            return
+                if any([type == "mute", type == "muted"]):
+                    # TODO: [FIX] This will leave no category channels untouched
+                    for cat in ctx.guild.categories:
+                        await cat.set_permissions(
+                            role, send_messages=False, speak=False
+                        )
+
+            return await ctx.success("Role '{}' has been created".format(role.mention))
 
         return await ctx.try_reply(
             "Available role type: {}".format(
                 ", ".join([f"`{type}`" for type in ROLE_TYPES])
+            )
+        )
+
+    @_role.command(
+        name="set",
+        aliases=["&"],
+        brief="Turn regular role into special role",
+        usage="(name) (-t type)",
+    )
+    async def roleSet(self, ctx, *, arguments):
+        parser = ArgumentParser(allow_abbrev=False)
+        parser.add_argument("--type", "-t", required=True)
+        parser.add_argument("role", nargs="+")
+
+        parsed, _ = parser.parse_known_args(shlex.split(arguments))
+
+        roleArg = " ".join(parsed.role)
+        type = parsed.type
+
+        disallowed = ("regular",)
+
+        if (type := type.lower()) in ROLE_TYPES and type not in disallowed:
+            role = await commands.RoleConverter().convert(ctx, roleArg)
+
+            if not role:
+                return
+
+            if type != "regular":
+                await self.setGuildRole(ctx.guild.id, ROLE_TYPES[type], role.id)
+
+            return await ctx.success("Role '{}' has been created".format(role.mention))
+
+        return await ctx.try_reply(
+            "Available role type: {}".format(
+                ", ".join(
+                    [f"`{type}`" for type in ROLE_TYPES if type not in disallowed]
+                )
             )
         )
 
