@@ -62,8 +62,12 @@ class Context(commands.Context):
             content, escape_mentions=escape_mentions, type="reply", **kwargs
         )
 
-    async def error(self, error_message: str):
+    async def error(self, error_message: str, /):
         e = ZEmbed.error(description=error_message)
+        return await self.try_reply(embed=e)
+
+    async def success(self, success_message: str, /):
+        e = ZEmbed.success(description=error_message)
         return await self.try_reply(embed=e)
 
     @property
