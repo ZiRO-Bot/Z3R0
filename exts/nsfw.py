@@ -101,7 +101,7 @@ class NSFW(commands.Cog, CogMixin):
         )
         await menus.start(ctx)
 
-    @commands.command(aliases=["boobs"])
+    @commands.command(aliases=("boobs",))
     async def tits(self, ctx):
         menus = NekoMenu(NekoPageSource(self.bot.session, "/images/nsfw/img/tits_lewd"))
         await menus.start(ctx)
@@ -109,6 +109,11 @@ class NSFW(commands.Cog, CogMixin):
     @commands.command()
     async def yuri(self, ctx):
         menus = NekoMenu(NekoPageSource(self.bot.session, "/images/nsfw/img/yuri_lewd"))
+        await menus.start(ctx)
+
+    @commands.command()
+    async def cosplay(self, ctx):
+        menus = NekoMenu(NekoPageSource(self.bot.session, "/images/nsfw/img/cosplay_lewd"))
         await menus.start(ctx)
 
 
