@@ -219,7 +219,7 @@ class CustomHelp(commands.HelpCommand):
             name="Categories",
             value="\n".join(
                 [
-                    "• {} **{}**".format(getattr(cog, "icon", "❓"), cog.qualified_name)
+                    "`⦘` {} **{}**".format(getattr(cog, "icon", "❓"), cog.qualified_name)
                     for cog in sortedCog
                     if cog.qualified_name not in ignored
                 ]
