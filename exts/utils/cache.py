@@ -228,7 +228,7 @@ class CacheListProperty(CacheProperty):
         try:
             self._items[key].remove(value)
         except ValueError:
-            raise ValueError(f"'{value}' not in the list")
+            raise ValueError(f"'{value}' not in the list") from None
 
         return self
 
@@ -260,9 +260,5 @@ class Cache:
 
 
 if __name__ == "__main__":
-    cache = Cache().add("guildConfigs", cls=CacheDictProperty)
-    cache.guildConfigs.add(0, {"test": "hello"}).add(1, {})
-    print(cache.guildConfigs)
-    print(cache.guildConfigs.add(1, {"test": "test"}))
-    cache.guildConfigs.clear(1)
-    print(cache.guildConfigs)
+    cache = Cache().add("guildConfigs", cls=CacheListProperty)
+    cache.guildConfigs.add(0, ">").remove(0, ".")
