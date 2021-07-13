@@ -159,12 +159,27 @@ async def formatCommandInfo(prefix, command):
         )
         + (command.description or command.brief or "No description"),
     )
-    examples = getattr(command, "example", [])
-    if examples:
-        e.add_field(
-            name="Example",
-            value="\n".join([f"> `{prefix}{x}`" for x in examples]),
-        )
+
+    if not isinstance(command, CustomCommand):
+        optionDict: dict = command.raw.get("flags")
+        if optionDict:
+            optionStr = []
+            for key, value in optionDict.items():
+                name = (
+                    " | ".join([f"`{i}`" for i in key])
+                    if isinstance(key, tuple)
+                    else key
+                )
+                optionStr.append(f"{name}: {value}")
+            e.add_field(name="Options", value="\n".join(optionStr), inline=False)
+
+        examples = getattr(command, "example", None)
+        if examples:
+            e.add_field(
+                name="Example",
+                value="\n".join([f"> `{prefix}{x}`" for x in examples]),
+            )
+
     if isinstance(command, commands.Group):
         subcmds = sorted(command.commands, key=lambda c: c.name)
         if subcmds:
@@ -172,6 +187,7 @@ async def formatCommandInfo(prefix, command):
                 name="Subcommands",
                 value="\n".join([f"> `{formatCmd(prefix, cmd)}`" for cmd in subcmds]),
             )
+
     return e
 
 

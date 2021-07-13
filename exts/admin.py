@@ -98,15 +98,9 @@ class Admin(commands.Cog, CogMixin):
         return await ctx.try_reply(embed=e)
 
     @commands.command(
-        aliases=["wel"],
+        aliases=("wel",),
         brief="Set welcome message and/or channel",
-        description=(
-            "Set welcome message and/or channel\n`TagScript` is "
-            "supported!\n\n__**Options:**__\n`--channel` | `-c`: Set welcome "
-            "channel\n`--raw` | `-r`: Send welcome's raw message (Useful for "
-            "editing, will prevent you from setting welcome message/channel) "
-            "\n`--disable` | `d`: Disable welcome event"
-        ),
+        description="Set welcome message and/or channel\n`TagScript` is supported!",
         usage="[message] [options]",
         example=(
             "welcome Welcome to {guild}, {user(name)}! -c #userlog",
@@ -114,20 +108,22 @@ class Admin(commands.Cog, CogMixin):
             "welcome -r",
             "welcome --disable",
         ),
+        flags={
+            ("--channel", "-c"): "Set welcome channel",
+            ("--raw", "-r"): (
+                "Send welcome's raw message (Useful for editing"
+                ", will prevent you from setting welcome message/channel)"
+            ),
+            ("--disable", "-d"): "Disable welcome event",
+        },
     )
     async def welcome(self, ctx, *, arguments):
         await self.handleGreetingConfig(ctx, arguments, type="welcome")
 
     @commands.command(
-        aliases=["fw"],
+        aliases=("fw",),
         brief="Set farewell message and/or channel",
-        description=(
-            "Set farewell message and/or channel\n`TagScript` is "
-            "supported!\n\n__**Options:**__\n`--channel` | `-c`: Set farewell "
-            "channel\n`--raw` | `-r`: Send farewell's raw message (Useful for "
-            "editing, will prevent you from setting farewell message/channel) "
-            "\n`--disable` | `d`: Disable farewell event"
-        ),
+        description="Set farewell message and/or channel\n`TagScript` is supported!",
         usage="[message] [options]",
         example=(
             "farewell Bye -c #userlog",
@@ -135,6 +131,14 @@ class Admin(commands.Cog, CogMixin):
             "farewell -r",
             "farewell --disable",
         ),
+        flags={
+            ("--channel", "-c"): "Set farewell channel",
+            ("--raw", "-r"): (
+                "Send farewell's raw message (Useful for editing"
+                ", will prevent you from setting farewell message/channel)"
+            ),
+            ("--disable", "-d"): "Disable farewell event",
+        },
     )
     async def farewell(self, ctx, *, arguments):
         await self.handleGreetingConfig(ctx, arguments, type="farewell")
@@ -167,7 +171,7 @@ class Admin(commands.Cog, CogMixin):
             return await ctx.try_reply(embed=e)
 
     @commands.command(
-        aliases=["ml"],
+        aliases=("ml",),
         brief="Set modlog channel",
         description=(
             "Set modlog channel\n\n__**Options:**__\n`--disable` | `-d`: "
@@ -180,7 +184,7 @@ class Admin(commands.Cog, CogMixin):
         await self.handleLogConfig(ctx, arguments, "modlog")
 
     @commands.command(
-        aliases=["purge", "userlog"],
+        aliases=("purge", "userlog"),
         brief="Set purgatory channel",
         description=(
             "Set purgatory channel\n\n__**Options:**__\n`--disable` | `-d`: "
@@ -200,7 +204,7 @@ class Admin(commands.Cog, CogMixin):
 
     @_role.command(
         name="create",
-        aliases=["+", "make"],
+        aliases=("+", "make"),
         brief="Create new role",
         usage="(name) [-t type]",
     )
@@ -232,7 +236,9 @@ class Admin(commands.Cog, CogMixin):
                         )
 
             return await ctx.success(
-                "**Name**: {}\n**Type**: `{}`\n**ID**: `{}`".format(role.name, type, role.id),
+                "**Name**: {}\n**Type**: `{}`\n**ID**: `{}`".format(
+                    role.name, type, role.id
+                ),
                 title="Role has been created",
             )
 
@@ -245,7 +251,7 @@ class Admin(commands.Cog, CogMixin):
 
     @_role.command(
         name="set",
-        aliases=["&"],
+        aliases=("&",),
         brief="Turn regular role into special role",
         usage="(name) (-t type)",
     )
@@ -271,7 +277,9 @@ class Admin(commands.Cog, CogMixin):
                 await self.setGuildRole(ctx.guild.id, ROLE_TYPES[type], role.id)
 
             return await ctx.success(
-                "**Name**: {}\n**Type**: `{}`\n**ID**: `{}`".format(role.name, type, role.id),
+                "**Name**: {}\n**Type**: `{}`\n**ID**: `{}`".format(
+                    role.name, type, role.id
+                ),
                 title="Role has been modified",
             )
 
