@@ -233,10 +233,11 @@ class Admin(commands.Cog, CogMixin):
 
             return await ctx.success("Role '{}' has been created".format(role.mention))
 
-        return await ctx.try_reply(
+        return await ctx.error(
             "Available role type: {}".format(
                 ", ".join([f"`{type}`" for type in ROLE_TYPES])
-            )
+            ),
+            title="Invalid role type!",
         )
 
     @_role.command(
@@ -268,12 +269,13 @@ class Admin(commands.Cog, CogMixin):
 
             return await ctx.success("Role '{}' has been created".format(role.mention))
 
-        return await ctx.try_reply(
+        return await ctx.error(
             "Available role type: {}".format(
                 ", ".join(
                     [f"`{type}`" for type in ROLE_TYPES if type not in disallowed]
                 )
-            )
+            ),
+            title="Invalid role type!",
         )
 
 
