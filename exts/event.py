@@ -229,6 +229,9 @@ class EventHandler(commands.Cog, CogMixin):
         if before.author.bot:
             return
 
+        if before.content == after.content:
+            return
+
         return await logAction(self.bot, "msgEdit", before, after)
 
     @commands.Cog.listener()
