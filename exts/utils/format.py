@@ -26,6 +26,7 @@ class ZEmbed(discord.Embed):
     @classmethod
     def error(
         cls,
+        *,
         emoji="<:error:783265883228340245>",
         title="Error",
         color=discord.Color.red(),
@@ -36,6 +37,7 @@ class ZEmbed(discord.Embed):
     @classmethod
     def success(
         cls,
+        *,
         emoji="<:ok:864033138832703498>",
         title="Success",
         color=discord.Color.green(),
@@ -46,6 +48,7 @@ class ZEmbed(discord.Embed):
     @classmethod
     def loading(
         cls,
+        *,
         emoji="<a:loading:776255339716673566>",
         title="Loading...",
         **kwargs,
