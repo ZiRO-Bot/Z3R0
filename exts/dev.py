@@ -160,13 +160,13 @@ class ShellPageSource(PaginatorSource):
 class Developer(commands.Cog, CogMixin):
     """Debugging tools for bot devs."""
 
+    # TODO: Replace this thing with subclassed jishaku
+
     icon = "<:verified_bot_developer:748090768237002792>"
 
     async def cog_check(self, ctx):
         """Only bot master able to use debug cogs."""
-        return (
-            self.bot.master and ctx.author.id in self.bot.master
-        )
+        return self.bot.master and ctx.author.id in self.bot.master
 
     def notMe():
         async def pred(ctx):

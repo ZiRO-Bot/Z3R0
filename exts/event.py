@@ -106,7 +106,9 @@ class EventHandler(commands.Cog, CogMixin):
             if ctx.command.root_parent.name == "emoji" and ctx.command.name == "steal":
                 return await ctx.error("Unicode is not supported!")
 
-        if isinstance(error, commands.MissingRequiredArgument) or isinstance(error, ArgumentError):
+        if isinstance(error, commands.MissingRequiredArgument) or isinstance(
+            error, ArgumentError
+        ):
             e = formatMissingArgError(ctx, error)
             return await ctx.try_reply(embed=e)
 
