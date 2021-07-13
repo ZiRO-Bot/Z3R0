@@ -231,7 +231,10 @@ class Admin(commands.Cog, CogMixin):
                             role, send_messages=False, speak=False
                         )
 
-            return await ctx.success("Role '{}' has been created".format(role.mention))
+            return await ctx.success(
+                "**Name**: {}\n**Type**: `{}`\n**ID**: `{}`".format(role.name, type, role.id),
+                title="Role has been created",
+            )
 
         return await ctx.error(
             "Available role type: {}".format(
@@ -267,7 +270,10 @@ class Admin(commands.Cog, CogMixin):
             if type != "regular":
                 await self.setGuildRole(ctx.guild.id, ROLE_TYPES[type], role.id)
 
-            return await ctx.success("Role '{}' has been created".format(role.mention))
+            return await ctx.success(
+                "**Name**: {}\n**Type**: `{}`\n**ID**: `{}`".format(role.name, type, role.id),
+                title="Role has been modified",
+            )
 
         return await ctx.error(
             "Available role type: {}".format(
