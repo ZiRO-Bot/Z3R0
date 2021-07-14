@@ -5,7 +5,6 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 """
 
 import asyncio
-import copy as cp
 import discord
 import json
 import prettify_exceptions
