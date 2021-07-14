@@ -202,6 +202,22 @@ class Admin(commands.Cog, CogMixin):
         # Role manager
         pass
 
+    async def setMutedPerms(self, ctx, role: discord.Role):
+        """Just loop through channels and overwriting muted role's perm"""
+        for channel in ctx.guild.channels:
+            perms: discord.PermissionOverwrite = channel.overwrites_for(role)
+
+            perms.update(
+                # speak=False,
+                send_messages=False,
+            )
+
+            await channel.set_permissions(
+                target=role,
+                overwrite=perms,
+                reason="Mute role set to {} by {}".format(role.name, ctx.author),
+            )
+
     @_role.command(
         name="create",
         aliases=("+", "make"),
@@ -219,6 +235,10 @@ class Admin(commands.Cog, CogMixin):
         type = parsed.type or "regular"
 
         if (type := type.lower()) in ROLE_TYPES:
+            msg = await ctx.try_reply(
+                embed=ZEmbed.loading(),
+            )
+
             role = await ctx.guild.create_role(name=name)
 
             if not role:
@@ -229,18 +249,15 @@ class Admin(commands.Cog, CogMixin):
                 await self.setGuildRole(ctx.guild.id, ROLE_TYPES[type], role.id)
 
                 if any([type == "mute", type == "muted"]):
-                    # TODO: [FIX] This will leave no category channels untouched
-                    for cat in ctx.guild.categories:
-                        await cat.set_permissions(
-                            role, send_messages=False, speak=False
-                        )
+                    await self.setMutedPerms(ctx, role)
 
-            return await ctx.success(
-                "**Name**: {}\n**Type**: `{}`\n**ID**: `{}`".format(
+            e = ZEmbed.success(
+                title="SUCCESS: Role has been created",
+                description="**Name**: {}\n**Type**: `{}`\n**ID**: `{}`".format(
                     role.name, type, role.id
                 ),
-                title="Role has been created",
             )
+            return await msg.edit(embed=e)
 
         return await ctx.error(
             "Available role type: {}".format(
@@ -268,6 +285,10 @@ class Admin(commands.Cog, CogMixin):
         disallowed = ("regular",)
 
         if (type := type.lower()) in ROLE_TYPES and type not in disallowed:
+            msg = await ctx.try_reply(
+                embed=ZEmbed.loading(),
+            )
+
             role = await commands.RoleConverter().convert(ctx, roleArg)
 
             if not role:
@@ -276,12 +297,16 @@ class Admin(commands.Cog, CogMixin):
             if type != "regular":
                 await self.setGuildRole(ctx.guild.id, ROLE_TYPES[type], role.id)
 
-            return await ctx.success(
-                "**Name**: {}\n**Type**: `{}`\n**ID**: `{}`".format(
+                if any([type == "mute", type == "muted"]):
+                    await self.setMutedPerms(ctx, role)
+
+            e = ZEmbed.success(
+                title="SUCCESS: Role has been modified",
+                description="**Name**: {}\n**Type**: `{}`\n**ID**: `{}`".format(
                     role.name, type, role.id
                 ),
-                title="Role has been modified",
             )
+            return await msg.edit(embed=e)
 
         return await ctx.error(
             "Available role type: {}".format(
