@@ -85,6 +85,8 @@ class NSFW(commands.Cog, CogMixin):
 
     async def cog_check(self, ctx):
         """Only for NSFW channels"""
+        if not ctx.guild:
+            return True
         return ctx.channel.is_nsfw()
 
     @commands.command()

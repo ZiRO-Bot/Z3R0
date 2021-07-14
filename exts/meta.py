@@ -234,9 +234,10 @@ class CustomHelp(commands.HelpCommand):
 
         # Getting all the commands
         filtered = await self.filter_commands(cog.get_commands())
-        ccs = await getCustomCommands(ctx.db, ctx.guild.id, cog.qualified_name)
-        for cmd in ccs:
-            filtered.append(cmd)
+        if ctx.guild:
+            ccs = await getCustomCommands(ctx.db, ctx.guild.id, cog.qualified_name)
+            for cmd in ccs:
+                filtered.append(cmd)
         filtered = sorted(filtered, key=lambda c: c.name)
 
         desc = infoQuote.info(
@@ -362,6 +363,8 @@ class Meta(commands.Cog, CogMixin):
 
     async def bot_check(self, ctx):
         """Global check"""
+        if not ctx.guild:
+            return True
         disableCmds = await self.getDisabledCommands(ctx, ctx.guild.id)
         cmdName = self.formatCmdName(ctx.command)
         if cmdName in disableCmds:
