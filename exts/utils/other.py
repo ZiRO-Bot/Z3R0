@@ -23,6 +23,8 @@ import discord
 import json
 import math
 import operator
+import re
+import shlex
 
 
 PHI = (1 + math.sqrt(5)) / 2
@@ -194,9 +196,25 @@ class ArgumentParser(argparse.ArgumentParser):
 
     def __init__(self, *args, add_help=False, **kwargs):
         super().__init__(*args, add_help=add_help, **kwargs)
+        self.arguments = []
 
     def error(self, message):
         raise ArgumentError(message)
+
+    def add_argument(self, *args, **kwargs):
+        argument = super().add_argument(*args, **kwargs)
+        self.arguments.extend(
+            [str(string).lstrip("-") for string in argument.option_strings]
+        )
+        return argument
+
+    def parse_known_from_string(self, string: str):
+        arguments = "|".join(self.arguments)
+        # parse "arg: value" into "--arg value"
+        pattern = re.compile(f"(()(?P<flag>{arguments}):)", re.IGNORECASE)
+        sub = pattern.sub(r"--\g<flag>", string)
+
+        return self.parse_known_args(shlex.split(sub))
 
 
 class Blacklist:
@@ -270,6 +288,14 @@ def parseCodeBlock(string: str) -> Tuple[str, str]:
 
     # Removes `foo`
     return "py", string.strip("` \n")
+
+
+def boolFromString(string: str) -> bool:
+    lowered = string.lower()
+    if lowered in ('yes', 'y', 'true', 't', '1', 'enable', 'on'):
+        return True
+    elif lowered in ('no', 'n', 'false', 'f', '0', 'disable', 'off'):
+        return False
 
 
 if __name__ == "__main__":

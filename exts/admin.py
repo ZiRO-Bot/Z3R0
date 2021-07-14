@@ -13,7 +13,7 @@ from core.mixin import CogMixin
 from discord.ext import commands
 from exts.utils import dbQuery
 from exts.utils.format import ZEmbed
-from exts.utils.other import ArgumentParser
+from exts.utils.other import ArgumentParser, boolFromString
 
 # Also includes aliases
 ROLE_TYPES = {
@@ -56,14 +56,14 @@ class Admin(commands.Cog, CogMixin):
         # Parsing arguments
         parser = ArgumentParser(allow_abbrev=False)
         parser.add_argument("--channel", "-c")
-        parser.add_argument("--raw", "-r", action="store_true")
-        parser.add_argument("--disable", "-d", action="store_true")
+        parser.add_argument("--raw", "-r", default="False")
+        parser.add_argument("--disable", "-d", default="False")
         parser.add_argument("message", nargs="*")
 
-        parsed, _ = parser.parse_known_args(shlex.split(arguments))
+        parsed, _ = parser.parse_known_from_string(arguments)
 
-        disable = parsed.disable
-        raw = parsed.raw
+        disable = boolFromString(parsed.disable)
+        raw = boolFromString(parsed.raw)
 
         changeMsg = False
         if not raw and not disable and parsed.message:
