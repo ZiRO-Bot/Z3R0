@@ -31,11 +31,13 @@ class Moderation(commands.Cog, CogMixin):
             "message, use `save` subcommand to ban a user without deleting their "
             "message"
         ),
-        extras=dict(example=(
-            "ban @User#0000 4y absolutely no reason",
-            "ban @User#0000 scam",
-            "ban @User#0000 1 minutes",
-        )),
+        extras=dict(
+            example=(
+                "ban @User#0000 4y absolutely no reason",
+                "ban @User#0000 scam",
+                "ban @User#0000 1 minutes",
+            )
+        ),
         invoke_without_command=True,
     )
     @checks.mod_or_permissions(ban_members=True)
@@ -54,11 +56,13 @@ class Moderation(commands.Cog, CogMixin):
         description=(
             "Ban a user, with optional time limit without deleting their message"
         ),
-        extras=dict(example=(
-            "ban save @User#0000 30m bye",
-            "ban save @User#0000 annoying",
-            "ban save @User#0000 1 minutes",
-        )),
+        extras=dict(
+            example=(
+                "ban save @User#0000 30m bye",
+                "ban save @User#0000 annoying",
+                "ban save @User#0000 1 minutes",
+            )
+        ),
     )
     async def save(
         self,
@@ -191,12 +195,14 @@ class Moderation(commands.Cog, CogMixin):
         name="create",
         aliases=("set",),
         brief="Create or set muted role for mute command",
-        extras=dict(example=(
-            "mute create",
-            "mute create Muted",
-            "mute set @mute",
-        )),
-        usage="[role name]"
+        extras=dict(
+            example=(
+                "mute create",
+                "mute create Muted",
+                "mute set @mute",
+            )
+        ),
+        usage="[role name]",
     )
     async def muteCreate(self, ctx, name: Union[discord.Role, str] = "Muted"):
         await ctx.try_invoke(

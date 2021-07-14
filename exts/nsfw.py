@@ -115,7 +115,9 @@ class NSFW(commands.Cog, CogMixin):
 
     @commands.command()
     async def cosplay(self, ctx):
-        menus = NekoMenu(NekoPageSource(self.bot.session, "/images/nsfw/img/cosplay_lewd"))
+        menus = NekoMenu(
+            NekoPageSource(self.bot.session, "/images/nsfw/img/cosplay_lewd")
+        )
         await menus.start(ctx)
 
 

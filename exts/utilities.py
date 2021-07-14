@@ -31,11 +31,13 @@ class Utilities(commands.Cog, CogMixin):
     @commands.command(
         aliases=["calc", "c"],
         brief="Simple math evaluator",
-        extras=dict(example=(
-            "calc 12*6",
-            "c 5^5",
-            "math 50/2",
-        )),
+        extras=dict(
+            example=(
+                "calc 12*6",
+                "c 5^5",
+                "math 50/2",
+            )
+        ),
     )
     async def math(self, ctx, *, equation):
         try:

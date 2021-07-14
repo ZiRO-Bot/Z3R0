@@ -150,11 +150,13 @@ class Info(commands.Cog, CogMixin):
             "Get an emoji's information\n\nWill execute `emoji info` by "
             "default when there's no any subcommands used"
         ),
-        extras=dict(example=(
-            "emoji info :thonk:",
-            "em ? :thinkies:",
-            "emoji steal :KEKW:",
-        )),
+        extras=dict(
+            example=(
+                "emoji info :thonk:",
+                "em ? :thinkies:",
+                "emoji steal :KEKW:",
+            )
+        ),
         invoke_without_command=True,
     )
     async def emoji(self, ctx, emoji: Union[discord.Emoji, discord.PartialEmoji, str]):
@@ -165,11 +167,13 @@ class Info(commands.Cog, CogMixin):
         aliases=["?"],
         brief="Get an emoji's information",
         description="Get an emoji's information\n\nSupports Unicode/built-in emojis",
-        extras=dict(example=(
-            "emoji info :pog:",
-            "em info :KEKW:",
-            "em ? 🤔",
-        )),
+        extras=dict(
+            example=(
+                "emoji info :pog:",
+                "em info :KEKW:",
+                "em ? 🤔",
+            )
+        ),
     )
     async def emojiInfo(
         self, ctx, emoji: Union[discord.Emoji, discord.PartialEmoji, str]
@@ -201,7 +205,9 @@ class Info(commands.Cog, CogMixin):
     @emoji.command(
         brief="Steal a custom emoji",
         description="Steal a custom emoji\n\nUnicode emojis are not supported!",
-        extras=dict(example=("emoji steal :shuba:", "em steal :thonk:", "emoji steal :LULW:")),
+        extras=dict(
+            example=("emoji steal :shuba:", "em steal :thonk:", "emoji steal :LULW:")
+        ),
     )
     @checks.mod_or_permissions(manage_emojis=True)
     async def steal(self, ctx, emoji: Union[discord.Emoji, discord.PartialEmoji]):
@@ -226,11 +232,13 @@ class Info(commands.Cog, CogMixin):
         aliases=["jsh"],
         brief="Get japanese word",
         description="Get japanese word from english/japanese/romaji/text",
-        extras=dict(example=(
-            "joshi こんにちは",
-            "jsh konbanha",
-            "joshi hello",
-        )),
+        extras=dict(
+            example=(
+                "joshi こんにちは",
+                "jsh konbanha",
+                "joshi hello",
+            )
+        ),
     )
     async def jisho(self, ctx, *, words):
         async with ctx.bot.session.get(
