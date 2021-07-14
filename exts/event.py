@@ -5,6 +5,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 """
 
 import asyncio
+import copy as cp
 import discord
 import json
 import prettify_exceptions
@@ -18,7 +19,7 @@ from core import errors
 from core.mixin import CogMixin
 from discord.ext import commands
 from exts.utils import tseBlocks
-from exts.utils.format import formatMissingArgError, logAction
+from exts.utils.format import formatMissingArgError, logAction, ZEmbed
 from exts.utils.other import reactsToMessage, ArgumentError
 
 
@@ -150,7 +151,7 @@ class EventHandler(commands.Cog, CogMixin):
         # ---
 
         desc = (
-            "The command was unsuccessful because of this reason:\n```{}```\n".format(
+            "The command was unsuccessful because of this reason:\n```\n{}\n```\n".format(
                 error
             )
         )
@@ -171,10 +172,10 @@ class EventHandler(commands.Cog, CogMixin):
                 if destName
                 else ""
             )
-            e = discord.Embed(
-                title="Something went wrong!",
+            e = ZEmbed.error(
+                title="ERROR: Something went wrong!",
                 description=desc,
-                colour=discord.Colour(0x2F3136),
+                # colour=discord.Colour(0x2F3136),
             )
             e.set_footer(text="Waiting for answer...", icon_url=ctx.author.avatar_url)
             msg = await ctx.send(embed=e)
@@ -198,12 +199,15 @@ class EventHandler(commands.Cog, CogMixin):
                     text="You were too late to answer.", icon_url=ctx.author.avatar_url
                 )
                 await msg.edit(embed=e)
-                await msg.clear_reactions()
+                try:
+                    await msg.clear_reactions()
+                except:
+                    pass
             else:
-                e_owner = discord.Embed(
-                    title="Something went wrong!",
+                e_owner = ZEmbed.error(
+                    title="ERROR: Something went wrong!",
                     description=f"An error occured:\n```\n{error}\n```",
-                    colour=discord.Colour(0x2F3136),
+                    # colour=discord.Colour(0x2F3136),
                 )
                 e_owner.add_field(name="Executor", value=ctx.author)
                 e_owner.add_field(name="Message", value=ctx.message.content)
@@ -213,12 +217,16 @@ class EventHandler(commands.Cog, CogMixin):
                     icon_url=ctx.author.avatar_url,
                 )
                 await msg.edit(embed=e)
-                await msg.clear_reactions()
+                try:
+                    await msg.clear_reactions()
+                except:
+                    # Probably in a DM, lets just pass it
+                    pass
         except IndexError:
-            e = discord.Embed(
-                title="Something went wrong!",
+            e = ZEmbed.error(
+                title="ERROR: Something went wrong!",
                 description=desc,
-                colour=discord.Colour(0x2F3136),
+                # colour=discord.Colour(0x2F3136),
             )
             await ctx.send(embed=e)
 
