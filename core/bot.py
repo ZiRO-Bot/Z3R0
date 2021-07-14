@@ -176,7 +176,9 @@ class ziBot(commands.Bot):
     ):
         # Get guild configs and maybe cache it
         cached: CacheDictProperty = getattr(self.cache, table)
-        if cached.get(guildId) is None:
+        if cached.get(guildId) is None or not [
+            i for i in cached.get(guildId, {}).keys() if i in filters
+        ]:
             # Executed when guild configs is not in the cache
             row = await self.db.fetch_one(
                 f"SELECT {', '.join(filters)} FROM {table} WHERE guildId=:id",
@@ -186,6 +188,7 @@ class ziBot(commands.Bot):
                 row = dict(row)
                 row.pop("guildId", None)
                 cached.set(guildId, row)
+                return row
         return cached[guildId]
 
     async def getGuildConfig(
@@ -318,10 +321,10 @@ class ziBot(commands.Bot):
         )
         try:
             self.activityIndex += 1
-            activity=activities[self.activityIndex]
+            activity = activities[self.activityIndex]
         except IndexError:
             self.activityIndex = 0
-            activity=activities[self.activityIndex]
+            activity = activities[self.activityIndex]
 
         await self.change_presence(activity=activities[self.activityIndex])
 

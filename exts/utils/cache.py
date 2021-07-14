@@ -124,8 +124,10 @@ class CacheDictProperty(CacheProperty):
 
         if not isinstance(value, Dict):
             raise RuntimeError("Only dict value is allowed!")
-
-        super().set(key, value)
+        try:
+            self._items[key].update(value)
+        except KeyError:
+            super().set(key, value)
         return self
 
     # def add(self, key: str, value: Dict[str, Any]) -> CacheDictProperty:
