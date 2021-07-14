@@ -192,9 +192,11 @@ class Moderation(commands.Cog, CogMixin):
         aliases=("set",),
         brief="Create or set muted role for mute command",
         example=(
+            "mute create",
             "mute create Muted",
             "mute set @mute",
         ),
+        usage="[name|role]"
     )
     async def muteCreate(self, ctx, name: Union[discord.Role, str] = "Muted"):
         await ctx.try_invoke(

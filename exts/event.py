@@ -202,7 +202,7 @@ class EventHandler(commands.Cog, CogMixin):
             else:
                 e_owner = discord.Embed(
                     title="Something went wrong!",
-                    description=f"An error occured:\n```{error}```",
+                    description=f"An error occured:\n```\n{error}\n```",
                     colour=discord.Colour(0x2F3136),
                 )
                 e_owner.add_field(name="Executor", value=ctx.author)
