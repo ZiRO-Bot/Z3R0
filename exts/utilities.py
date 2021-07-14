@@ -31,11 +31,11 @@ class Utilities(commands.Cog, CogMixin):
     @commands.command(
         aliases=["calc", "c"],
         brief="Simple math evaluator",
-        example=(
+        extras=dict(example=(
             "calc 12*6",
             "c 5^5",
             "math 50/2",
-        ),
+        )),
     )
     async def math(self, ctx, *, equation):
         try:
@@ -66,7 +66,7 @@ class Utilities(commands.Cog, CogMixin):
         aliases=("exec", "run"),
         brief="Execute a code",
         description="Execute a code\nWill executes python code by default",
-        example=('execute print("Hello World")',),
+        extras=dict(example=('execute print("Hello World")',)),
     )
     async def execute(self, ctx, *, argument):
         lang, code = parseCodeBlock(argument)

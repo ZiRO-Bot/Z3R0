@@ -16,7 +16,7 @@ pytz == 2021.1
 pyparsing == 2.4.7
 requests == 2.25.0
 uvloop == 0.14.0
-zidiscord.py == 1.7.3.1
+zidiscord.py == 1.7.3.2
 
 # === git
 git+https://github.com/ShineyDev/prettify.py

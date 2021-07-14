@@ -102,20 +102,22 @@ class Admin(commands.Cog, CogMixin):
         brief="Set welcome message and/or channel",
         description="Set welcome message and/or channel\n`TagScript` is supported!",
         usage="[message] [options]",
-        example=(
-            "welcome Welcome to {guild}, {user(name)}! -c #userlog",
-            "welcome Hello, {user(name)} 👋",
-            "welcome -r",
-            "welcome --disable",
-        ),
-        flags={
-            ("--channel", "-c"): "Set welcome channel",
-            ("--raw", "-r"): (
-                "Send welcome's raw message (Useful for editing"
-                ", will prevent you from setting welcome message/channel)"
+        extras=dict(
+            example=(
+                "welcome Welcome to {guild}, {user(name)}! -c #userlog",
+                "welcome Hello, {user(name)} 👋",
+                "welcome -r",
+                "welcome --disable",
             ),
-            ("--disable", "-d"): "Disable welcome event",
-        },
+            flags={
+                ("--channel", "-c"): "Set welcome channel",
+                ("--raw", "-r"): (
+                    "Send welcome's raw message (Useful for editing"
+                    ", will prevent you from setting welcome message/channel)"
+                ),
+                ("--disable", "-d"): "Disable welcome event",
+            },
+        ),
     )
     async def welcome(self, ctx, *, arguments):
         await self.handleGreetingConfig(ctx, arguments, type="welcome")
@@ -125,20 +127,22 @@ class Admin(commands.Cog, CogMixin):
         brief="Set farewell message and/or channel",
         description="Set farewell message and/or channel\n`TagScript` is supported!",
         usage="[message] [options]",
-        example=(
-            "farewell Bye -c #userlog",
-            "farewell Goodbye, {user(name)}!",
-            "farewell -r",
-            "farewell --disable",
-        ),
-        flags={
-            ("--channel", "-c"): "Set farewell channel",
-            ("--raw", "-r"): (
-                "Send farewell's raw message (Useful for editing"
-                ", will prevent you from setting farewell message/channel)"
+        extras=dict(
+            example=(
+                "farewell Bye -c #userlog",
+                "farewell Goodbye, {user(name)}!",
+                "farewell -r",
+                "farewell --disable",
             ),
-            ("--disable", "-d"): "Disable farewell event",
-        },
+            flags={
+                ("--channel", "-c"): "Set farewell channel",
+                ("--raw", "-r"): (
+                    "Send farewell's raw message (Useful for editing"
+                    ", will prevent you from setting farewell message/channel)"
+                ),
+                ("--disable", "-d"): "Disable farewell event",
+            },
+        ),
     )
     async def farewell(self, ctx, *, arguments):
         await self.handleGreetingConfig(ctx, arguments, type="farewell")
@@ -178,7 +182,7 @@ class Admin(commands.Cog, CogMixin):
             "Disable modlog"
         ),
         usage="[channel] [options]",
-        example=("modlog #modlog", "modlog -d", "ml --disable"),
+        extras=dict(example=("modlog #modlog", "modlog -d", "ml --disable")),
     )
     async def modlog(self, ctx, *, arguments):
         await self.handleLogConfig(ctx, arguments, "modlog")
@@ -191,7 +195,7 @@ class Admin(commands.Cog, CogMixin):
             "Disable purgatory"
         ),
         usage="[channel] [options]",
-        example=("purgatory #userlog", "purge -d", "userlog --disable"),
+        extras=dict(example=("purgatory #userlog", "purge -d", "userlog --disable")),
     )
     async def purgatory(self, ctx, *, arguments):
         await self.handleLogConfig(ctx, arguments, "purgatory")

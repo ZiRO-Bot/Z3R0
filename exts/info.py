@@ -70,7 +70,7 @@ class Info(commands.Cog, CogMixin):
     @commands.command(
         aliases=["w"],
         brief="Get current weather for specific city",
-        example=("weather Palembang", "w London"),
+        extras=dict(example=("weather Palembang", "w London")),
     )
     async def weather(self, ctx, *, city):
         if not self.openweather.apiKey:
@@ -108,7 +108,7 @@ class Info(commands.Cog, CogMixin):
             "Get colour information from hex value\n\nCan use either `0x` or "
             "`#` prefix (`0xFFFFFF` or `#FFFFFF`)"
         ),
-        example=("colour ffffff", "clr 0xffffff", "color #ffffff"),
+        extras=dict(example=("colour ffffff", "clr 0xffffff", "color #ffffff")),
     )
     async def colour(self, ctx, value: str):
         # Pre processing
@@ -150,11 +150,11 @@ class Info(commands.Cog, CogMixin):
             "Get an emoji's information\n\nWill execute `emoji info` by "
             "default when there's no any subcommands used"
         ),
-        example=(
+        extras=dict(example=(
             "emoji info :thonk:",
             "em ? :thinkies:",
             "emoji steal :KEKW:",
-        ),
+        )),
         invoke_without_command=True,
     )
     async def emoji(self, ctx, emoji: Union[discord.Emoji, discord.PartialEmoji, str]):
@@ -165,11 +165,11 @@ class Info(commands.Cog, CogMixin):
         aliases=["?"],
         brief="Get an emoji's information",
         description="Get an emoji's information\n\nSupports Unicode/built-in emojis",
-        example=(
+        extras=dict(example=(
             "emoji info :pog:",
             "em info :KEKW:",
             "em ? 🤔",
-        ),
+        )),
     )
     async def emojiInfo(
         self, ctx, emoji: Union[discord.Emoji, discord.PartialEmoji, str]
@@ -201,7 +201,7 @@ class Info(commands.Cog, CogMixin):
     @emoji.command(
         brief="Steal a custom emoji",
         description="Steal a custom emoji\n\nUnicode emojis are not supported!",
-        example=("emoji steal :shuba:", "em steal :thonk:", "emoji steal :LULW:"),
+        extras=dict(example=("emoji steal :shuba:", "em steal :thonk:", "emoji steal :LULW:")),
     )
     @checks.mod_or_permissions(manage_emojis=True)
     async def steal(self, ctx, emoji: Union[discord.Emoji, discord.PartialEmoji]):
@@ -226,11 +226,11 @@ class Info(commands.Cog, CogMixin):
         aliases=["jsh"],
         brief="Get japanese word",
         description="Get japanese word from english/japanese/romaji/text",
-        example=(
+        extras=dict(example=(
             "joshi こんにちは",
             "jsh konbanha",
             "joshi hello",
-        ),
+        )),
     )
     async def jisho(self, ctx, *, words):
         async with ctx.bot.session.get(

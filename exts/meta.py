@@ -161,7 +161,9 @@ async def formatCommandInfo(prefix, command):
     )
 
     if not isinstance(command, CustomCommand):
-        optionDict: dict = command.raw.get("flags")
+        extras = getattr(command, "extras", {})
+
+        optionDict: dict = extras.get("flags")
         if optionDict:
             optionStr = []
             for key, value in optionDict.items():
@@ -173,7 +175,7 @@ async def formatCommandInfo(prefix, command):
                 optionStr.append(f"{name}: {value}")
             e.add_field(name="Options", value="\n".join(optionStr), inline=False)
 
-        examples = getattr(command, "example", None)
+        examples = extras.get("example")
         if examples:
             e.add_field(
                 name="Example",
@@ -219,7 +221,9 @@ class CustomHelp(commands.HelpCommand):
             name="Categories",
             value="\n".join(
                 [
-                    "`⦘` {} **{}**".format(getattr(cog, "icon", "❓"), cog.qualified_name)
+                    "`⦘` {} **{}**".format(
+                        getattr(cog, "icon", "❓"), cog.qualified_name
+                    )
                     for cog in sortedCog
                     if cog.qualified_name not in ignored
                 ]
@@ -551,10 +555,12 @@ class Meta(commands.Cog, CogMixin):
         name="import",
         aliases=["++"],
         brief="Import a custom command from pastebin/gist.github",
-        example=(
-            "command import pastebin-cmd https://pastebin.com/ZxvGqEAs",
-            "command ++ gist "
-            "https://gist.github.com/null2264/87c89d2b5e2453529e29c2cae3b57729",
+        extras=dict(
+            example=(
+                "command import pastebin-cmd https://pastebin.com/ZxvGqEAs",
+                "command ++ gist "
+                "https://gist.github.com/null2264/87c89d2b5e2453529e29c2cae3b57729",
+            )
         ),
     )
     async def _import(self, ctx, name: CMDName, *, url: str):
@@ -692,9 +698,11 @@ class Meta(commands.Cog, CogMixin):
         name="add",
         aliases=["+", "create"],
         brief="Create a new custom command",
-        example=(
-            "command add example-cmd Just an example",
-            "cmd + hello Hello World!",
+        extras=dict(
+            example=(
+                "command add example-cmd Just an example",
+                "cmd + hello Hello World!",
+            )
         ),
     )
     async def _add(self, ctx, name: CMDName, *, content: str):
@@ -713,9 +721,11 @@ class Meta(commands.Cog, CogMixin):
     @command.command(
         aliases=["/"],
         brief="Add an alias to a custom command",
-        example=(
-            "command alias example-cmd test-cmd",
-            "command alias leaderboard board",
+        extras=dict(
+            example=(
+                "command alias example-cmd test-cmd",
+                "command alias leaderboard board",
+            )
         ),
     )
     async def alias(self, ctx, command: CMDName, alias: CMDName):
@@ -752,11 +762,13 @@ class Meta(commands.Cog, CogMixin):
             "Edit custom command's property\n\nBy default, will edit command's "
             "content when there is no subcommand specified"
         ),
-        example=(
-            "cmd set category example-cmd info",
-            "cmd edit cat test-embed unsorted",
-            "command & mode 0",
-            "command & example-cmd This is an edit",
+        extras=dict(
+            example=(
+                "cmd set category example-cmd info",
+                "cmd edit cat test-embed unsorted",
+                "command & mode 0",
+                "command & example-cmd This is an edit",
+            )
         ),
         invoke_without_command=True,
     )
@@ -828,10 +840,12 @@ class Meta(commands.Cog, CogMixin):
             "command\n> `2`: Member can add AND manage custom command (Anarchy "
             "mode)"
         ),
-        example=(
-            "command set mode 0",
-            "cmd set mode 1",
-            "cmd set mode 2",
+        extras=dict(
+            example=(
+                "command set mode 0",
+                "cmd set mode 1",
+                "cmd set mode 2",
+            )
         ),
     )
     @checks.is_mod()
@@ -886,11 +900,13 @@ class Meta(commands.Cog, CogMixin):
             "(Always overrides `--built-in`)\n`--category` | `-C`: Disable all "
             "commands in a specific category (Requires `-b`)"
         ),
-        example=(
-            "command disable example",
-            "cmd disable -b weather",
-            "command disable -bC info",
-            "cmd disable -c test",
+        extras=dict(
+            example=(
+                "command disable example",
+                "cmd disable -b weather",
+                "command disable -bC info",
+                "cmd disable -c test",
+            )
         ),
     )
     async def disable(self, ctx, *, arguments):
@@ -1026,11 +1042,13 @@ class Meta(commands.Cog, CogMixin):
             "(Always overrides `--built-in`)\n`--category` | `-C`: Enable all "
             "commands in a specific category (Requires `-b`)"
         ),
-        example=(
-            "command enable example",
-            "cmd enable -b weather",
-            "cmd enable -bC info",
-            "cmd enable -c test",
+        extras=dict(
+            example=(
+                "command enable example",
+                "cmd enable -b weather",
+                "cmd enable -bC info",
+                "cmd enable -c test",
+            )
         ),
     )
     async def enable(self, ctx, *, arguments):
@@ -1156,7 +1174,9 @@ class Meta(commands.Cog, CogMixin):
             "Show command's information.\n\nSimilar to `help` but "
             "prioritize custom commands"
         ),
-        example=("command info help", "cmd info command", "cmd ? example-cmd"),
+        extras=dict(
+            example=("command info help", "cmd info command", "cmd ? example-cmd")
+        ),
     )
     async def info(self, ctx, *, name):
         # Executes {prefix}help {name} if its built-in command
@@ -1225,9 +1245,11 @@ class Meta(commands.Cog, CogMixin):
     @commands.group(
         aliases=["pref"],
         brief="Manages bot's custom prefix",
-        example=(
-            "prefix add ?",
-            "pref remove !",
+        extras=dict(
+            example=(
+                "prefix add ?",
+                "pref remove !",
+            )
         ),
         invoke_without_command=True,
     )
@@ -1253,7 +1275,7 @@ class Meta(commands.Cog, CogMixin):
             'Add a custom prefix.\n\n Tips: Use quotation mark (`""`) to add '
             "spaces to your prefix."
         ),
-        example=("prefix add ?", 'prefix + "please do "', "pref + z!"),
+        extras=dict(example=("prefix add ?", 'prefix + "please do "', "pref + z!")),
     )
     @checks.is_mod()
     async def prefAdd(self, ctx, *prefix):
@@ -1273,7 +1295,7 @@ class Meta(commands.Cog, CogMixin):
         name="remove",
         aliases=["-", "rm"],
         brief="Remove a custom prefix",
-        example=("prefix rm ?", 'prefix - "please do "', "pref remove z!"),
+        extras=dict(example=("prefix rm ?", 'prefix - "please do "', "pref remove z!")),
     )
     @checks.is_mod()
     async def prefRm(self, ctx, *prefix):
