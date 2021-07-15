@@ -72,6 +72,7 @@ Not ready yet.
 - Slash command (Waiting for Dpy `v2.0`)
 - Event for banned member, member boosting a guild, and muted member
 - Add case log
+- Properly support different SQL scheme (databases have `database_url.scheme` to check scheme type)
 
 ### Scrapped Plan
 
