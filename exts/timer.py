@@ -193,9 +193,9 @@ class Timer(commands.Cog, CogMixin):
             owner=ctx.author.id,
         )
         return await ctx.try_reply(
-            '"{}" {} ({})'.format(
+            '"{}" in {} ({})'.format(
                 message,
-                formatDiscordDT(when, "R"),
+                argument.delta,
                 formatDiscordDT(when, "F"),
             )
         )

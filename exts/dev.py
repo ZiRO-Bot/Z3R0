@@ -126,7 +126,7 @@ class Developer(*STANDARD_FEATURES, *OPTIONAL_FEATURES):
 
     @commands.command(aliases=["reload"])
     async def load(self, ctx, *extensions):
-        await self.jsk_load(ctx, extensions)
+        await self.jsk_load(ctx, *extensions)
 
 
 def setup(bot):
