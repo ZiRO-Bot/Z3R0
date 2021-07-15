@@ -255,7 +255,7 @@ class ArgumentParser(argparse.ArgumentParser):
         return argument
 
     def parse_known_from_string(self, string: str):
-        arguments = "|".join(self.arguments)
+        arguments = "|".join(set(self.arguments))
         # parse "arg: value" into "--arg value"
         pattern = re.compile(f"(()(?P<flag>{arguments}):)", re.IGNORECASE)
         sub = pattern.sub(r"--\g<flag>", string)

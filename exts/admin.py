@@ -4,6 +4,7 @@ License, v. 2.0. If a copy of the MPL was not distributed with this
 file, You can obtain one at http://mozilla.org/MPL/2.0/.
 """
 
+import argparse
 import discord
 import shlex
 
@@ -58,7 +59,8 @@ class Admin(commands.Cog, CogMixin):
         parser.add_argument("--channel", aliases=("--ch",))
         parser.add_argument("--raw", "-r", action=UserFriendlyBoolean)
         parser.add_argument("--disable", "-d", action=UserFriendlyBoolean)
-        parser.add_argument("message", nargs="*")
+        parser.add_argument("message", action="extend", nargs="*")
+        parser.add_argument("--message", action="extend", nargs="*")
 
         parsed, _ = parser.parse_known_from_string(arguments)
 
@@ -116,6 +118,7 @@ class Admin(commands.Cog, CogMixin):
                     ", will prevent you from setting welcome message/channel)"
                 ),
                 "disable": "Disable welcome event",
+                "message": "Append message text",
             },
         ),
     )
@@ -141,6 +144,7 @@ class Admin(commands.Cog, CogMixin):
                     ", will prevent you from setting farewell message/channel)"
                 ),
                 "disable": "Disable farewell event",
+                "message": "Append message text",
             },
         ),
     )
@@ -151,10 +155,11 @@ class Admin(commands.Cog, CogMixin):
         """Handle configuration for logs (modlog, purgatory)"""
         # Parsing arguments
         parser = ArgumentParser(allow_abbrev=False)
-        parser.add_argument("--disable", "-d", action="store_true")
-        parser.add_argument("channel", nargs="?", default="")
+        parser.add_argument("--disable", action=UserFriendlyBoolean)
+        parser.add_argument("channel", nargs="?", default=argparse.SUPPRESS)
+        parser.add_argument("--channel", aliases=("--ch",))
 
-        parsed, _ = parser.parse_known_args(shlex.split(arguments))
+        parsed, _ = parser.parse_known_from_string(arguments)
 
         disable = parsed.disable
 
@@ -168,7 +173,7 @@ class Admin(commands.Cog, CogMixin):
             e.add_field(name="Status", value="`Disabled`")
             return await ctx.try_reply(embed=e)
 
-        if parsed.channel:
+        if parsed.channel is not None:
             channel = await commands.TextChannelConverter().convert(ctx, parsed.channel)
             await self.bot.setGuildConfig(ctx.guild.id, f"{type}Ch", channel.id)
             e.add_field(name="Channel", value=channel.mention)
@@ -177,12 +182,15 @@ class Admin(commands.Cog, CogMixin):
     @commands.command(
         aliases=("ml",),
         brief="Set modlog channel",
-        description=(
-            "Set modlog channel\n\n__**Options:**__\n`--disable` | `-d`: "
-            "Disable modlog"
-        ),
+        description="Set modlog channel",
         usage="[channel] [options]",
-        extras=dict(example=("modlog #modlog", "modlog -d", "ml --disable")),
+        extras=dict(
+            example=("modlog #modlog", "modlog ch: modlog", "ml disable: on"),
+            flags={
+                ("channel", "ch"): "Set modlog channel",
+                "disable": "Disable modlog",
+            },
+        ),
     )
     async def modlog(self, ctx, *, arguments):
         await self.handleLogConfig(ctx, arguments, "modlog")
@@ -190,12 +198,19 @@ class Admin(commands.Cog, CogMixin):
     @commands.command(
         aliases=("purge", "userlog"),
         brief="Set purgatory channel",
-        description=(
-            "Set purgatory channel\n\n__**Options:**__\n`--disable` | `-d`: "
-            "Disable purgatory"
-        ),
+        description="Set purgatory channel",
         usage="[channel] [options]",
-        extras=dict(example=("purgatory #userlog", "purge -d", "userlog --disable")),
+        extras=dict(
+            example=(
+                "purgatory #userlog",
+                "purge ch: userlog",
+                "userlog disable: on",
+            ),
+            flags={
+                ("channel", "ch"): "Set purgatory channel",
+                "disable": "Disable purgatory",
+            },
+        ),
     )
     async def purgatory(self, ctx, *, arguments):
         await self.handleLogConfig(ctx, arguments, "purgatory")
@@ -226,16 +241,20 @@ class Admin(commands.Cog, CogMixin):
         name="create",
         aliases=("+", "make"),
         brief="Create new role",
-        usage="(name) [-t type]",
+        usage="(role name) [type: role type]",
     )
     async def roleMake(self, ctx, *, arguments):
         parser = ArgumentParser(allow_abbrev=False)
-        parser.add_argument("--type", "-t")
-        parser.add_argument("name", nargs="+")
+        parser.add_argument("--type")
+        parser.add_argument("name", action="extend", nargs="*")
+        parser.add_argument("--name", action="extend", nargs="+")
 
-        parsed, _ = parser.parse_known_args(shlex.split(arguments))
+        parsed, _ = parser.parse_known_from_string(arguments)
 
-        name = " ".join(parsed.name)
+        name = " ".join(parsed.name).strip()
+        if not name:
+            return await ctx.error("Name can't be empty!")
+
         type = parsed.type or "regular"
 
         if (type := type.lower()) in ROLE_TYPES:
@@ -274,16 +293,20 @@ class Admin(commands.Cog, CogMixin):
         name="set",
         aliases=("&",),
         brief="Turn regular role into special role",
-        usage="(name) (-t type)",
+        usage="(role name) (-t type)",
     )
     async def roleSet(self, ctx, *, arguments):
         parser = ArgumentParser(allow_abbrev=False)
         parser.add_argument("--type", "-t", required=True)
-        parser.add_argument("role", nargs="+")
+        parser.add_argument("role", action="extend", nargs="*")
+        parser.add_argument("--role", action="extend", nargs="+")
 
-        parsed, _ = parser.parse_known_args(shlex.split(arguments))
+        parsed, _ = parser.parse_known_from_string(arguments)
 
-        roleArg = " ".join(parsed.role)
+        roleArg = " ".join(parsed.role).strip()
+        if not roleArg:
+            return await ctx.error("Role name can't be empty!")
+
         type = parsed.type
 
         disallowed = ("regular",)
