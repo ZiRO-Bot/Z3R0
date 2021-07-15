@@ -54,11 +54,15 @@ Not ready yet.
 - [**Improved**] Prefixes now separated to custom and built-in/default (bot mention and `>` by default)
 - [**Changed**] Split greeting, now its possible to have farewell and welcome message in separate channel
 - [**Improved**] `>command disable` and `>command enable` will now try to disable/enable built-in command by default if you're a guild moderator
+- [**Improved**] Changed POSIX-style flags `--channel #channel-mention` to Discord-style flags `channel: #channel-mention`, following dpy v2.0 flag behaviour
 
 ### Overhaul Plan
 
-- ~~Integrate user-made commands into help commands.~~
-    - Add user-made/built-in priority to help command
+- ~~Integrate user-made commands into help commands~~
+- ~~Add flags ('--something', also waiting for Dpy `v2.0`)~~
+   - Replace more POSIX-style flags with Discord-style flags
+   - Use flags from Dpy `v2.0` when it released
+   - Filter to show/hide user-made command for help commands using flags
 - Complete moderation command rewrite. (Currently only ban is fully implemented)
 - Migration tool, migrate from old database "layout" to newer "layout"
 - i18n (If possible)
@@ -66,9 +70,8 @@ Not ready yet.
 - Image manipulation (Filter and stuff)
 - Re-implement/improve old (`v2.x`) commands to `v3.0.0`
 - Slash command (Waiting for Dpy `v2.0`)
-- ~~Add flags ('--something', also waiting for Dpy `v2.0`)~~
-   - Use flags from Dpy `v2.0` when it released.
-   - Filter to show/hide user-made command for help commands.
+- Event for banned member, member boosting a guild, and muted member
+- Add case log
 
 ### Scrapped Plan
 
