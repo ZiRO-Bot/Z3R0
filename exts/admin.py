@@ -13,7 +13,7 @@ from core.mixin import CogMixin
 from discord.ext import commands
 from exts.utils import dbQuery
 from exts.utils.format import ZEmbed
-from exts.utils.other import ArgumentParser, boolFromString
+from exts.utils.other import ArgumentParser, UserFriendlyBoolean
 
 # Also includes aliases
 ROLE_TYPES = {
@@ -55,15 +55,15 @@ class Admin(commands.Cog, CogMixin):
 
         # Parsing arguments
         parser = ArgumentParser(allow_abbrev=False)
-        parser.add_argument("--channel", "-c")
-        parser.add_argument("--raw", "-r", default="False")
-        parser.add_argument("--disable", "-d", default="False")
+        parser.add_argument("--channel", "-c", aliases=("--ch",))
+        parser.add_argument("--raw", "-r", action=UserFriendlyBoolean)
+        parser.add_argument("--disable", "-d", action=UserFriendlyBoolean)
         parser.add_argument("message", nargs="*")
 
         parsed, _ = parser.parse_known_from_string(arguments)
 
-        disable = boolFromString(parsed.disable)
-        raw = boolFromString(parsed.raw)
+        disable = parsed.disable
+        raw = parsed.raw
 
         changeMsg = False
         if not raw and not disable and parsed.message:
@@ -79,12 +79,12 @@ class Admin(commands.Cog, CogMixin):
             + " config has been updated",
         )
 
-        if disable:
+        if disable is True:
             await self.bot.setGuildConfig(ctx.guild.id, f"{type}Ch", None)
             e.add_field(name="Status", value="`Disabled`")
             return await ctx.try_reply(embed=e)
 
-        if raw:
+        if raw is True:
             message = await self.bot.getGuildConfig(ctx.guild.id, f"{type}Msg")
             return await ctx.try_reply(discord.utils.escape_markdown(message))
 

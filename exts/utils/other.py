@@ -191,8 +191,53 @@ class ArgumentError(commands.CommandError):
         super().__init__(discord.utils.escape_mentions(message))
 
 
+class UserFriendlyBoolean(argparse.Action):
+    def __init__(
+        self,
+        option_strings,
+        dest,
+        nargs=None,
+        const=None,
+        default=False,
+        type=None,
+        choices=None,
+        required=False,
+        help=None,
+        metavar=None,
+    ):
+
+        if nargs == 0:
+            raise ValueError(
+                "nargs for store actions must be != 0; if you "
+                "have nothing to store, actions such as store "
+                "true or store const may be more appropriate"
+            )
+
+        if const is not None and nargs != OPTIONAL:
+            raise ValueError("nargs must be %r to supply const" % OPTIONAL)
+
+        super(UserFriendlyBoolean, self).__init__(
+            option_strings=option_strings,
+            dest=dest,
+            nargs=nargs,
+            const=const,
+            default=default,
+            type=type,
+            choices=choices,
+            required=required,
+            help=help,
+            metavar=metavar,
+        )
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        setattr(namespace, self.dest, boolFromString(values))
+
+
 class ArgumentParser(argparse.ArgumentParser):
-    """Argument parser that don't exit on error"""
+    """Argument parser that don't exit on error
+
+    Temporary flags solution while waiting for v2.0 to release
+    """
 
     def __init__(self, *args, add_help=False, **kwargs):
         super().__init__(*args, add_help=add_help, **kwargs)
@@ -202,10 +247,11 @@ class ArgumentParser(argparse.ArgumentParser):
         raise ArgumentError(message)
 
     def add_argument(self, *args, **kwargs):
-        argument = super().add_argument(*args, **kwargs)
-        self.arguments.extend(
-            [str(string).lstrip("-") for string in argument.option_strings]
-        )
+        aliases = kwargs.pop("aliases", [])
+        strings = list(args) + list(aliases)
+
+        argument = super().add_argument(*strings, **kwargs)
+        self.arguments.extend([argument.dest] + [str(a).lstrip("-") for a in aliases])
         return argument
 
     def parse_known_from_string(self, string: str):
@@ -292,9 +338,9 @@ def parseCodeBlock(string: str) -> Tuple[str, str]:
 
 def boolFromString(string: str) -> bool:
     lowered = string.lower()
-    if lowered in ('yes', 'y', 'true', 't', '1', 'enable', 'on'):
+    if lowered in ("yes", "y", "true", "t", "1", "enable", "on"):
         return True
-    elif lowered in ('no', 'n', 'false', 'f', '0', 'disable', 'off'):
+    elif lowered in ("no", "n", "false", "f", "0", "disable", "off"):
         return False
 
 
