@@ -55,7 +55,7 @@ class Admin(commands.Cog, CogMixin):
 
         # Parsing arguments
         parser = ArgumentParser(allow_abbrev=False)
-        parser.add_argument("--channel", "-c", aliases=("--ch",))
+        parser.add_argument("--channel", aliases=("--ch",))
         parser.add_argument("--raw", "-r", action=UserFriendlyBoolean)
         parser.add_argument("--disable", "-d", action=UserFriendlyBoolean)
         parser.add_argument("message", nargs="*")
@@ -104,18 +104,18 @@ class Admin(commands.Cog, CogMixin):
         usage="[message] [options]",
         extras=dict(
             example=(
-                "welcome Welcome to {guild}, {user(name)}! -c #userlog",
+                "welcome Welcome to {guild}, {user(name)}! ch: #userlog",
                 "welcome Hello, {user(name)} 👋",
-                "welcome -r",
-                "welcome --disable",
+                "welcome raw: on",
+                "welcome disable: true",
             ),
             flags={
-                ("--channel", "-c"): "Set welcome channel",
-                ("--raw", "-r"): (
+                ("channel", "ch"): "Set welcome channel",
+                "raw": (
                     "Send welcome's raw message (Useful for editing"
                     ", will prevent you from setting welcome message/channel)"
                 ),
-                ("--disable", "-d"): "Disable welcome event",
+                "disable": "Disable welcome event",
             },
         ),
     )
@@ -129,18 +129,18 @@ class Admin(commands.Cog, CogMixin):
         usage="[message] [options]",
         extras=dict(
             example=(
-                "farewell Bye -c #userlog",
+                "farewell Bye ch: #userlog",
                 "farewell Goodbye, {user(name)}!",
-                "farewell -r",
-                "farewell --disable",
+                "farewell raw: on",
+                "farewell disable: true",
             ),
             flags={
-                ("--channel", "-c"): "Set farewell channel",
-                ("--raw", "-r"): (
+                ("channel", "ch"): "Set farewell channel",
+                "raw": (
                     "Send farewell's raw message (Useful for editing"
                     ", will prevent you from setting farewell message/channel)"
                 ),
-                ("--disable", "-d"): "Disable farewell event",
+                "disable": "Disable farewell event",
             },
         ),
     )

@@ -170,7 +170,7 @@ async def formatCommandInfo(prefix, command):
                 name = (
                     " | ".join([f"`{i}`" for i in key])
                     if isinstance(key, tuple)
-                    else key
+                    else f"`{key}`"
                 )
                 optionStr.append(f"{name}: {value}")
             e.add_field(name="Options", value="\n".join(optionStr), inline=False)
