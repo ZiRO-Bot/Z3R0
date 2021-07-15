@@ -18,8 +18,8 @@ from core import errors
 from core.mixin import CogMixin
 from discord.ext import commands
 from exts.utils import tseBlocks
-from exts.utils.format import formatMissingArgError, logAction, ZEmbed
-from exts.utils.other import reactsToMessage, ArgumentError
+from exts.utils.format import formatMissingArgError, ZEmbed
+from exts.utils.other import reactsToMessage, ArgumentError, utcnow
 
 
 class EventHandler(commands.Cog, CogMixin):
@@ -149,10 +149,8 @@ class EventHandler(commands.Cog, CogMixin):
         # print(_traceback, file=sys.stderr)
         # ---
 
-        desc = (
-            "The command was unsuccessful because of this reason:\n```\n{}\n```\n".format(
-                error
-            )
+        desc = "The command was unsuccessful because of this reason:\n```\n{}\n```\n".format(
+            error
         )
         try:
             # Send embed that when user react with greenTick bot will send it to bot owner or issue channel
@@ -239,14 +237,105 @@ class EventHandler(commands.Cog, CogMixin):
         if before.content == after.content:
             return
 
-        return await logAction(self.bot, "msgEdit", before, after)
+        guild = before.guild
+
+        logCh = guild.get_channel(
+            await self.bot.getGuildConfig(guild.id, "purgatoryCh")
+        )
+        if not logCh:
+            return
+
+        e = ZEmbed(timestamp=utcnow(), title="Edited Message")
+
+        e.set_author(name=before.author, icon_url=before.author.avatar_url)
+
+        e.add_field(
+            name="Before",
+            value=before.content[:1020] + " ..."
+            if len(before.content) > 1024
+            else before.content,
+        )
+        e.add_field(
+            name="After",
+            value=after.content[:1020] + " ..."
+            if len(after.content) > 1024
+            else after.content,
+        )
+
+        if before.embeds:
+            data = before.embeds[0]
+            if data.type == "image" and not self.is_url_spoiler(
+                before.content, data.url
+            ):
+                e.set_image(url=data.url)
+
+        if before.attachments:
+            _file = before.attachments[0]
+            spoiler = _file.is_spoiler()
+            if not spoiler and _file.url.lower().endswith(
+                ("png", "jpeg", "jpg", "gif", "webp")
+            ):
+                e.set_image(url=_file.url)
+            elif spoiler:
+                e.add_field(
+                    name="📎 Attachment",
+                    value=f"||[{_file.filename}]({_file.url})||",
+                    inline=False,
+                )
+            else:
+                e.add_field(
+                    name="📎 Attachment",
+                    value=f"[{_file.filename}]({_file.url})",
+                    inline=False,
+                )
+
+        return await logCh.send(embed=e)
 
     @commands.Cog.listener()
     async def on_message_delete(self, message):
         if message.author.bot:
             return
 
-        return await logAction(self.bot, "msgDel", message)
+        guild = message.guild
+
+        logCh = guild.get_channel(
+            await self.bot.getGuildConfig(guild.id, "purgatoryCh")
+        )
+        if not logCh:
+            return
+
+        e = ZEmbed(timestamp=utcnow(), title="Deleted Message")
+
+        e.set_author(name=message.author, icon_url=message.author.avatar_url)
+
+        e.description = (
+            message.content[:1020] + " ..."
+            if len(message.content) > 1024
+            else message.content
+        )
+
+        return await logCh.send(embed=e)
+
+    # @commands.Cog.listener()
+    # async def on_member_ban(self):
+
+    @commands.Cog.listener()
+    async def on_member_update(self, before, after):
+        if after.guild.id != 807260318270619748:
+            return
+
+        # TODO: Add user log channel
+        channel = after.guild.get_channel(814009733006360597)
+
+        role = after.guild.premium_subscriber_role
+        if not role in before.roles and role in after.roles:
+            e = ZEmbed(
+                description="<:booster:865087663609610241> {} has just boosted the server!".format(
+                    after.mention
+                ),
+                color=self.bot.color,
+            )
+            await channel.send(embed=e)
 
 
 def setup(bot):
