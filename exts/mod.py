@@ -14,14 +14,50 @@ from core.mixin import CogMixin
 from discord.ext import commands
 from exts.timer import Timer, TimerData
 from exts.utils.format import ZEmbed, formatDateTime
-from exts.utils.other import utcnow
+from exts.utils.other import utcnow  # , ArgumentParser
 from typing import Union
+
+
+class HierarchyError(Exception):
+    def __init__(self, message: str = None):
+        super().__init__(
+            message
+            or "My top role is lower than the target's top role in the hierarchy!"
+        )
 
 
 class Moderation(commands.Cog, CogMixin):
     """Moderation commands."""
 
     icon = "🛠️"
+
+    async def checkHierarchy(self, ctx, user):
+        """Check hierarchy stuff"""
+        errMsg = None
+        if user.id == ctx.bot.user.id:
+            errMsg = "Nice try"
+            # return await ctx.try_reply("Nice try.")
+        elif user == ctx.guild.owner:
+            errMsg = "You can't ban guild owner!"
+            # return await ctx.try_reply("You can't ban guild owner!")
+        else:
+            try:
+                if ctx.me.top_role <= user.top_role:
+                    errMsg = (
+                        "{}'s top role is higher than mine in the hierarchy!".format(
+                            user
+                        )
+                    )
+            except:
+                pass
+
+        if errMsg is not None:
+            raise HierarchyError(errMsg)
+
+        return True
+
+    # TODO: Make doModeration function to merge doBan with doMute and other Moderation function
+    # async def doModeration(self, ctx, action):
 
     @commands.group(
         usage="(user) [limit] [reason]",
@@ -80,23 +116,14 @@ class Moderation(commands.Cog, CogMixin):
         timer: Timer = self.bot.get_cog("Timer")
         if not timer:
             # Incase Timer cog not loaded yet.
-            return await ctx.try_reply(
+            return await ctx.error(
                 "Sorry, this command is currently not available. Please try again later"
             )
 
-        # Some checks before attempting to ban the user
-        if user.id == ctx.bot.user.id:
-            return await ctx.try_reply("Nice try.")
-        if user == ctx.guild.owner:
-            return await ctx.try_reply("You can't ban guild owner!")
         try:
-            if ctx.me.top_role <= user.top_role:
-                return await ctx.try_reply(
-                    "{}'s top role is higher than mine in the hierarchy!".format(user)
-                )
-        except AttributeError:
-            # Not guild's member
-            pass
+            check = await self.checkHierarchy(ctx, user)
+        except HierarchyError as exc:
+            return await ctx.error(str(exc))
 
         # Try getting necessary variables
         try:
@@ -119,6 +146,8 @@ class Moderation(commands.Cog, CogMixin):
         except (AttributeError, discord.HTTPException):
             # Failed to send DM
             desc += "\n**DM**: Failed to notify user."
+
+        # --- TODO: These code above can potentially separated to reduce duplicate ---
 
         try:
             await ctx.guild.ban(
@@ -189,6 +218,7 @@ class Moderation(commands.Cog, CogMixin):
         *,
         time: TimeAndArgument = None
     ):
+        # TODO: Do thing!
         pass
 
     @mute.command(
