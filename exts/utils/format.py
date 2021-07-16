@@ -60,9 +60,6 @@ def formatCmdParams(command):
     if isinstance(command, CustomCommand):
         return ""
 
-    if command.name == "help":
-        return "[category|command]"
-
     usage = command.usage
     if usage:
         return usage

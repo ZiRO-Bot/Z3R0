@@ -313,10 +313,23 @@ class Meta(commands.Cog, CogMixin):
 
     def __init__(self, bot):
         super().__init__(bot)
-        # Replace default help menu with custom one
+
+        # Custom help command stuff
+        # help command's attribute
+        attributes = dict(
+            name="help",
+            aliases=("?",),
+            usage="[category|command]",
+            brief="Get information of a command or category",
+            description="Get information of a command or category",
+            extras=dict(example=("help info", "? weather")),
+        )
+        # Backup the old/original command incase this cog unloaded
         self._original_help_command = bot.help_command
-        self.bot.help_command = CustomHelp()
+        # Replace default help menu with custom one
+        self.bot.help_command = CustomHelp(command_attrs=attributes)
         self.bot.help_command.cog = self
+
         self.bot.cache.add(
             "disabled",
             cls=CacheListProperty,
