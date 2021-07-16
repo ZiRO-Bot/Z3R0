@@ -237,11 +237,22 @@ class Moderation(commands.Cog, CogMixin):
             ),
         )
 
-    @commands.group(invoke_without_command=True)
+    @commands.group(
+        brief="Mute a member",
+        invoke_without_command=True,
+        extras=dict(
+            example=(
+                "mute @Someone 3h spam",
+                "mute @Someone 1d",
+                "mute @Someone Annoying",
+            ),
+        )
+    )
+    @checks.mod_or_permissions(ban_members=True)
     async def mute(
         self,
         ctx,
-        user: Union[discord.Member, discord.User],
+        user: discord.Member,
         *,
         time: TimeAndArgument = None,
     ):
