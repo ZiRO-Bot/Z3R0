@@ -35,11 +35,9 @@ class Moderation(commands.Cog, CogMixin):
         """Check hierarchy stuff"""
         errMsg = None
         if user.id == ctx.bot.user.id:
-            errMsg = "Nice try"
-            # return await ctx.try_reply("Nice try.")
+            errMsg = "Nice try."
         elif user == ctx.guild.owner:
-            errMsg = "You can't ban guild owner!"
-            # return await ctx.try_reply("You can't ban guild owner!")
+            errMsg = "You can't do this action to guild owner!"
         else:
             try:
                 if ctx.me.top_role <= user.top_role:
@@ -55,9 +53,6 @@ class Moderation(commands.Cog, CogMixin):
             raise HierarchyError(errMsg)
 
         return True
-
-    # TODO: Make doModeration function to merge doBan with doMute and other Moderation function
-    # async def doModeration(self, ctx, action):
 
     @commands.group(
         usage="(user) [limit] [reason]",
@@ -82,9 +77,9 @@ class Moderation(commands.Cog, CogMixin):
         ctx,
         user: Union[discord.Member, discord.User],
         *,
-        time: TimeAndArgument = None
+        time: TimeAndArgument = None,
     ):
-        await self.doBan(ctx, user, time)
+        await self.doModeration(ctx, user, time, "ban")
 
     @ban.command(
         usage="(user) [limit] [reason]",
@@ -105,12 +100,17 @@ class Moderation(commands.Cog, CogMixin):
         ctx,
         user: Union[discord.Member, discord.User],
         *,
-        time: TimeAndArgument = None
+        time: TimeAndArgument = None,
     ):
-        await self.doBan(ctx, user, time, saveMsg=True)
+        await self.doModeration(ctx, user, time, "ban", saveMsg=True)
 
-    async def doBan(self, ctx, user, time: TimerData, saveMsg=False):
+    async def doModeration(self, ctx, user, time: TimerData, action: str, **kwargs):
         """Ban function, self-explanatory"""
+        actions = {
+            "ban": self.doBan,
+            "mute": self.doMute,
+        }
+
         defaultReason = "No reason."
 
         timer: Timer = self.bot.get_cog("Timer")
@@ -138,22 +138,29 @@ class Moderation(commands.Cog, CogMixin):
         if time is not None:
             desc += "\n**Duration**: {} ({})".format(delta, formatDateTime(time))
             guildAndTime += " until " + formatDateTime(time)
-        DMMsg = "You have been banned from {}. Reason: {}".format(guildAndTime, reason)
+        DMMsg = {
+            "ban": "You have been banned from {}. Reason: {}".format(
+                guildAndTime, reason
+            ),
+            "mute": "You have been muted from {}. Reason: {}".format(
+                guildAndTime, reason
+            ),
+        }
 
         try:
-            await user.send(DMMsg)
+            await user.send(DMMsg[action])
             desc += "\n**DM**: User notified with a direct message."
         except (AttributeError, discord.HTTPException):
             # Failed to send DM
             desc += "\n**DM**: Failed to notify user."
 
-        # --- TODO: These code above can potentially separated to reduce duplicate ---
-
+        # Do the action
         try:
-            await ctx.guild.ban(
+            await (actions[action])(
+                ctx,
                 user,
                 reason="[{} (ID: {})]:".format(ctx.author, ctx.author.id) + reason,
-                delete_message_days=0 if saveMsg else 1,
+                **kwargs,
             )
         except discord.Forbidden:
             return await ctx.try_reply("I don't have permission to ban a user!")
@@ -162,7 +169,7 @@ class Moderation(commands.Cog, CogMixin):
             # Temporary ban
             await timer.createTimer(
                 time,
-                "ban",
+                action,
                 ctx.guild.id,
                 ctx.author.id,
                 user.id,
@@ -170,12 +177,32 @@ class Moderation(commands.Cog, CogMixin):
                 owner=ctx.bot.user.id,
             )
 
+        titles = {
+            "ban": "Banned {}".format(user),
+            "mute": "Muted {}".format(user),
+        }
+
         e = ZEmbed.default(
             ctx,
-            title="Banned {}".format(user),
+            title=titles[action],
             description=desc,
         )
         await ctx.send(embed=e)
+
+    async def doBan(self, ctx, user: discord.User, /, reason: str, **kwargs):
+        saveMsg = kwargs.pop("saveMsg", False)
+
+        await ctx.guild.ban(
+            user,
+            reason=reason,
+            delete_message_days=0 if saveMsg else 1,
+        )
+
+    async def doMute(self, ctx, member: discord.Member, /, reason: str, **kwargs):
+        muteRoleId = await self.bot.getGuildConfig(
+            ctx.guild.id, "mutedRole", "guildRoles"
+        )
+        await member.add_roles(discord.Object(id=muteRoleId), reason=reason)
 
     @commands.Cog.listener()
     async def on_ban_timer_complete(self, timer: TimerData):
@@ -216,10 +243,9 @@ class Moderation(commands.Cog, CogMixin):
         ctx,
         user: Union[discord.Member, discord.User],
         *,
-        time: TimeAndArgument = None
+        time: TimeAndArgument = None,
     ):
-        # TODO: Do thing!
-        pass
+        await self.doModeration(ctx, user, time, "mute")
 
     @mute.command(
         name="create",
@@ -238,6 +264,42 @@ class Moderation(commands.Cog, CogMixin):
         await ctx.try_invoke(
             "role create" if isinstance(name, str) else "role set",
             arguments=str(getattr(name, "id", name)) + " -t muted",
+        )
+
+    @commands.Cog.listener()
+    async def on_mute_timer_complete(self, timer: TimerData):
+        """Automatically unmute."""
+        guildId, modId, userId = timer.args
+        await self.bot.wait_until_ready()
+
+        guild = self.bot.get_guild(guildId)
+        if not guild:
+            return
+
+        try:
+            moderator = guild.get_member(modId) or await guild.fetch_member(modId)
+        except discord.HTTPException:
+            moderator = None
+
+        modTemplate = "{} (ID: {})"
+        if not moderator:
+            try:
+                moderator = self.bot.fetch_user(modId)
+            except:
+                moderator = "Mod ID {}".format(modId)
+            else:
+                moderator = modTemplate.format(moderator, modId)
+        else:
+            moderator = modTemplate.format(moderator, modId)
+
+        member = guild.get_member(userId)
+        muteRoleId = await self.bot.getGuildConfig(guild.id, "mutedRole", "guildRoles")
+        role = discord.Object(id=muteRoleId)
+        await member.remove_roles(
+            role,
+            reason="Automatically unmuted from timer on {} by {}".format(
+                formatDateTime(timer.createdAt), moderator
+            ),
         )
 
 
