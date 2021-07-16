@@ -1192,6 +1192,7 @@ class Meta(commands.Cog, CogMixin):
         ),
     )
     async def info(self, ctx, *, name):
+        # TODO: Merge this command with help command
         # Executes {prefix}help {name} if its built-in command
         try:
             command = await getCustomCommand(ctx, name)
