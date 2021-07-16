@@ -62,7 +62,7 @@ class Admin(commands.Cog, CogMixin):
         parser.add_argument("message", action="extend", nargs="*")
         parser.add_argument("--message", action="extend", nargs="*")
 
-        parsed, _ = parser.parse_known_from_string(arguments)
+        parsed, _ = await parser.parse_known_from_string(arguments)
 
         disable = parsed.disable
         raw = parsed.raw
@@ -159,7 +159,7 @@ class Admin(commands.Cog, CogMixin):
         parser.add_argument("channel", nargs="?", default=argparse.SUPPRESS)
         parser.add_argument("--channel", aliases=("--ch",))
 
-        parsed, _ = parser.parse_known_from_string(arguments)
+        parsed, _ = await parser.parse_known_from_string(arguments)
 
         disable = parsed.disable
 
@@ -249,7 +249,7 @@ class Admin(commands.Cog, CogMixin):
         parser.add_argument("name", action="extend", nargs="*")
         parser.add_argument("--name", action="extend", nargs="+")
 
-        parsed, _ = parser.parse_known_from_string(arguments)
+        parsed, _ = await parser.parse_known_from_string(arguments)
 
         name = " ".join(parsed.name).strip()
         if not name:
@@ -301,7 +301,7 @@ class Admin(commands.Cog, CogMixin):
         parser.add_argument("role", action="extend", nargs="*")
         parser.add_argument("--role", action="extend", nargs="+")
 
-        parsed, _ = parser.parse_known_from_string(arguments)
+        parsed, _ = await parser.parse_known_from_string(arguments)
 
         roleArg = " ".join(parsed.role).strip()
         if not roleArg:

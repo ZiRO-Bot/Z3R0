@@ -254,7 +254,7 @@ class ArgumentParser(argparse.ArgumentParser):
         self.arguments.extend([argument.dest] + [str(a).lstrip("-") for a in aliases])
         return argument
 
-    def parse_known_from_string(self, string: str):
+    async def parse_known_from_string(self, string: str):
         arguments = "|".join(set(self.arguments))
         # parse "arg: value" into "--arg value"
         pattern = re.compile(f"(()(?P<flag>{arguments}):)", re.IGNORECASE)
