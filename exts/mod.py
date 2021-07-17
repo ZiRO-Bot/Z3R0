@@ -342,7 +342,7 @@ class Moderation(commands.Cog, CogMixin):
         ctx,
         user: discord.Member,
         *,
-        reason: str,
+        reason: str = None,
     ):
         await self.doModeration(ctx, user, None, "kick", reason=reason)
 
