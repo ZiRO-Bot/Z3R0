@@ -49,36 +49,40 @@ Not ready yet.
 - [**BugFix**] Priority doesn't work on user-based input (string, int, etc)
 - [**New**] "Colour Information" command
 - [**New**] `Timer` ext
-- [**Improved**] Temporary ban/mute using the new `Timer` ext
+- [**Improved**] Temporary ban using the new `Timer` ext
 - [**Improved**] Guild data will countdown up to 30 days before deleting when the bot leave the guild instead of instantly deleting the data
 - [**Improved**] Prefixes now separated to custom and built-in/default (bot mention and `>` by default)
 - [**Changed**] Split greeting, now its possible to have farewell and welcome message in separate channel
 - [**Improved**] `>command disable` and `>command enable` will now try to disable/enable built-in command by default if you're a guild moderator
 - [**Improved**] Changed POSIX-style flags `--channel #channel-mention` to Discord-style flags `channel: #channel-mention`, following dpy v2.0 flag behaviour
+- [**Improved**] Temporary mute using the new `Timer` ext
 
 ### Overhaul Plan
 
+- Migration tool, migrate from old database "layout" to newer "layout"
+- Image manipulation (Filter and stuff) (in `v3.0.1` maybe?)
+- Re-implement/improve old (`v2.x`) commands to `v3.0.0`
+- Event for banned member, ~~member boosting a guild~~ (Just need to implement setup for it), and muted member
+- Add case log (in `v3.0.1` maybe?)
+- Properly support different SQL scheme (databases have `database_url.scheme` to check scheme type) (in `v3.0.1` maybe?)
+
+### Pending Plan
+
+> Waiting for Dpy `v2.0` to release
+- Slash command (Waiting for Dpy `v2.0`)
 - ~~Integrate user-made commands into help commands~~
 - ~~Add flags ('--something', also waiting for Dpy `v2.0`)~~
    - Replace more POSIX-style flags with Discord-style flags
    - Use flags from Dpy `v2.0` when it released
    - Filter to show/hide user-made command for help commands using flags
-- Complete moderation command rewrite. (Currently only ban is fully implemented)
-- Migration tool, migrate from old database "layout" to newer "layout"
-- i18n (If possible)
-- Twitch and YouTube notification (Maybe?)
-- Image manipulation (Filter and stuff)
-- Re-implement/improve old (`v2.x`) commands to `v3.0.0`
-- Slash command (Waiting for Dpy `v2.0`)
-- Event for banned member, member boosting a guild, and muted member
-- Add case log
-- Properly support different SQL scheme (databases have `database_url.scheme` to check scheme type)
 
 ### Scrapped Plan
 
 > Plan that unfortunately not possible (atleast for now)
 - Music Player
 - Public/Private commands, allowing other user to use each other's command in a different server.
+- Twitch and YouTube notification (Maybe?)
+- i18n (If possible)
 
 ## License
 
