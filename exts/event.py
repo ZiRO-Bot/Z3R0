@@ -77,10 +77,23 @@ class EventHandler(commands.Cog, CogMixin):
     async def on_member_join(self, member: discord.Member):
         """Welcome message"""
         await self.handleGreeting(member, "welcome")
+        autoRole = await self.bot.getGuildConfig(
+            member.guild.id, "autoRole", "guildRoles"
+        )
+        if autoRole:
+            try:
+                await member.add_roles(
+                    discord.Object(id=autoRole),
+                    reason="Auto Role using {}".format(self.bot.user),
+                )
+            except discord.HTTPException:
+                # Something wrong happened
+                return
 
     @commands.Cog.listener()
     async def on_member_remove(self, member: discord.Member):
         """Farewell message"""
+        # TODO: Add muted_member table to database to prevent mute evasion
         await self.handleGreeting(member, "farewell")
 
     @commands.Cog.listener()

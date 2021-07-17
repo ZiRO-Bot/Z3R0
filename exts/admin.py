@@ -15,9 +15,12 @@ from discord.ext import commands
 from exts.utils import dbQuery
 from exts.utils.format import ZEmbed
 from exts.utils.other import ArgumentParser, UserFriendlyBoolean
+from typing import Union
 
 # Also includes aliases
 ROLE_TYPES = {
+    "default": "autoRole",  # Role that automatically given upon joining a guild
+    "member": "autoRole",
     "moderator": "modRole",
     "mod": "modRole",
     "mute": "mutedRole",
@@ -293,7 +296,7 @@ class Admin(commands.Cog, CogMixin):
         name="set",
         aliases=("&",),
         brief="Turn regular role into special role",
-        usage="(role name) (-t type)",
+        usage="(role name) (type: role type)",
     )
     async def roleSet(self, ctx, *, arguments):
         parser = ArgumentParser(allow_abbrev=False)
@@ -342,6 +345,20 @@ class Admin(commands.Cog, CogMixin):
                 )
             ),
             title="Invalid role type!",
+        )
+
+    @commands.command(
+        brief="Set auto role",
+        description=(
+            "Set auto role.\n" "A role that will be given to a new member upon joining"
+        ),
+        usage="(role name)",
+        extras=dict(example=("autorole @Member",)),
+    )
+    async def autorole(self, ctx, name: Union[discord.Role, str]):
+        await ctx.try_invoke(
+            self.roleMake if isinstance(name, str) else self.roleSet,
+            arguments=f"{getattr(name, 'id', name)} type: member",
         )
 
 

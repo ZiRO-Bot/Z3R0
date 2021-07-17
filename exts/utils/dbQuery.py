@@ -157,6 +157,7 @@ createGuildRolesTable = """
         guildId INTEGER PRIMARY KEY,
         modRole INTEGER,
         mutedRole INTEGER,
+        autoRole INTEGER,
         FOREIGN KEY ("guildId") REFERENCES guilds ("id") ON DELETE CASCADE
     )
 """

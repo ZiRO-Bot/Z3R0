@@ -284,7 +284,7 @@ class Moderation(commands.Cog, CogMixin):
     async def muteCreate(self, ctx, name: Union[discord.Role, str] = "Muted"):
         await ctx.try_invoke(
             "role create" if isinstance(name, str) else "role set",
-            arguments=str(getattr(name, "id", name)) + " -t muted",
+            arguments=f"{getattr(name, 'id', name)} type: muted",
         )
 
     async def doMute(self, ctx, member: discord.Member, /, reason: str, **kwargs):
