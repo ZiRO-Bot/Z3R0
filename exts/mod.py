@@ -9,7 +9,7 @@ import humanize
 
 
 from core import checks
-from core.converter import TimeAndArgument
+from core.converter import TimeAndArgument, BannedMember
 from core.mixin import CogMixin
 from discord.ext import commands
 from exts.timer import Timer, TimerData
@@ -150,8 +150,7 @@ class Moderation(commands.Cog, CogMixin):
             "kick": "Kicked {}",
         }
 
-        e = ZEmbed.default(
-            ctx,
+        e = ZEmbed.success(
             title=titles[action].format(user),
             description=desc,
         )
@@ -207,6 +206,17 @@ class Moderation(commands.Cog, CogMixin):
     ):
         await self.doModeration(ctx, user, time, "ban", saveMsg=True)
 
+    @commands.command(
+        brief="Unban a member",
+        extras=dict(example=("unban @Someone Wrong person", "unban @Someone")),
+    )
+    async def unban(self, ctx, member: BannedMember, *, reason: str = "No reason."):
+        await ctx.guild.unban(member.user, reason=reason)
+        e = ZEmbed.success(
+            title="Unbanned {}".format(member.user),
+        )
+        await ctx.try_reply(embed=e)
+
     async def doBan(self, ctx, user: discord.User, /, reason: str, **kwargs):
         saveMsg = kwargs.pop("saveMsg", False)
 
@@ -240,12 +250,16 @@ class Moderation(commands.Cog, CogMixin):
 
         moderator = modTemplate.format(moderator, modId)
 
-        await guild.unban(
-            discord.Object(id=userId),
-            reason="Automatically unban from timer on {} by {}".format(
-                formatDateTime(timer.createdAt), moderator
-            ),
-        )
+        try:
+            await guild.unban(
+                discord.Object(id=userId),
+                reason="Automatically unban from timer on {} by {}".format(
+                    formatDateTime(timer.createdAt), moderator
+                ),
+            )
+        except discord.NotFound:
+            # unbanned manually
+            return
 
     @commands.group(
         brief="Mute a member",
@@ -286,6 +300,17 @@ class Moderation(commands.Cog, CogMixin):
             "role create" if isinstance(name, str) else "role set",
             arguments=f"{getattr(name, 'id', name)} type: muted",
         )
+
+    @commands.command()
+    async def unmute(self, ctx, member: discord.Member, *, reason: str = "No reason."):
+        muteRoleId = await self.bot.getGuildConfig(
+            ctx.guild.id, "mutedRole", "guildRoles"
+        )
+        await member.remove_roles(discord.Object(id=muteRoleId), reason=reason)
+        e = ZEmbed.success(
+            title="Unmuted {}".format(member),
+        )
+        await ctx.try_reply(embed=e)
 
     async def doMute(self, ctx, member: discord.Member, /, reason: str, **kwargs):
         muteRoleId = await self.bot.getGuildConfig(
