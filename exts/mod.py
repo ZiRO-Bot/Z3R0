@@ -72,6 +72,91 @@ class Moderation(commands.Cog, CogMixin):
 
         return True
 
+    async def doModeration(self, ctx, user, time: TimerData, action: str, **kwargs):
+        """Ban function, self-explanatory"""
+        actions = {
+            "ban": self.doBan,
+            "mute": self.doMute,
+            "kick": self.doKick,
+        }
+
+        defaultReason = "No reason."
+
+        timer: Timer = self.bot.get_cog("Timer")
+        if not timer:
+            # Incase Timer cog not loaded yet.
+            return await ctx.error(
+                "Sorry, this command is currently not available. Please try again later"
+            )
+
+        try:
+            check = await self.checkHierarchy(ctx, user, action)
+        except HierarchyError as exc:
+            return await ctx.error(str(exc))
+
+        # Try getting necessary variables
+        try:
+            reason = time.arg or defaultReason
+            delta = time.delta
+            time = time.when
+        except AttributeError:
+            reason = kwargs.pop("reason", defaultReason) or defaultReason
+
+        desc = "**Reason**: {}".format(reason)
+        guildAndTime = ctx.guild.name
+        if time is not None:
+            desc += "\n**Duration**: {} ({})".format(delta, formatDateTime(time))
+            guildAndTime += " until " + formatDateTime(time)
+
+        DMMsg = {
+            "ban": "You have been banned from {}. Reason: {}",
+            "mute": "You have been muted from {}. Reason: {}",
+            "kick": "You have been kicked from {}. Reason: {}",
+        }
+
+        try:
+            await user.send(DMMsg[action].format(guildAndTime, reason))
+            desc += "\n**DM**: User notified with a direct message."
+        except (AttributeError, discord.HTTPException):
+            # Failed to send DM
+            desc += "\n**DM**: Failed to notify user."
+
+        # Do the action
+        try:
+            await (actions[action])(
+                ctx,
+                user,
+                reason="[{} (ID: {})]: {}".format(ctx.author, ctx.author.id, reason),
+                **kwargs,
+            )
+        except discord.Forbidden:
+            return await ctx.try_reply("I don't have permission to ban a user!")
+
+        if time is not None:
+            # Temporary ban
+            await timer.createTimer(
+                time,
+                action,
+                ctx.guild.id,
+                ctx.author.id,
+                user.id,
+                created=utcnow(),
+                owner=ctx.bot.user.id,
+            )
+
+        titles = {
+            "ban": "Banned {}",
+            "mute": "Muted {}",
+            "kick": "Kicked {}",
+        }
+
+        e = ZEmbed.default(
+            ctx,
+            title=titles[action].format(user),
+            description=desc,
+        )
+        await ctx.send(embed=e)
+
     @commands.group(
         usage="(user) [limit] [reason]",
         brief="Ban a user, with optional time limit",
@@ -121,91 +206,6 @@ class Moderation(commands.Cog, CogMixin):
         time: TimeAndArgument = None,
     ):
         await self.doModeration(ctx, user, time, "ban", saveMsg=True)
-
-    async def doModeration(self, ctx, user, time: TimerData, action: str, **kwargs):
-        """Ban function, self-explanatory"""
-        actions = {
-            "ban": self.doBan,
-            "mute": self.doMute,
-        }
-
-        defaultReason = "No reason."
-
-        timer: Timer = self.bot.get_cog("Timer")
-        if not timer:
-            # Incase Timer cog not loaded yet.
-            return await ctx.error(
-                "Sorry, this command is currently not available. Please try again later"
-            )
-
-        try:
-            check = await self.checkHierarchy(ctx, user, action)
-        except HierarchyError as exc:
-            return await ctx.error(str(exc))
-
-        # Try getting necessary variables
-        try:
-            reason = time.arg or defaultReason
-            delta = time.delta
-            time = time.when
-        except AttributeError:
-            reason = defaultReason
-
-        desc = "**Reason**: {}".format(reason)
-        guildAndTime = ctx.guild.name
-        if time is not None:
-            desc += "\n**Duration**: {} ({})".format(delta, formatDateTime(time))
-            guildAndTime += " until " + formatDateTime(time)
-        DMMsg = {
-            "ban": "You have been banned from {}. Reason: {}".format(
-                guildAndTime, reason
-            ),
-            "mute": "You have been muted from {}. Reason: {}".format(
-                guildAndTime, reason
-            ),
-        }
-
-        try:
-            await user.send(DMMsg[action])
-            desc += "\n**DM**: User notified with a direct message."
-        except (AttributeError, discord.HTTPException):
-            # Failed to send DM
-            desc += "\n**DM**: Failed to notify user."
-
-        # Do the action
-        try:
-            await (actions[action])(
-                ctx,
-                user,
-                reason="[{} (ID: {})]:".format(ctx.author, ctx.author.id) + reason,
-                **kwargs,
-            )
-        except discord.Forbidden:
-            return await ctx.try_reply("I don't have permission to ban a user!")
-
-        if time is not None:
-            # Temporary ban
-            await timer.createTimer(
-                time,
-                action,
-                ctx.guild.id,
-                ctx.author.id,
-                user.id,
-                created=utcnow(),
-                owner=ctx.bot.user.id,
-            )
-
-        titles = {
-            "ban": "Banned {}".format(user),
-            "mute": "Muted {}".format(user),
-        }
-
-        e = ZEmbed.default(
-            ctx,
-            title=titles[action],
-            description=desc,
-        )
-        await ctx.send(embed=e)
 
     async def doBan(self, ctx, user: discord.User, /, reason: str, **kwargs):
         saveMsg = kwargs.pop("saveMsg", False)
@@ -326,6 +326,28 @@ class Moderation(commands.Cog, CogMixin):
                 formatDateTime(timer.createdAt), moderator
             ),
         )
+
+    @commands.command(
+        brief="Kick a member",
+        extras=dict(
+            example=(
+                "kick @Someone seeking attention",
+                "kick @Someone",
+            ),
+        ),
+    )
+    @checks.mod_or_permissions(kick_members=True)
+    async def kick(
+        self,
+        ctx,
+        user: discord.Member,
+        *,
+        reason: str,
+    ):
+        await self.doModeration(ctx, user, None, "kick", reason=reason)
+
+    async def doKick(self, ctx, member: discord.Member, /, reason: str, **kwargs):
+        await member.kick(reason=reason)
 
 
 def setup(bot):
