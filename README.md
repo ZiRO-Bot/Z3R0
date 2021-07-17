@@ -23,6 +23,7 @@
 
 ### Features
 
+- Custom Command, allow your mods or member to create a custom command
 Coming Soon.
 
 ## Configuration
@@ -33,8 +34,27 @@ Not ready yet.
 
 ### Self-Hosting
 
+- Install all the dependencies by executing this command,
+
+   ```zsh
+   # Windows
+   py -m pip install -r requirements.txt
+
+   # Linux
+   python3 -m pip install -r requirements.txt
+   ```
+
 - Copy and paste (or rename) [`config.py-example`](./config.py-example) to `config.py`
 - Edit all the necessary config value (`token`, `botMasters`, and `sql`)
+- Run the bot by executing this command,
+
+   ```zsh
+   # Windows
+   py main.py
+
+   # Linux
+   python3 main.py
+   ```
 
 ## Overhaul
 
@@ -65,6 +85,7 @@ Not ready yet.
 - Event for banned member, ~~member boosting a guild~~ (Just need to implement setup for it), and muted member
 - Add case log (in `v3.0.1` maybe?)
 - Properly support different SQL scheme (databases have `database_url.scheme` to check scheme type) (in `v3.0.1` maybe?)
+- Tags (stripped version of custom command)
 
 ### Pending Plan
 
