@@ -545,6 +545,7 @@ class Meta(commands.Cog, CogMixin):
         # TODO: Find better way to parse valid link
         # TODO: Add support for hastebin and mystb.in
         # Link will either be None, pastebin, or gist
+        # TODO: Drop pastebin support replace it with hastebin
         link = None
 
         url = url.rstrip("/")

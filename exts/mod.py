@@ -31,14 +31,16 @@ class Moderation(commands.Cog, CogMixin):
 
     icon = "🛠️"
 
-    async def checkHierarchy(self, ctx, user):
+    async def checkHierarchy(self, ctx, user, action: str = None):
         """Check hierarchy stuff"""
         errMsg = None
+
         if user.id == ctx.bot.user.id:
             errMsg = "Nice try."
         elif user == ctx.guild.owner:
-            errMsg = "You can't do this action to guild owner!"
+            errMsg = "You can't {} guild owner!".format(action or "do this action to")
         else:
+            # compare author and bot's top role vs target's top role
             try:
                 if ctx.me.top_role <= user.top_role:
                     errMsg = (
@@ -47,8 +49,24 @@ class Moderation(commands.Cog, CogMixin):
                         )
                     )
             except:
+                # probably instance of discord.User
                 pass
 
+            try:
+                if (
+                    ctx.author != ctx.guild.owner  # guild owner doesn't need this check
+                    and ctx.author.top_role <= user.top_role
+                ):
+                    errMsg = (
+                        "{}'s top role is higher than yours in the hierarchy!".format(
+                            user
+                        )
+                    )
+            except:
+                # probably instance of discord.User
+                pass
+
+        # errMsg will always None unless check fails
         if errMsg is not None:
             raise HierarchyError(errMsg)
 
@@ -121,7 +139,7 @@ class Moderation(commands.Cog, CogMixin):
             )
 
         try:
-            check = await self.checkHierarchy(ctx, user)
+            check = await self.checkHierarchy(ctx, user, action)
         except HierarchyError as exc:
             return await ctx.error(str(exc))
 
@@ -198,12 +216,6 @@ class Moderation(commands.Cog, CogMixin):
             delete_message_days=0 if saveMsg else 1,
         )
 
-    async def doMute(self, ctx, member: discord.Member, /, reason: str, **kwargs):
-        muteRoleId = await self.bot.getGuildConfig(
-            ctx.guild.id, "mutedRole", "guildRoles"
-        )
-        await member.add_roles(discord.Object(id=muteRoleId), reason=reason)
-
     @commands.Cog.listener()
     async def on_ban_timer_complete(self, timer: TimerData):
         """Automatically unban."""
@@ -225,10 +237,8 @@ class Moderation(commands.Cog, CogMixin):
                 moderator = self.bot.fetch_user(modId)
             except:
                 moderator = "Mod ID {}".format(modId)
-            else:
-                moderator = modTemplate.format(moderator, modId)
-        else:
-            moderator = modTemplate.format(moderator, modId)
+
+        moderator = modTemplate.format(moderator, modId)
 
         await guild.unban(
             discord.Object(id=userId),
@@ -246,9 +256,9 @@ class Moderation(commands.Cog, CogMixin):
                 "mute @Someone 1d",
                 "mute @Someone Annoying",
             ),
-        )
+        ),
     )
-    @checks.mod_or_permissions(ban_members=True)
+    @checks.mod_or_permissions(manage_messages=True)
     async def mute(
         self,
         ctx,
@@ -277,6 +287,12 @@ class Moderation(commands.Cog, CogMixin):
             arguments=str(getattr(name, "id", name)) + " -t muted",
         )
 
+    async def doMute(self, ctx, member: discord.Member, /, reason: str, **kwargs):
+        muteRoleId = await self.bot.getGuildConfig(
+            ctx.guild.id, "mutedRole", "guildRoles"
+        )
+        await member.add_roles(discord.Object(id=muteRoleId), reason=reason)
+
     @commands.Cog.listener()
     async def on_mute_timer_complete(self, timer: TimerData):
         """Automatically unmute."""
@@ -298,10 +314,8 @@ class Moderation(commands.Cog, CogMixin):
                 moderator = self.bot.fetch_user(modId)
             except:
                 moderator = "Mod ID {}".format(modId)
-            else:
-                moderator = modTemplate.format(moderator, modId)
-        else:
-            moderator = modTemplate.format(moderator, modId)
+
+        moderator = modTemplate.format(moderator, modId)
 
         member = guild.get_member(userId)
         muteRoleId = await self.bot.getGuildConfig(guild.id, "mutedRole", "guildRoles")
