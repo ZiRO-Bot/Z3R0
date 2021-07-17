@@ -9,6 +9,7 @@ import time
 import unicodedata
 
 
+from aiohttp import InvalidURL
 from core import checks
 from core.mixin import CogMixin
 from exts.api.openweather import OpenWeatherAPI, CityNotFound
@@ -203,6 +204,7 @@ class Info(commands.Cog, CogMixin):
         return await ctx.try_reply(embed=e)
 
     @emoji.command(
+        name="steal",
         brief="Steal a custom emoji",
         description="Steal a custom emoji\n\nUnicode emojis are not supported!",
         extras=dict(
@@ -210,12 +212,66 @@ class Info(commands.Cog, CogMixin):
         ),
     )
     @checks.mod_or_permissions(manage_emojis=True)
-    async def steal(self, ctx, emoji: Union[discord.Emoji, discord.PartialEmoji]):
-        async with self.bot.session.get(str(emoji.url)) as req:
-            emojiByte = await req.read()
+    async def emojiSteal(self, ctx, emoji: Union[discord.Emoji, discord.PartialEmoji]):
+        emojiByte = await emoji.url.read()
+
         try:
             addedEmoji = await ctx.guild.create_custom_emoji(
                 name=emoji.name, image=emojiByte
+            )
+        except discord.Forbidden:
+            return await ctx.error("I don't have permission to `Manage Emojis`!")
+
+        e = ZEmbed.default(
+            ctx,
+            title="{} `:{}:` has been added to the server".format(
+                addedEmoji, addedEmoji.name
+            ),
+        )
+        return await ctx.try_reply(embed=e)
+
+    @emoji.command(
+        name="add",
+        brief="Add a custom emoji",
+        description="Add a custom emoji\n\nUnicode emojis are not supported (yet)!",
+        extras=dict(
+            example=(
+                "emoji add shuba https://cdn.discordapp.com/emojis/855604899743793152.gif",
+                "em add thonking :thonk:",
+            ),
+        ),
+        usage="(emoji name) (emoji/image url/attachment)",
+    )
+    @checks.mod_or_permissions(manage_emojis=True)
+    async def emojiAdd(
+        self, ctx, name: str, emoji: Union[discord.Emoji, discord.PartialEmoji, str] = None
+    ):
+        if emoji is not None:
+            try:
+                emojiByte = await emoji.url.read()
+            except AttributeError:
+                # Probably a url?
+                try:
+                    async with self.bot.session.get(emoji) as req:
+                        emojiByte = await req.read()
+                except InvalidURL:
+                    return await ctx.error(
+                        "You can only pass custom emoji or image url",
+                        title="Invalid Input!",
+                    )
+        else:
+            if attachments := ctx.message.attachments:
+                if str(attachments[0].content_type).startswith("image"):
+                    emojiByte = await attachments[0].read()
+            else:
+                return await ctx.error(
+                    "You need to pass custom emoji, image url, or image attachment!",
+                    title="Missing Input!"
+                )
+
+        try:
+            addedEmoji = await ctx.guild.create_custom_emoji(
+                name=name, image=emojiByte
             )
         except discord.Forbidden:
             return await ctx.error("I don't have permission to `Manage Emojis`!")
