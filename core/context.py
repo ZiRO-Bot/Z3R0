@@ -71,7 +71,7 @@ class Context(commands.Context):
     async def success(self, success_message: str, /, title: str = None):
         e = ZEmbed.success(
             description=success_message,
-            title="SUCCESS" + (f": {title}" if title else ""),
+            title=title or "Success",
         )
         return await self.try_reply(embed=e)
 

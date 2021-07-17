@@ -79,7 +79,7 @@ class Admin(commands.Cog, CogMixin):
         if not raw and not disable and parsed.channel:
             channel = await commands.TextChannelConverter().convert(ctx, parsed.channel)
 
-        e = ZEmbed(
+        e = ZEmbed.success(
             title=("Welcome" if type == "welcome" else "Farewell")
             + " config has been updated",
         )
@@ -166,7 +166,7 @@ class Admin(commands.Cog, CogMixin):
 
         disable = parsed.disable
 
-        e = ZEmbed(
+        e = ZEmbed.success(
             title=("Modlog" if type == "modlog" else "Purgatory")
             + " config has been updated"
         )
@@ -359,6 +359,17 @@ class Admin(commands.Cog, CogMixin):
         await ctx.try_invoke(
             self.roleMake if isinstance(name, str) else self.roleSet,
             arguments=f"{getattr(name, 'id', name)} type: member",
+        )
+
+    @commands.command(
+        brief="Set announcement channel",
+        extras=dict(example=("announcement #announcement")),
+    )
+    async def announcement(self, ctx, channel: discord.TextChannel):
+        await self.bot.setGuildConfig(ctx.guild.id, "announcementCh", channel.id)
+        return await ctx.success(
+            f"**Channel**: {channel.mention}",
+            title="Announcement channel has been updated",
         )
 
 
