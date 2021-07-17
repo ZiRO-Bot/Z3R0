@@ -905,33 +905,42 @@ class Meta(commands.Cog, CogMixin):
     @command.command(
         brief="Disable a command",
         description=(
-            "Disable a command.\n\nSupport both custom and built-in "
-            "command.\n(Will try to disable custom command or built-in if "
-            "you're a moderator by default)\nNote: "
-            "Server admin/mods still able to use disabled **built-in** "
-            "command.\n\n__**Options:**__\n`--built-in` | `-b`: Disable "
-            "built-in command\n`--custom` | `-c`: Disable custom command "
-            "(Always overrides `--built-in`)\n`--category` | `-C`: Disable all "
-            "commands in a specific category (Requires `-b`)"
+            "Disable a command.\n\n"
+            "Support both custom and built-in command.\n"
+            "(Will try to disable custom command or built-in if "
+            "you're a moderator by default)\n"
+            "Note: Server admin/mods still able to use disabled **built-in** "
+            "command."
         ),
         extras=dict(
             example=(
                 "command disable example",
-                "cmd disable -b weather",
-                "command disable -bC info",
-                "cmd disable -c test",
-            )
+                "cmd disable built-in: on weather",
+                "command disable built-in: on cat: on info",
+                "cmd disable custom: on test",
+            ),
+            flags={
+                "built-in": "Disable built-in command",
+                "custom": "Disable custom command",
+                (
+                    "category",
+                    "cat",
+                ): "Disable all command in a specific category (Requires `built-in` flag)",
+            },
         ),
+        usage="(name) [options]",
     )
     async def disable(self, ctx, *, arguments):
         # parse name and flags from arguments
         parser = ArgumentParser(allow_abbrev=False)
-        parser.add_argument("--built-in", "-b", action="store_true")
-        parser.add_argument("--custom", "-c", action="store_true")
-        parser.add_argument("--category", "-C", action="store_true")
-        parser.add_argument("name", nargs="+")
+        parser.add_argument("--built-in", action="bool")
+        parser.add_argument("--custom", action="bool")
+        parser.add_argument("--category", aliases=("--cat",), action="bool")
+        parser.add_argument("name", action="extend", nargs="+")
+        parser.add_argument("--name", action="extend", nargs="+")
 
-        parsed, _ = parser.parse_known_args(shlex.split(arguments))
+        # parsed, _ = parser.parse_known_args(shlex.split(arguments))
+        parsed, _ = await parser.parse_known_from_string(arguments)
 
         isMod = await checks.isMod(ctx)
 
@@ -1048,32 +1057,39 @@ class Meta(commands.Cog, CogMixin):
     @command.command(
         brief="Enable a command",
         description=(
-            "Enable a command.\n\nSupport both custom and built-in "
-            "command.\n(Will try to enable custom command or built-in if "
-            "you're a moderator by default)\nNote: "
-            "__**Options:**__\n`--built-in` | `-b`: Enable built-in "
-            "command\n`--custom` | `-c`: Enable custom command "
-            "(Always overrides `--built-in`)\n`--category` | `-C`: Enable all "
-            "commands in a specific category (Requires `-b`)"
+            "Enable a command.\n\n"
+            "Support both custom and built-in command.\n"
+            "(Will try to enable custom command or built-in if "
+            "you're a moderator by default)"
         ),
         extras=dict(
             example=(
                 "command enable example",
-                "cmd enable -b weather",
-                "cmd enable -bC info",
-                "cmd enable -c test",
-            )
+                "cmd enable built-in: on weather",
+                "cmd enable built-in: on cat: on info",
+                "cmd enable custom: on test",
+            ),
+            flags={
+                "built-in": "Emable built-in command",
+                "custom": "Enable custom command",
+                (
+                    "category",
+                    "cat",
+                ): "Enable all command in a specific category (Requires `built-in` flag)",
+            },
         ),
+        usage="(name) [options]",
     )
     async def enable(self, ctx, *, arguments):
         # parse name and flags from arguments
         parser = ArgumentParser(allow_abbrev=False)
-        parser.add_argument("--built-in", "-b", action="store_true")
-        parser.add_argument("--custom", "-c", action="store_true")
-        parser.add_argument("--category", "-C", action="store_true")
-        parser.add_argument("name", nargs="+")
+        parser.add_argument("--built-in", action="bool")
+        parser.add_argument("--custom", action="bool")
+        parser.add_argument("--category", aliases=("--cat",), action="bool")
+        parser.add_argument("name", action="extend", nargs="+")
+        parser.add_argument("--name", action="extend", nargs="+")
 
-        parsed, _ = parser.parse_known_args(shlex.split(arguments))
+        parsed, _ = await parser.parse_known_from_string(arguments)
 
         isMod = await checks.isMod(ctx)
 

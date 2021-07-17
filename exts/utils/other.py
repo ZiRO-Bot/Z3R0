@@ -250,6 +250,9 @@ class ArgumentParser(argparse.ArgumentParser):
         aliases = kwargs.pop("aliases", [])
         strings = list(args) + list(aliases)
 
+        if kwargs.get("action") == "bool":
+            kwargs["action"] = UserFriendlyBoolean
+
         argument = super().add_argument(*strings, **kwargs)
         self.arguments.extend([argument.dest] + [str(a).lstrip("-") for a in aliases])
         return argument
