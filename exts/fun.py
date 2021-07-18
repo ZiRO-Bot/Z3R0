@@ -6,6 +6,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import asyncio
 import discord
+import io
 
 
 from core.mixin import CogMixin
@@ -167,6 +168,17 @@ class Fun(commands.Cog, CogMixin):
     # @commands.command(brief="Ping random member")
     # async def someone(self, ctx):
     #     await ctx.send(choice(ctx.guild.members).mention)
+
+    @commands.command(
+        usage="(status code)",
+        brief="Get http status code with cat in it",
+        extras=dict(example=("httpcat 404",)),
+    )
+    async def httpcat(self, ctx, status_code):
+        async with self.bot.session.get(url=f"https://http.cat/{status_code}") as res:
+            image = io.BytesIO(await res.read())
+            img = discord.File(fp=image, filename="httpcat.jpg")
+            await ctx.try_reply(file=img)
 
 
 def setup(bot):
