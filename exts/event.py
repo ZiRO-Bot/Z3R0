@@ -94,7 +94,25 @@ class EventHandler(commands.Cog, CogMixin):
     async def on_member_remove(self, member: discord.Member):
         """Farewell message"""
         # TODO: Add muted_member table to database to prevent mute evasion
-        await self.handleGreeting(member, "farewell")
+        entries = await member.guild.audit_logs(limit=1).flatten()
+        entry: discord.AuditLogEntry = discord.utils.find(lambda e: e.target == member, entries)
+        if not entry:
+            return
+
+        if entry.action == discord.AuditLogAction.kick:
+            self.bot.dispatch("member_kick", member)
+            return
+        if entry.action == discord.AuditLogAction.ban:
+            return
+        return await self.handleGreeting(member, "farewell")
+
+    @commands.Cog.listener()
+    async def on_member_kick(self, member: discord.Member):
+        print("kicked")
+
+    @commands.Cog.listener()
+    async def on_member_ban(self, guild: discord.Guild, member: discord.Member):
+        print("banned")
 
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
@@ -250,6 +268,9 @@ class EventHandler(commands.Cog, CogMixin):
         if before.author.bot:
             return
 
+        if before.type != discord.MessageType.default:
+            return
+
         if before.content == after.content:
             return
 
@@ -310,6 +331,9 @@ class EventHandler(commands.Cog, CogMixin):
     @commands.Cog.listener()
     async def on_message_delete(self, message):
         if message.author.bot:
+            return
+
+        if message.type != discord.MessageType.default:
             return
 
         guild = message.guild
