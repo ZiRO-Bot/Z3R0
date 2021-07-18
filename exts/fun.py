@@ -164,9 +164,9 @@ class Fun(commands.Cog, CogMixin):
         )
         await ctx.try_reply(embed=e)
 
-    @commands.command(brief="Ping random member")
-    async def someone(self, ctx):
-        await ctx.send(choice(ctx.guild.members).mention)
+    # @commands.command(brief="Ping random member")
+    # async def someone(self, ctx):
+    #     await ctx.send(choice(ctx.guild.members).mention)
 
 
 def setup(bot):
