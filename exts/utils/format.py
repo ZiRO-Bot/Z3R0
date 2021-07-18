@@ -16,8 +16,13 @@ class ZEmbed(discord.Embed):
             self.add_field(name=n, value=v, inline=field_inline)
 
     @classmethod
-    def default(cls, ctx, timestamp=None, **kwargs):
+    def minimal(cls, timestamp=None, **kwargs):
         instance = cls(timestamp=timestamp or utcnow(), **kwargs)
+        return instance
+
+    @classmethod
+    def default(cls, ctx, timestamp=None, **kwargs):
+        instance = cls.minimal(timestamp=timestamp or utcnow(), **kwargs)
         instance.set_footer(
             text="Requested by {}".format(ctx.author), icon_url=ctx.author.avatar_url
         )

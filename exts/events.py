@@ -95,20 +95,40 @@ class EventHandler(commands.Cog, CogMixin):
         """Farewell message"""
         # TODO: Add muted_member table to database to prevent mute evasion
         entries = await member.guild.audit_logs(limit=1).flatten()
-        entry: discord.AuditLogEntry = discord.utils.find(lambda e: e.target == member, entries)
+        entry: discord.AuditLogEntry = discord.utils.find(
+            lambda e: e.target == member, entries
+        )
         if not entry:
             return
 
         if entry.action == discord.AuditLogAction.kick:
-            self.bot.dispatch("member_kick", member)
+            self.bot.dispatch("member_kick", member, entry)
             return
+
         if entry.action == discord.AuditLogAction.ban:
             return
+
         return await self.handleGreeting(member, "farewell")
 
     @commands.Cog.listener()
-    async def on_member_kick(self, member: discord.Member):
-        print("kicked")
+    async def on_member_kick(
+        self, member: discord.Member, entry: discord.AuditLogEntry
+    ):
+        channel = await self.bot.getGuildConfig(member.guild.id, "modlogCh")
+        channel = self.bot.get_channel(channel)
+        if not channel:
+            return
+
+        e = ZEmbed.minimal(
+            title="Modlog - Ban",
+            description=(
+                f"**User**: {entry.target} ({entry.target.mention})\n"
+                f"**Reason**: {entry.reason}\n"
+                f"**Moderator**: {entry.user.mention}"
+            ),
+        )
+        e.set_footer(text=f"ID: {entry.target.id}")
+        await channel.send(embed=e)
 
     @commands.Cog.listener()
     async def on_member_ban(self, guild: discord.Guild, member: discord.Member):
