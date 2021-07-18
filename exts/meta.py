@@ -140,6 +140,7 @@ async def getCustomCommands(db, guildId, category: str = None):
                 "category": row[4],
                 "owner": row[5],
                 "enabled": row[6],
+                "uses": row[7]
             }
         else:
             try:
@@ -475,13 +476,14 @@ class Meta(commands.Cog, CogMixin):
             }.get(mode, False)
         elif _type == "add":
             return isMod if mode == 0 else True
+
         # Fallback to false
         return False
 
     # TODO: Separate tags from custom command
     @commands.guild_only()
     @commands.group(
-        aliases=["cmd", "tag", "script"],
+        aliases=("cmd", "tag", "script"),
         invoke_without_command=True,
         brief="Manage commands",
         description=(
@@ -492,7 +494,7 @@ class Meta(commands.Cog, CogMixin):
     async def command(self, ctx, name: CMDName, argument: str = None):
         return await self.execCustomCommand(ctx, name)
 
-    @command.command(aliases=["exec", "execute"], brief="Execute a custom command")
+    @command.command(aliases=("exec", "execute"), brief="Execute a custom command")
     async def run(self, ctx, name: CMDName, argument: str = None):
         return await self.execCustomCommand(ctx, name)
 
@@ -567,7 +569,7 @@ class Meta(commands.Cog, CogMixin):
 
     @command.command(
         name="import",
-        aliases=["++"],
+        aliases=("++",),
         brief="Import a custom command from pastebin/gist.github",
         extras=dict(
             example=(
@@ -610,7 +612,7 @@ class Meta(commands.Cog, CogMixin):
 
     @command.command(
         name="update-url",
-        aliases=["&u", "set-url"],
+        aliases=("&u", "set-url"),
         brief="Update imported command's source url",
     )
     async def update_url(self, ctx, name: CMDName, url: str):
@@ -659,7 +661,7 @@ class Meta(commands.Cog, CogMixin):
         return False
 
     @command.command(
-        aliases=["&&", "pull"],
+        aliases=("&&", "pull"),
         brief="Update imported command's content",
     )
     async def update(self, ctx, name: CMDName):
@@ -710,7 +712,7 @@ class Meta(commands.Cog, CogMixin):
 
     @command.command(
         name="add",
-        aliases=["+", "create"],
+        aliases=("+", "create"),
         brief="Create a new custom command",
         extras=dict(
             example=(
@@ -733,7 +735,7 @@ class Meta(commands.Cog, CogMixin):
             await ctx.send("`{}` has been created".format(name))
 
     @command.command(
-        aliases=["/"],
+        aliases=("/",),
         brief="Add an alias to a custom command",
         extras=dict(
             example=(
@@ -770,7 +772,7 @@ class Meta(commands.Cog, CogMixin):
 
     @command.group(
         name="edit",
-        aliases=["&", "set"],
+        aliases=("&", "set"),
         brief="Edit custom command's property",
         description=(
             "Edit custom command's property\n\nBy default, will edit command's "
@@ -791,7 +793,7 @@ class Meta(commands.Cog, CogMixin):
 
     @cmdSet.command(
         name="content",
-        aliases=["cont"],
+        aliases=("cont",),
         brief="Edit custom command's content",
     )
     async def setContent(self, ctx, name: CMDName, *, content):
@@ -807,7 +809,7 @@ class Meta(commands.Cog, CogMixin):
 
     @cmdSet.command(
         name="url",
-        aliases=["u"],
+        aliases=("u",),
         brief="Alias for `command update-url`",
     )
     async def setUrl(self, ctx, name: CMDName, url: str):
@@ -821,7 +823,7 @@ class Meta(commands.Cog, CogMixin):
         await self.alias(ctx, command, alias)
 
     @cmdSet.command(
-        aliases=["cat", "mv"],
+        aliases=("cat", "mv"),
         brief="Move a custom command to a category",
     )
     async def category(self, ctx, command: CMDName, category: CMDName):
@@ -874,7 +876,7 @@ class Meta(commands.Cog, CogMixin):
             )
 
     @command.command(
-        aliases=["-", "rm"],
+        aliases=("-", "rm"),
         brief="Remove a custom command",
     )
     async def remove(self, ctx, name: CMDName):
@@ -1198,7 +1200,7 @@ class Meta(commands.Cog, CogMixin):
                 return await ctx.try_reply(successMsg.format(name))
 
     @command.command(
-        aliases=["?"],
+        aliases=("?",),
         brief="Show command's information",
         description=(
             "Show command's information.\n\nSimilar to `help` but "
@@ -1218,11 +1220,32 @@ class Meta(commands.Cog, CogMixin):
         except CCommandNotFound:
             return await ctx.send_help(name)
 
+    @command.command(name="list", aliases=("ls",), brief="Show all custom commands")
+    async def cmdList(self, ctx):
+        # TODO: Merge this command with help command
+        cmds = await getCustomCommands(ctx.db, ctx.guild.id)
+        cmds = sorted(cmds, key=lambda cmd: cmd.uses, reverse=True)
+        e = ZEmbed.default(
+            ctx,
+            title="Custom Commands",
+            description=""
+        )
+        if cmds:
+            for k, v in enumerate(cmds):
+                e.description += "**`{}`** {} [`{}` uses]\n".format(k+1, v.name, v.uses)
+        else:
+            e.description = "This server doesn't have custom command"
+        await ctx.try_reply(embed=e)
+
+    @commands.command(name="commands", aliases=("cmds",), brief="Alias for command list")
+    async def _commands(self, ctx):
+        await ctx.try_invoke(self.cmdList)
+
     @commands.command(brief="Get link to my source code")
     async def source(self, ctx):
         await ctx.send("My source code: {}".format(self.bot.links["Source Code"]))
 
-    @commands.command(aliases=["botinfo", "bi"], brief="Information about me")
+    @commands.command(aliases=("botinfo", "bi"), brief="Information about me")
     async def about(self, ctx):
         # Z3R0 Banner
         f = discord.File("./assets/img/banner.png", filename="banner.png")
@@ -1274,7 +1297,7 @@ class Meta(commands.Cog, CogMixin):
         await ctx.try_reply(embed=e)
 
     @commands.group(
-        aliases=["pref"],
+        aliases=("pref",),
         brief="Manages bot's custom prefix",
         extras=dict(
             example=(
@@ -1289,7 +1312,7 @@ class Meta(commands.Cog, CogMixin):
 
     @prefix.command(
         name="list",
-        aliases=["ls"],
+        aliases=("ls",),
         brief="Get all prefixes",
         exemple=("prefix ls", "pref list"),
     )
@@ -1300,7 +1323,7 @@ class Meta(commands.Cog, CogMixin):
 
     @prefix.command(
         name="add",
-        aliases=["+"],
+        aliases=("+",),
         brief="Add a custom prefix",
         description=(
             'Add a custom prefix.\n\n Tips: Use quotation mark (`""`) to add '
@@ -1324,7 +1347,7 @@ class Meta(commands.Cog, CogMixin):
 
     @prefix.command(
         name="remove",
-        aliases=["-", "rm"],
+        aliases=("-", "rm"),
         brief="Remove a custom prefix",
         extras=dict(example=("prefix rm ?", 'prefix - "please do "', "pref remove z!")),
     )
@@ -1342,7 +1365,7 @@ class Meta(commands.Cog, CogMixin):
         except Exception as exc:
             await ctx.error(exc)
 
-    @commands.command(aliases=["p"], brief="Get bot's response time")
+    @commands.command(aliases=("p",), brief="Get bot's response time")
     async def ping(self, ctx):
         start = time.perf_counter()
         e = ZEmbed.default(ctx, title="Pong!")

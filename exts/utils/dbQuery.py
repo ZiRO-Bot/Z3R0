@@ -100,7 +100,8 @@ getCommands = """
         commands.description,
         commands.category,
         commands.ownerId,
-        commands.enabled
+        commands.enabled,
+        commands.uses
     FROM commands_lookup
     JOIN commands
         ON commands.id = commands_lookup.cmdId
