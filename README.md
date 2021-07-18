@@ -86,6 +86,7 @@ Not ready yet.
 - Add case log (in `v3.0.1` maybe?)
 - Properly support different SQL scheme (databases have `database_url.scheme` to check scheme type) (in `v3.0.1` maybe?)
 - Tags (stripped version of custom command)
+- Unify categories/exts emoji
 
 ### Pending Plan
 
