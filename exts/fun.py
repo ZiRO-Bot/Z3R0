@@ -71,6 +71,7 @@ class Fun(commands.Cog, CogMixin):
             flags={"mode": "Change display mode (modes: visual, classic, pipega)"},
         ),
     )
+    @commands.cooldown(1, 25, commands.BucketType.guild)
     async def findseed(self, ctx, *, arguments: str = None):
         availableMode = ("visual", "classic", "pipega")
         mode = "visual"
@@ -83,6 +84,7 @@ class Fun(commands.Cog, CogMixin):
 
             if parsed.mode:
                 mode = str(parsed.mode).lower()
+                mode = "visual" if mode not in availableMode else mode
 
         defaultEmojis = {
             "{air}": "<:empty:754550188269633556>",
@@ -161,6 +163,10 @@ class Fun(commands.Cog, CogMixin):
             color=discord.Colour(0x38665E),
         )
         await ctx.try_reply(embed=e)
+
+    @commands.command(brief="Ping random member")
+    async def someone(self, ctx):
+        await ctx.send(choice(ctx.guild.members).mention)
 
 
 def setup(bot):
