@@ -120,7 +120,7 @@ class EventHandler(commands.Cog, CogMixin):
             return
 
         e = ZEmbed.minimal(
-            title="Modlog - Ban",
+            title="Modlog - Kick",
             description=(
                 f"**User**: {entry.target} ({entry.target.mention})\n"
                 f"**Reason**: {entry.reason}\n"
