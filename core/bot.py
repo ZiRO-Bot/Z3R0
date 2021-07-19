@@ -194,7 +194,7 @@ class ziBot(commands.Bot):
                 row.pop("guildId", None)
                 cached.set(guildId, row)
                 return row
-        return cached[guildId]
+        return cached.get(guildId, {})
 
     async def getGuildConfig(
         self, guildId: int, configType: str, table: str = "guildConfigs"
