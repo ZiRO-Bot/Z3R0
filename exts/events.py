@@ -22,6 +22,36 @@ from exts.utils.format import formatMissingArgError, ZEmbed
 from exts.utils.other import reactsToMessage, ArgumentError, utcnow
 
 
+# TODO: Move this to exts.utils.other
+async def doModlog(
+    bot,
+    guild: discord.Guild,
+    member: discord.abc.User,
+    moderator: discord.abc.User,
+    type: str,
+    reason: str = None,
+):
+    """Basically handle formatting modlog events"""
+    channel = await bot.getGuildConfig(guild.id, "modlogCh")
+    channel = bot.get_channel(channel)
+    if not channel:
+        # No channel found.
+        return
+
+    # TODO: Add caselog for modlog
+
+    e = ZEmbed.minimal(
+        title="Modlog - {}".format(type.title()),
+        description=(
+            f"**User**: {member} ({member.mention})\n"
+            + (f"**Reason**: {reason}\n" if reason else "")
+            + f"**Moderator**: {moderator.mention}"
+        ),
+    )
+    e.set_footer(text=f"ID: {member.id}")
+    await channel.send(embed=e)
+
+
 class EventHandler(commands.Cog, CogMixin):
     """Place for to put random events."""
 
@@ -94,13 +124,14 @@ class EventHandler(commands.Cog, CogMixin):
     async def on_member_remove(self, member: discord.Member):
         """Farewell message"""
         # TODO: Add muted_member table to database to prevent mute evasion
-        entries = await member.guild.audit_logs(limit=1).flatten()
+        entries = await member.guild.audit_logs(limit=5).flatten()
         entry: discord.AuditLogEntry = discord.utils.find(
             lambda e: e.target == member, entries
         )
         if not entry:
             return
 
+        # TODO: Filters bot's action
         if entry.action == discord.AuditLogAction.kick:
             self.bot.dispatch("member_kick", member, entry)
             return
@@ -112,27 +143,17 @@ class EventHandler(commands.Cog, CogMixin):
 
     @commands.Cog.listener()
     async def on_member_kick(
-        self, member: discord.Member, entry: discord.AuditLogEntry
+        self, member: discord.User, entry: discord.AuditLogEntry
     ):
-        channel = await self.bot.getGuildConfig(member.guild.id, "modlogCh")
-        channel = self.bot.get_channel(channel)
-        if not channel:
-            return
-
-        e = ZEmbed.minimal(
-            title="Modlog - Kick",
-            description=(
-                f"**User**: {entry.target} ({entry.target.mention})\n"
-                f"**Reason**: {entry.reason}\n"
-                f"**Moderator**: {entry.user.mention}"
-            ),
-        )
-        e.set_footer(text=f"ID: {entry.target.id}")
-        await channel.send(embed=e)
+        await doModlog(self.bot, member.guild, entry.target, entry.user, "kick", entry.reason)
 
     @commands.Cog.listener()
     async def on_member_ban(self, guild: discord.Guild, member: discord.Member):
-        print("banned")
+        entries = await guild.audit_logs(limit=5, action=discord.AuditLogAction.ban).flatten()
+        entry: discord.AuditLogEntry = discord.utils.find(
+            lambda e: e.target == member, entries
+        )
+        await doModlog(self.bot, guild, entry.target, entry.user, "ban", entry.reason)
 
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
