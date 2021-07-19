@@ -122,6 +122,10 @@ class ziBot(commands.Bot):
                 cls=CacheDictProperty,
             )
             .add(
+                "guildChannels",
+                cls=CacheDictProperty,
+            )
+            .add(
                 "guildRoles",
                 cls=CacheDictProperty,
             )
@@ -146,6 +150,7 @@ class ziBot(commands.Bot):
             # Creating all the necessary tables
             await self.db.execute(dbQuery.createGuildsTable)
             await self.db.execute(dbQuery.createGuildConfigsTable)
+            await self.db.execute(dbQuery.createGuildChannelsTable)
             await self.db.execute(dbQuery.createGuildRolesTable)
             await self.db.execute(dbQuery.createPrefixesTable)
             await self.db.execute(dbQuery.createDisabledTable)

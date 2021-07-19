@@ -402,7 +402,7 @@ class Moderation(commands.Cog, CogMixin):
         parsed = await self.parseAnnouncement(arguments)
         annCh = parsed.channel
         if not annCh:
-            annCh = await self.bot.getGuildConfig(ctx.guild.id, "announcementCh")
+            annCh = await self.bot.getGuildConfig(ctx.guild.id, "announcementCh", "guildChannels")
             annCh = ctx.guild.get_channel(annCh)
         else:
             annCh: discord.TextChannel = await commands.TextChannelConverter().convert(

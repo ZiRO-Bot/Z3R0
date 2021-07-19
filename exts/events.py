@@ -32,7 +32,7 @@ async def doModlog(
     reason: str = None,
 ):
     """Basically handle formatting modlog events"""
-    channel = await bot.getGuildConfig(guild.id, "modlogCh")
+    channel = await bot.getGuildConfig(guild.id, "modlogCh", "guildChannels")
     channel = bot.get_channel(channel)
     if not channel:
         # No channel found.
@@ -81,7 +81,7 @@ class EventHandler(commands.Cog, CogMixin):
         }
 
     async def handleGreeting(self, member: discord.Member, type: str):
-        channel = await self.bot.getGuildConfig(member.guild.id, f"{type}Ch")
+        channel = await self.bot.getGuildConfig(member.guild.id, f"{type}Ch", "guildChannels")
         channel = self.bot.get_channel(channel)
         if not channel:
             return
@@ -318,7 +318,7 @@ class EventHandler(commands.Cog, CogMixin):
         guild = before.guild
 
         logCh = guild.get_channel(
-            await self.bot.getGuildConfig(guild.id, "purgatoryCh")
+            await self.bot.getGuildConfig(guild.id, "purgatoryCh", "guildChannels")
         )
         if not logCh:
             return
@@ -380,7 +380,7 @@ class EventHandler(commands.Cog, CogMixin):
         guild = message.guild
 
         logCh = guild.get_channel(
-            await self.bot.getGuildConfig(guild.id, "purgatoryCh")
+            await self.bot.getGuildConfig(guild.id, "purgatoryCh", "guildChannels")
         )
         if not logCh:
             return

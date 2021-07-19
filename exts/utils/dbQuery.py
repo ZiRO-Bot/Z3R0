@@ -144,14 +144,20 @@ createGuildConfigsTable = """
         ccMode INTEGER DEFAULT 0,
         tagMode INTEGER DEFAULT 0,
         welcomeMsg TEXT,
-        welcomeCh INTEGER,
         farewellMsg TEXT,
+        FOREIGN KEY ("guildId") REFERENCES guilds ("id") ON DELETE CASCADE
+    )
+"""
+
+createGuildChannelsTable = """
+    CREATE TABLE IF NOT EXISTS guildChannels (
+        guildId INTEGER PRIMARY KEY,
+        welcomeCh INTEGER,
         farewellCh INTEGER,
         modlogCh INTEGER,
         purgatoryCh INTEGER,
         announcementCh INTEGER,
         FOREIGN KEY ("guildId") REFERENCES guilds ("id") ON DELETE CASCADE
-    )
 """
 
 createGuildRolesTable = """
