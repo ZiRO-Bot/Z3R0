@@ -188,7 +188,7 @@ class EventHandler(commands.Cog, CogMixin):
             return await ctx.try_reply(embed=e)
 
         if isinstance(error, errors.CCommandAlreadyExists):
-            return await ctx.try_reply(error)
+            return await ctx.error(str(error))
 
         if isinstance(error, pytz.exceptions.UnknownTimeZoneError):
             ctx.command.reset_cooldown(ctx)

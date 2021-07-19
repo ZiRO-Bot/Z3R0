@@ -179,28 +179,28 @@ class ziBot(commands.Bot):
     async def getGuildConfigs(
         self, guildId: int, filters: Iterable = "*", table: str = "guildConfigs"
     ):
+        # TODO: filters is deprecated, delete it later
         # Get guild configs and maybe cache it
         cached: CacheDictProperty = getattr(self.cache, table)
-        if cached.get(guildId) is None or not [
-            i for i in cached.get(guildId, {}).keys() if i in filters
-        ]:
+        if cached.get(guildId) is None:
             # Executed when guild configs is not in the cache
             row = await self.db.fetch_one(
-                f"SELECT {', '.join(filters)} FROM {table} WHERE guildId=:id",
+                f"SELECT * FROM {table} WHERE guildId=:id",
                 values={"id": guildId},
             )
-            if row:
+            if row is not None:
                 row = dict(row)
                 row.pop("guildId", None)
                 cached.set(guildId, row)
-                return row
+            else:
+                cached.set(guildId, {})
         return cached.get(guildId, {})
 
     async def getGuildConfig(
         self, guildId: int, configType: str, table: str = "guildConfigs"
     ):
         # Get guild's specific config
-        configs: dict = await self.getGuildConfigs(guildId, (configType,), table)
+        configs: dict = await self.getGuildConfigs(guildId, table=table)
         return configs.get(configType)
 
     async def setGuildConfig(

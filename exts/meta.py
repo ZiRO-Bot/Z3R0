@@ -140,7 +140,7 @@ async def getCustomCommands(db, guildId, category: str = None):
                 "category": row[4],
                 "owner": row[5],
                 "enabled": row[6],
-                "uses": row[7]
+                "uses": row[7],
             }
         else:
             try:
@@ -441,7 +441,11 @@ class Meta(commands.Cog, CogMixin):
                     action = ctx.author.send
 
             msg = await action(
-                result.body or ("\u200b" if not embed else ""), embed=embed
+                result.body or ("\u200b" if not embed else ""),
+                embed=embed,
+                allowed_mentions=discord.AllowedMentions(
+                    everyone=False, users=False, roles=False
+                ),
             )
             react = result.actions.get("react")
             reactu = result.actions.get("reactu")
@@ -459,7 +463,7 @@ class Meta(commands.Cog, CogMixin):
         # 2: Full (Anarchy mode)
 
         # Getting config
-        mode = await self.bot.getGuildConfig(ctx.guild.id, "ccMode")
+        mode = await self.bot.getGuildConfig(ctx.guild.id, "ccMode") or 0
 
         isMod = await checks.isMod(ctx)
         if _type == "manage":
@@ -697,17 +701,19 @@ class Meta(commands.Cog, CogMixin):
                 addition += 1
         if not addition and not deletion:
             # Nothing changed, so let's just send a message
-            return await ctx.try_reply(
-                "Already up to date."
-                + "\n[**Note**]: It takes awhile for the site to be updated!"
+            return await ctx.success(
+                "\n[**Note**]: It takes awhile for the site to be updated!",
+                title="Already up to date."
             )
 
         update = await self.updateCommandContent(ctx, command, content)
         if update:
-            return await ctx.try_reply(
-                "Command `{}` has been update\n".format(name)
-                + "`[+]` {} Additions\n".format(addition)
-                + "`[-]` {} Deletions".format(deletion)
+            return await ctx.success(
+                (
+                    "`[+]` {} Additions\n".format(addition)
+                    + "`[-]` {} Deletions".format(deletion)
+                ),
+                title="Command `{}` has been update\n".format(name),
             )
 
     @command.command(
@@ -732,7 +738,7 @@ class Meta(commands.Cog, CogMixin):
         # Adding command to database
         lastInsert, lastLastInsert = await self.addCmd(ctx, name, content)
         if lastInsert and lastLastInsert:
-            await ctx.send("`{}` has been created".format(name))
+            await ctx.success(title="Command `{}` has been created".format(name))
 
     @command.command(
         aliases=("/",),
@@ -752,9 +758,9 @@ class Meta(commands.Cog, CogMixin):
             raise CCommandNoPerm
 
         if alias == command.name:
-            return await ctx.try_reply("Alias can't be identical to original name!")
+            return await ctx.error("Alias can't be identical to original name!")
         if alias in command.aliases:
-            return await ctx.try_reply("Alias `{}` already exists!".format(alias))
+            return await ctx.error("Alias `{}` already exists!".format(alias))
 
         async with ctx.db.transaction():
             lastInsert = await ctx.db.execute(
@@ -766,8 +772,8 @@ class Meta(commands.Cog, CogMixin):
                 },
             )
             if lastInsert:
-                return await ctx.try_reply(
-                    "Alias `{}` for `{}` has been created".format(alias, command)
+                return await ctx.success(
+                    title="Alias `{}` for `{}` has been created".format(alias, command)
                 )
 
     @command.group(
@@ -805,7 +811,9 @@ class Meta(commands.Cog, CogMixin):
 
         update = await self.updateCommandContent(ctx, command, content)
         if update:
-            return await ctx.try_reply("Command `{}` has been edited\n".format(name))
+            return await ctx.success(
+                title="Command `{}` has been edited\n".format(name)
+            )
 
     @cmdSet.command(
         name="url",
@@ -827,6 +835,8 @@ class Meta(commands.Cog, CogMixin):
         brief="Move a custom command to a category",
     )
     async def category(self, ctx, command: CMDName, category: CMDName):
+        return await ctx.try_reply("Coming soon.")
+
         category = category.lower()
 
         availableCats = [
@@ -835,7 +845,7 @@ class Meta(commands.Cog, CogMixin):
             if getattr(cog, "cc", False)
         ]
         if category not in availableCats:
-            return await ctx.try_reply("Invalid category")
+            return await ctx.error(title="Invalid category")
 
         command = await getCustomCommand(ctx, command)
 
@@ -844,7 +854,9 @@ class Meta(commands.Cog, CogMixin):
             raise CCommandNoPerm
 
         if command.category == category:
-            return await ctx.try_reply("{} already in {}!".format(command, category))
+            return await ctx.success(
+                title="{} already in {}!".format(command, category)
+            )
         # TODO: Add the actual stuff
 
     @cmdSet.command(
@@ -867,12 +879,12 @@ class Meta(commands.Cog, CogMixin):
     @checks.is_mod()
     async def setMode(self, ctx, mode: int):
         if mode > 2:
-            return await ctx.try_reply("There's only 3 (0, 1, 2) mode!")
+            return await ctx.error(title="There's only 3 available mode! (0, 1, 2)")
 
         result = await self.bot.setGuildConfig(ctx.guild.id, "ccMode", mode)
         if result is not None:
-            return await ctx.try_reply(
-                "Custom command mode has been set to `{}`".format(mode)
+            return await ctx.success(
+                title="Custom command mode has been set to `{}`".format(mode)
             )
 
     @command.command(
@@ -900,8 +912,10 @@ class Meta(commands.Cog, CogMixin):
             async with ctx.db.transaction():
                 await ctx.db.execute(dbQuery.deleteCommand, values={"id": command.id})
         # TODO: Adjust removed message
-        return await ctx.try_reply(
-            "{}`{}` has been removed".format("Alias " if isAlias else "", name)
+        return await ctx.success(
+            title="{} `{}` has been removed".format(
+                "Alias" if isAlias else "Command", name
+            )
         )
 
     @command.command(
@@ -964,22 +978,22 @@ class Meta(commands.Cog, CogMixin):
         if mode in ("built-in", "category"):
             # check if executor is a mod for built-in and category mode
             if not isMod:
-                return await ctx.try_reply(
-                    "Only mods allowed to disable built-in command"
+                return await ctx.error(
+                    title="Only mods allowed to disable built-in command"
                 )
 
         if mode == "built-in":
             command = self.bot.get_command(name)
             if not command:
                 # check if command exists
-                return await ctx.try_reply(notFoundMsg.format(mode, name))
+                return await ctx.error(title=notFoundMsg.format(mode, name))
 
             # format command name
             cmdName = self.formatCmdName(command)
 
             if str(command.root_parent or cmdName) in immuneRoot:
                 # check if command root parent is immune
-                return await ctx.try_reply("This command can't be disabled!")
+                return await ctx.error(title="This command can't be disabled!")
 
             # Make sure disable command is cached from database
             await self.getDisabledCommands(ctx, ctx.guild.id)
@@ -988,7 +1002,7 @@ class Meta(commands.Cog, CogMixin):
                 self.bot.cache.disabled.append(ctx.guild.id, cmdName)
             except CacheUniqueViolation:
                 # check if command already disabled
-                return await ctx.try_reply(alreadyMsg.format(cmdName))
+                return await ctx.error(title=alreadyMsg.format(cmdName))
 
             async with ctx.db.transaction():
                 await ctx.db.execute(
@@ -998,7 +1012,7 @@ class Meta(commands.Cog, CogMixin):
                     values={"guildId": ctx.guild.id, "command": cmdName},
                 )
 
-                return await ctx.try_reply(successMsg.format(cmdName))
+                return await ctx.success(title=successMsg.format(cmdName))
 
         elif mode == "category":
             category = self.bot.get_cog(name)
@@ -1018,7 +1032,7 @@ class Meta(commands.Cog, CogMixin):
                     continue
 
             if not added:
-                return await ctx.try_reply("No commands succesfully disabled")
+                return await ctx.error(title="No commands succesfully disabled")
 
             async with ctx.db.transaction():
                 await ctx.db.execute_many(
@@ -1028,22 +1042,22 @@ class Meta(commands.Cog, CogMixin):
                     values=[{"guildId": ctx.guild.id, "command": cmd} for cmd in added],
                 )
 
-                return await ctx.try_reply(
-                    "`{}` commands has been disabled".format(len(added))
+                return await ctx.success(
+                    title="`{}` commands has been disabled".format(len(added))
                 )
 
         elif mode == "custom":
             try:
                 command = await getCustomCommand(ctx, name)
             except CCommandNotFound:
-                return await ctx.try_reply(notFoundMsg.format(mode, name))
+                return await ctx.error(title=notFoundMsg.format(mode, name))
 
             perm = await self.ccModeCheck(ctx, command=command)
             if not perm:
                 raise CCommandNoPerm
 
             if not command.enabled:
-                return await ctx.try_reply(alreadyMsg.format(name))
+                return await ctx.error(title=alreadyMsg.format(name))
 
             async with ctx.db.transaction():
                 await ctx.db.execute(
@@ -1054,7 +1068,7 @@ class Meta(commands.Cog, CogMixin):
                     """,
                     values={"id": command.id},
                 )
-                return await ctx.try_reply(successMsg.format(name))
+                return await ctx.success(title=successMsg.format(name))
 
     @command.command(
         brief="Enable a command",
@@ -1112,15 +1126,15 @@ class Meta(commands.Cog, CogMixin):
         if mode in ("built-in", "category"):
             # check if executor is a mod for built-in and category mode
             if not isMod:
-                return await ctx.try_reply(
-                    "Only mods allowed to enable built-in command"
+                return await ctx.error(
+                    title="Only mods allowed to enable built-in command"
                 )
 
         if mode == "built-in":
             command = self.bot.get_command(name)
             if not command:
                 # check if command exists
-                return await ctx.try_reply(notFoundMsg.format(mode, name))
+                return await ctx.error(title=notFoundMsg.format(mode, name))
 
             # format command name
             cmdName = self.formatCmdName(command)
@@ -1131,7 +1145,7 @@ class Meta(commands.Cog, CogMixin):
                 self.bot.cache.disabled.remove(ctx.guild.id, cmdName)
             except ValueError:
                 # check if command already enabled
-                return await ctx.try_reply(alreadyMsg.format(cmdName))
+                return await ctx.error(title=alreadyMsg.format(cmdName))
 
             async with ctx.db.transaction():
                 await ctx.db.execute(
@@ -1143,7 +1157,7 @@ class Meta(commands.Cog, CogMixin):
                     values={"guildId": ctx.guild.id, "command": cmdName},
                 )
 
-                return await ctx.try_reply(successMsg.format(cmdName))
+                return await ctx.success(title=successMsg.format(cmdName))
 
         elif mode == "category":
             category = self.bot.get_cog(name)
@@ -1159,7 +1173,7 @@ class Meta(commands.Cog, CogMixin):
                     continue
 
             if not removed:
-                return await ctx.try_reply("No commands succesfully enabled")
+                return await ctx.error(title="No commands succesfully enabled")
 
             async with ctx.db.transaction():
                 await ctx.db.execute_many(
@@ -1171,22 +1185,22 @@ class Meta(commands.Cog, CogMixin):
                     ],
                 )
 
-                return await ctx.try_reply(
-                    "`{}` commands has been enabled".format(len(removed))
+                return await ctx.success(
+                    title="`{}` commands has been enabled".format(len(removed))
                 )
 
         elif mode == "custom":
             try:
                 command = await getCustomCommand(ctx, name)
             except CCommandNotFound:
-                return await ctx.try_reply(notFoundMsg.format(mode, name))
+                return await ctx.error(title=notFoundMsg.format(mode, name))
 
             perm = await self.ccModeCheck(ctx, command=command)
             if not perm:
                 raise CCommandNoPerm
 
             if command.enabled:
-                return await ctx.try_reply(alreadyMsg.format(name))
+                return await ctx.error(title=alreadyMsg.format(name))
 
             async with ctx.db.transaction():
                 await ctx.db.execute(
@@ -1197,7 +1211,7 @@ class Meta(commands.Cog, CogMixin):
                     """,
                     values={"id": command.id},
                 )
-                return await ctx.try_reply(successMsg.format(name))
+                return await ctx.success(title=successMsg.format(name))
 
     @command.command(
         aliases=("?",),
@@ -1225,19 +1239,19 @@ class Meta(commands.Cog, CogMixin):
         # TODO: Merge this command with help command
         cmds = await getCustomCommands(ctx.db, ctx.guild.id)
         cmds = sorted(cmds, key=lambda cmd: cmd.uses, reverse=True)
-        e = ZEmbed.default(
-            ctx,
-            title="Custom Commands",
-            description=""
-        )
+        e = ZEmbed.default(ctx, title="Custom Commands", description="")
         if cmds:
             for k, v in enumerate(cmds):
-                e.description += "**`{}`** {} [`{}` uses]\n".format(k+1, v.name, v.uses)
+                e.description += "**`{}`** {} [`{}` uses]\n".format(
+                    k + 1, v.name, v.uses
+                )
         else:
             e.description = "This server doesn't have custom command"
         await ctx.try_reply(embed=e)
 
-    @commands.command(name="commands", aliases=("cmds",), brief="Alias for command list")
+    @commands.command(
+        name="commands", aliases=("cmds",), brief="Alias for command list"
+    )
     async def _commands(self, ctx):
         await ctx.try_invoke(self.cmdList)
 
@@ -1339,8 +1353,8 @@ class Meta(commands.Cog, CogMixin):
 
         try:
             await self.bot.addPrefix(ctx.guild.id, prefix)
-            await ctx.try_reply(
-                "Prefix `{}` has been added".format(cleanifyPrefix(self.bot, prefix))
+            await ctx.success(
+                title="Prefix `{}` has been added".format(cleanifyPrefix(self.bot, prefix))
             )
         except Exception as exc:
             await ctx.error(exc)
@@ -1359,8 +1373,8 @@ class Meta(commands.Cog, CogMixin):
 
         try:
             await self.bot.rmPrefix(ctx.guild.id, prefix)
-            await ctx.try_reply(
-                "Prefix `{}` has been removed".format(cleanifyPrefix(self.bot, prefix))
+            await ctx.success(
+                title="Prefix `{}` has been removed".format(cleanifyPrefix(self.bot, prefix))
             )
         except Exception as exc:
             await ctx.error(exc)

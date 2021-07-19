@@ -4,7 +4,7 @@ import re
 
 from discord.ext import commands
 from exts.utils.format import ZEmbed
-from typing import Union
+from typing import Union, Optional
 
 
 class Context(commands.Context):
@@ -23,16 +23,12 @@ class Context(commands.Context):
         """Try reply, if failed do send instead"""
         try:
             action = self.safe_reply
-            if not content:
-                action = self.reply
             return await action(content, mention_author=mention_author, **kwargs)
         except:
             if mention_author:
                 content = f"{self.author.mention} " + content if content else ""
 
-            action = self.send
-            if not content:
-                action = self.safe_send
+            action = self.safe_send
             return await self.safe_send(content, **kwargs)
 
     async def safe_send_reply(
@@ -40,17 +36,19 @@ class Context(commands.Context):
     ):
         action = getattr(self, type)
 
-        if escape_mentions:
+        if escape_mentions and content is not None:
             content = discord.utils.escape_mentions(content)
 
-        if len(content) > 2000:
+        if content is not None and len(content) > 2000:
             fp = io.BytesIO(content.encode())
             kwargs.pop("file", None)
             return await action(
                 file=discord.File(fp, filename="message_too_long.txt"), **kwargs
             )
         else:
-            return await action(content, **kwargs)
+            if content is not None:
+                kwargs["content"] = content
+            return await action(**kwargs)
 
     async def safe_send(self, content, *, escape_mentions=True, **kwargs):
         return await self.safe_send_reply(
@@ -62,17 +60,20 @@ class Context(commands.Context):
             content, escape_mentions=escape_mentions, type="reply", **kwargs
         )
 
-    async def error(self, error_message: str, /, title: str = "Something went wrong!"):
-        e = ZEmbed.error(
-            description=error_message, title="ERROR" + (f": {title}" if title else "")
-        )
+    async def error(
+        self, error_message: str = None, title: str = "Something went wrong!"
+    ):
+        e = ZEmbed.error(title="ERROR" + (f": {title}" if title else ""))
+        if error_message is not None:
+            e.description = str(error_message)
         return await self.try_reply(embed=e)
 
-    async def success(self, success_message: str, /, title: str = None):
+    async def success(self, success_message: str = None, title: str = None):
         e = ZEmbed.success(
-            description=success_message,
             title=title or "Success",
         )
+        if success_message is not None:
+            e.description = str(success_message)
         return await self.try_reply(embed=e)
 
     @property
