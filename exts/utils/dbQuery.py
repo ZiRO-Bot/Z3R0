@@ -158,6 +158,7 @@ createGuildChannelsTable = """
         purgatoryCh INTEGER,
         announcementCh INTEGER,
         FOREIGN KEY ("guildId") REFERENCES guilds ("id") ON DELETE CASCADE
+    )
 """
 
 createGuildRolesTable = """
