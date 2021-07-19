@@ -192,8 +192,9 @@ class EventHandler(commands.Cog, CogMixin):
 
         if isinstance(error, pytz.exceptions.UnknownTimeZoneError):
             ctx.command.reset_cooldown(ctx)
-            return await ctx.reply(
-                "That's not a valid timezone. You can look them up at https://kevinnovak.github.io/Time-Zone-Picker/"
+            return await ctx.error(
+                "You can look them up at https://kevinnovak.github.io/Time-Zone-Picker/",
+                title="Invalid timezone",
             )
 
         if isinstance(error, commands.CommandOnCooldown):

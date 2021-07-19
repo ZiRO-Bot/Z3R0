@@ -14,7 +14,7 @@ from discord.ext import commands
 from exts.api import reddit
 from exts.utils.format import ZEmbed
 from exts.utils.other import ArgumentParser
-from random import choice, randint, shuffle
+from random import choice, randint, shuffle, random
 
 
 class Fun(commands.Cog, CogMixin):
@@ -179,6 +179,105 @@ class Fun(commands.Cog, CogMixin):
             image = io.BytesIO(await res.read())
             img = discord.File(fp=image, filename="httpcat.jpg")
             await ctx.try_reply(file=img)
+
+    @commands.command(brief="Show your pp size")
+    async def pp(self, ctx):
+        pp = "8" + "=" * randint(1, 500) + "D"
+        e = discord.Embed(
+            title="Your pp looks like this:",
+            description="`{}`".format(pp),
+            colour=discord.Colour.random(),
+        )
+        e.set_author(
+            name=f"{ctx.message.author}",
+            icon_url=ctx.message.author.avatar_url,
+        )
+        await ctx.send(embed=e)
+
+    @commands.command(
+        aliases=("isimposter",),
+        brief="Check if you're an impostor or a crewmate",
+        usage="[impostor count] [player count]",
+    )
+    @commands.cooldown(3, 25, commands.BucketType.user)
+    async def isimpostor(self, ctx, impostor: int = 1, player: int = 10):
+        if impostor < 1:
+            impostor = 1
+            await ctx.send("Impostor count has been set to `1`")
+        if impostor > player:
+            impostor = player
+
+        if random() < impostor / player:
+            await ctx.send(f"{ctx.author.mention}, you're an impostor!")
+        else:
+            await ctx.send(f"{ctx.author.mention}, you're a crewmate!")
+
+    @commands.command(
+        aliases=("badjokes",),
+        brief="Get random dad jokes"
+    )
+    async def dadjokes(self, ctx):
+        headers = {"accept": "application/json"}
+        async with self.bot.session.get(
+            "https://icanhazdadjoke.com/", headers=headers
+        ) as req:
+            dadjoke = (await req.json())["joke"]
+        e = discord.Embed(title=dadjoke, color=discord.Colour(0xFEDE58))
+        e.set_author(
+            name="icanhazdadjoke",
+            icon_url="https://raw.githubusercontent.com/null2264/null2264/master/epicface.png",
+        )
+        await ctx.send(embed=e)
+
+    @commands.command(
+        usage="(choice)",
+        brief="Rock Paper Scissors with the bot.",
+        extras=dict(
+            example=("rps rock",),
+        )
+    )
+    @commands.cooldown(1, 5, commands.BucketType.user)
+    async def rps(self, ctx, _choice: str):
+        _choice = _choice.lower()
+        rps = ("rock", "paper", "scissors")
+        bot_choice = choice(rps)
+
+        if bot_choice == choice:
+            result = "It's a Tie!"
+        elif bot_choice == rps[0]:
+
+            def f(x):
+                return {"paper": "Paper wins!", "scissors": "Rock wins!"}.get(
+                    x, "Rock wins!"
+                )
+
+            result = f(choice)
+        elif bot_choice == rps[1]:
+
+            def f(x):
+                return {"rock": "Paper wins!", "scissors": "Scissors wins!"}.get(
+                    x, "Paper wins!"
+                )
+
+            result = f(choice)
+        elif bot_choice == rps[2]:
+
+            def f(x):
+                return {"paper": "Scissors wins!", "rock": "Rock wins!"}.get(
+                    x, "Scissors wins!"
+                )
+
+            result = f(choice)
+        else:
+            return
+
+        if choice == "noob":
+            result = "Noob wins!"
+
+        await ctx.try_reply(
+            f"You chose ***{_choice.capitalize()}***."
+            + f" I chose ***{bot_choice.capitalize()}***.\n{result}"
+        )
 
 
 def setup(bot):
