@@ -610,8 +610,9 @@ class Meta(commands.Cog, CogMixin):
             url=link,
         )
         if lastInsert and lastLastInsert:
-            await ctx.try_reply(
-                "`{}` has been imported (Source: <{}>)".format(name, url)
+            await ctx.success(
+                "**Source**: <{}>".format(url),
+                title="`{}` has been imported".format(name),
             )
 
     @command.command(
@@ -629,10 +630,9 @@ class Meta(commands.Cog, CogMixin):
 
         if not command.url:
             # Incase someone try to update `text` command
-            return await ctx.try_reply(
-                "`{}` is not imported command! Please use '{}command edit' instead!".format(
-                    name, ctx.prefix
-                )
+            return await ctx.error(
+                "Please use `{}command edit` instead!".format(ctx.clean_prefix),
+                title="`{}` is not imported command!".format(name),
             )
         try:
             link = self.getValidLink(url)
@@ -647,11 +647,11 @@ class Meta(commands.Cog, CogMixin):
                 dbQuery.updateCommandUrl,
                 values={"url": link, "id": command.id},
             )
-            return await ctx.try_reply(
-                "`{}` url has been set to <{}>.".format(name, url)
-                + "\nPlease do `{}command update {}` to update the content!".format(
-                    ctx.prefix, name
-                )
+            return await ctx.success(
+                "\nYou can do `{}command update {}` to update the content".format(
+                    ctx.clean_prefix, name
+                ),
+                title="`{}` url has been set to <{}>".format(name, url),
             )
 
     async def updateCommandContent(self, ctx, command: CustomCommand, content):
@@ -681,10 +681,9 @@ class Meta(commands.Cog, CogMixin):
 
         if not command.url:
             # Incase someone try to update `text` command
-            return await ctx.try_reply(
-                "`{}` is not imported command! Please use '{}command edit' instead!".format(
-                    name, ctx.prefix
-                )
+            return await ctx.error(
+                "Please use `{}command edit` instead!".format(ctx.clean_prefix),
+                title="`{}` is not imported command!".format(name),
             )
 
         content = None
@@ -703,7 +702,7 @@ class Meta(commands.Cog, CogMixin):
             # Nothing changed, so let's just send a message
             return await ctx.success(
                 "\n[**Note**]: It takes awhile for the site to be updated!",
-                title="Already up to date."
+                title="Already up to date.",
             )
 
         update = await self.updateCommandContent(ctx, command, content)
@@ -1354,7 +1353,9 @@ class Meta(commands.Cog, CogMixin):
         try:
             await self.bot.addPrefix(ctx.guild.id, prefix)
             await ctx.success(
-                title="Prefix `{}` has been added".format(cleanifyPrefix(self.bot, prefix))
+                title="Prefix `{}` has been added".format(
+                    cleanifyPrefix(self.bot, prefix)
+                )
             )
         except Exception as exc:
             await ctx.error(exc)
@@ -1374,7 +1375,9 @@ class Meta(commands.Cog, CogMixin):
         try:
             await self.bot.rmPrefix(ctx.guild.id, prefix)
             await ctx.success(
-                title="Prefix `{}` has been removed".format(cleanifyPrefix(self.bot, prefix))
+                title="Prefix `{}` has been removed".format(
+                    cleanifyPrefix(self.bot, prefix)
+                )
             )
         except Exception as exc:
             await ctx.error(exc)
