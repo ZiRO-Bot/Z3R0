@@ -76,6 +76,7 @@ Not ready yet.
 - [**Improved**] `>command disable` and `>command enable` will now try to disable/enable built-in command by default if you're a guild moderator
 - [**Improved**] Changed POSIX-style flags `--channel #channel-mention` to Discord-style flags `channel: #channel-mention`, following dpy v2.0 flag behaviour
 - [**Improved**] Temporary mute using the new `Timer` ext
+- [**Improved**] Translate's destination language now adjustable instead of hardcoded to `en` (source language are detectable, but you can specify it by writing `ja->id`)
 
 ### Overhaul Plan
 
