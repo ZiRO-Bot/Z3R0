@@ -13,7 +13,7 @@ from core.mixin import CogMixin
 from discord.ext import commands
 from exts.api import reddit
 from exts.utils.format import ZEmbed
-from exts.utils.other import ArgumentParser
+from exts.utils.other import ArgumentParser, ArgumentError
 from random import choice, randint, shuffle, random
 
 
@@ -286,7 +286,52 @@ class Fun(commands.Cog, CogMixin):
     async def findwaifu(self, ctx):
         """Rafael and his waifu."""
         f = discord.File("./assets/img/rafaelAndHisWaifu.png", filename="img.png")
-        return await ctx.send(file=f)
+        return await ctx.try_reply(file=f)
+
+    @commands.command(brief="Simple coin flip")
+    @commands.cooldown(1, 5, commands.BucketType.user)
+    async def flip(self, ctx):
+        await ctx.try_reply(f"You got {choice(['heads', 'tails'])}!")
+
+    @commands.command(
+        brief="Simple dice roller",
+        description=(
+            "Simple dice roller\n"
+            "Number of dices are capped at 5!\n"
+            "**Support optional size**: d4, d8, d10, d00, d12, d20"
+        ),
+        usage="[dice size] (number of dice)",
+        extras=dict(example=("roll 5", "roll d20", "role d")),
+    )
+    async def roll(self, ctx, *args):
+        diceSize = {
+            "d4": 4,
+            "d6": 6,
+            "d8": 8,
+            "d10": 10,
+            "d00": 100,
+            "d12": 12,
+            "d20": 20,
+        }
+        # Default size and number of dice
+        selSize = 6
+
+        try:
+            selSize = diceSize[args[0]]
+            diceNum = int(args[1])
+        except KeyError:
+            if not str(args[0]).isdigit():
+                raise ArgumentError("Invalid arguments") from None
+            diceNum = int(args[0])
+        except (IndexError, ValueError):
+            diceNum = 1
+
+        diceNum = 5 if diceNum > 5 else diceNum
+        results = [
+            str(randint(0, selSize)) + ("%" if selSize == 100 else "")
+            for i in range(diceNum)
+        ]
+        return await ctx.try_reply("You rolled {}".format(", ".join(results)))
 
 
 def setup(bot):
