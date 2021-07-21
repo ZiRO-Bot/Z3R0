@@ -109,7 +109,7 @@ class Utilities(commands.Cog, CogMixin):
             example=("translate fr->en Bonjour", "trans id Hola", "tr en<-ja こんにちは")
         ),
     )
-    async def translate(self, ctx, language, text):
+    async def translate(self, ctx, language, *, text):
         # parse "source->dest" or "dest<-source"
         arrow = pyp.Literal("->") | pyp.Literal("<-")
         lang = pyp.Word(pyp.alphas) + pyp.Optional(arrow + pyp.Word(pyp.alphas))
