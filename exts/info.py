@@ -188,6 +188,7 @@ class Info(commands.Cog, CogMixin):
             )
             e.set_image(url=emoji.url)
         except AttributeError:
+            # TODO: Doesn't work with :rock:, find a fix
             try:
                 e = ZEmbed.default(
                     ctx,
