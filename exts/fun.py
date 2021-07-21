@@ -275,6 +275,19 @@ class Fun(commands.Cog, CogMixin):
             + f" I chose ***{bot_choice.capitalize()}***.\n{result}"
         )
 
+    def isRafael():
+        async def pred(ctx):
+            return ctx.author.id == 518154918276628490
+
+        return commands.check(pred)
+
+    @commands.command(aliases=("find-waifu",))
+    @isRafael()
+    async def findwaifu(self, ctx):
+        """Rafael and his waifu."""
+        f = discord.File("./assets/img/rafaelAndHisWaifu.png", filename="img.png")
+        return await ctx.send(file=f)
+
 
 def setup(bot):
     bot.add_cog(Fun(bot))
