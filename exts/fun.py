@@ -333,6 +333,10 @@ class Fun(commands.Cog, CogMixin):
         ]
         return await ctx.try_reply("You rolled {}".format(", ".join(results)))
 
+    @commands.command(aliases=("👏",), brief="👏")
+    async def clap(self, ctx, *text):
+        return await ctx.try_reply(" 👏 ".join(text))
+
 
 def setup(bot):
     bot.add_cog(Fun(bot))
