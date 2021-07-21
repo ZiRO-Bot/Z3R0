@@ -106,7 +106,7 @@ class Utilities(commands.Cog, CogMixin):
         aliases=("tr", "trans"),
         brief="Translate a text",
         extras=dict(
-            example=("translate fr->en Bonjour", "trans id Hola", "tr en<-jp こんにちは")
+            example=("translate fr->en Bonjour", "trans id Hola", "tr en<-ja こんにちは")
         ),
     )
     async def translate(self, ctx, language, text):
