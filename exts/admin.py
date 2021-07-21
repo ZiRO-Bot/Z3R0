@@ -85,7 +85,9 @@ class Admin(commands.Cog, CogMixin):
         )
 
         if disable is True:
-            await self.bot.setGuildConfig(ctx.guild.id, f"{type}Ch", None, "guildChannels")
+            await self.bot.setGuildConfig(
+                ctx.guild.id, f"{type}Ch", None, "guildChannels"
+            )
             e.add_field(name="Status", value="`Disabled`")
             return await ctx.try_reply(embed=e)
 
@@ -97,7 +99,9 @@ class Admin(commands.Cog, CogMixin):
             await self.bot.setGuildConfig(ctx.guild.id, f"{type}Msg", message)
             e.add_field(name="Message", value=message, inline=False)
         if channel is not None:
-            await self.bot.setGuildConfig(ctx.guild.id, f"{type}Ch", channel.id, "guildChannels")
+            await self.bot.setGuildConfig(
+                ctx.guild.id, f"{type}Ch", channel.id, "guildChannels"
+            )
             e.add_field(name="Channel", value=channel.mention)
 
         return await ctx.try_reply(embed=e)
@@ -172,13 +176,17 @@ class Admin(commands.Cog, CogMixin):
         )
 
         if disable:
-            await self.bot.setGuildConfig(ctx.guild.id, f"{type}Ch", None, "guildChannels")
+            await self.bot.setGuildConfig(
+                ctx.guild.id, f"{type}Ch", None, "guildChannels"
+            )
             e.add_field(name="Status", value="`Disabled`")
             return await ctx.try_reply(embed=e)
 
         if parsed.channel is not None:
             channel = await commands.TextChannelConverter().convert(ctx, parsed.channel)
-            await self.bot.setGuildConfig(ctx.guild.id, f"{type}Ch", channel.id, "guildChannels")
+            await self.bot.setGuildConfig(
+                ctx.guild.id, f"{type}Ch", channel.id, "guildChannels"
+            )
             e.add_field(name="Channel", value=channel.mention)
             return await ctx.try_reply(embed=e)
 
@@ -366,7 +374,9 @@ class Admin(commands.Cog, CogMixin):
         extras=dict(example=("announcement #announcement")),
     )
     async def announcement(self, ctx, channel: discord.TextChannel):
-        await self.bot.setGuildConfig(ctx.guild.id, "announcementCh", channel.id, "guildChannels")
+        await self.bot.setGuildConfig(
+            ctx.guild.id, "announcementCh", channel.id, "guildChannels"
+        )
         return await ctx.success(
             f"**Channel**: {channel.mention}",
             title="Announcement channel has been updated",

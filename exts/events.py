@@ -81,7 +81,9 @@ class EventHandler(commands.Cog, CogMixin):
         }
 
     async def handleGreeting(self, member: discord.Member, type: str):
-        channel = await self.bot.getGuildConfig(member.guild.id, f"{type}Ch", "guildChannels")
+        channel = await self.bot.getGuildConfig(
+            member.guild.id, f"{type}Ch", "guildChannels"
+        )
         channel = self.bot.get_channel(channel)
         if not channel:
             return
@@ -142,14 +144,16 @@ class EventHandler(commands.Cog, CogMixin):
         return await self.handleGreeting(member, "farewell")
 
     @commands.Cog.listener()
-    async def on_member_kick(
-        self, member: discord.User, entry: discord.AuditLogEntry
-    ):
-        await doModlog(self.bot, member.guild, entry.target, entry.user, "kick", entry.reason)
+    async def on_member_kick(self, member: discord.User, entry: discord.AuditLogEntry):
+        await doModlog(
+            self.bot, member.guild, entry.target, entry.user, "kick", entry.reason
+        )
 
     @commands.Cog.listener()
     async def on_member_ban(self, guild: discord.Guild, member: discord.Member):
-        entries = await guild.audit_logs(limit=5, action=discord.AuditLogAction.ban).flatten()
+        entries = await guild.audit_logs(
+            limit=5, action=discord.AuditLogAction.ban
+        ).flatten()
         entry: discord.AuditLogEntry = discord.utils.find(
             lambda e: e.target == member, entries
         )

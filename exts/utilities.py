@@ -6,6 +6,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import asyncio
 import discord
+import pyparsing as pyp
 import re
 import sys
 
@@ -14,6 +15,7 @@ from core.mixin import CogMixin
 from decimal import Overflow, InvalidOperation
 from discord.ext import commands
 from exts.api.piston import Piston
+from exts.api.googletrans import GoogleTranslate
 from exts.utils.format import ZEmbed
 from exts.utils.other import NumericStringParser, parseCodeBlock
 
@@ -27,6 +29,7 @@ class Utilities(commands.Cog, CogMixin):
     def __init__(self, bot):
         super().__init__(bot)
         self.piston = Piston(session=self.bot.session, loop=self.bot.loop)
+        self.googletrans = GoogleTranslate(session=self.bot.session)
 
     @commands.command(
         aliases=["calc", "c"],
@@ -98,6 +101,39 @@ class Utilities(commands.Cog, CogMixin):
             )
 
         await msg.edit(embed=e)
+
+    @commands.command(
+        aliases=("tr", "trans"),
+        brief="Translate a text",
+        extras=dict(
+            example=("translate fr->en Bonjour", "trans id Hola", "tr en<-jp こんにちは")
+        ),
+    )
+    async def translate(self, ctx, language, text):
+        # parse "source->dest" or "dest<-source"
+        arrow = pyp.Literal("->") | pyp.Literal("<-")
+        lang = pyp.Word(pyp.alphas) + pyp.Optional(arrow + pyp.Word(pyp.alphas))
+        parsed = lang.parseString(language)
+
+        kwargs = {}
+        try:
+            kwargs["dest"] = parsed[2] if parsed[1] == "->" else parsed[0]
+            kwargs["source"] = parsed[0] if parsed[1] == "->" else parsed[2]
+        except IndexError:
+            kwargs["dest"] = parsed[0]
+
+        translated = await self.googletrans.translate(text, **kwargs)
+        e = ZEmbed.default(ctx)
+        e.set_author(
+            name="Google Translate", icon_url="https://translate.google.com/favicon.ico"
+        )
+        e.add_field(
+            name="Source [{}]".format(translated.source), value=translated.origin
+        )
+        e.add_field(
+            name="Translated [{}]".format(translated.dest), value=str(translated)
+        )
+        return await ctx.try_reply(embed=e)
 
 
 def setup(bot):
