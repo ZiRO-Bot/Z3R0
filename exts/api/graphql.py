@@ -29,7 +29,7 @@ class GraphQL:
     """
     def __init__(self, baseUrl: str, **kwargs):
         self.baseUrl = baseUrl
-        self.session = kwargs.pop("session", aiohttp.ClientSession())
+        self.session = kwargs.pop("session", None) or aiohttp.ClientSession()
 
     async def query(self, query, /, method: str = "POST", **kwargs):
         async with getattr(self.session, method.lower())(

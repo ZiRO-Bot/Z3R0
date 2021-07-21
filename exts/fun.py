@@ -11,10 +11,11 @@ import io
 
 from core.mixin import CogMixin
 from discord.ext import commands
-from exts.api import reddit
+from exts.api import reddit, graphql
 from exts.utils.format import ZEmbed
 from exts.utils.other import ArgumentParser, ArgumentError
-from random import choice, randint, shuffle, random
+from exts.utils.piglin import Piglin
+from random import choice, randint, shuffle, random, randrange
 
 
 class Fun(commands.Cog, CogMixin):
@@ -26,6 +27,9 @@ class Fun(commands.Cog, CogMixin):
     def __init__(self, bot):
         super().__init__(bot)
         self.reddit = reddit.Reddit(self.bot.session)
+        self.anilist = graphql.GraphQL(
+            "https://graphql.anilist.co", session=self.bot.session
+        )
 
     @commands.command(brief="Get random meme from reddit")
     async def meme(self, ctx):
@@ -333,9 +337,134 @@ class Fun(commands.Cog, CogMixin):
         ]
         return await ctx.try_reply("You rolled {}".format(", ".join(results)))
 
-    @commands.command(aliases=("👏",), brief="👏")
+    @commands.command(
+        aliases=("👏",),
+        brief="👏",
+        extras=dict(example=("clap hell yea", "clap clap clap")),
+    )
     async def clap(self, ctx, *text):
         return await ctx.try_reply(" 👏 ".join(text))
+
+    @commands.command(
+        aliases=("piglin",),
+        brief="Barter with Minecraft's Piglin",
+        description=(
+            "Barter with Minecraft's Piglin.\n"
+            "**Note**: The loot table is based on JE 1.16.1, before nerf"
+        ),
+        usage="[amount of gold]",
+        extras=dict(
+            example=("barter 64", "piglin", "barter 262"),
+        ),
+    )
+    @commands.cooldown(5, 25, type=commands.BucketType.user)
+    async def barter(self, ctx, gold: int = 64):
+        # limit gold amount up to 2240 (Minecraft inventory limit)
+        if gold > 2240:
+            gold = 2240
+        if gold <= 0:
+            gold = 1
+
+        trade = Piglin(gold)
+
+        items = {}
+        for item in trade.items:
+            try:
+                items[item.name][1] += item.quantity
+            except KeyError:
+                items[item.name] = [item.id, item.quantity]
+
+        def emoji(name: str):
+            return {
+                "enchanted-book": "<:enchantedbook:807261766065192971>",
+                "iron-boots": "<:ironboots:807261701363597322>",
+                "iron-nugget": "<:ironnugget:807261807601385473>",
+                "splash-potion-fire-res": "<:splashpotionfireres:807261948017377300>",
+                "potion-fire-res": "<:potionfireres:807262044478504967>",
+                "quartz": "<:quartz:807262092032999484>",
+                "glowstone-dust": "<:glowstonedust:807262151826735105>",
+                "magma-cream": "<:magmacream:807262199684005918>",
+                "ender-pearl": "<:enderpearl:807261299817709608>",
+                "string": "<:string:807262264381014086>",
+                "fire-charge": "<:firecharge:807262322522718219>",
+                "gravel": "<:gravel3D:807535983448948766>",
+                "leather": "<:leather:807262494619860993>",
+                "nether-brick": "<:netherbricks3D:807536302365999114>",
+                "obsidian": "<:obsidian3D:807536509837770762>",
+                "cry-obsidian": "<:cryobsidian3D:807536510152474644>",
+                "soul-sand": "<:soulsand3D:807536744253227049>",
+            }.get(name, "<:missingtexture:807536928361545729>")
+
+        e = ZEmbed(
+            ctx,
+            title="Bartering with {} gold{}".format(gold, "s" if gold > 1 else ""),
+            description="You got:\n\n{}".format(
+                "\n".join(["{} → {}".format(emoji(v[0]), v[1]) for v in items.values()])
+            ),
+            colour=discord.Colour.gold(),
+        )
+        await ctx.try_reply(embed=e)
+
+    @commands.command(brief="Get random anime")
+    async def findanime(self, ctx):
+        query = await self.anilist.queryPost(
+            """
+            {
+                Page(perPage:1) {
+                    pageInfo {
+                        lastPage
+                    }
+                    media(type: ANIME, format_in:[MOVIE, TV, TV_SHORT]) {
+                        id
+                    }
+                }
+            }
+            """
+        )
+        lastPage = query["data"]["Page"]["pageInfo"]["lastPage"]
+        query = await self.anilist.queryPost(
+            """
+            query ($random: Int) {
+                Page(page: $random, perPage: 1) {
+                    pageInfo {
+                        total
+                    }
+                    media(type: ANIME, isAdult: false, status_not: NOT_YET_RELEASED) {
+                        id,
+                        title { userPreferred },
+                        siteUrl
+                    }
+                }
+            }
+            """,
+            random=randrange(1, lastPage),
+        )
+        mediaData = query["data"]["Page"]["media"][0]
+        id = mediaData["id"]
+        e = ZEmbed.default(
+            ctx, title=mediaData["title"]["userPreferred"], url=mediaData["siteUrl"]
+        ).set_image(url=f"https://img.anili.st/media/{id}")
+        await ctx.try_reply(embed=e)
+
+    # TODO: Enable this later
+    # @commands.command(usage="(member)")
+    # @commands.cooldown(5, 25, type=commands.BucketType.user)
+    # @commands.max_concurrency(1, per=commands.BucketType.guild)
+    # async def triggered(self, ctx, member: discord.User = None):
+    #     """Make your or someone else's avatar triggered."""
+    #     if "dagpi_token" not in self.bot.config:
+    #         return
+    #     if not member:
+    #         member = ctx.author
+    #     url = "https://api.dagpi.xyz/image/triggered/?url=" + str(
+    #         member.avatar_url_as(format="png", size=1024)
+    #     )
+    #     async with self.bot.session.get(
+    #         url=url, headers={"Authorization": self.bot.config["dagpi_token"]}
+    #     ) as res:
+    #         image = io.BytesIO(await res.read())
+    #         img = discord.File(fp=image, filename="triggered.gif")
+    #         await ctx.send(file=img)
 
 
 def setup(bot):
