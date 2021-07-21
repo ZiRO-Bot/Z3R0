@@ -10,6 +10,7 @@ import unicodedata
 
 
 from aiohttp import InvalidURL
+from collections import OrderedDict
 from core import checks
 from core.mixin import CogMixin
 from exts.api.openweather import OpenWeatherAPI, CityNotFound
@@ -244,7 +245,10 @@ class Info(commands.Cog, CogMixin):
     )
     @checks.mod_or_permissions(manage_emojis=True)
     async def emojiAdd(
-        self, ctx, name: str, emoji: Union[discord.Emoji, discord.PartialEmoji, str] = None
+        self,
+        ctx,
+        name: str,
+        emoji: Union[discord.Emoji, discord.PartialEmoji, str] = None,
     ):
         if emoji is not None:
             try:
@@ -266,13 +270,11 @@ class Info(commands.Cog, CogMixin):
             else:
                 return await ctx.error(
                     "You need to pass custom emoji, image url, or image attachment!",
-                    title="Missing Input!"
+                    title="Missing Input!",
                 )
 
         try:
-            addedEmoji = await ctx.guild.create_custom_emoji(
-                name=name, image=emojiByte
-            )
+            addedEmoji = await ctx.guild.create_custom_emoji(name=name, image=emojiByte)
         except discord.Forbidden:
             return await ctx.error("I don't have permission to `Manage Emojis`!")
 
@@ -329,6 +331,34 @@ class Info(commands.Cog, CogMixin):
                     ),
                     inline=False,
                 )
+            await ctx.try_reply(embed=e)
+
+    @commands.command(
+        brief="Show covid information on certain country",
+    )
+    async def covid(self, ctx, *, country):
+        # TODO: Remove later
+        if country.lower() in ("united state of america", "america"):
+            country = "US"
+        if country.lower() in ("uk",):
+            country = "United Kingdom"
+
+        async with self.bot.session.get(
+            "https://covid-api.mmediagroup.fr/v1/cases?country={}".format(country)
+        ) as req:
+            data = list((await req.json()).values())[0]
+            try:
+                e = ZEmbed.default(
+                    ctx, title="{}'s COVID Report".format(data["country"])
+                )
+            except KeyError:
+                return await ctx.error(
+                    "**Note**: Country name is case-sensitive",
+                    title="Invalid Country Name",
+                )
+            e.add_field(name="Recovered", value=f"{data['recovered']:,}")
+            e.add_field(name="Deaths", value=f"{data['deaths']:,}")
+            e.add_field(name="Confirmed Cases", value=f"{data['confirmed']:,}")
             await ctx.try_reply(embed=e)
 
 
