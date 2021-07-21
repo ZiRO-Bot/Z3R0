@@ -57,7 +57,7 @@ class ziBot(commands.Bot):
     author = "ZiRO2264#4572"
     version = "`3.0.0` - `overhaul`"
     links = {
-        "Documentation (Coming Soon\u2122)": "",
+        "Documentation (Coming Soon\u2122)": "https://z3r0.readthedocs.io",
         "Source Code": "https://github.com/ZiRO-Bot/ziBot",
         "Support Server": "https://discord.gg/sP9xRy6",
     }
