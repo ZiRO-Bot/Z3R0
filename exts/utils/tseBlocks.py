@@ -93,20 +93,6 @@ class RandomBlock(Block):
         dec = ctx.verb.declaration.lower()
         return any([dec == "random", dec == "#", dec == "rand"])
 
-    def weighted_random(
-        self, pairs: Tuple[int, str], seed: str = None
-    ) -> Optional[str]:
-        total = sum(pair[0] for pair in pairs)
-
-        if seed:
-            random.seed(seed)
-
-        r = random.randint(1, total)
-        for (weight, value) in pairs:
-            r -= weight
-            if r <= 0:
-                return value
-
     def process(self, ctx: Context) -> Optional[str]:
         if ctx.verb.payload is None:
             return None
@@ -117,8 +103,10 @@ class RandomBlock(Block):
         else:
             spl = ctx.verb.payload.split(",")
 
-        tmp, spl = spl, []
-        for i in tmp:
+        # tmp, spl = spl, []
+        values = []
+        weights = []
+        for i in spl:
             try:
                 weight, res = i.split("|")
                 weight = int(weight)
@@ -129,8 +117,11 @@ class RandomBlock(Block):
                 except NameError:
                     res: str = i
 
-            spl.append((weight, str(res)))
+            values.append(str(res))
+            weights.append(weight)
             del res
 
-        result = self.weighted_random(spl, ctx.verb.parameter)
-        return result
+        if ctx.verb.parameter:
+            random.seed(ctx.verb.parameter)
+
+        return random.choices(values, weights=weights)[0]
