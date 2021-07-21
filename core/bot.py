@@ -481,7 +481,12 @@ class ziBot(commands.Bot):
         msg = copy.copy(message)
         # Get msg content without prefix
         msgContent: str = msg.content[len(ctx.prefix) :]
-        if msgContent.startswith(">") or (unixStyle := msgContent.startswith("./")):
+        # TODO: Add ability add custom priority prefix
+        if (
+            msgContent.startswith(">")
+            or msgContent.startswith("!")
+            or (unixStyle := msgContent.startswith("./"))
+        ):
             # Also support `./` for unix-style of launching custom scripts
             priority = 1
 

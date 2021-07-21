@@ -27,9 +27,8 @@ class Fun(commands.Cog, CogMixin):
         super().__init__(bot)
         self.reddit = reddit.Reddit(self.bot.session)
 
-    @commands.command()
+    @commands.command(brief="Get random meme from reddit")
     async def meme(self, ctx):
-        """Get memes from subreddit r/memes."""
         # TODO: Add more meme subreddits
         memeSubreddits = ("memes", "funny")
 
@@ -212,10 +211,7 @@ class Fun(commands.Cog, CogMixin):
         else:
             await ctx.send(f"{ctx.author.mention}, you're a crewmate!")
 
-    @commands.command(
-        aliases=("badjokes",),
-        brief="Get random dad jokes"
-    )
+    @commands.command(aliases=("badjokes",), brief="Get random dad jokes")
     async def dadjokes(self, ctx):
         headers = {"accept": "application/json"}
         async with self.bot.session.get(
@@ -234,7 +230,7 @@ class Fun(commands.Cog, CogMixin):
         brief="Rock Paper Scissors with the bot.",
         extras=dict(
             example=("rps rock",),
-        )
+        ),
     )
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def rps(self, ctx, _choice: str):
