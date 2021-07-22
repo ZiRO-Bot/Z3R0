@@ -362,6 +362,74 @@ class Info(commands.Cog, CogMixin):
             e.add_field(name="Confirmed Cases", value=f"{data['confirmed']:,}")
             await ctx.try_reply(embed=e)
 
+    @commands.command(aliases=("ui", "whois"))
+    async def userinfo(self, ctx, *, user: Union[discord.Member, discord.User] = None):
+        if not user:
+            user = await authorOrReferenced(ctx)
+
+        def status(x):
+            return {
+                discord.Status.idle: "<:status_idle:747799258316668948>Idle",
+                discord.Status.dnd: "<:status_dnd:747799292592259204>Do Not Disturb",
+                discord.Status.online: "<:status_online:747799234828435587>Online",
+                discord.Status.invisible: "<:status_offline:747799247243575469>Invisible",
+            }.get(x, "<:status_offline:747799247243575469>Offline")
+
+        def badge(x):
+            return {
+                discord.UserFlags.hypesquad_balance: "<:balance:747802468586356736>",
+                discord.UserFlags.hypesquad_brilliance: "<:brilliance:747802490241810443>",
+                discord.UserFlags.hypesquad_bravery: "<:bravery:747802479533490238>",
+                discord.UserFlags.bug_hunter: "<:bughunter:747802510663745628>",
+                # discord.UserFlags.booster: "<:booster:747802502677659668>",
+                discord.UserFlags.hypesquad: "<:hypesquad:747802519085776917>",
+                discord.UserFlags.partner: "<:partner:747802528594526218>",
+                # discord.UserFlags.owner: "<:owner:747802537402564758>",
+                discord.UserFlags.staff: "<:stafftools:747802548391379064>",
+                discord.UserFlags.early_supporter: "<:earlysupport:747802555689730150>",
+                # discord.UserFlags.verified: "<:verified:747802457798869084>",
+                discord.UserFlags.verified_bot: "<:verified:747802457798869084>",
+                discord.UserFlags.verified_bot_developer: "<:verified_bot_developer:748090768237002792>",
+            }.get(x, "🚫")
+
+        def activity(x):
+            return {
+                discord.ActivityType.playing: "Playing ",
+                discord.ActivityType.watching: "Watching ",
+                discord.ActivityType.listening: "Listening to ",
+                discord.ActivityType.streaming: "Streaming ",
+            }.get(x, "")
+
+        badges = [badge(x) for x in user.public_flags.all()]
+        if user == ctx.guild.owner:
+            badges.append("<:owner:747802537402564758>")
+
+        e = ZEmbed()
+        e.set_author(name=user, icon_url=user.avatar_url)
+        e.add_field(
+            name="Information",
+            value=(
+                "**Name**: {0.mention}\n(`{0.id}`)\n".format(user)
+                + "**Badges**: {}".format(" ".join(badges) or "No badges.")
+            ),
+        )
+        if getattr(user, "guild", None):
+            e.add_field(
+                name="Guild", value=("**Top role**: {}".format(user.top_role.mention))
+            )
+        e.add_field(
+            name="Presence",
+            value=(
+                "**Status**: {}\n".format(status(getattr(user, "status", None)))
+                + (
+                    "**Activity**: {}".format(activity(user.activity.type))
+                    if getattr(user, "activity", None)
+                    else ""
+                )
+            ),
+        )
+        await ctx.try_reply(embed=e)
+
 
 def setup(bot):
     bot.add_cog(Info(bot))
