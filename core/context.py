@@ -91,3 +91,10 @@ class Context(commands.Context):
         canRun = await command.can_run(self)
         if canRun:
             await command(self, *args, **kwargs)
+
+    @discord.utils.cached_property
+    def replied_reference(self):
+        ref = self.message.reference
+        if ref and isinstance(ref.resolved, discord.Message):
+            return ref.resolved.to_reference()
+        return None

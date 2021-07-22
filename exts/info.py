@@ -25,7 +25,7 @@ from typing import Union
 
 # TODO: Move this somewhere in `exts/utils/` folder
 async def authorOrReferenced(ctx):
-    if ctx.message and (ref := ctx.message.reference):
+    if ref := ctx.replied_reference:
         # Get referenced message author
         # if user reply to a message while doing this command
         return (
