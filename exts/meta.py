@@ -433,11 +433,14 @@ class Meta(commands.Cog, CogMixin):
 
             dest = result.actions.get("target")
             action = ctx.send
+            kwargs = {"reference": ctx.replied_reference}
             if dest:
                 if dest == "reply":
                     action = ctx.try_reply
+                    kwargs["reference"] = ctx.replied_reference or ctx.message
                 if dest == "dm":
                     action = ctx.author.send
+                    kwargs = {}
 
             msg = await action(
                 result.body or ("\u200b" if not embed else ""),
@@ -445,6 +448,7 @@ class Meta(commands.Cog, CogMixin):
                 allowed_mentions=discord.AllowedMentions(
                     everyone=False, users=False, roles=False
                 ),
+                **kwargs
             )
             react = result.actions.get("react")
             reactu = result.actions.get("reactu")
