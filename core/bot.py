@@ -460,13 +460,8 @@ class ziBot(commands.Bot):
                 "DELETE FROM guilds WHERE id=:id", values={"id": guildId}
             )
 
-            for dataType in (
-                "guildChannels",
-                "guildConfigs",
-                "guildRoles",
-                "prefixes",
-                "disabled",
-            ):
+            # clear guild's cache
+            for dataType in self.cache.property:
                 try:
                     getattr(self.cache, dataType).clear(guildId)
                 except KeyError:
