@@ -347,10 +347,89 @@ def boolFromString(string: str) -> bool:
         return False
 
 
+MORSE_CODE_DICT = {
+    "A": ".-",
+    "B": "-...",
+    "C": "-.-.",
+    "D": "-..",
+    "E": ".",
+    "F": "..-.",
+    "G": "--.",
+    "H": "....",
+    "I": "..",
+    "J": ".---",
+    "K": "-.-",
+    "L": ".-..",
+    "M": "--",
+    "N": "-.",
+    "O": "---",
+    "P": ".--.",
+    "Q": "--.-",
+    "R": ".-.",
+    "S": "...",
+    "T": "-",
+    "U": "..-",
+    "V": "...-",
+    "W": ".--",
+    "X": "-..-",
+    "Y": "-.--",
+    "Z": "--..",
+    "1": ".----",
+    "2": "..---",
+    "3": "...--",
+    "4": "....-",
+    "5": ".....",
+    "6": "-....",
+    "7": "--...",
+    "8": "---..",
+    "9": "----.",
+    "0": "-----",
+    ".": ".-.-.-",
+    ", ": "--..--",
+    "?": "..--..",
+    "'": ".----.",
+    "!": "-.-.--",
+    "/": "-..-.",
+    "-": "-....-",
+    "@": ".--.-.",
+    "(": "-.--.",
+    ")": "-.--.-",
+    " ": "/",
+}
+
+
+def encodeMorse(msg):
+    morse = ""
+    for letter in msg:
+        morse += MORSE_CODE_DICT[letter.upper()] + " "
+    return morse
+
+
+def decodeMorse(msg):
+    msg = msg.replace("/ ", " ") + " "
+    temp = ""
+    decoded = ""
+    for code in msg:
+        if code not in [".", "-", "/", " "] and code.upper() in list(
+            MORSE_CODE_DICT.keys()
+        ):
+            return None
+        if code != " ":
+            i = 0
+            temp += code
+        else:
+            i += 1
+            if i == 2:
+                decoded += " "
+            else:
+                decoded += list(MORSE_CODE_DICT.keys())[
+                    list(MORSE_CODE_DICT.values()).index(temp)
+                ]
+                temp = ""
+    return decoded
+
+
 if __name__ == "__main__":
     # For testing
-    # print(NumericStringParser().eval("63**57") > 2147483647)
-    print(parseCodeBlock("```py \ntest\ntest2```"))
-    print("---")
-    print(parseCodeBlock("```\ntest\ntest2```"))
-    print(parseCodeBlock("`test\ntest2`"))
+    print(encodeMorse("test 123"))
+    print(decodeMorse("... --- ..."))

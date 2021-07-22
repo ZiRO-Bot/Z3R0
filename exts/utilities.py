@@ -17,7 +17,7 @@ from discord.ext import commands
 from exts.api.piston import Piston
 from exts.api.googletrans import GoogleTranslate
 from exts.utils.format import ZEmbed
-from exts.utils.other import NumericStringParser, parseCodeBlock
+from exts.utils.other import NumericStringParser, parseCodeBlock, encodeMorse, decodeMorse
 
 
 class Utilities(commands.Cog, CogMixin):
@@ -134,6 +134,26 @@ class Utilities(commands.Cog, CogMixin):
             name="Translated [{}]".format(translated.dest), value=str(translated)
         )
         return await ctx.try_reply(embed=e)
+
+    @commands.command(
+        brief="Encode a text into morse code",
+    )
+    async def morse(self, ctx, *, text):
+        try:
+            await ctx.try_reply(f"`{encodeMorse(text)}`")
+        except KeyError:
+            await ctx.error("Symbols/accented letters is not supported (yet?)", title="Invalid text")
+
+    @commands.command(
+        aliases=("demorse",),
+        brief="Decode a morse code",
+        usage="(morse code)",
+    )
+    async def unmorse(self, ctx, *, code):
+        try:
+            await ctx.try_reply(f"`{decodeMorse(code)}`")
+        except ValueError:
+            await ctx.error("Invalid morse code!")
 
 
 def setup(bot):
