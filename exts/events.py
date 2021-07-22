@@ -182,7 +182,11 @@ class EventHandler(commands.Cog, CogMixin):
             return await ctx.error(error)
 
         if isinstance(error, commands.BadUnionArgument):
-            if ctx.command.root_parent.name == "emoji" and ctx.command.name == "steal":
+            if (
+                ctx.command.root_parent
+                and ctx.command.root_parent.name == "emoji"
+                and ctx.command.name == "steal"
+            ):
                 return await ctx.error("Unicode is not supported!")
 
         if isinstance(error, commands.MissingRequiredArgument) or isinstance(

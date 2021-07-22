@@ -63,3 +63,14 @@ class BannedMember(commands.Converter):
         if entity is None:
             raise commands.BadArgument('This member has not been banned before.')
         return entity
+
+
+class MemberOrUser(commands.Converter):
+    async def convert(self, ctx, argument):
+        try:
+            return await commands.MemberConverter().convert(ctx, argument)
+        except commands.MemberNotFound:
+            try:
+                return await commands.UserConverter().convert(ctx, argument)
+            except commands.UserNotFound:
+                return None

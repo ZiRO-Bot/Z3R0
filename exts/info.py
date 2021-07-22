@@ -13,6 +13,7 @@ import unicodedata
 from aiohttp import InvalidURL
 from collections import OrderedDict
 from core import checks
+from core.converter import MemberOrUser
 from core.mixin import CogMixin
 from exts.api.openweather import OpenWeatherAPI, CityNotFound
 from exts.utils import pillow
@@ -50,7 +51,7 @@ class Info(commands.Cog, CogMixin):
     @commands.command(
         aliases=["av", "userpfp", "pfp"], brief="Get member's avatar image"
     )
-    async def avatar(self, ctx, user: discord.User = None):
+    async def avatar(self, ctx, user: MemberOrUser = None):
         if not user:
             user = await authorOrReferenced(ctx)
 
@@ -364,7 +365,7 @@ class Info(commands.Cog, CogMixin):
             await ctx.try_reply(embed=e)
 
     @commands.command(aliases=("ui", "whois"))
-    async def userinfo(self, ctx, *, user: Union[discord.Member, discord.User] = None):
+    async def userinfo(self, ctx, *, user: MemberOrUser = None):
         if not user:
             user = await authorOrReferenced(ctx)
 
@@ -394,7 +395,7 @@ class Info(commands.Cog, CogMixin):
             }.get(x, "🚫")
 
         def activity(x):
-            if x.type == discord.ActivityType.custom:
+            if x.type == discord.ActivityType.custom and x.name:
                 detail = f": ``{x.name}``"
             elif x.name:
                 detail = f" **{x.name}**"
