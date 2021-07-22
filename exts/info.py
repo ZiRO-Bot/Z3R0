@@ -424,6 +424,8 @@ class Info(commands.Cog, CogMixin):
 
         e.set_author(name=user, icon_url=user.avatar_url)
 
+        e.set_thumbnail(url=user.avatar_url)
+
         e.add_field(
             name="General",
             value=(
