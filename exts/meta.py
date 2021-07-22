@@ -1399,6 +1399,28 @@ class Meta(commands.Cog, CogMixin):
         )
         await msg.edit(embed=e)
 
+    @commands.command(brief="Get bot's invite link")
+    async def invite(self, ctx):
+        e = ZEmbed(
+            title=f"Want to invite {self.bot.user.name}?",
+            description="[Invite with administrator permission]("
+            + discord.utils.oauth_url(
+                self.bot.user.id,
+                permissions=discord.Permissions(8),
+                guild=None,
+                redirect_uri=None,
+            )
+            + ")\n[Invite with necessary premissions (**recommended**)]("
+            + discord.utils.oauth_url(
+                self.bot.user.id,
+                permissions=discord.Permissions(4260883702),
+                guild=None,
+                redirect_uri=None,
+            )
+            + ")"
+        )
+        await ctx.send(embed=e)
+
 
 def setup(bot):
     bot.add_cog(Meta(bot))
