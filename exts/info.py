@@ -4,6 +4,7 @@ License, v. 2.0. If a copy of the MPL was not distributed with this
 file, You can obtain one at http://mozilla.org/MPL/2.0/.
 """
 
+import datetime as dt
 import discord
 import time
 import unicodedata
@@ -15,7 +16,7 @@ from core import checks
 from core.mixin import CogMixin
 from exts.api.openweather import OpenWeatherAPI, CityNotFound
 from exts.utils import pillow
-from exts.utils.format import ZEmbed
+from exts.utils.format import ZEmbed, formatDiscordDT
 from exts.utils.infoQuote import *
 from discord.ext import commands
 from typing import Union
@@ -226,7 +227,7 @@ class Info(commands.Cog, CogMixin):
 
         e = ZEmbed.default(
             ctx,
-            title="{} `:{}:` has been added to the server".format(
+            title="{} `:{}:` has been added to the guild".format(
                 addedEmoji, addedEmoji.name
             ),
         )
@@ -281,7 +282,7 @@ class Info(commands.Cog, CogMixin):
 
         e = ZEmbed.default(
             ctx,
-            title="{} `:{}:` has been added to the server".format(
+            title="{} `:{}:` has been added to the guild".format(
                 addedEmoji, addedEmoji.name
             ),
         )
@@ -393,41 +394,84 @@ class Info(commands.Cog, CogMixin):
             }.get(x, "🚫")
 
         def activity(x):
+            if x.type == discord.ActivityType.custom:
+                detail = f": ``{x.name}``"
+            elif x.name:
+                detail = f" **{x.name}**"
+            else:
+                detail = ""
+
             return {
-                discord.ActivityType.playing: "Playing ",
-                discord.ActivityType.watching: "Watching ",
-                discord.ActivityType.listening: "Listening to ",
-                discord.ActivityType.streaming: "Streaming ",
-            }.get(x, "")
+                discord.ActivityType.playing: "Playing",
+                discord.ActivityType.watching: "Watching",
+                discord.ActivityType.listening: "Listening to",
+                discord.ActivityType.streaming: "Streaming",
+                discord.ActivityType.competing: "Competing in",
+                discord.ActivityType.custom: "Custom",
+            }.get(x.type, "") + detail
 
         badges = [badge(x) for x in user.public_flags.all()]
         if user == ctx.guild.owner:
             badges.append("<:owner:747802537402564758>")
 
+        createdAt = user.created_at.replace(tzinfo=dt.timezone.utc)
+        isUser = isinstance(user, discord.User)
+        joinedAt = None
+        if not isUser:
+            joinedAt = user.joined_at.replace(tzinfo=dt.timezone.utc)
+
         e = ZEmbed()
+
         e.set_author(name=user, icon_url=user.avatar_url)
+
         e.add_field(
-            name="Information",
+            name="General",
             value=(
-                "**Name**: {0.mention}\n(`{0.id}`)\n".format(user)
-                + "**Badges**: {}".format(" ".join(badges) or "No badges.")
-            ),
-        )
-        if getattr(user, "guild", None):
-            e.add_field(
-                name="Guild", value=("**Top role**: {}".format(user.top_role.mention))
-            )
-        e.add_field(
-            name="Presence",
-            value=(
-                "**Status**: {}\n".format(status(getattr(user, "status", None)))
-                + (
-                    "**Activity**: {}".format(activity(user.activity.type))
-                    if getattr(user, "activity", None)
-                    else ""
+                "**Name**: {0.name} / {0.mention}\n".format(user)
+                + "**ID**: `{}`\n".format(user.id)
+                + "**Badges**: {}\n".format(" ".join(badges) or "No badges.")
+                + "**Created at**: {} ({})".format(
+                    formatDiscordDT(createdAt, "F"), formatDiscordDT(createdAt, "R")
                 )
             ),
         )
+
+        e.add_field(
+            name="Guild",
+            value=(
+                "N/A"
+                if isUser
+                else (
+                    "**Joined at**: {} ({})\n".format(
+                        formatDiscordDT(joinedAt, "F"), formatDiscordDT(joinedAt, "R")
+                    )
+                    + "**Role count**: ({}/{})\n".format(
+                        len(user.roles), len(user.guild.roles)
+                    )
+                    + "**Top role**: {}".format(user.top_role.mention)
+                )
+            ),
+            inline=False,
+        )
+
+        e.add_field(
+            name="Presence",
+            value=(
+                "N/A"
+                if isUser
+                else (
+                    "**Status**: {}\n".format(status(user.status))
+                    + "**Activity**: {}".format(
+                        activity(user.activity) if user.activity else "None"
+                    )
+                )
+            ),
+            inline=False,
+        )
+
+        if isUser:
+            e.set_footer(text="This user is not in this guild.")
+
         await ctx.try_reply(embed=e)
 
 
