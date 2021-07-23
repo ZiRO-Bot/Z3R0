@@ -152,8 +152,10 @@ async def getCustomCommands(db, guildId, category: str = None):
     return [CustomCommand(id=k, **v) for k, v in cmds.items()]
 
 
-async def formatCommandInfo(prefix, command):
+async def formatCommandInfo(ctx, command):
     """Format command help"""
+    prefix = ctx.clean_prefix
+
     e = ZEmbed(
         title=formatCmd(prefix, command),
         description="**Aliases**: `{}`\n".format(
@@ -161,6 +163,10 @@ async def formatCommandInfo(prefix, command):
         )
         + (command.description or command.brief or "No description"),
     )
+
+    if isinstance(command, CustomCommand):
+        author = ctx.bot.get_user(command.owner) or await ctx.bot.fetch_user(command.owner)
+        e.set_author(name=author, icon_url=author.avatar_url)
 
     if not isinstance(command, CustomCommand):
         extras = getattr(command, "extras", {})
@@ -323,14 +329,14 @@ class CustomHelp(commands.HelpCommand):
     async def send_command_help(self, command):
         ctx = self.context
 
-        e = await formatCommandInfo(ctx.clean_prefix, command)
+        e = await formatCommandInfo(ctx, command)
 
         await ctx.try_reply(embed=e)
 
     async def send_group_help(self, group):
         ctx = self.context
 
-        e = await formatCommandInfo(ctx.clean_prefix, group)
+        e = await formatCommandInfo(ctx, group)
 
         await ctx.try_reply(embed=e)
 
@@ -1265,7 +1271,7 @@ class Meta(commands.Cog, CogMixin):
         # Executes {prefix}help {name} if its built-in command
         try:
             command = await getCustomCommand(ctx, name)
-            e = await formatCommandInfo(ctx.clean_prefix, command)
+            e = await formatCommandInfo(ctx, command)
             return await ctx.try_reply(embed=e)
         except CCommandNotFound:
             return await ctx.send_help(name)
