@@ -17,8 +17,9 @@ from core.converter import MemberOrUser
 from core.mixin import CogMixin
 from exts.api.openweather import OpenWeatherAPI, CityNotFound
 from exts.utils import pillow
-from exts.utils.format import ZEmbed, formatDiscordDT
+from exts.utils.format import ZEmbed, formatDiscordDT, renderBar
 from exts.utils.infoQuote import *
+from exts.utils.other import utcnow
 from discord.ext import commands
 from typing import Union
 
@@ -540,7 +541,9 @@ class Info(commands.Cog, CogMixin):
                     bots + humans, humans, bots
                 )
                 + " ".join([f"{emoji}{count}" for count, emoji in status.values()])
-                + "\n**Boosts**: {} (Lv. {})\n".format(guild.premium_subscription_count, guild.premium_tier)
+                + "\n**Boosts**: {} (Lv. {})\n".format(
+                    guild.premium_subscription_count, guild.premium_tier
+                )
                 + "**Role Count**: {}".format(len(guild.roles))
             ),
             inline=False,
@@ -550,12 +553,65 @@ class Info(commands.Cog, CogMixin):
             name="Settings",
             value=(
                 "**Verification Level**: `{}`\n".format(guild.verification_level)
-                + "**Two-Factor Auth**: {}\n".format("On" if guild.mfa_level == 1 else "Off")
+                + "**Two-Factor Auth**: {}\n".format(
+                    "On" if guild.mfa_level == 1 else "Off"
+                )
                 + "**Voice Region**: `{}`".format(guild.region)
             ),
             inline=False,
         )
 
+        await ctx.try_reply(embed=e)
+
+    @commands.command(aliases=("spotify", "spot"))
+    async def spotifyinfo(self, ctx, user: discord.Member = None):
+        user = user or ctx.author
+        spotify: discord.Spotify = discord.utils.find(
+            lambda s: isinstance(s, discord.Spotify), user.activities
+        )
+        if not spotify:
+            return await ctx.error(
+                "{} is not listening to Spotify!".format(user.mention)
+            )
+        e = (
+            ZEmbed(
+                title=spotify.title,
+                colour=spotify.colour,
+                url="https://open.spotify.com/track/{}".format(spotify.track_id),
+            )
+            .set_author(name="Spotify", icon_url="https://i.imgur.com/PA3vvdN.png")
+            .set_thumbnail(url=spotify.album_cover_url)
+        )
+
+        # duration
+        cur, dur = (
+            utcnow() - spotify.start.replace(tzinfo=dt.timezone.utc),
+            spotify.duration,
+        )
+
+        barLength = 5 if user.is_on_mobile() else 17
+        bar = renderBar(
+            (cur.seconds / dur.seconds) * 100,
+            fill="─",
+            empty="─",
+            point="⬤",
+            length=barLength,
+        )
+
+        e.add_field(name="Artist", value=", ".join(spotify.artists))
+
+        e.add_field(name="Album", value=spotify.album)
+
+        e.add_field(
+            name="Duration",
+            value=(
+                f"{cur.seconds//60:02}:{cur.seconds%60:02}"
+                + f" {bar} "
+                + f"{dur.seconds//60:02}:"
+                + f"{dur.seconds%60:02}"
+            ),
+            inline=False,
+        )
         await ctx.try_reply(embed=e)
 
 
