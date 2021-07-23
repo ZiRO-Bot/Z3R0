@@ -20,6 +20,7 @@ from core.errors import (
     CCommandNotInGuild,
     CCommandNoPerm,
     CCommandDisabled,
+    NotInGuild
 )
 from core.menus import ZMenu
 from core.mixin import CogMixin
@@ -248,6 +249,23 @@ class CustomHelp(commands.HelpCommand):
         )
 
         return await ctx.try_reply(embed=e)
+
+    async def filter_commands(self, _commands):
+        async def predicate(cmd):
+            try:
+                return await cmd.can_run(self.context)
+            except (commands.CommandError, NotInGuild):
+                return False
+
+        ret = []
+        for cmd in _commands:
+            if cmd.hidden:
+                continue
+            valid = await predicate(cmd)
+            if valid:
+                ret.append(cmd)
+
+        return ret
 
     async def send_cog_help(self, cog):
         ctx = self.context
