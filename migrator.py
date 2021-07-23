@@ -14,7 +14,7 @@ from databases import Database
 from exts.utils import dbQuery
 
 OLD_DB = Database("sqlite:///data/database2_0.db")
-NEW_DB = Database("sqlite:///data/databaseNew.db")
+NEW_DB = Database("sqlite:///data/database3_0.db")
 DEF_PREFIX = ">"
 
 
