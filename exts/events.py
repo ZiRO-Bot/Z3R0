@@ -94,12 +94,16 @@ class EventHandler(commands.Cog, CogMixin):
 
         result = self.engine.process(message, self.getGreetSeed(member))
         embed = result.actions.get("embed")
+        # TODO: Make action tag block to ping everyone, here, or role if admin wants it
+        content = (
+            str(result.body or ("\u200b" if not embed else ""))
+            .replace("@everyone", "@\u200beveryone")
+            .replace("@here", "@\u200bhere")
+        )
         try:
-            msg = await channel.send(
-                result.body or ("\u200b" if not embed else ""), embed=embed
-            )
+            msg = await channel.send(content, embed=embed)
         except discord.HTTPException:
-            msg = await channel.send(result.body or ("\u200b" if not embed else ""))
+            msg = await channel.send(content)
 
         if msg:
             if react := result.actions.get("react"):
