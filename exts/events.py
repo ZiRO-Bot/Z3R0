@@ -175,7 +175,9 @@ class EventHandler(commands.Cog, CogMixin):
         # If nothing is found. We keep the exception passed to on_command_error.
         error = getattr(error, "original", error)
 
-        if isinstance(error, commands.CommandNotFound) or isinstance(error, commands.DisabledCommand):
+        if isinstance(error, commands.CommandNotFound) or isinstance(
+            error, commands.DisabledCommand
+        ):
             return
 
         if isinstance(error, commands.BadUnionArgument):
@@ -192,7 +194,9 @@ class EventHandler(commands.Cog, CogMixin):
             e = formatMissingArgError(ctx, error)
             return await ctx.try_reply(embed=e)
 
-        if isinstance(error, errors.CCommandAlreadyExists) or isinstance(error, commands.BadArgument):
+        if isinstance(error, errors.CCommandAlreadyExists) or isinstance(
+            error, commands.BadArgument
+        ):
             return await ctx.error(str(error))
 
         if isinstance(error, pytz.exceptions.UnknownTimeZoneError):
@@ -203,8 +207,16 @@ class EventHandler(commands.Cog, CogMixin):
             )
 
         if isinstance(error, commands.CommandOnCooldown):
-            bot_msg = await ctx.send(
-                f"{ctx.author.mention}, you have to wait {round(error.retry_after, 2)} seconds before using this again"
+            bot_msg = await ctx.error(
+                (
+                    "You can use it again in {:.2f} seconds.\n".format(
+                        error.retry_after
+                    )
+                    + "Default cooldown: {0.rate} times per {0.per} seconds, per {1}".format(
+                        error.cooldown, error.cooldown.type[0]
+                    )
+                ),
+                title="Command is on a cooldown!",
             )
             await asyncio.sleep(round(error.retry_after))
             return await bot_msg.delete()
