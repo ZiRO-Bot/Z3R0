@@ -444,7 +444,6 @@ class Moderation(commands.Cog, CogMixin):
     @commands.command(
         brief="Clear the chat",
         usage="(amount of message)",
-        hidden=True,
     )
     @checks.mod_or_permissions(manage_messages=True)
     async def clearchat(self, ctx, num):
