@@ -10,7 +10,7 @@ import time
 import unicodedata
 
 
-from aiohttp import InvalidURL
+from aiohttp import InvalidURL, client_exceptions
 from contextlib import suppress
 from core import checks
 from core.converter import MemberOrUser
@@ -662,6 +662,62 @@ class Info(commands.Cog, CogMixin):
             e.set_thumbnail(url=memberOrRole.avatar_url)
 
         await ctx.try_reply(embed=e)
+
+    @commands.command(
+        brief="Get information of a python project from pypi",
+        usage="(project name)",
+    )
+    async def pypi(self, ctx, project: str):
+        async with self.bot.session.get(f"https://pypi.org/pypi/{project}/json") as res:
+            try:
+                res = await res.json()
+            except client_exceptions.ContentTypeError:
+                e = discord.Embed(
+                    title="404 - Page Not Found",
+                    description="We looked everywhere but couldn't find that project",
+                    colour=discord.Colour(0x0073B7),
+                )
+                e.set_thumbnail(
+                    url="https://cdn-images-1.medium.com/max/1200/1%2A2FrV8q6rPdz6w2ShV6y7bw.png"
+                )
+                return await ctx.try_reply(embed=e)
+
+            info = res["info"]
+            e = ZEmbed.minimal(
+                title=f"{info['name']} · PyPI",
+                description=info["summary"],
+                colour=discord.Colour(0x0073B7),
+            ).set_thumbnail(
+                url="https://cdn-images-1.medium.com/max/1200/1%2A2FrV8q6rPdz6w2ShV6y7bw.png"
+            )
+            e.add_field(
+                name="Author Info",
+                value=(
+                    "**Name**: {}\n".format(info["author"] or "`Unknown`")
+                    + "**Email**: {}".format(info["author_email"] or "`Not provided.`")
+                ),
+                inline=False
+            )
+            e.add_field(
+                name="Package Info",
+                value=(
+                    "**Version**: `{}`\n".format(info["version"])
+                    + "**License**: {}\n".format(info["license"] or "`Not speficied.`")
+                    + "**Keywords**: {}".format(info["keywords"] or "`Not speficied.`")
+                ),
+                inline=False
+            )
+            e.add_field(
+                name="Links",
+                value=(
+                    "[Home Page]({})\n".format(info["home_page"])
+                    + "[Project Link]({})\n".format(info["project_url"])
+                    + "[Release Link]({})\n".format(info["release_url"])
+                    + "[Download Link]({})".format(info["download_url"])
+                ),
+                inline=False
+            )
+            return await ctx.try_reply(embed=e)
 
 
 def setup(bot):
