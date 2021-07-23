@@ -1457,7 +1457,7 @@ class Meta(commands.Cog, CogMixin):
             )
             + ")",
         )
-        await ctx.send(embed=e)
+        await ctx.try_reply(embed=e)
 
 
 def setup(bot):
