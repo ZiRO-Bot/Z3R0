@@ -529,17 +529,18 @@ class ziBot(commands.Bot):
                 with suppress(CCommandNotFound, CCommandNotInGuild, CCommandDisabled):
                     await executeCC(*args)
                     self.customCommandUsage += 1
-                    return
+                    return ""
             # Since priority is 0 and it can run the built-in command,
             # no need to try getting custom command
             # Also executed when custom command failed to run
-            return await self.invoke(ctx)
+            await self.invoke(ctx)
+            return ""
         else:
             with suppress(CCommandNotFound, CCommandNotInGuild, CCommandDisabled):
                 # Can't run built-in command, straight to trying custom command
                 await executeCC(*args)
                 self.customCommandUsage += 1
-                return
+                return ""
 
     async def formattedPrefixes(self, guildId):
         prefixes = await self.getGuildPrefix(guildId)
@@ -579,7 +580,7 @@ class ziBot(commands.Bot):
             await message.reply(embed=e)
 
         processed = await self.process_commands(message)
-        if not processed:
+        if processed is not None:
             self.commandUsage += 1
 
     async def close(self):
