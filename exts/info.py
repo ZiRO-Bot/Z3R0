@@ -421,11 +421,11 @@ class Info(commands.Cog, CogMixin):
         if not isUser:
             joinedAt = user.joined_at.replace(tzinfo=dt.timezone.utc)
 
-        e = ZEmbed()
-
-        e.set_author(name=user, icon_url=user.avatar_url)
-
-        e.set_thumbnail(url=user.avatar_url)
+        e = (
+            ZEmbed()
+            .set_author(name=user, icon_url=user.avatar_url)
+            .set_thumbnail(url=user.avatar_url)
+        )
 
         e.add_field(
             name="General",
@@ -437,6 +437,7 @@ class Info(commands.Cog, CogMixin):
                     formatDiscordDT(createdAt, "F"), formatDiscordDT(createdAt, "R")
                 )
             ),
+            inline=False,
         )
 
         e.add_field(
@@ -474,6 +475,86 @@ class Info(commands.Cog, CogMixin):
 
         if isUser:
             e.set_footer(text="This user is not in this guild.")
+
+        await ctx.try_reply(embed=e)
+
+    @commands.command(aliases=("gi", "serverinfo", "si"))
+    async def guildinfo(self, ctx):
+        guild: discord.Guild = ctx.guild
+        createdAt = guild.created_at
+
+        # Counters
+        bots = 0
+        humans = 0
+        status = {
+            "online": [0, "<:status_online:747799234828435587>"],
+            "offline": [0, "<:status_offline:747799247243575469>"],
+            "idle": [0, "<:status_idle:747799258316668948>"],
+            "dnd": [0, "<:status_dnd:747799292592259204>"],
+        }
+        for m in guild.members:
+            if m.bot:
+                bots += 1
+            else:
+                humans += 1
+
+            status[str(m.status)][0] += 1
+
+        e = (
+            ZEmbed()
+            .set_author(name=guild, icon_url=guild.icon_url)
+            .set_thumbnail(url=guild.icon_url)
+        )
+
+        e.add_field(
+            name="General",
+            value=(
+                "**Name**: {}\n".format(guild.name)
+                + "**ID**: `{}`\n".format(guild.id)
+                + "**Created At**: {} ({})\n".format(
+                    formatDiscordDT(createdAt, "F"), formatDiscordDT(createdAt, "R")
+                )
+                + "**Owner**: {0} / {0.mention}\n".format(guild.owner)
+                + "**Owner ID**: `{}`".format(guild.owner.id)
+            ),
+            inline=False,
+        )
+
+        e.add_field(
+            name="Stats",
+            value=(
+                "**Categories**: {}\n".format(len(guild.categories))
+                + "**Channels**: {}\n{}\n".format(
+                    len(guild.channels),
+                    "<:text_channel:747744994101690408> {} ".format(
+                        len(guild.text_channels)
+                    )
+                    + "<:voice_channel:747745006697185333> {} ".format(
+                        len(guild.voice_channels)
+                    )
+                    + "<:stagechannel:867970076475813908> {} ".format(
+                        len(guild.stage_channels)
+                    ),
+                )
+                + "**Member Count**: {} ({} humans | {} bots)\n".format(
+                    bots + humans, humans, bots
+                )
+                + " ".join([f"{emoji}{count}" for count, emoji in status.values()])
+                + "\n**Boosts**: {} (Lv. {})\n".format(guild.premium_subscription_count, guild.premium_tier)
+                + "**Role Count**: {}".format(len(guild.roles))
+            ),
+            inline=False,
+        )
+
+        e.add_field(
+            name="Settings",
+            value=(
+                "**Verification Level**: `{}`\n".format(guild.verification_level)
+                + "**Two-Factor Auth**: {}\n".format("On" if guild.mfa_level == 1 else "Off")
+                + "**Voice Region**: `{}`".format(guild.region)
+            ),
+            inline=False,
+        )
 
         await ctx.try_reply(embed=e)
 
