@@ -11,7 +11,7 @@ import unicodedata
 
 
 from aiohttp import InvalidURL
-from collections import OrderedDict
+from contextlib import suppress
 from core import checks
 from core.converter import MemberOrUser
 from core.mixin import CogMixin
@@ -165,6 +165,7 @@ class Info(commands.Cog, CogMixin):
         invoke_without_command=True,
     )
     async def emoji(self, ctx, emoji: Union[discord.Emoji, discord.PartialEmoji, str]):
+        # TODO: Add emoji list
         await ctx.try_invoke(self.emojiInfo, emoji)
 
     @emoji.command(
@@ -566,6 +567,7 @@ class Info(commands.Cog, CogMixin):
     @commands.command(aliases=("spotify", "spot"))
     async def spotifyinfo(self, ctx, user: discord.Member = None):
         user = user or ctx.author
+
         spotify: discord.Spotify = discord.utils.find(
             lambda s: isinstance(s, discord.Spotify), user.activities
         )
@@ -573,6 +575,7 @@ class Info(commands.Cog, CogMixin):
             return await ctx.error(
                 "{} is not listening to Spotify!".format(user.mention)
             )
+
         e = (
             ZEmbed(
                 title=spotify.title,
@@ -589,6 +592,7 @@ class Info(commands.Cog, CogMixin):
             spotify.duration,
         )
 
+        # Bar stuff
         barLength = 5 if user.is_on_mobile() else 17
         bar = renderBar(
             (cur.seconds / dur.seconds) * 100,
@@ -612,6 +616,34 @@ class Info(commands.Cog, CogMixin):
             ),
             inline=False,
         )
+        await ctx.try_reply(embed=e)
+
+    @commands.command(aliases=("perms",), usage="(member / role)")
+    async def permissions(
+        self, ctx, memberOrRole: Union[discord.Member, discord.Role, str] = None
+    ):
+        if isinstance(memberOrRole, str) or memberOrRole is None:
+            memberOrRole = ctx.author
+
+        try:
+            permissions = memberOrRole.permissions
+        except AttributeError:
+            permissions = memberOrRole.permissions_in(ctx.channel)
+
+        e = ZEmbed.default(
+            ctx,
+            title="{}'s Permissions".format(memberOrRole.name),
+            description=", ".join(
+                [
+                    "`{}`".format(str(i[0]).replace("_", " ").title())
+                    for i in permissions
+                    if i[1] is True
+                ]
+            ),
+        )
+        with suppress(AttributeError):
+            e.set_thumbnail(url=memberOrRole.avatar_url)
+
         await ctx.try_reply(embed=e)
 
 
