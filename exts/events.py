@@ -175,11 +175,8 @@ class EventHandler(commands.Cog, CogMixin):
         # If nothing is found. We keep the exception passed to on_command_error.
         error = getattr(error, "original", error)
 
-        if isinstance(error, commands.CommandNotFound):
+        if isinstance(error, commands.CommandNotFound) or isinstance(error, commands.DisabledCommand):
             return
-
-        if isinstance(error, commands.BadArgument):
-            return await ctx.error(error)
 
         if isinstance(error, commands.BadUnionArgument):
             if (
@@ -195,7 +192,7 @@ class EventHandler(commands.Cog, CogMixin):
             e = formatMissingArgError(ctx, error)
             return await ctx.try_reply(embed=e)
 
-        if isinstance(error, errors.CCommandAlreadyExists):
+        if isinstance(error, errors.CCommandAlreadyExists) or isinstance(error, commands.BadArgument):
             return await ctx.error(str(error))
 
         if isinstance(error, pytz.exceptions.UnknownTimeZoneError):
@@ -215,9 +212,6 @@ class EventHandler(commands.Cog, CogMixin):
         if isinstance(error, commands.CheckFailure):
             # TODO: Change the message
             return await ctx.send("You have no permissions!")
-
-        if isinstance(error, commands.DisabledCommand):
-            return
 
         # Give details about the error
         _traceback = "".join(

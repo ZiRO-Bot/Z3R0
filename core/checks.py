@@ -1,3 +1,4 @@
+from core.errors import NotInGuild
 from discord.ext import commands
 
 
@@ -54,6 +55,14 @@ def has_guild_permissions(*, check=all, **perms):
 
 
 # Is mod, is admin thingy
+
+def guildOnly():
+    def predicate(ctx):
+        if not ctx.guild:
+            raise NotInGuild from None
+        return True
+
+    return commands.check(predicate)
 
 
 def is_botmaster():

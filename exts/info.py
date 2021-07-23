@@ -217,6 +217,7 @@ class Info(commands.Cog, CogMixin):
             example=("emoji steal :shuba:", "em steal :thonk:", "emoji steal :LULW:")
         ),
     )
+    @checks.guildOnly()
     @checks.mod_or_permissions(manage_emojis=True)
     async def emojiSteal(self, ctx, emoji: Union[discord.Emoji, discord.PartialEmoji]):
         emojiByte = await emoji.url.read()
@@ -248,6 +249,7 @@ class Info(commands.Cog, CogMixin):
         ),
         usage="(emoji name) (emoji/image url/attachment)",
     )
+    @checks.guildOnly()
     @checks.mod_or_permissions(manage_emojis=True)
     async def emojiAdd(
         self,
@@ -487,6 +489,7 @@ class Info(commands.Cog, CogMixin):
         aliases=("gi", "serverinfo", "si"),
         brief="Get guild's information",
     )
+    @checks.guildOnly()
     async def guildinfo(self, ctx):
         guild: discord.Guild = ctx.guild
         createdAt = guild.created_at
@@ -632,6 +635,7 @@ class Info(commands.Cog, CogMixin):
         brief="Show what permissions a member/role has",
         usage="[member / role]",
     )
+    @checks.guildOnly()
     async def permissions(
         self, ctx, memberOrRole: Union[discord.Member, discord.Role, str] = None
     ):

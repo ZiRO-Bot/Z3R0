@@ -9,8 +9,14 @@ import re
 import uuid
 
 
+from contextlib import suppress
 from core.context import Context
-from core.errors import CCommandNotFound, CCommandNotInGuild, CCommandDisabled
+from core.errors import (
+    CCommandNotFound,
+    CCommandNotInGuild,
+    CCommandDisabled,
+    NotInGuild,
+)
 from core.objects import Connection
 from exts.meta import getCustomCommands
 from exts.timer import TimerData, Timer
@@ -511,27 +517,29 @@ class ziBot(commands.Bot):
                 canRun = await ctx.command.can_run(ctx)
             except commands.CheckFailure:
                 canRun = False
+            except NotInGuild as err:
+                await ctx.error(str(err))
 
         # Apparently commands are callable, so ctx.invoke longer needed
         executeCC = self.get_command("command run")
+
         # Handling command invoke with priority
         if canRun:
             if priority >= 1:
-                try:
+                with suppress(CCommandNotFound, CCommandNotInGuild, CCommandDisabled):
                     await executeCC(*args)
                     self.customCommandUsage += 1
                     return
-                except (CCommandNotFound, CCommandNotInGuild, CCommandDisabled):
-                    # Failed to run custom command, revert to built-in command
-                    return await self.invoke(ctx)
             # Since priority is 0 and it can run the built-in command,
             # no need to try getting custom command
+            # Also executed when custom command failed to run
             return await self.invoke(ctx)
         else:
-            # Can't run built-in command, straight to trying custom command
-            await executeCC(*args)
-            self.customCommandUsage += 1
-            return
+            with suppress(CCommandNotFound, CCommandNotInGuild, CCommandDisabled):
+                # Can't run built-in command, straight to trying custom command
+                await executeCC(*args)
+                self.customCommandUsage += 1
+                return
 
     async def formattedPrefixes(self, guildId):
         prefixes = await self.getGuildPrefix(guildId)
