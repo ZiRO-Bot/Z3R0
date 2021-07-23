@@ -366,7 +366,10 @@ class Info(commands.Cog, CogMixin):
             e.add_field(name="Confirmed Cases", value=f"{data['confirmed']:,}")
             await ctx.try_reply(embed=e)
 
-    @commands.command(aliases=("ui", "whois"))
+    @commands.command(
+        aliases=("ui", "whois"),
+        brief="Get user's information",
+    )
     async def userinfo(self, ctx, *, user: MemberOrUser = None):
         if not user:
             user = await authorOrReferenced(ctx)
@@ -480,7 +483,10 @@ class Info(commands.Cog, CogMixin):
 
         await ctx.try_reply(embed=e)
 
-    @commands.command(aliases=("gi", "serverinfo", "si"))
+    @commands.command(
+        aliases=("gi", "serverinfo", "si"),
+        brief="Get guild's information",
+    )
     async def guildinfo(self, ctx):
         guild: discord.Guild = ctx.guild
         createdAt = guild.created_at
@@ -564,7 +570,10 @@ class Info(commands.Cog, CogMixin):
 
         await ctx.try_reply(embed=e)
 
-    @commands.command(aliases=("spotify", "spot"))
+    @commands.command(
+        aliases=("spotify", "spot"),
+        brief="Show what song a member listening to in Spotify",
+    )
     async def spotifyinfo(self, ctx, user: discord.Member = None):
         user = user or ctx.author
 
@@ -618,7 +627,11 @@ class Info(commands.Cog, CogMixin):
         )
         await ctx.try_reply(embed=e)
 
-    @commands.command(aliases=("perms",), usage="(member / role)")
+    @commands.command(
+        aliases=("perms",),
+        brief="Show what permissions a member/role has",
+        usage="[member / role]",
+    )
     async def permissions(
         self, ctx, memberOrRole: Union[discord.Member, discord.Role, str] = None
     ):

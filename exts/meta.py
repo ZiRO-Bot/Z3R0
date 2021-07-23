@@ -202,7 +202,7 @@ class CustomHelp(commands.HelpCommand):
             description=infoQuote.info(
                 "- () : Required Argument\n"
                 + "+ [] : Optional Argument\n"
-                + "\nDon't literally type `[]`, `()` or `|`!",
+                + "\nDon't literally type `[]`, `()` or `/`!",
                 codeBlock=True,
             )
             + " | ".join("[{}]({})".format(k, v) for k, v in ctx.bot.links.items()),
