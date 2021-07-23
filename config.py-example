@@ -26,3 +26,6 @@ issueChannel="0000000000000000"
 
 # OpenWeather's API Key, required for weather command
 openweather="0000000000000000000000000000000"
+
+# Google CSE's API Key, required for search command
+google="putthekeyhere"

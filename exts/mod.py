@@ -412,7 +412,11 @@ class Moderation(commands.Cog, CogMixin):
                 ctx, annCh
             )
 
-        target = " ".join(parsed.target)
+        try:
+            target = parsed.target.lstrip("@")
+        except AttributeError:
+            target = "everyone"
+
         if target.endswith("everyone") or target.endswith("here"):
             target = f"@{target}"
         else:
@@ -422,7 +426,7 @@ class Moderation(commands.Cog, CogMixin):
 
     async def parseAnnouncement(self, arguments: str):
         parser = ArgumentParser(allow_abbrev=False)
-        parser.add_argument("--target", nargs="+")
+        parser.add_argument("--target")
         parser.add_argument("--channel", aliases=("--ch",))
         parser.add_argument("message", action="extend", nargs="*")
         parser.add_argument("--message", aliases=("--msg",), action="extend", nargs="+")
@@ -470,7 +474,10 @@ class Moderation(commands.Cog, CogMixin):
                 bulk=True,
             )
         except Forbidden:
-            return await ctx.error("The bot doesn't have `Manage Messages` permission!", title="Missing Permission")
+            return await ctx.error(
+                "The bot doesn't have `Manage Messages` permission!",
+                title="Missing Permission",
+            )
 
         msg_num = max(len(deleted_msg), 0)
 

@@ -5,6 +5,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 """
 
 import asyncio
+import cse
 import discord
 import pyparsing as pyp
 import re
@@ -17,7 +18,12 @@ from discord.ext import commands
 from exts.api.piston import Piston
 from exts.api.googletrans import GoogleTranslate
 from exts.utils.format import ZEmbed
-from exts.utils.other import NumericStringParser, parseCodeBlock, encodeMorse, decodeMorse
+from exts.utils.other import (
+    NumericStringParser,
+    parseCodeBlock,
+    encodeMorse,
+    decodeMorse,
+)
 
 
 class Utilities(commands.Cog, CogMixin):
@@ -30,6 +36,10 @@ class Utilities(commands.Cog, CogMixin):
         super().__init__(bot)
         self.piston = Piston(session=self.bot.session, loop=self.bot.loop)
         self.googletrans = GoogleTranslate(session=self.bot.session)
+        try:
+            self.engine = cse.Search(self.bot.config.google, session=self.bot.session, engine_id="e481e6b743ad10133")
+        except AttributeError:
+            self.engine = None
 
     @commands.command(
         aliases=["calc", "c"],
@@ -142,7 +152,9 @@ class Utilities(commands.Cog, CogMixin):
         try:
             await ctx.try_reply(f"`{encodeMorse(text)}`")
         except KeyError:
-            await ctx.error("Symbols/accented letters is not supported (yet?)", title="Invalid text")
+            await ctx.error(
+                "Symbols/accented letters is not supported (yet?)", title="Invalid text"
+            )
 
     @commands.command(
         aliases=("demorse",),
@@ -154,6 +166,17 @@ class Utilities(commands.Cog, CogMixin):
             await ctx.try_reply(f"`{decodeMorse(code)}`")
         except ValueError:
             await ctx.error("Invalid morse code!")
+
+    @commands.command(aliases=("g",))
+    async def google(self, ctx, *, query: str):
+        try:
+            results = await self.engine.search(query)
+        except KeyError:
+            return await ctx.error("Your search - {} - did not match any documents.".format(query), title="Not found!")
+        e = ZEmbed.default(ctx, title="Google Search: {}...".format(query))
+        for res in results[:3]:
+            e.add_field(name=res.title, value="{0.link}\n{0.snippet}".format(res), inline=False)
+        await ctx.try_reply(embed=e)
 
 
 def setup(bot):
