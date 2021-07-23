@@ -80,7 +80,7 @@ Moved to [CHANGELOG.md](./CHANGELOG.md)
 - Slash command (Waiting for Dpy `v2.0`)
 - ~~Integrate user-made commands into help commands~~
 - ~~Add flags ('--something', also waiting for Dpy `v2.0`)~~
-   - Replace more POSIX-style flags with Discord-style flags
+   - ~~Replace more POSIX-style flags with Discord-style flags~~
    - Use flags from Dpy `v2.0` when it released
    - Filter to show/hide user-made command for help commands using flags
 
