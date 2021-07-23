@@ -81,6 +81,7 @@ Not ready yet.
 
 ### Overhaul Plan
 
+- Cooldown
 - Migration tool, migrate from old database "layout" to newer "layout"
 - Image manipulation (Filter and stuff) (in `v3.0.1` maybe?)
 - Re-implement/improve old (`v2.x`) commands to `v3.0.0`
