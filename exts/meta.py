@@ -32,6 +32,7 @@ from exts.utils.format import (
     cleanifyPrefix,
     formatCmd,
     formatCmdParams,
+    formatDiscordDT,
 )
 from exts.utils.other import reactsToMessage, ArgumentParser, utcnow
 from discord.ext import commands, menus
@@ -229,7 +230,22 @@ class CustomHelp(commands.HelpCommand):
                 ]
             ),
         )
-        e.add_field(name="News | Updated: {}".format("?"), value="Nothing.")
+        # TODO: Make a command to set this without reloading the extension
+        e.add_field(
+            name="News | Updated at: {}".format(formatDiscordDT(1627024924, "F")),
+            value=(
+                "Z3R0 is third major update for ziBot, "
+                "this update changed and add a lot of things.\n\n"
+                "In this version, we introduce you to:"
+                "\n- Flags, Example: `>welcome Welcome! channel: #welcome`"
+                "\n- Custom Command integrated to help command (not fully implemented)"
+                "\n- Better timer for temp ban and temp mute"
+                "\n- New help command"
+                "\n- And many more! (more changes and features coming soon!)"
+                "\n\n[Click here to see the full changelog!]"
+                "(https://github.com/ZiRO-Bot/Z3R0/blob/overhaul/CHANGELOG.md)\n"
+            ),
+        )
 
         return await ctx.try_reply(embed=e)
 
@@ -448,7 +464,7 @@ class Meta(commands.Cog, CogMixin):
                 allowed_mentions=discord.AllowedMentions(
                     everyone=False, users=False, roles=False
                 ),
-                **kwargs
+                **kwargs,
             )
             react = result.actions.get("react")
             reactu = result.actions.get("reactu")
@@ -1421,7 +1437,7 @@ class Meta(commands.Cog, CogMixin):
                 guild=None,
                 redirect_uri=None,
             )
-            + ")"
+            + ")",
         )
         await ctx.send(embed=e)
 

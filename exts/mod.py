@@ -306,7 +306,8 @@ class Moderation(commands.Cog, CogMixin):
             arguments=f"{getattr(name, 'id', name)} type: muted",
         )
 
-    @commands.command()
+    @commands.command(brief="Unmute a member")
+    @checks.mod_or_permissions(manage_messages=True)
     async def unmute(self, ctx, member: discord.Member, *, reason: str = "No reason."):
         muteRoleId = await self.bot.getGuildConfig(
             ctx.guild.id, "mutedRole", "guildRoles"
@@ -439,6 +440,53 @@ class Moderation(commands.Cog, CogMixin):
         content = str(getattr(target, "mention", target))
         content += f"\n{announcement}"
         await dest.send(content)
+
+    @commands.command(
+        brief="Clear the chat",
+        usage="(amount of message)",
+        hidden=True,
+    )
+    @checks.mod_or_permissions(manage_messages=True)
+    async def clearchat(self, ctx, num):
+        try:
+            num = int(num)
+        except ValueError:
+            return await ctx.send(f"{num} is not a valid number!")
+
+        e = ZEmbed.loading(title="Deleting messages...")
+
+        msg = await ctx.send(embed=e)
+
+        def isLoading(m):
+            return m != msg
+
+        try:
+            deleted_msg = await ctx.message.channel.purge(
+                limit=num + 1,
+                check=isLoading,
+                before=None,
+                after=None,
+                around=None,
+                oldest_first=False,
+                bulk=True,
+            )
+        except Forbidden:
+            return await ctx.error("The bot doesn't have `Manage Messages` permission!", title="Missing Permission")
+
+        msg_num = max(len(deleted_msg), 0)
+
+        if msg_num == 0:
+            resp = "Deleted `0 message` 😔 "
+            # resp = "Deleted `0 message` 🙄  \n (I can't delete messages "\
+            # "older than 2 weeks due to discord limitations)"
+        else:
+            resp = "Deleted `{} message{}` ✨ ".format(
+                msg_num, "" if msg_num < 2 else "s"
+            )
+
+        e = ZEmbed.default(ctx, title=resp)
+
+        await msg.edit(embed=e)
 
 
 def setup(bot):
