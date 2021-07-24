@@ -226,7 +226,17 @@ class Admin(commands.Cog, CogMixin):
     async def purgatory(self, ctx, *, arguments):
         await self.handleLogConfig(ctx, arguments, "purgatory")
 
-    @commands.group(name="role", brief="Manage guild's role")
+    @commands.group(
+        name="role",
+        brief="Manage guild's role",
+        extras=dict(
+            example=(
+                "role set @Server Moderator type: moderator",
+                "role + Muted type: muted",
+                "role types",
+            )
+        ),
+    )
     @checks.is_admin()
     async def _role(self, ctx):
         # Role manager
@@ -359,7 +369,7 @@ class Admin(commands.Cog, CogMixin):
     async def roleTypes(self, ctx):
         e = ZEmbed.minimal(
             title="Role Types",
-            description="\n".join("- `{}`".format(role) for role in ROLE_TYPES)
+            description="\n".join("- `{}`".format(role) for role in ROLE_TYPES),
         )
         e.set_footer(text="This list includes aliases (mod -> moderator)")
         return await ctx.try_reply(embed=e)
