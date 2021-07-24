@@ -69,7 +69,7 @@ class Fun(commands.Cog, CogMixin):
 
     @commands.command(
         brief="Get your minecraft seed's eye count",
-        aliases=("fs",),
+        aliases=("fs", "vfs"),
         extras=dict(
             example=("findseed", "findseed mode: classic", "fs mode: pipega"),
             flags={"mode": "Change display mode (modes: visual, classic, pipega)"},
@@ -78,6 +78,7 @@ class Fun(commands.Cog, CogMixin):
     @commands.cooldown(1, 25, commands.BucketType.guild)
     async def findseed(self, ctx, *, arguments: str = None):
         availableMode = ("visual", "classic", "pipega")
+        aliasesMode = {"pepiga": "pipega"}
         mode = "visual"
 
         if arguments is not None:
@@ -88,6 +89,7 @@ class Fun(commands.Cog, CogMixin):
 
             if parsed.mode:
                 mode = str(parsed.mode).lower()
+                mode = aliasesMode.get(mode, mode)
                 mode = "visual" if mode not in availableMode else mode
 
         defaultEmojis = {
