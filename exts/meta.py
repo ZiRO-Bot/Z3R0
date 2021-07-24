@@ -20,7 +20,7 @@ from core.errors import (
     CCommandNotInGuild,
     CCommandNoPerm,
     CCommandDisabled,
-    NotInGuild
+    NotInGuild,
 )
 from core.menus import ZMenu
 from core.mixin import CogMixin
@@ -165,7 +165,9 @@ async def formatCommandInfo(ctx, command):
     )
 
     if isinstance(command, CustomCommand):
-        author = ctx.bot.get_user(command.owner) or await ctx.bot.fetch_user(command.owner)
+        author = ctx.bot.get_user(command.owner) or await ctx.bot.fetch_user(
+            command.owner
+        )
         e.set_author(name=author, icon_url=author.avatar_url)
 
     if not isinstance(command, CustomCommand):
@@ -180,7 +182,7 @@ async def formatCommandInfo(ctx, command):
                     if isinstance(key, tuple)
                     else f"`{key}`"
                 )
-                optionStr.append(f"{name}: {value}")
+                optionStr.append(f"> {name}: {value}")
             e.add_field(name="Options", value="\n".join(optionStr), inline=False)
 
         examples = extras.get("example")
@@ -188,6 +190,17 @@ async def formatCommandInfo(ctx, command):
             e.add_field(
                 name="Example",
                 value="\n".join([f"> `{prefix}{x}`" for x in examples]),
+                inline=False,
+            )
+
+        perms = extras.get("perms")
+        if perms:
+            e.add_field(
+                name="Required Permissions",
+                value="> Bot: `{}`\n> User: `{}`".format(
+                    perms.get("bot"), perms.get("user")
+                ),
+                inline=False,
             )
 
     if isinstance(command, commands.Group):

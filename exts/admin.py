@@ -127,8 +127,13 @@ class Admin(commands.Cog, CogMixin):
                 "disable": "Disable welcome event",
                 "message": "Append message text",
             },
+            perms={
+                "bot": "Manage Channels",
+                "user": "Manage Channels",
+            },
         ),
     )
+    @checks.mod_or_permissions(manage_channels=True)
     async def welcome(self, ctx, *, arguments):
         await self.handleGreetingConfig(ctx, arguments, type="welcome")
 
@@ -153,8 +158,13 @@ class Admin(commands.Cog, CogMixin):
                 "disable": "Disable farewell event",
                 "message": "Append message text",
             },
+            perms={
+                "bot": "Manage Channels",
+                "user": "Manage Channels",
+            },
         ),
     )
+    @checks.mod_or_permissions(manage_channels=True)
     async def farewell(self, ctx, *, arguments):
         await self.handleGreetingConfig(ctx, arguments, type="farewell")
 
@@ -201,8 +211,13 @@ class Admin(commands.Cog, CogMixin):
                 ("channel", "ch"): "Set modlog channel",
                 "disable": "Disable modlog",
             },
+            perms={
+                "bot": "Manage Channels",
+                "user": "Manage Channels",
+            },
         ),
     )
+    @checks.mod_or_permissions(manage_channels=True)
     async def modlog(self, ctx, *, arguments):
         await self.handleLogConfig(ctx, arguments, "modlog")
 
@@ -221,8 +236,13 @@ class Admin(commands.Cog, CogMixin):
                 ("channel", "ch"): "Set purgatory channel",
                 "disable": "Disable purgatory",
             },
+            perms={
+                "bot": "Manage Channels",
+                "user": "Manage Channels",
+            },
         ),
     )
+    @checks.mod_or_permissions(manage_channels=True)
     async def purgatory(self, ctx, *, arguments):
         await self.handleLogConfig(ctx, arguments, "purgatory")
 
@@ -234,7 +254,11 @@ class Admin(commands.Cog, CogMixin):
                 "role set @Server Moderator type: moderator",
                 "role + Muted type: muted",
                 "role types",
-            )
+            ),
+            perms={
+                "bot": "Manage Roles",
+                "user": "Administrator",
+            },
         ),
     )
     @checks.is_admin()
@@ -263,6 +287,12 @@ class Admin(commands.Cog, CogMixin):
         aliases=("+", "make"),
         brief="Create new role",
         usage="(role name) [type: role type]",
+        extras=dict(
+            perms={
+                "bot": "Manage Roles",
+                "user": "Administrator",
+            },
+        ),
     )
     async def roleMake(self, ctx, *, arguments):
         parser = ArgumentParser(allow_abbrev=False)
@@ -315,6 +345,12 @@ class Admin(commands.Cog, CogMixin):
         aliases=("&",),
         brief="Turn regular role into special role",
         usage="(role name) (type: role type)",
+        extras=dict(
+            perms={
+                "bot": "Manage Roles",
+                "user": "Administrator",
+            },
+        ),
     )
     async def roleSet(self, ctx, *, arguments):
         parser = ArgumentParser(allow_abbrev=False)
@@ -380,7 +416,13 @@ class Admin(commands.Cog, CogMixin):
             "Set auto role.\n" "A role that will be given to a new member upon joining"
         ),
         usage="(role name)",
-        extras=dict(example=("autorole @Member",)),
+        extras=dict(
+            example=("autorole @Member",),
+            perms={
+                "bot": "Manage Roles",
+                "user": "Administrator",
+            },
+        ),
     )
     async def autorole(self, ctx, name: Union[discord.Role, str]):
         await ctx.try_invoke(
@@ -390,7 +432,13 @@ class Admin(commands.Cog, CogMixin):
 
     @commands.command(
         brief="Set announcement channel",
-        extras=dict(example=("announcement #announcement")),
+        extras=dict(
+            example=("announcement #announcement",),
+            perms={
+                "bot": None,
+                "user": "Manage Channels",
+            },
+        ),
     )
     async def announcement(self, ctx, channel: discord.TextChannel):
         await self.bot.setGuildConfig(
