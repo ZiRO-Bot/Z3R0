@@ -7,10 +7,6 @@
 
 <h3 align="center"> A <b>free</b> and <b>open-source</b> multi-purpose discord bot. </h3>
 
-<p align="center">
-    <b>WARNING:</b> This branch is a rewrite of ziBot and not yet ready to be used, use <a href="https://github.com/ZiRO-Bot/ziBot/tree/master">master</a> branch instead!
-</p>
-
 <p id="badges" align="center">
     <a href="https://top.gg/bot/740122842988937286"><img src="https://top.gg/api/widget/status/740122842988937286.svg"></a>
     <a href="https://github.com/psf/black"><img alt="Code style: black" src="https://img.shields.io/badge/code%20style-black-000000.svg"></a>
@@ -23,17 +19,28 @@
 
 ### Features
 
-- Custom Command, allow your mods or member to create a custom command
-Coming Soon.
+- Custom Command: allow your mods or member to create a custom command,  
+  Custom command modes:
+  - `0`: Only mods can add **and** manage custom commands
+  - `1`: Member can add custom command but can only manage their own command
+  - `2`: Anarchy mode!
+- Flags/Options: better specify your needs by using flags! (example: `>command disable category: info` will disable all command inside Information category)
+- Fun commands: games, meme and other fun stuff.
+- Powerful moderation command.
+- Useful utility command such as `execute` (execute python/other programming language code), `google`, `calc` / `math`, and more!
+
+More feature coming soon!
 
 ## Configuration
 
-### Quick Setup
+### Quick Setup (Invite Hosted Bot)
 
-Not ready yet.
+[Click here to invite the bot!](https://discord.com/oauth2/authorize?client_id=740122842988937286&scope=bot&permissions=4260883702)
 
 ### Self-Hosting
 
+- Download this repository by executing `git clone https://github.com/ZiRO-Bot/Z3R0.git`
+  or click "Code" -> "Download ZIP"
 - Install all the dependencies by executing this command,
 
    ```zsh
@@ -55,6 +62,7 @@ Not ready yet.
    # Linux
    python3 main.py
    ```
+- If everything is setup properly, the bot should be online!
 
 ## Overhaul
 
