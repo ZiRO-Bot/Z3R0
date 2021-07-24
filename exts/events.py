@@ -130,20 +130,22 @@ class EventHandler(commands.Cog, CogMixin):
     async def on_member_remove(self, member: discord.Member):
         """Farewell message"""
         # TODO: Add muted_member table to database to prevent mute evasion
-        entries = await member.guild.audit_logs(limit=5).flatten()
-        entry: discord.AuditLogEntry = discord.utils.find(
-            lambda e: e.target == member, entries
-        )
-        if not entry:
-            return
+        try:
+            entries = await member.guild.audit_logs(limit=5).flatten()
+            entry: discord.AuditLogEntry = discord.utils.find(
+                lambda e: e.target == member, entries
+            )
+        except discord.Forbidden:
+            entry = None
 
-        # TODO: Filters bot's action
-        if entry.action == discord.AuditLogAction.kick:
-            self.bot.dispatch("member_kick", member, entry)
-            return
+        if entry is not None:
+            # TODO: Filters bot's action
+            if entry.action == discord.AuditLogAction.kick:
+                self.bot.dispatch("member_kick", member, entry)
+                return
 
-        if entry.action == discord.AuditLogAction.ban:
-            return
+            if entry.action == discord.AuditLogAction.ban:
+                return
 
         return await self.handleGreeting(member, "farewell")
 
@@ -155,9 +157,13 @@ class EventHandler(commands.Cog, CogMixin):
 
     @commands.Cog.listener()
     async def on_member_ban(self, guild: discord.Guild, member: discord.Member):
-        entries = await guild.audit_logs(
-            limit=5, action=discord.AuditLogAction.ban
-        ).flatten()
+        try:
+            entries = await guild.audit_logs(
+                limit=5, action=discord.AuditLogAction.ban
+            ).flatten()
+        except discord.Forbidden:
+            return
+
         entry: discord.AuditLogEntry = discord.utils.find(
             lambda e: e.target == member, entries
         )
