@@ -577,6 +577,7 @@ class Info(commands.Cog, CogMixin):
         aliases=("spotify", "spot"),
         brief="Show what song a member listening to in Spotify",
     )
+    @checks.guildOnly()
     async def spotifyinfo(self, ctx, user: discord.Member = None):
         user = user or ctx.author
 
