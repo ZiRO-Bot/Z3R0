@@ -19,8 +19,17 @@
 
 ### Features
 
-- Custom Command, allow your mods or member to create a custom command
-Coming Soon.
+- Custom Command: allow your mods or member to create a custom command,  
+  Custom command modes:
+  - `0`: Only mods can add **and** manage custom commands
+  - `1`: Member can add custom command but can only manage their own command
+  - `2`: Anarchy mode!
+- Flags/Options: better specify your needs by using flags! (example: `>command disable category: info` will disable all command inside Information category)
+- Fun commands: games, meme and other fun stuff.
+- Powerful moderation command.
+- Useful utility command such as `execute` (execute python/other programming language code), `google`, `calc` / `math`, and more!
+
+More feature coming soon!
 
 ## Configuration
 
