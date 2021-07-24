@@ -355,6 +355,15 @@ class Admin(commands.Cog, CogMixin):
             title="Invalid role type!",
         )
 
+    @_role.command(name="types", brief="Show all special role types")
+    async def roleTypes(self, ctx):
+        e = ZEmbed.minimal(
+            title="Role Types",
+            description="\n".join("- `{}`".format(role) for role in ROLE_TYPES)
+        )
+        e.set_footer(text="This list includes aliases (mod -> moderator)")
+        return await ctx.try_reply(embed=e)
+
     @commands.command(
         brief="Set auto role",
         description=(
