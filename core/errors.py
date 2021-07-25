@@ -40,7 +40,7 @@ class MissingMuteRole(Exception):
     def __init__(self, ctx):
         super().__init__(
             "This guild doesn't have mute role set yet!\n"
-            + "Do `{0}mute create Muted` or `{0}mute set @Muted` to setup mute role.".format(
+            + "Use `{0}mute create Muted` or `{0}mute set @Muted` to setup mute role.".format(
                 ctx.clean_prefix
             )
         )
