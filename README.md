@@ -75,11 +75,11 @@ Moved to [CHANGELOG.md](./CHANGELOG.md)
 - Perm indicator inside help command
 - Cooldown
 - Migration tool, migrate from old database "layout" to newer "layout"
-- Image manipulation (Filter and stuff) (in `v3.0.1` maybe?)
-- Re-implement/improve old (`v2.x`) commands to `v3.0.0`
+- Image manipulation (Filter and stuff) (in `v3.1.0` maybe?)
+- Re-implement/improve old (`v2.x`) commands to ~~`v3.0.0`~~ `v3.1.0` (`85%` has been ported)
 - Event for banned member, ~~member boosting a guild~~ (Just need to implement setup for it), and muted member
-- Add case log (in `v3.0.1` maybe?)
-- Properly support different SQL scheme (databases have `database_url.scheme` to check scheme type) (in `v3.0.1` maybe?)
+- Add case log (in `v3.1.0` maybe?)
+- Properly support different SQL scheme (databases have `database_url.scheme` to check scheme type) (in `v3.1.0` maybe?)
 - Tags (stripped version of custom command)
 - Unify categories/exts emoji
 
