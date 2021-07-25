@@ -193,13 +193,13 @@ async def formatCommandInfo(ctx, command):
                 inline=False,
             )
 
-        perms = extras.get("perms")
-        if perms:
+        perms = extras.get("perms", {})
+        botPerm = perms.get("bot")
+        userPerm = perms.get("user")
+        if botPerm is not None or userPerm is not None:
             e.add_field(
                 name="Required Permissions",
-                value="> Bot: `{}`\n> User: `{}`".format(
-                    perms.get("bot"), perms.get("user")
-                ),
+                value="> Bot: `{}`\n> User: `{}`".format(botPerm, userPerm),
                 inline=False,
             )
 
@@ -636,7 +636,10 @@ class Meta(commands.Cog, CogMixin):
                 "command import pastebin-cmd https://pastebin.com/ZxvGqEAs",
                 "command ++ gist "
                 "https://gist.github.com/null2264/87c89d2b5e2453529e29c2cae3b57729",
-            )
+            ),
+            perms={
+                "user": "Depends on custom command mode",
+            },
         ),
     )
     async def _import(self, ctx, name: CMDName, *, url: str):
@@ -675,6 +678,11 @@ class Meta(commands.Cog, CogMixin):
         name="update-url",
         aliases=("&u", "set-url"),
         brief="Update imported command's source url",
+        extras=dict(
+            perms={
+                "user": "Depends on custom command mode",
+            },
+        ),
     )
     async def update_url(self, ctx, name: CMDName, url: str):
         # NOTE: Can only be run by cmd owner or guild mods/owner
@@ -723,6 +731,11 @@ class Meta(commands.Cog, CogMixin):
     @command.command(
         aliases=("&&", "pull"),
         brief="Update imported command's content",
+        extras=dict(
+            perms={
+                "user": "Depends on custom command mode",
+            },
+        ),
     )
     async def update(self, ctx, name: CMDName):
         # NOTE: Can only be run by cmd owner or guild mods/owner
@@ -779,7 +792,10 @@ class Meta(commands.Cog, CogMixin):
             example=(
                 "command add example-cmd Just an example",
                 "cmd + hello Hello World!",
-            )
+            ),
+            perms={
+                "user": "Depends on custom command mode",
+            },
         ),
     )
     async def _add(self, ctx, name: CMDName, *, content: str):
@@ -802,7 +818,10 @@ class Meta(commands.Cog, CogMixin):
             example=(
                 "command alias example-cmd test-cmd",
                 "command alias leaderboard board",
-            )
+            ),
+            perms={
+                "user": "Depends on custom command mode",
+            },
         ),
     )
     async def alias(self, ctx, command: CMDName, alias: CMDName):
@@ -856,6 +875,11 @@ class Meta(commands.Cog, CogMixin):
         name="content",
         aliases=("cont",),
         brief="Edit custom command's content",
+        extras=dict(
+            perms={
+                "user": "Depends on custom command mode",
+            },
+        ),
     )
     async def setContent(self, ctx, name: CMDName, *, content):
         command = await getCustomCommand(ctx, name)
@@ -888,6 +912,11 @@ class Meta(commands.Cog, CogMixin):
     @cmdSet.command(
         aliases=("cat", "mv"),
         brief="Move a custom command to a category",
+        extras=dict(
+            perms={
+                "user": "Depends on custom command mode",
+            },
+        ),
     )
     async def category(self, ctx, command: CMDName, category: CMDName):
         return await ctx.try_reply("Coming soon.")
@@ -928,7 +957,11 @@ class Meta(commands.Cog, CogMixin):
                 "command set mode 0",
                 "cmd set mode 1",
                 "cmd set mode 2",
-            )
+            ),
+            perms={
+                "bot": None,
+                "user": "Moderator Role or Manage Guilds",
+            },
         ),
     )
     @checks.is_mod()
@@ -945,6 +978,11 @@ class Meta(commands.Cog, CogMixin):
     @command.command(
         aliases=("-", "rm"),
         brief="Remove a custom command",
+        extras=dict(
+            perms={
+                "user": "Depends on custom command mode",
+            },
+        ),
     )
     async def remove(self, ctx, name: CMDName):
         command = await getCustomCommand(ctx, name)
@@ -997,6 +1035,10 @@ class Meta(commands.Cog, CogMixin):
                     "category",
                     "cat",
                 ): "Disable all command in a specific category (Requires `built-in` flag)",
+            },
+            perms={
+                "bot": None,
+                "user": "Moderator Role or Manage Guild (Built-in only)",
             },
         ),
         usage="(name) [options]",
@@ -1147,6 +1189,10 @@ class Meta(commands.Cog, CogMixin):
                     "category",
                     "cat",
                 ): "Enable all command in a specific category (Requires `built-in` flag)",
+            },
+            perms={
+                "bot": None,
+                "user": "Moderator Role or Manage Guild (Built-in only)",
             },
         ),
         usage="(name) [options]",
@@ -1398,7 +1444,13 @@ class Meta(commands.Cog, CogMixin):
             'Add a custom prefix.\n\n Tips: Use quotation mark (`""`) to add '
             "spaces to your prefix."
         ),
-        extras=dict(example=("prefix add ?", 'prefix + "please do "', "pref + z!")),
+        extras=dict(
+            example=("prefix add ?", 'prefix + "please do "', "pref + z!"),
+            perms={
+                "bot": None,
+                "user": "Moderator Role or Manage Guild",
+            },
+        ),
     )
     @checks.is_mod()
     async def prefAdd(self, ctx, *prefix):
@@ -1420,7 +1472,13 @@ class Meta(commands.Cog, CogMixin):
         name="remove",
         aliases=("-", "rm"),
         brief="Remove a custom prefix",
-        extras=dict(example=("prefix rm ?", 'prefix - "please do "', "pref remove z!")),
+        extras=dict(
+            example=("prefix rm ?", 'prefix - "please do "', "pref remove z!"),
+            perms={
+                "bot": None,
+                "user": "Moderator Role or Manage Guild",
+            },
+        ),
     )
     @checks.is_mod()
     async def prefRm(self, ctx, *prefix):

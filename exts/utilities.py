@@ -37,7 +37,11 @@ class Utilities(commands.Cog, CogMixin):
         self.piston = Piston(session=self.bot.session, loop=self.bot.loop)
         self.googletrans = GoogleTranslate(session=self.bot.session)
         try:
-            self.engine = cse.Search(self.bot.config.google, session=self.bot.session, engine_id="e481e6b743ad10133")
+            self.engine = cse.Search(
+                self.bot.config.google,
+                session=self.bot.session,
+                engine_id="e481e6b743ad10133",
+            )
         except AttributeError:
             self.engine = None
 
@@ -172,10 +176,15 @@ class Utilities(commands.Cog, CogMixin):
         try:
             results = await self.engine.search(query)
         except KeyError:
-            return await ctx.error("Your search - {} - did not match any documents.".format(query), title="Not found!")
+            return await ctx.error(
+                "Your search - {} - did not match any documents.".format(query),
+                title="Not found!",
+            )
         e = ZEmbed.default(ctx, title="Google Search: {}...".format(query))
         for res in results[:3]:
-            e.add_field(name=res.title, value="{0.link}\n{0.snippet}".format(res), inline=False)
+            e.add_field(
+                name=res.title, value="{0.link}\n{0.snippet}".format(res), inline=False
+            )
         await ctx.try_reply(embed=e)
 
 

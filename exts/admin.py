@@ -129,7 +129,7 @@ class Admin(commands.Cog, CogMixin):
             },
             perms={
                 "bot": "Manage Channels",
-                "user": "Manage Channels",
+                "user": "Moderator Role or Manage Channels",
             },
         ),
     )
@@ -160,7 +160,7 @@ class Admin(commands.Cog, CogMixin):
             },
             perms={
                 "bot": "Manage Channels",
-                "user": "Manage Channels",
+                "user": "Moderator Role or Manage Channels",
             },
         ),
     )
@@ -213,7 +213,7 @@ class Admin(commands.Cog, CogMixin):
             },
             perms={
                 "bot": "Manage Channels",
-                "user": "Manage Channels",
+                "user": "Moderator Role or Manage Channels",
             },
         ),
     )
@@ -238,7 +238,7 @@ class Admin(commands.Cog, CogMixin):
             },
             perms={
                 "bot": "Manage Channels",
-                "user": "Manage Channels",
+                "user": "Moderator Role or Manage Channels",
             },
         ),
     )

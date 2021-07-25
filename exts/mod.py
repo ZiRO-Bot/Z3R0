@@ -176,7 +176,11 @@ class Moderation(commands.Cog, CogMixin):
                 "ban @User#0000 4y absolutely no reason",
                 "ban @User#0000 scam",
                 "ban @User#0000 1 minutes",
-            )
+            ),
+            perms={
+                "bot": "Ban Members",
+                "user": "Ban Members",
+            },
         ),
         invoke_without_command=True,
     )
@@ -277,6 +281,10 @@ class Moderation(commands.Cog, CogMixin):
                 "mute @Someone 1d",
                 "mute @Someone Annoying",
             ),
+            perms={
+                "bot": "Manage Roles",
+                "user": "Manage Messages",
+            },
         ),
     )
     @checks.mod_or_permissions(manage_messages=True)
@@ -298,7 +306,11 @@ class Moderation(commands.Cog, CogMixin):
                 "mute create",
                 "mute create Muted",
                 "mute set @mute",
-            )
+            ),
+            perms={
+                "bot": "Manage Roles",
+                "user": "Administrator",
+            },
         ),
         usage="[role name]",
     )
@@ -308,7 +320,15 @@ class Moderation(commands.Cog, CogMixin):
             arguments=f"{getattr(name, 'id', name)} type: muted",
         )
 
-    @commands.command(brief="Unmute a member")
+    @commands.command(
+        brief="Unmute a member",
+        extras=dict(
+            perms={
+                "bot": "Ban Members",
+                "user": "Ban Members",
+            },
+        ),
+    )
     @checks.mod_or_permissions(manage_messages=True)
     async def unmute(self, ctx, member: discord.Member, *, reason: str = "No reason."):
         muteRoleId = await self.bot.getGuildConfig(
@@ -374,6 +394,10 @@ class Moderation(commands.Cog, CogMixin):
                 "kick @Someone seeking attention",
                 "kick @Someone",
             ),
+            perms={
+                "bot": "Kick Members",
+                "user": "Kick Members",
+            },
         ),
     )
     @checks.mod_or_permissions(kick_members=True)
@@ -457,6 +481,12 @@ class Moderation(commands.Cog, CogMixin):
     @commands.command(
         brief="Clear the chat",
         usage="(amount of message)",
+        extras=dict(
+            perms={
+                "bot": "Manage Messages",
+                "user": "Manage Messages",
+            },
+        ),
     )
     @checks.mod_or_permissions(manage_messages=True)
     async def clearchat(self, ctx, num):

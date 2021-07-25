@@ -214,7 +214,11 @@ class Info(commands.Cog, CogMixin):
         brief="Steal a custom emoji",
         description="Steal a custom emoji\n\nUnicode emojis are not supported!",
         extras=dict(
-            example=("emoji steal :shuba:", "em steal :thonk:", "emoji steal :LULW:")
+            example=("emoji steal :shuba:", "em steal :thonk:", "emoji steal :LULW:"),
+            perms={
+                "bot": "Manage Emojis and Stickers",
+                "user": "Manage Emojis and Stickers",
+            },
         ),
     )
     @checks.guildOnly()
@@ -246,6 +250,10 @@ class Info(commands.Cog, CogMixin):
                 "emoji add shuba https://cdn.discordapp.com/emojis/855604899743793152.gif",
                 "em add thonking :thonk:",
             ),
+            perms={
+                "bot": "Manage Emojis and Stickers",
+                "user": "Manage Emojis and Stickers",
+            },
         ),
         usage="(emoji name) (emoji/image url/attachment)",
     )
@@ -697,7 +705,7 @@ class Info(commands.Cog, CogMixin):
                     "**Name**: {}\n".format(info["author"] or "`Unknown`")
                     + "**Email**: {}".format(info["author_email"] or "`Not provided.`")
                 ),
-                inline=False
+                inline=False,
             )
             e.add_field(
                 name="Package Info",
@@ -706,7 +714,7 @@ class Info(commands.Cog, CogMixin):
                     + "**License**: {}\n".format(info["license"] or "`Not speficied.`")
                     + "**Keywords**: {}".format(info["keywords"] or "`Not speficied.`")
                 ),
-                inline=False
+                inline=False,
             )
             e.add_field(
                 name="Links",
@@ -716,7 +724,7 @@ class Info(commands.Cog, CogMixin):
                     + "[Release Link]({})\n".format(info["release_url"])
                     + "[Download Link]({})".format(info["download_url"])
                 ),
-                inline=False
+                inline=False,
             )
             return await ctx.try_reply(embed=e)
 
