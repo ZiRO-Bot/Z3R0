@@ -10,7 +10,9 @@ import humanize
 
 from core import checks
 from core.converter import TimeAndArgument, BannedMember
+from core.errors import MissingMuteRole
 from core.mixin import CogMixin
+from contextlib import suppress
 from discord.ext import commands
 from exts.timer import Timer, TimerData
 from exts.utils.format import ZEmbed, formatDateTime
@@ -322,7 +324,11 @@ class Moderation(commands.Cog, CogMixin):
         muteRoleId = await self.bot.getGuildConfig(
             ctx.guild.id, "mutedRole", "guildRoles"
         )
-        await member.add_roles(discord.Object(id=muteRoleId), reason=reason)
+        try:
+            await member.add_roles(discord.Object(id=muteRoleId), reason=reason)
+        except (TypeError, discord.errors.NotFound):
+            # Missing mute role (either not yet added or deleted)
+            raise MissingMuteRole(ctx) from None
 
     @commands.Cog.listener()
     async def on_mute_timer_complete(self, timer: TimerData):
@@ -351,12 +357,15 @@ class Moderation(commands.Cog, CogMixin):
         member = guild.get_member(userId)
         muteRoleId = await self.bot.getGuildConfig(guild.id, "mutedRole", "guildRoles")
         role = discord.Object(id=muteRoleId)
-        await member.remove_roles(
-            role,
-            reason="Automatically unmuted from timer on {} by {}".format(
-                formatDateTime(timer.createdAt), moderator
-            ),
-        )
+        with suppress(
+            discord.errors.NotFound
+        ):  # ignore NotFound incase mute role got removed
+            await member.remove_roles(
+                role,
+                reason="Automatically unmuted from timer on {} by {}".format(
+                    formatDateTime(timer.createdAt), moderator
+                ),
+            )
 
     @commands.command(
         brief="Kick a member",

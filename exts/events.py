@@ -168,7 +168,9 @@ class EventHandler(commands.Cog, CogMixin):
             entry = None
 
         if entry is not None:
-            await doModlog(self.bot, guild, entry.target, entry.user, "ban", entry.reason)
+            await doModlog(
+                self.bot, guild, entry.target, entry.user, "ban", entry.reason
+            )
 
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
@@ -205,8 +207,10 @@ class EventHandler(commands.Cog, CogMixin):
             e = formatMissingArgError(ctx, error)
             return await ctx.try_reply(embed=e)
 
-        if isinstance(error, errors.CCommandAlreadyExists) or isinstance(
-            error, commands.BadArgument
+        if (
+            isinstance(error, errors.CCommandAlreadyExists)
+            or isinstance(error, commands.BadArgument)
+            or isinstance(error, errors.MissingMuteRole)
         ):
             return await ctx.error(str(error))
 
