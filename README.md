@@ -72,7 +72,6 @@ Moved to [CHANGELOG.md](./CHANGELOG.md)
 
 ### Overhaul Plan
 
-- Perm indicator inside help command
 - Cooldown
 - Migration tool, migrate from old database "layout" to newer "layout"
 - Image manipulation (Filter and stuff) (in `v3.1.0` maybe?)
