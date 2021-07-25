@@ -48,6 +48,14 @@ PASTEBIN_REGEX = re.compile(r"http(?:s)?:\/\/pastebin.com\/(?:raw\/)?(\S*)")
 DIFFER = difflib.Differ()
 
 
+# CC Modes
+MODES = [
+    "Only mods can add and manage custom commands",
+    "Member can add custom command but can only manage **their own** commands",
+    "**A N A R C H Y**",
+]
+
+
 class PrefixesPageSource(menus.ListPageSource):
     def __init__(self, ctx, prefixes):
         self.prefixes = prefixes
@@ -1349,6 +1357,28 @@ class Meta(commands.Cog, CogMixin):
         else:
             e.description = "This server doesn't have custom command"
         await ctx.try_reply(embed=e)
+
+    @command.command(name="mode", brief="Show current custom command mode")
+    async def cmdMode(self, ctx):
+        mode = await self.bot.getGuildConfig(ctx.guild.id, "ccMode") or 0
+
+        e = ZEmbed.minimal(
+            title="Current Mode: `{}`".format(mode), description=MODES[mode]
+        )
+        return await ctx.try_reply(embed=e)
+
+    @command.command(name="modes", brief="Show all different custom command modes")
+    async def cmdModes(self, ctx):
+        e = ZEmbed.minimal(
+            title="Custom Command Modes",
+            fields=[("Mode `{}`".format(k), v) for k, v in enumerate(MODES)],
+        )
+        e.set_footer(
+            text="Use `{}command set mode [mode]` to set the mode!".format(
+                ctx.clean_prefix
+            )
+        )
+        return await ctx.try_reply(embed=e)
 
     @commands.command(
         name="commands", aliases=("cmds",), brief="Alias for command list"
