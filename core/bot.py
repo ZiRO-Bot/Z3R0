@@ -508,7 +508,7 @@ class ziBot(commands.Bot):
 
         # Get arguments for custom commands
         tmp = msgContent.split(" ")
-        args = (ctx, tmp.pop(0), " ".join(tmp))
+        args = (ctx, str(tmp.pop(0)).lower(), " ".join(tmp))
 
         # Check if user can run the command
         canRun = False
