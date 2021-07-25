@@ -161,13 +161,14 @@ class EventHandler(commands.Cog, CogMixin):
             entries = await guild.audit_logs(
                 limit=5, action=discord.AuditLogAction.ban
             ).flatten()
+            entry: discord.AuditLogEntry = discord.utils.find(
+                lambda e: e.target == member, entries
+            )
         except discord.Forbidden:
-            return
+            entry = None
 
-        entry: discord.AuditLogEntry = discord.utils.find(
-            lambda e: e.target == member, entries
-        )
-        await doModlog(self.bot, guild, entry.target, entry.user, "ban", entry.reason)
+        if entry is not None:
+            await doModlog(self.bot, guild, entry.target, entry.user, "ban", entry.reason)
 
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
