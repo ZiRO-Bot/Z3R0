@@ -13,8 +13,8 @@ import TagScriptEngine as tse
 import time
 
 
-from core import checks
-from core.errors import (
+from ..core import checks
+from ..core.errors import (
     CCommandNotFound,
     CCommandAlreadyExists,
     CCommandNotInGuild,
@@ -22,12 +22,12 @@ from core.errors import (
     CCommandDisabled,
     NotInGuild,
 )
-from core.menus import ZMenu
-from core.mixin import CogMixin
-from core.objects import CustomCommand
-from exts.utils import dbQuery, infoQuote, tseBlocks
-from exts.utils.cache import CacheListProperty, CacheUniqueViolation, CacheError
-from exts.utils.format import (
+from ..core.menus import ZMenu
+from ..core.mixin import CogMixin
+from ..core.objects import CustomCommand
+from .utils import dbQuery, infoQuote, tseBlocks
+from .utils.cache import CacheListProperty, CacheUniqueViolation, CacheError
+from .utils.format import (
     CMDName,
     ZEmbed,
     cleanifyPrefix,
@@ -35,8 +35,9 @@ from exts.utils.format import (
     formatCmdParams,
     formatDiscordDT,
 )
-from exts.utils.other import reactsToMessage, ArgumentParser, utcnow
+from .utils.other import reactsToMessage, ArgumentParser, utcnow
 from discord.ext import commands, menus
+from typing import Optional
 
 
 GIST_REGEX = re.compile(
@@ -181,7 +182,7 @@ async def formatCommandInfo(ctx, command):
     if not isinstance(command, CustomCommand):
         extras = getattr(command, "extras", {})
 
-        optionDict: dict = extras.get("flags")
+        optionDict: Optional[dict] = extras.get("flags")
         if optionDict:
             optionStr = []
             for key, value in optionDict.items():
@@ -212,7 +213,7 @@ async def formatCommandInfo(ctx, command):
             )
 
     if isinstance(command, commands.Group):
-        subcmds = sorted(command.commands, key=lambda c: c.name)
+        subcmds = sorted(command.commands, key=lambda c: c.name) # type: ignore # 'command' already checked as commands.Group
         if subcmds:
             e.add_field(
                 name="Subcommands",
@@ -822,6 +823,7 @@ class Meta(commands.Cog, CogMixin):
     @command.command(
         aliases=("/",),
         brief="Add an alias to a custom command",
+        usage="(command name) (alias)",
         extras=dict(
             example=(
                 "command alias example-cmd test-cmd",
@@ -832,8 +834,8 @@ class Meta(commands.Cog, CogMixin):
             },
         ),
     )
-    async def alias(self, ctx, command: CMDName, alias: CMDName):
-        command = await getCustomCommand(ctx, command)
+    async def alias(self, ctx, commandName: CMDName, alias: CMDName):
+        command: CustomCommand = await getCustomCommand(ctx, commandName)
 
         perm = await self.ccModeCheck(ctx, command=command)
         if not perm:
