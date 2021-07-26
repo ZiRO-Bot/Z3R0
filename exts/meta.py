@@ -13,8 +13,8 @@ import TagScriptEngine as tse
 import time
 
 
-from ..core import checks
-from ..core.errors import (
+from core import checks
+from core.errors import (
     CCommandNotFound,
     CCommandAlreadyExists,
     CCommandNotInGuild,
@@ -22,9 +22,9 @@ from ..core.errors import (
     CCommandDisabled,
     NotInGuild,
 )
-from ..core.menus import ZMenu
-from ..core.mixin import CogMixin
-from ..core.objects import CustomCommand
+from core.menus import ZMenu
+from core.mixin import CogMixin
+from core.objects import CustomCommand
 from .utils import dbQuery, infoQuote, tseBlocks
 from .utils.cache import CacheListProperty, CacheUniqueViolation, CacheError
 from .utils.format import (
