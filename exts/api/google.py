@@ -75,12 +75,21 @@ class Google:
         # Complementary results
         complementaryRes = soup.find("div", {"id": "rhs", "data-hveid": True})
         if complementaryRes:
-            title = complementaryRes.find("h2", {"data-attrid": "title"}).span.text  # type: ignore
-            subtitle = complementaryRes.find("div", {"data-attrid": "subtitle"}).span.text  # type: ignore
+            try:
+                title = complementaryRes.find("h2", {"data-attrid": "title"}).span.text  # type: ignore
+            except AttributeError:
+                title = None
+
+            try:
+                subtitle = complementaryRes.find("div", {"data-attrid": "subtitle"}).span.text  # type: ignore
+            except AttributeError:
+                subtitle = None
+
             try:
                 desc = complementaryRes.find("div", {"class": "kno-rdesc"}).span.text  # type: ignore
             except AttributeError:
                 desc = None
+
             infoList = complementaryRes.find_all("div", {"data-attrid": True, "lang": True})  # type: ignore
             formattedInfo = []
             for info in infoList:

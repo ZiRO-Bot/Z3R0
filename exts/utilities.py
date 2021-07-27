@@ -187,8 +187,12 @@ class Utilities(commands.Cog, CogMixin):
         if complementary is not None:
             limit = 2
             e.description = (
-                f"**{complementary.title}**\n"
-                + f"`{complementary.subtitle}`\n"
+                f"**{complementary.title or 'Unknown'}**\n"
+                + (
+                    f"`{complementary.subtitle or 'Unknown'}`\n"
+                    if complementary.subtitle
+                    else ""
+                )
                 + (
                     complementary.description + "\n"
                     if complementary.description
@@ -198,7 +202,6 @@ class Utilities(commands.Cog, CogMixin):
             )
 
         for res in results["web"][:limit]:
-            print(res)
             try:
                 content = res.contents[0]
             except IndexError:
