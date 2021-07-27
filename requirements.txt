@@ -1,5 +1,6 @@
 # === pypi
 aiohttp == 3.6.2
+beautifulsoup4 == 4.9.3
 
 # -- databases, choose one! (or multiple if you want)
 databases[sqlite] == 0.4.3
@@ -23,4 +24,3 @@ zidiscord.py == 1.7.3.3
 # === git
 git+https://github.com/ShineyDev/prettify.py
 git+https://github.com/ZiRO-Bot/TagScript.git
-git+https://github.com/null2264/python-cse.git

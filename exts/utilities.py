@@ -5,7 +5,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 """
 
 import asyncio
-import cse
+
 import discord
 import pyparsing as pyp
 import re
@@ -16,6 +16,7 @@ from core.mixin import CogMixin
 from decimal import Overflow, InvalidOperation
 from discord.ext import commands
 from exts.api.piston import Piston
+from exts.api.google import Google
 from exts.api.googletrans import GoogleTranslate
 from exts.utils.format import ZEmbed
 from exts.utils.other import (
@@ -36,14 +37,7 @@ class Utilities(commands.Cog, CogMixin):
         super().__init__(bot)
         self.piston = Piston(session=self.bot.session, loop=self.bot.loop)
         self.googletrans = GoogleTranslate(session=self.bot.session)
-        try:
-            self.engine = cse.Search(
-                self.bot.config.google,
-                session=self.bot.session,
-                engine_id="e481e6b743ad10133",
-            )
-        except AttributeError:
-            self.engine = None
+        self.googlesearch = Google(session=self.bot.session)
 
     @commands.command(
         aliases=["calc", "c"],
@@ -173,18 +167,45 @@ class Utilities(commands.Cog, CogMixin):
 
     @commands.command(aliases=("g",))
     async def google(self, ctx, *, query: str):
-        try:
-            results = await self.engine.search(query)
-        except KeyError:
+        msg = await ctx.try_reply(embed=ZEmbed.loading(title="Searching..."))
+        results = await self.googlesearch.search(query)
+
+        if results["web"] is None:
+            await msg.delete()
             return await ctx.error(
                 "Your search - {} - did not match any documents.".format(query),
                 title="Not found!",
             )
+
         e = ZEmbed.default(ctx, title="Google Search: {}...".format(query))
-        for res in results[:3]:
-            e.add_field(
-                name=res.title, value="{0.link}\n{0.snippet}".format(res), inline=False
+
+        e.set_footer(text=results["stats"])
+
+        complementary = results["complementary"]
+        limit = 3
+
+        if complementary is not None:
+            limit = 2
+            e.description = (
+                f"**{complementary.title}**\n"
+                + f"`{complementary.subtitle}`\n"
+                + (
+                    complementary.description + "\n"
+                    if complementary.description
+                    else ""
+                )
+                + "\n".join([f"**{i}**`{j}`" for i, j in complementary.info])
             )
+
+        for res in results["web"][:limit]:
+            print(res)
+            try:
+                content = res.contents[0]
+            except IndexError:
+                content = ""
+            e.add_field(name=res.title, value=f"{res.link}\n{content}", inline=False)
+
+        await msg.delete()
         await ctx.try_reply(embed=e)
 
 

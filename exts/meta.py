@@ -25,9 +25,9 @@ from core.errors import (
 from core.menus import ZMenu
 from core.mixin import CogMixin
 from core.objects import CustomCommand
-from .utils import dbQuery, infoQuote, tseBlocks
-from .utils.cache import CacheListProperty, CacheUniqueViolation, CacheError
-from .utils.format import (
+from exts.utils import dbQuery, infoQuote, tseBlocks
+from exts.utils.cache import CacheListProperty, CacheUniqueViolation, CacheError
+from exts.utils.format import (
     CMDName,
     ZEmbed,
     cleanifyPrefix,
@@ -35,7 +35,7 @@ from .utils.format import (
     formatCmdParams,
     formatDiscordDT,
 )
-from .utils.other import reactsToMessage, ArgumentParser, utcnow
+from exts.utils.other import reactsToMessage, ArgumentParser, utcnow
 from discord.ext import commands, menus
 from typing import Optional
 
