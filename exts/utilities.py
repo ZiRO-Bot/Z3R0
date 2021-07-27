@@ -170,7 +170,7 @@ class Utilities(commands.Cog, CogMixin):
         msg = await ctx.try_reply(embed=ZEmbed.loading(title="Searching..."))
         results = await self.googlesearch.search(query)
 
-        if results["web"] is None:
+        if results is None:
             await msg.delete()
             return await ctx.error(
                 "Your search - {} - did not match any documents.".format(query),
