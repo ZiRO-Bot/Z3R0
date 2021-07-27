@@ -107,7 +107,10 @@ class Google:
                 if infoTitle and infoContent:
                     formattedInfo.append((infoTitle, infoContent))
 
-            complementaryRes = ComplementaryResult(title, subtitle, desc, formattedInfo)
+            if subtitle and title:
+                complementaryRes = ComplementaryResult(title, subtitle, desc, formattedInfo)
+            else:
+                complementaryRes = None
 
         return {"stats": searchStats, "web": webRes, "complementary": complementaryRes}
 
