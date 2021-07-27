@@ -49,11 +49,14 @@ class Google:
         self.session = aiohttp.ClientSession()
 
     @in_executor()
-    def parseResults(self, page: str) -> dict:
+    def parseResults(self, page: str) -> Optional[dict]:
         soup = bs4.BeautifulSoup(page, "html.parser")
 
         # eg. "About N results (N seconds)"
-        searchStats: str = soup.find(attrs={"id": "result-stats"}).text  # type: ignore # pyright really don't like bs4
+        try:
+            searchStats: str = soup.find(attrs={"id": "result-stats"}).text  # type: ignore # pyright really don't like bs4
+        except AttributeError:
+            return None
 
         # normal results
         results = soup.find("div", {"id": "search"}).find_all("div", {"class": "g"})  # type: ignore
