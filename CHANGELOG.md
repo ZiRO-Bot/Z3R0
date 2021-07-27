@@ -1,3 +1,8 @@
+# 3.0.2
+
+- [**Changed**] **Behind the scene**: Replace cse with google search web scrape
+  (gives better result but have higher chance of breaking)
+
 # 3.0.1 (Hotfix)
 
 - [**Fixed**] `1m spam` parsed as `1m s` and `pam` instead of `1m` and `spam`
