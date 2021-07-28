@@ -165,7 +165,16 @@ class Utilities(commands.Cog, CogMixin):
         except ValueError:
             await ctx.error("Invalid morse code!")
 
-    @commands.command(aliases=("g",))
+    @commands.command(
+        aliases=("g",),
+        brief="Searches Google",
+        description=(
+            "Searches Google\n"
+            'Support "special" results, currently supports: Complementary '
+            "Results, Currency Converter"
+        ),
+    )
+    @commands.cooldown(1, 5, commands.BucketType.guild)
     async def google(self, ctx, *, query: str):
         msg = await ctx.try_reply(embed=ZEmbed.loading(title="Searching..."))
         results = await self.googlesearch.search(query)
@@ -199,7 +208,7 @@ class Utilities(commands.Cog, CogMixin):
                     if complementary.description
                     else ""
                 )
-                + "\n".join([f"**{i}**`{j}`" for i, j in complementary.info])
+                + "\n".join([f"**{i}**`{j}`" for i, j in complementary.info]),
             )
 
         if special:
