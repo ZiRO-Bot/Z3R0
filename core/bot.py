@@ -60,13 +60,17 @@ async def _callablePrefix(bot, message):
 class ziBot(commands.Bot):
 
     # --- NOTE: Information about the bot
-    author = "ZiRO2264#4572"
+    author = getattr(config, "author", "ZiRO2264#9999")
     version = "`3.0.4` - `overhaul`"
-    links = {
-        "Documentation (Coming Soon\u2122)": "https://z3r0.readthedocs.io",
-        "Source Code": "https://github.com/ZiRO-Bot/ziBot",
-        "Support Server": "https://discord.gg/sP9xRy6",
-    }
+    links = getattr(
+        config,
+        "links",
+        {
+            "Documentation (Coming Soon\u2122)": "https://z3r0.readthedocs.io",
+            "Source Code": "https://github.com/ZiRO-Bot/ziBot",
+            "Support Server": "https://discord.gg/sP9xRy6",
+        },
+    )
     license = "Mozilla Public License, v. 2.0"
     # ---
 
@@ -169,6 +173,7 @@ class ziBot(commands.Bot):
             self.logger.warning(
                 "No master is set, you may not able to use certain commands! (Unless you own the Bot Application)"
             )
+
         # Add application owner into bot master list
         owner = (await self.application_info()).owner
         if owner and owner.id not in self.master:

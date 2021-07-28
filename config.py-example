@@ -29,3 +29,9 @@ openweather="0000000000000000000000000000000"
 
 # Google CSE's API Key, required for search command
 google="putthekeyhere"
+
+# Optional settings for your bot information
+author="YourName#1234"
+links={
+    "Source Code": "https://github.com/username/yourbot"
+}
