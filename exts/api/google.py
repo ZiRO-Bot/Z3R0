@@ -173,7 +173,7 @@ class Google:
 
         async with self.session.get(  # type: ignore
             self._fmt.format(
-                query=query, safe=safeSearch, num=numberOfResult, hl=languageCode
+                query=query, safe=safe, num=numberOfResult, hl=languageCode
             ),
             headers={
                 "User-Agent": (

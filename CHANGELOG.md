@@ -1,3 +1,7 @@
+# 3.0.4
+
+- [**Fixed**] Fix google search's safe search not working
+
 # 3.0.3
 
 - [**Fixed**] Fixed more issue with Google search throwing error when there's unsupported "special" results
