@@ -2,6 +2,7 @@
 
 - [**Fixed**] Fixed more issue with Google search throwing error when there's unsupported "special" results
 - [**Improved**] Google search now supports Currency converter
+- [**New**] Added cooldown for Google search to avoid abuse (1 per 10 seconds, per user)
 
 # 3.0.2
 
