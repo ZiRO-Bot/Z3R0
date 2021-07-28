@@ -10,32 +10,32 @@ import uuid
 
 
 from contextlib import suppress
-from core.context import Context
-from core.errors import (
+from core.context import Context  # type: ignore
+from core.errors import (  # type: ignore
     CCommandNotFound,
     CCommandNotInGuild,
     CCommandDisabled,
     NotInGuild,
 )
-from core.objects import Connection
-from exts.meta import getCustomCommands
-from exts.timer import TimerData, Timer
-from exts.utils import dbQuery
-from exts.utils.cache import (
+from core.objects import Connection  # type: ignore
+from exts.meta import getCustomCommands  # type: ignore
+from exts.timer import TimerData, Timer  # type: ignore
+from exts.utils import dbQuery  # type: ignore
+from exts.utils.cache import (  # type: ignore
     Cache,
     CacheListProperty,
     CacheUniqueViolation,
     CacheListFull,
     CacheDictProperty,
 )
-from exts.utils.format import cleanifyPrefix
-from exts.utils.other import Blacklist, utcnow
+from exts.utils.format import cleanifyPrefix  # type: ignore
+from exts.utils.other import Blacklist, utcnow  # type: ignore
 from databases import Database
 from discord.ext import commands, tasks
 from typing import Union, Iterable
 
 
-import config
+import config  # type: ignore
 
 
 EXTS = []
@@ -139,6 +139,10 @@ class ziBot(commands.Bot):
                 "guildRoles",
                 cls=CacheDictProperty,
             )
+            .add(
+                "guildMutes",
+                cls=CacheListProperty,
+            )
         )
 
         # database
@@ -164,6 +168,7 @@ class ziBot(commands.Bot):
             await self.db.execute(dbQuery.createGuildRolesTable)
             await self.db.execute(dbQuery.createPrefixesTable)
             await self.db.execute(dbQuery.createDisabledTable)
+            await self.db.execute(dbQuery.createGuildMutesTable)
 
     async def startUp(self):
         """Will run when the bot ready"""
