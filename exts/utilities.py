@@ -174,7 +174,7 @@ class Utilities(commands.Cog, CogMixin):
             "Results, Currency Converter"
         ),
     )
-    @commands.cooldown(1, 5, commands.BucketType.guild)
+    @commands.cooldown(1, 10, commands.BucketType.user)
     async def google(self, ctx, *, query: str):
         msg = await ctx.try_reply(embed=ZEmbed.loading(title="Searching..."))
         results = await self.googlesearch.search(query)
