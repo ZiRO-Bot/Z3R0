@@ -72,6 +72,7 @@ Moved to [CHANGELOG.md](./CHANGELOG.md)
 
 ### Overhaul Plan
 
+- Implement anti mute evasion
 - Cooldown
 - Migration tool, migrate from old database "layout" to newer "layout"
 - Image manipulation (Filter and stuff) (in `v3.1.0` maybe?)
