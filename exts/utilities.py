@@ -182,13 +182,14 @@ class Utilities(commands.Cog, CogMixin):
         e.set_footer(text=results["stats"])
 
         complementary = results["complementary"]
+        special = results["special"]
         limit = 3
 
         if complementary is not None:
-            limit = 2
-            e.description = (
-                f"**{complementary.title or 'Unknown'}**\n"
-                + (
+            limit -= 1
+            e.add_field(
+                name=f"{complementary.title or 'Unknown'}",
+                value=(
                     f"`{complementary.subtitle or 'Unknown'}`\n"
                     if complementary.subtitle
                     else ""
@@ -199,6 +200,13 @@ class Utilities(commands.Cog, CogMixin):
                     else ""
                 )
                 + "\n".join([f"**{i}**`{j}`" for i, j in complementary.info])
+            )
+
+        if special:
+            limit -= 1
+            e.add_field(
+                name=str(special.type).title(),
+                value="\n".join(special.content),
             )
 
         for res in results["web"][:limit]:
