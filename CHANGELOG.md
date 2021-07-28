@@ -1,3 +1,8 @@
+# 3.0.3
+
+- [**Fixed**] Fixed more issue with Google search throwing error when there's unsupported "special" results
+- [**Improved**] Google search now supports Currency converter
+
 # 3.0.2
 
 - [**Changed**] **Behind the scene**: Replace cse with google search web scrape
