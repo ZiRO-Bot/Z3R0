@@ -142,6 +142,7 @@ class ziBot(commands.Bot):
             .add(
                 "guildMutes",
                 cls=CacheListProperty,
+                unique=True,
             )
         )
 
