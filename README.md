@@ -51,7 +51,20 @@ More feature coming soon!
    python3 -m pip install poetry
    ```
 
-- After poetry successfully installed, run `poetry install` to install all required dependencies
+- After poetry successfully installed, execute this command to install all required dependencies,
+  ```zsh
+  # postgresql
+  poetry install -E postgresql
+
+  # mysql
+  poetry install -E mysql
+
+  # sqlite
+  poetry install -E sqlite
+
+  # postgresql (Using aiopg instead of ayncpg)
+  poetry install -E "postgresql+aiopg"
+  ```
 - Copy and paste (or rename) [`config.py-example`](./config.py-example) to `config.py`
 - Edit all the necessary config value (`token`, `botMasters`, and `sql`)
 - Run the bot by executing this command, `poetry run python main.py`
