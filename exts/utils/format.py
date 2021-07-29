@@ -37,7 +37,11 @@ class ZEmbed(discord.Embed):
         color=None,
         **kwargs,
     ):
-        return cls(title="{} {}".format(emoji, title), color=color or discord.Color.red(), **kwargs)
+        return cls(
+            title="{} {}".format(emoji, title),
+            color=color or discord.Color.red(),
+            **kwargs,
+        )
 
     @classmethod
     def success(
@@ -48,7 +52,11 @@ class ZEmbed(discord.Embed):
         color=None,
         **kwargs,
     ):
-        return cls(title="{} {}".format(emoji, title), color=color or discord.Color.green(), **kwargs)
+        return cls(
+            title="{} {}".format(emoji, title),
+            color=color or discord.Color.green(),
+            **kwargs,
+        )
 
     @classmethod
     def loading(
