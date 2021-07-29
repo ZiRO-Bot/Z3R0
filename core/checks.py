@@ -1,4 +1,5 @@
-from core.errors import NotInGuild
+from core.errors import NotInGuild  # type: ignore
+from exts.utils.other import utcnow  # type: ignore
 from discord.ext import commands
 
 
@@ -56,6 +57,7 @@ def has_guild_permissions(*, check=all, **perms):
 
 # Is mod, is admin thingy
 
+
 def guildOnly():
     def predicate(ctx):
         if not ctx.guild:
@@ -103,7 +105,15 @@ def admin_or_permissions(**perms):
 
 
 def isRafael():
-    async def pred(ctx):
+    def predicate(ctx):
         return ctx.author.id == 518154918276628490
 
-    return commands.check(pred)
+    return commands.check(predicate)
+
+
+def isAprilFool():
+    def predicate(ctx):
+        today = utcnow()
+        return today.day == 1 and today.month == 5
+
+    return commands.check(predicate)

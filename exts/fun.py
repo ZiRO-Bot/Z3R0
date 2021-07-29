@@ -173,9 +173,17 @@ class Fun(commands.Cog, CogMixin):
         )
         await ctx.try_reply(embed=e)
 
-    # @commands.command(brief="Ping random member")
-    # async def someone(self, ctx):
-    #     await ctx.send(choice(ctx.guild.members).mention)
+    @commands.command(
+        brief="Ping random member",
+        description=(
+            "Ping random member\n"
+            'Also known as "Discord\'s mistake"\n'
+            "**Note**: Only available on April Fools (UTC)!"
+        ),
+    )
+    @checks.isAprilFool()
+    async def someone(self, ctx):
+        await ctx.send(choice(ctx.guild.members).mention)
 
     @commands.command(
         usage="(status code)",
@@ -251,7 +259,8 @@ class Fun(commands.Cog, CogMixin):
             result = "It's a Tie!"
 
         elif botChoice == rps[0]:
-            def f(x): # type: ignore
+
+            def f(x):  # type: ignore
                 return {"paper": "Paper wins!", "scissors": "Rock wins!"}.get(
                     x, "Rock wins!"
                 )
@@ -259,7 +268,8 @@ class Fun(commands.Cog, CogMixin):
             result = f(choice_)
 
         elif botChoice == rps[1]:
-            def f(x): # type: ignore
+
+            def f(x):  # type: ignore
                 return {"rock": "Paper wins!", "scissors": "Scissors wins!"}.get(
                     x, "Paper wins!"
                 )
@@ -267,6 +277,7 @@ class Fun(commands.Cog, CogMixin):
             result = f(choice_)
 
         elif botChoice == rps[2]:
+
             def f(x):
                 return {"paper": "Scissors wins!", "rock": "Rock wins!"}.get(
                     x, "Scissors wins!"
