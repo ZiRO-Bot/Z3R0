@@ -782,7 +782,7 @@ voice = ["PyNaCl"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "a464d064e9b87ff94c60476a9f0e7566cb740941bc289085b15b5aeee4a7ec22"
+content-hash = "73bc901003ed095b1219bb8f05d024db0c8b57fc425acdc446ada045bf16249f"
 
 [metadata.files]
 aiohttp = [
