@@ -3,15 +3,15 @@ Web scrapper for google search
 """
 
 
+import re
+from contextlib import suppress
+from typing import Any, List, Optional
+from urllib.parse import quote_plus
+
 import aiohttp
 import bs4
-import re
 
-
-from contextlib import suppress
 from core.decorators import in_executor  # type: ignore
-from typing import Any, Optional, List
-from urllib.parse import quote_plus
 
 
 class SearchResult:

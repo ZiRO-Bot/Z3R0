@@ -5,40 +5,38 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 """
 
 import difflib
-import discord
-import humanize
 import re
 import shlex
-import TagScriptEngine as tse
 import time
+from typing import Optional
 
+import discord
+import humanize
+import TagScriptEngine as tse
+from discord.ext import commands, menus
 
 from core import checks
 from core.errors import (
-    CCommandNotFound,
     CCommandAlreadyExists,
-    CCommandNotInGuild,
-    CCommandNoPerm,
     CCommandDisabled,
+    CCommandNoPerm,
+    CCommandNotFound,
+    CCommandNotInGuild,
     NotInGuild,
 )
 from core.menus import ZMenu
 from core.mixin import CogMixin
 from core.objects import CustomCommand
 from exts.utils import dbQuery, infoQuote, tseBlocks
-from exts.utils.cache import CacheListProperty, CacheUniqueViolation, CacheError
+from exts.utils.cache import CacheListProperty, CacheUniqueViolation
 from exts.utils.format import (
     CMDName,
     ZEmbed,
     cleanifyPrefix,
     formatCmd,
-    formatCmdParams,
     formatDiscordDT,
 )
-from exts.utils.other import reactsToMessage, ArgumentParser, utcnow
-from discord.ext import commands, menus
-from typing import Optional
-
+from exts.utils.other import ArgumentParser, reactsToMessage, utcnow
 
 GIST_REGEX = re.compile(
     r"http(?:s)?:\/\/gist\.github(?:usercontent)?\.com\/.*\/(\S*)(?:\/)?"
@@ -213,7 +211,7 @@ async def formatCommandInfo(ctx, command):
             )
 
     if isinstance(command, commands.Group):
-        subcmds = sorted(command.commands, key=lambda c: c.name) # type: ignore # 'command' already checked as commands.Group
+        subcmds = sorted(command.commands, key=lambda c: c.name)  # type: ignore # 'command' already checked as commands.Group
         if subcmds:
             e.add_field(
                 name="Subcommands",

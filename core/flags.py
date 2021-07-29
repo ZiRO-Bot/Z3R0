@@ -1,9 +1,8 @@
+from typing import Optional
+
 import discord
-
-
 from discord.ext import commands
 from discord.utils import MISSING
-from typing import Optional
 
 
 # Only available in dpy V2.0

@@ -1,8 +1,7 @@
 from __future__ import annotations
-from typing import Any, Tuple, Dict, Iterable, List, Optional
-
 
 import time
+from typing import Any, Dict, Iterable, List, Optional, Tuple
 
 
 # https://github.com/Rapptz/RoboDanny/blob/rewrite/cogs/utils/cache.py#L22-L43

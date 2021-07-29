@@ -1,17 +1,14 @@
 import asyncio
-import click
 import contextlib
-import core.bot as _bot
 import logging
 import os
-
-
-from exts.utils.other import utcnow
 from logging.handlers import RotatingFileHandler
 
+import click
 
 import config
-
+import core.bot as _bot
+from exts.utils.other import utcnow
 
 # Use uvloop as loop policy if possible (Linux only)
 try:
@@ -38,8 +35,12 @@ def setup_logging():
         logger.setLevel(logging.INFO)
 
         file_handler = RotatingFileHandler(
-            filename="discord.log", mode="a", encoding="utf-8", maxBytes=33554432, backupCount=5
-        ) # maxBytes = 33554432 -> 32 mb
+            filename="discord.log",
+            mode="a",
+            encoding="utf-8",
+            maxBytes=33554432,
+            backupCount=5,
+        )  # maxBytes = 33554432 -> 32 mb
         file_handler.setFormatter(logging.Formatter(fmt=FORMAT, datefmt=DATE_FORMAT))
         file_handler.setLevel(logging.INFO)
         logger.addHandler(file_handler)

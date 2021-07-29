@@ -7,7 +7,7 @@ import sqlite3
 class Connection(sqlite3.Connection):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.execute('pragma foreign_keys=1')
+        self.execute("pragma foreign_keys=1")
 
 
 class CustomCommand:
@@ -57,5 +57,3 @@ class CustomCommand:
 
     def __str__(self):
         return self.name
-
-

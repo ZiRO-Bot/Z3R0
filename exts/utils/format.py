@@ -1,12 +1,12 @@
 import datetime as dt
-import discord
 import re
+from typing import Union
 
+import discord
+from discord.ext import commands
 
 from core.objects import CustomCommand
-from discord.ext import commands
 from exts.utils.other import utcnow
-from typing import Union
 
 
 class ZEmbed(discord.Embed):
@@ -34,10 +34,10 @@ class ZEmbed(discord.Embed):
         *,
         emoji="<:error:783265883228340245>",
         title="Error",
-        color=discord.Color.red(),
+        color=None,
         **kwargs,
     ):
-        return cls(title="{} {}".format(emoji, title), color=color, **kwargs)
+        return cls(title="{} {}".format(emoji, title), color=color or discord.Color.red(), **kwargs)
 
     @classmethod
     def success(
@@ -45,10 +45,10 @@ class ZEmbed(discord.Embed):
         *,
         emoji="<:ok:864033138832703498>",
         title="Success",
-        color=discord.Color.green(),
+        color=None,
         **kwargs,
     ):
-        return cls(title="{} {}".format(emoji, title), color=color, **kwargs)
+        return cls(title="{} {}".format(emoji, title), color=color or discord.Color.green(), **kwargs)
 
     @classmethod
     def loading(
@@ -117,13 +117,13 @@ def formatMissingArgError(ctx, error):
     return e
 
 
-def formatDiscordDT(dt: Union[dt.datetime, float], style: str = None) -> str:
+def formatDiscordDT(dt_: Union[dt.datetime, float], style: str = None) -> str:
     # Format datetime using new timestamp formatting
-    try:
-        ts = int(dt.timestamp())
-    except AttributeError:
-        # Incase dt is a unix timestamp
-        ts = int(dt)
+    if isinstance(dt_, dt.datetime):
+        ts = int(dt_.timestamp())
+    else:
+        # Incase dt is already unix timestamp
+        ts = int(dt_)
     return f"<t:{ts}:{style}>" if style else f"<t:{ts}>"
 
 

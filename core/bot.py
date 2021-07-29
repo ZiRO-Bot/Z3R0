@@ -1,44 +1,40 @@
 from __future__ import annotations
 
-
-import aiohttp
 import copy
 import datetime
-import discord
 import json
-import os
 import logging
+import os
 import re
-
-
 from contextlib import suppress
-from core.context import Context  # type: ignore
-from core.errors import (  # type: ignore
-    CCommandNotFound,
-    CCommandNotInGuild,
-    CCommandDisabled,
-    NotInGuild,
-)
-from core.objects import Connection  # type: ignore
-from exts.meta import getCustomCommands  # type: ignore
-from exts.timer import TimerData, Timer  # type: ignore
-from exts.utils import dbQuery  # type: ignore
-from exts.utils.cache import (  # type: ignore
-    Cache,
-    CacheListProperty,
-    CacheUniqueViolation,
-    CacheListFull,
-    CacheDictProperty,
-)
-from exts.utils.format import cleanifyPrefix  # type: ignore
-from exts.utils.other import Blacklist, utcnow  # type: ignore
-from databases import Database
-from discord.ext import commands, tasks
 from typing import Any, Dict, Iterable, List, Optional
 
+import aiohttp
+import discord
+from databases import Database
+from discord.ext import commands, tasks
 
-import config  # type: ignore
-
+import config
+from core.context import Context
+from core.errors import (
+    CCommandDisabled,
+    CCommandNotFound,
+    CCommandNotInGuild,
+    NotInGuild,
+)
+from core.objects import Connection
+from exts.meta import getCustomCommands
+from exts.timer import Timer, TimerData
+from exts.utils import dbQuery
+from exts.utils.cache import (
+    Cache,
+    CacheDictProperty,
+    CacheListFull,
+    CacheListProperty,
+    CacheUniqueViolation,
+)
+from exts.utils.format import cleanifyPrefix
+from exts.utils.other import Blacklist, utcnow
 
 EXTS = []
 EXTS_DIR = "exts"

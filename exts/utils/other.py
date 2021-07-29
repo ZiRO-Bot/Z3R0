@@ -1,31 +1,29 @@
 from __future__ import division
-from decimal import Decimal
-from discord.ext import commands
-from pyparsing import (
-    Literal,
-    Word,
-    Group,
-    Forward,
-    alphas,
-    alphanums,
-    Regex,
-    ParseException,
-    CaselessKeyword,
-    Suppress,
-    delimitedList,
-)
-from typing import Union, Tuple
-
 
 import argparse
 import datetime as dt
-import discord
 import json
 import math
 import operator
 import re
 import shlex
+from decimal import Decimal
+from typing import Tuple
 
+import discord
+from discord.ext import commands
+from pyparsing import (
+    CaselessKeyword,
+    Forward,
+    Group,
+    Literal,
+    Regex,
+    Suppress,
+    Word,
+    alphanums,
+    alphas,
+    delimitedList,
+)
 
 PHI = (1 + math.sqrt(5)) / 2
 

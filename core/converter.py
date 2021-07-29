@@ -1,14 +1,12 @@
-import datetime as dt
-import discord
 import re
 
-
-from core.context import Context
+import discord
 from dateutil.relativedelta import relativedelta
 from discord.ext import commands
-from exts.utils.other import utcnow
 from humanize import naturaldelta
 
+from core.context import Context
+from exts.utils.other import utcnow
 
 TIME_REGEX = re.compile(
     r"""
@@ -55,13 +53,15 @@ class BannedMember(commands.Converter):
             try:
                 return await ctx.guild.fetch_ban(discord.Object(id=member_id))
             except discord.NotFound:
-                raise commands.BadArgument('This member has not been banned before.') from None
+                raise commands.BadArgument(
+                    "This member has not been banned before."
+                ) from None
 
         ban_list = await ctx.guild.bans()
         entity = discord.utils.find(lambda u: str(u.user) == argument, ban_list)
 
         if entity is None:
-            raise commands.BadArgument('This member has not been banned before.')
+            raise commands.BadArgument("This member has not been banned before.")
         return entity
 
 

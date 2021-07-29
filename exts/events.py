@@ -5,25 +5,20 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 """
 from __future__ import annotations
 
-
 import asyncio
+from typing import TYPE_CHECKING, Any, Dict, Optional
+
 import discord
-import json
 import prettify_exceptions
 import pytz
-import sys
-import traceback
 import TagScriptEngine as tse
-
-
-from core import errors  # type: ignore
-from core.mixin import CogMixin  # type: ignore
 from discord.ext import commands
-from exts.utils import tseBlocks  # type: ignore
-from exts.utils.format import formatMissingArgError, ZEmbed  # type: ignore
-from exts.utils.other import reactsToMessage, ArgumentError, utcnow  # type: ignore
-from typing import Any, Dict, Optional, TYPE_CHECKING
 
+from core import errors
+from core.mixin import CogMixin
+from exts.utils import tseBlocks
+from exts.utils.format import ZEmbed, formatMissingArgError
+from exts.utils.other import ArgumentError, reactsToMessage, utcnow
 
 if TYPE_CHECKING:
     from core.bot import ziBot  # type: ignore

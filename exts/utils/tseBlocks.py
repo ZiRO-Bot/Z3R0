@@ -1,8 +1,7 @@
 import random
-
+from typing import Optional
 
 from TagScriptEngine import Block, Context, helper_parse_if
-from typing import Tuple, Optional
 
 
 class SilentBlock(Block):

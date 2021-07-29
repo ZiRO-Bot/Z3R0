@@ -1,6 +1,8 @@
-from core.decorators import in_executor
 from io import BytesIO
+
 from PIL import Image, UnidentifiedImageError
+
+from core.decorators import in_executor
 
 
 def bytes2image(image: bytes) -> Image:
@@ -13,6 +15,7 @@ def bytes2image(image: bytes) -> Image:
     except UnidentifiedImageError:
         raise ValueError("Unable to use Image")
 
+
 def image2bytes(image: Image, format: str = "PNG") -> bytes:
     byteArray = BytesIO()
     image.save(byteArray, format=format)
@@ -22,8 +25,9 @@ def image2bytes(image: Image, format: str = "PNG") -> bytes:
 
 @in_executor()
 def rectangle(R, G, B):
-    img = Image.new('RGB', (500, 500), (R, G, B))
+    img = Image.new("RGB", (500, 500), (R, G, B))
     return image2bytes(img)
+
 
 @in_executor()
 def blurplify(imgByte):

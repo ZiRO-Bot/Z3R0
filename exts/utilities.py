@@ -5,25 +5,24 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 """
 
 import asyncio
+import re
+import sys
+from decimal import InvalidOperation, Overflow
 
 import discord
 import pyparsing as pyp
-import re
-import sys
-
+from discord.ext import commands
 
 from core.mixin import CogMixin
-from decimal import Overflow, InvalidOperation
-from discord.ext import commands
-from exts.api.piston import Piston
 from exts.api.google import Google
 from exts.api.googletrans import GoogleTranslate
+from exts.api.piston import Piston
 from exts.utils.format import ZEmbed
 from exts.utils.other import (
     NumericStringParser,
-    parseCodeBlock,
-    encodeMorse,
     decodeMorse,
+    encodeMorse,
+    parseCodeBlock,
 )
 
 

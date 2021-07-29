@@ -5,24 +5,22 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 """
 from __future__ import annotations
 
-
 import asyncio
 import datetime as dt
-import discord
 import json
+from typing import TYPE_CHECKING, Optional
 
-
-from core.converter import TimeAndArgument  # type: ignore
-from core.mixin import CogMixin  # type: ignore
+import discord
 from discord.ext import commands
-from exts.utils import dbQuery  # type: ignore
-from exts.utils.other import utcnow  # type: ignore
-from exts.utils.format import formatDateTime, ZEmbed, formatDiscordDT  # type: ignore
-from typing import Optional, TYPE_CHECKING
 
+from core.converter import TimeAndArgument
+from core.mixin import CogMixin
+from exts.utils import dbQuery
+from exts.utils.format import ZEmbed, formatDateTime, formatDiscordDT
+from exts.utils.other import utcnow
 
 if TYPE_CHECKING:
-    from core.bot import ziBot  # type: ignore
+    from core.bot import ziBot
 
 
 class TimerData:

@@ -5,17 +5,15 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 """
 
 import argparse
-import discord
-import shlex
+from typing import Optional, Union
 
+import discord
+from discord.ext import commands
 
 from core import checks
 from core.mixin import CogMixin
-from discord.ext import commands
-from exts.utils import dbQuery
 from exts.utils.format import ZEmbed
 from exts.utils.other import ArgumentParser, UserFriendlyBoolean
-from typing import Union, Optional
 
 # Also includes aliases
 ROLE_TYPES = {

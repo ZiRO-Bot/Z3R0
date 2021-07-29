@@ -1,7 +1,6 @@
-import aiohttp
-
-
 from typing import Optional
+
+import aiohttp
 
 
 class Translated:
@@ -44,11 +43,12 @@ class GoogleTranslate:
 
         return
 
+
 if __name__ == "__main__":
     import asyncio
+
     loop = asyncio.get_event_loop()
     trans = GoogleTranslate()
     a = loop.run_until_complete(trans.translate("hola"))
     print(a.__repr__())
     loop.run_until_complete(trans.translate("halo", source="id"))
-

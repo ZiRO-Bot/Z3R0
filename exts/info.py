@@ -5,23 +5,22 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 """
 
 import datetime as dt
-import discord
-import time
 import unicodedata
-
-
-from aiohttp import InvalidURL, client_exceptions
 from contextlib import suppress
+from typing import Union
+
+import discord
+from aiohttp import InvalidURL, client_exceptions
+from discord.ext import commands
+
 from core import checks
 from core.converter import MemberOrUser
 from core.mixin import CogMixin
-from exts.api.openweather import OpenWeatherAPI, CityNotFound
+from exts.api.openweather import CityNotFound, OpenWeatherAPI
 from exts.utils import pillow
 from exts.utils.format import ZEmbed, formatDiscordDT, renderBar
-from exts.utils.infoQuote import *
+from exts.utils.infoQuote import *  # noqa:  F403
 from exts.utils.other import utcnow
-from discord.ext import commands
-from typing import Union
 
 
 # TODO: Move this somewhere in `exts/utils/` folder

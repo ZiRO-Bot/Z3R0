@@ -1,10 +1,10 @@
-import discord
 import re
+from typing import Union
 
-
+import discord
 from discord.ext import commands
+
 from exts.utils.format import ZEmbed
-from typing import Union, Optional
 
 
 class Context(commands.Context):
@@ -24,7 +24,7 @@ class Context(commands.Context):
         try:
             action = self.safe_reply
             return await action(content, mention_author=mention_author, **kwargs)
-        except:
+        except BaseException:
             if mention_author:
                 content = f"{self.author.mention} " + content if content else ""
 

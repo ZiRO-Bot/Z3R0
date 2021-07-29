@@ -11,6 +11,7 @@ running it multiple time may broke something
 import asyncio
 
 from databases import Database
+
 from exts.utils import dbQuery
 
 OLD_DB = Database("sqlite:///data/database2_0.db")
@@ -67,7 +68,9 @@ async def migrateGuildData():
 
     async with NEW_DB.transaction():
         await NEW_DB.execute_many(dbQuery.insertToGuilds, values=guilds)
-        await NEW_DB.execute_many("INSERT INTO prefixes VALUES (:guildId, :prefix)", values=prefixes)
+        await NEW_DB.execute_many(
+            "INSERT INTO prefixes VALUES (:guildId, :prefix)", values=prefixes
+        )
         await NEW_DB.execute_many(
             """
             INSERT OR IGNORE INTO guildChannels
@@ -122,11 +125,14 @@ async def migrateGuildRoles():
     async with NEW_DB.transaction():
         await NEW_DB.execute_many(
             "INSERT OR IGNORE INTO guildRoles VALUES (:guildId, NULL, :mutedRole, :autoRole)",
-            values=[{
-                "guildId": i[0],
-                "mutedRole": i[2],
-                "autoRole": i[1],
-            } for i in data]
+            values=[
+                {
+                    "guildId": i[0],
+                    "mutedRole": i[2],
+                    "autoRole": i[1],
+                }
+                for i in data
+            ],
         )
 
 
@@ -134,9 +140,9 @@ async def migrateGuildCustomCommands():
     """Migrate custom commands"""
     data = await OLD_DB.fetch_all("SELECT * FROM tags")
 
-        # guildId = i[0]
-        # i[1:]
-        # lookups.append({"guildId": guildId})
+    # guildId = i[0]
+    # i[1:]
+    # lookups.append({"guildId": guildId})
     async with NEW_DB.transaction():
         for i in data:
             addedId = await NEW_DB.execute(
@@ -144,15 +150,23 @@ async def migrateGuildCustomCommands():
                     INSERT INTO commands (name, content, ownerId, createdAt, type, uses)
                     VALUES (:name, :content, :ownerId, :createdAt, :type, :uses)
                 """,
-                values={"name": i[1], "content": i[2], "ownerId": i[-1], "createdAt": i[3], "type": "text", "uses": i[5]}
+                values={
+                    "name": i[1],
+                    "content": i[2],
+                    "ownerId": i[-1],
+                    "createdAt": i[3],
+                    "type": "text",
+                    "uses": i[5],
+                },
             )
             await NEW_DB.execute(
                 """
                     INSERT INTO commands_lookup (cmdId, name, guildId)
                     VALUES (:cmdId, :name, :guildId)
                 """,
-                values={"cmdId": addedId, "name": i[1], "guildId": i[0]}
+                values={"cmdId": addedId, "name": i[1], "guildId": i[0]},
             )
+
 
 async def main():
     await OLD_DB.connect()
@@ -161,6 +175,7 @@ async def main():
     await migrateGuildConfigs()
     await migrateGuildRoles()
     await migrateGuildCustomCommands()
+
 
 if __name__ == "__main__":
     loop = asyncio.get_event_loop()

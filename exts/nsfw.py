@@ -6,12 +6,10 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import aiohttp
 import discord
-
+from discord.ext import commands, menus
 
 from core.mixin import CogMixin
-from discord.ext import commands, menus
 from exts.utils.format import ZEmbed
-
 
 NEKO_API = "https://api.nekos.dev/api/v3"
 

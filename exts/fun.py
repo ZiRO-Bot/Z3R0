@@ -4,21 +4,20 @@ License, v. 2.0. If a copy of the MPL was not distributed with this
 file, You can obtain one at http://mozilla.org/MPL/2.0/.
 """
 
-import asyncio
-import discord
 import io
+from random import choice, randint, random, randrange, shuffle
 
-
-from core import checks  # type: ignore
-from core.converter import MemberOrUser  # type: ignore
-from core.mixin import CogMixin  # type: ignore
+import discord
 from discord.ext import commands
-from exts.api import reddit, graphql  # type: ignore
-from exts.utils.format import ZEmbed  # type: ignore
-from exts.utils.other import ArgumentParser, ArgumentError  # type: ignore
-from exts.utils.piglin import Piglin  # type: ignore
-from exts.utils.pillow import blurplify  # type: ignore
-from random import choice, randint, shuffle, random, randrange
+
+from core import checks
+from core.converter import MemberOrUser
+from core.mixin import CogMixin
+from exts.api import graphql, reddit
+from exts.utils.format import ZEmbed
+from exts.utils.other import ArgumentError, ArgumentParser
+from exts.utils.piglin import Piglin
+from exts.utils.pillow import blurplify
 
 
 class Fun(commands.Cog, CogMixin):

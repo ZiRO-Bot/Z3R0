@@ -27,6 +27,7 @@ class GraphQL:
             id=25,
         )
     """
+
     def __init__(self, baseUrl: str, **kwargs):
         self.baseUrl = baseUrl
         self.session = kwargs.pop("session", None) or aiohttp.ClientSession()

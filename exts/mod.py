@@ -4,20 +4,19 @@ License, v. 2.0. If a copy of the MPL was not distributed with this
 file, You can obtain one at http://mozilla.org/MPL/2.0/.
 """
 
-import discord
-import humanize
+from contextlib import suppress
+from typing import Union
 
+import discord
+from discord.ext import commands
 
 from core import checks
-from core.converter import TimeAndArgument, BannedMember
+from core.converter import BannedMember, TimeAndArgument
 from core.errors import MissingMuteRole
 from core.mixin import CogMixin
-from contextlib import suppress
-from discord.ext import commands
 from exts.timer import Timer, TimerData
 from exts.utils.format import ZEmbed, formatDateTime
-from exts.utils.other import utcnow, ArgumentParser, ArgumentError
-from typing import Union
+from exts.utils.other import ArgumentError, ArgumentParser, utcnow
 
 
 class HierarchyError(Exception):
