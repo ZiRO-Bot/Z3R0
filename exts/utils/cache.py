@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Any, Tuple, Dict, Iterable, List
+from typing import Any, Tuple, Dict, Iterable, List, Optional
 
 
 import time
@@ -9,9 +9,15 @@ import time
 class ExpiringDict(dict):
     """Subclassed dict for expiring cache"""
 
-    def __init__(self, items: dict = {}, maxAgeSeconds: int = 3600) -> None:
-        self.maxAgeSeconds: int = maxAgeSeconds  # (Default: 3600 seconds (1 hour))
+    def __init__(
+        self, items: Optional[Dict] = None, maxAgeSeconds: Optional[int] = None
+    ) -> None:
+        self.maxAgeSeconds: int = (
+            maxAgeSeconds or 3600
+        )  # (Default: 3600 seconds (1 hour))
         curTime: float = time.monotonic()
+
+        items = items or {}
         super().__init__({k: (v, curTime) for k, v in items.items()})
 
     def verifyCache(self) -> None:
@@ -74,33 +80,33 @@ class CacheProperty:
     def items(self) -> dict:
         return self._items
 
-    def set(self, key: str, value: Any) -> CacheProperty:
+    def set(self, _key: Any, value: Any) -> CacheProperty:
         # Will bypass unique check
-        key: str = str(key)
+        key: str = str(_key)
 
         self._items.update({key: value})
         return self
 
-    def add(self, key: str, value: Any) -> CacheProperty:
-        key: str = str(key)
+    def add(self, _key: Any, value: Any) -> CacheProperty:
+        key: str = str(_key)
 
         if self.unique and key in self._items:
             raise CacheUniqueViolation
 
         return self.set(key, value)
 
-    def __getitem__(self, key: str) -> Any:
-        key = str(key)
+    def __getitem__(self, _key: Any) -> Any:
+        key = str(_key)
 
         return self._items[key]
 
-    def get(self, key: str, fallback: Any = None) -> Any:
+    def get(self, key: Any, fallback: Any = None) -> Any:
         try:
             return self.__getitem__(key)
         except KeyError:
             return fallback
 
-    def clear(self, key: str) -> None:
+    def clear(self, key: Any) -> None:
         try:
             del self._items[str(key)]
         except KeyError:
@@ -119,8 +125,8 @@ class CacheDictProperty(CacheProperty):
         super().__init__(unique=unique, ttl=ttl)
         self._items: Dict[str, Any] = {}
 
-    def set(self, key: str, value: Dict[str, Any]) -> CacheDictProperty:
-        key = str(key)
+    def set(self, _key: Any, value: Dict[str, Any]) -> CacheDictProperty:
+        key: str = str(_key)
 
         if not isinstance(value, Dict):
             raise RuntimeError("Only dict value is allowed!")
@@ -144,7 +150,7 @@ class CacheListProperty(CacheProperty):
     def __init__(
         self,
         unique: bool = False,
-        blacklist: Iterable = [],
+        blacklist: Iterable = tuple(),
         limit: int = 0,
     ) -> None:
         """
@@ -163,11 +169,11 @@ class CacheListProperty(CacheProperty):
         ...
         """
         super().__init__(unique=unique)
-        self.blacklist: Iterable = blacklist
+        self.blacklist: Iterable = list(blacklist)
         self.limit: int = limit
 
-    def extend(self, key: str, values: Iterable) -> CacheListProperty:
-        key: str = str(key)
+    def extend(self, _key: Any, values: Iterable) -> CacheListProperty:
+        key: str = str(_key)
         items = self._items.get(key, [])
         values = set(values)  # Remove duplicates
 
@@ -190,8 +196,8 @@ class CacheListProperty(CacheProperty):
 
         return self
 
-    def add(self, key: str, value: Any) -> CacheListProperty:
-        key: str = str(key)
+    def add(self, _key: Any, value: Any) -> CacheListProperty:
+        key: str = str(_key)
         items = self._items.get(key, [])
 
         if not isinstance(value, int) and not value:
@@ -217,8 +223,8 @@ class CacheListProperty(CacheProperty):
     # Alias add as append
     append = add
 
-    def remove(self, key: str, value: Any) -> CacheListProperty:
-        key: str = str(key)
+    def remove(self, _key: Any, value: Any) -> CacheListProperty:
+        key: str = str(_key)
         items = self._items.get(key, [])
 
         if not value:
@@ -248,8 +254,8 @@ class Cache:
     def __repr__(self) -> str:
         return "<Properties: {}>".format(set(self._property))
 
-    def add(self, name: str, *, cls: Any = CacheProperty, **kwargs) -> Cache:
-        name = str(name)
+    def add(self, _name: Any, *, cls: Any = CacheProperty, **kwargs) -> Cache:
+        name: str = str(_name)
 
         if not issubclass(cls, CacheProperty) or isinstance(cls, CacheProperty):
             raise RuntimeError(
@@ -261,6 +267,6 @@ class Cache:
         return self
 
 
-if __name__ == "__main__":
-    cache = Cache().add("guildConfigs", cls=CacheListProperty)
-    cache.guildConfigs.add(0, ">").remove(0, ".")
+# if __name__ == "__main__":
+#     cache = Cache().add("guildConfigs", cls=CacheListProperty)
+#     cache.guildConfigs.add(0, ">").remove(0, ".")

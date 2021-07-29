@@ -9,7 +9,6 @@ import json
 import os
 import logging
 import re
-import uuid
 
 
 from contextlib import suppress
@@ -35,7 +34,7 @@ from exts.utils.format import cleanifyPrefix  # type: ignore
 from exts.utils.other import Blacklist, utcnow  # type: ignore
 from databases import Database
 from discord.ext import commands, tasks
-from typing import Any, Dict, Iterable, List, Optional, Union
+from typing import Any, Dict, Iterable, List, Optional
 
 
 import config  # type: ignore
@@ -270,18 +269,18 @@ class ziBot(commands.Bot):
         return cached.get(guildId, {}).get(configType, None)
 
     async def getGuildPrefix(self, guildId: int) -> List[str]:
-        if self.cache.prefixes.get(guildId) is None:
+        if self.cache.prefixes.get(guildId) is None:  # type: ignore
             # Only executed when there's no cache for guild's prefix
             dbPrefixes = await self.db.fetch_all(
                 "SELECT * FROM prefixes WHERE guildId=:id", values={"id": guildId}
             )
 
             try:
-                self.cache.prefixes.extend(guildId, [p for _, p in dbPrefixes])
+                self.cache.prefixes.extend(guildId, [p for _, p in dbPrefixes])  # type: ignore
             except ValueError:
                 return []
 
-        return self.cache.prefixes[guildId]
+        return self.cache.prefixes[guildId]  # type: ignore
 
     async def addPrefix(self, guildId: int, prefix: str) -> str:
         """Add a prefix"""
@@ -289,7 +288,7 @@ class ziBot(commands.Bot):
         await self.getGuildPrefix(guildId)
 
         try:
-            self.cache.prefixes.add(guildId, prefix)
+            self.cache.prefixes.add(guildId, prefix)  # type: ignore
         except CacheUniqueViolation:
             raise commands.BadArgument(
                 "Prefix `{}` is already exists".format(cleanifyPrefix(self, prefix))
@@ -297,7 +296,7 @@ class ziBot(commands.Bot):
         except CacheListFull:
             raise IndexError(
                 "Custom prefixes is full! (Only allowed to add up to `{}` prefixes)".format(
-                    self.cache.prefixes.limit
+                    self.cache.prefixes.limit  # type: ignore
                 )
             )
 
@@ -314,7 +313,7 @@ class ziBot(commands.Bot):
         await self.getGuildPrefix(guildId)
 
         try:
-            self.cache.prefixes.remove(guildId, prefix)
+            self.cache.prefixes.remove(guildId, prefix)  # type: ignore
         except IndexError:
             raise commands.BadArgument(
                 "Prefix `{}` is not exists".format(cleanifyPrefix(self, prefix))
@@ -343,10 +342,10 @@ class ziBot(commands.Bot):
                 name=f"over {len(self.users)} users", type=discord.ActivityType.watching
             ),
             discord.Activity(
-                name=f"commands | Ping me to get prefix list!",
+                name="commands | Ping me to get prefix list!",
                 type=discord.ActivityType.listening,
             ),
-            discord.Activity(name=f"bot war", type=discord.ActivityType.competing),
+            discord.Activity(name="bot war", type=discord.ActivityType.competing),
         )
         self.activityIndex += 1
         if self.activityIndex >= len(activities):
