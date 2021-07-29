@@ -64,7 +64,7 @@ class ziBot(commands.Bot):
 
     # --- NOTE: Information about the bot
     author: str = getattr(config, "author", "ZiRO2264#9999")
-    version: str = "`3.0.4` - `overhaul`"
+    version: str = "`3.1.0a` - `overhaul`"
     links: Dict[str, str] = getattr(
         config,
         "links",
@@ -334,7 +334,7 @@ class ziBot(commands.Bot):
 
     @tasks.loop(seconds=15)
     async def changing_presence(self) -> None:
-        activities = (
+        activities: tuple = (
             discord.Activity(
                 name=f"over {len(self.guilds)} servers",
                 type=discord.ActivityType.watching,
@@ -349,7 +349,7 @@ class ziBot(commands.Bot):
             discord.Activity(name=f"bot war", type=discord.ActivityType.competing),
         )
         self.activityIndex += 1
-        if self.activityIndex > len(activities):
+        if self.activityIndex >= len(activities):
             self.activityIndex = 0
 
         await self.change_presence(activity=activities[self.activityIndex])
