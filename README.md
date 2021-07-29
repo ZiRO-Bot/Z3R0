@@ -64,6 +64,10 @@ More feature coming soon!
    ```
 - If everything is setup properly, the bot should be online!
 
+### Development
+
+- Install pre-commit `pip install pre-commit` then run `pre-commit install`
+
 ## Overhaul
 
 ### Changelog
