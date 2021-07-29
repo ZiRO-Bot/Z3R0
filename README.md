@@ -55,16 +55,16 @@ More feature coming soon!
 - After poetry successfully installed, execute this command to install all required dependencies,
   ```zsh
   # postgresql
-  poetry install -E postgresql
+  poetry install --no-dev -E postgresql
 
   # mysql
-  poetry install -E mysql
+  poetry install --no-dev -E mysql
 
   # sqlite
-  poetry install -E sqlite
+  poetry install --no-dev -E sqlite
 
   # postgresql (Using aiopg instead of ayncpg)
-  poetry install -E "postgresql+aiopg"
+  poetry install --no-dev -E "postgresql+aiopg"
   ```
 - Copy and paste (or rename) [`config.py-example`](./config.py-example) to `config.py`
 - Edit all the necessary config value (`token`, `botMasters`, and `sql`)
