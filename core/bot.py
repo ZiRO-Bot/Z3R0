@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+
 import aiohttp
 import copy
 import datetime
@@ -32,7 +35,7 @@ from exts.utils.format import cleanifyPrefix  # type: ignore
 from exts.utils.other import Blacklist, utcnow  # type: ignore
 from databases import Database
 from discord.ext import commands, tasks
-from typing import Union, Iterable
+from typing import Any, Dict, Iterable, List, Optional, Union
 
 
 import config  # type: ignore
@@ -48,7 +51,7 @@ for filename in os.listdir("./{}".format(EXTS_DIR)):
         EXTS.append("{}.{}".format(EXTS_DIR, filename[:-3]))
 
 
-async def _callablePrefix(bot, message):
+async def _callablePrefix(bot: ziBot, message: discord.Message) -> list:
     """Callable Prefix for the bot."""
     base = [bot.defPrefix]
     if message.guild:
@@ -60,9 +63,9 @@ async def _callablePrefix(bot, message):
 class ziBot(commands.Bot):
 
     # --- NOTE: Information about the bot
-    author = getattr(config, "author", "ZiRO2264#9999")
-    version = "`3.0.4` - `overhaul`"
-    links = getattr(
+    author: str = getattr(config, "author", "ZiRO2264#9999")
+    version: str = "`3.0.4` - `overhaul`"
+    links: Dict[str, str] = getattr(
         config,
         "links",
         {
@@ -71,10 +74,10 @@ class ziBot(commands.Bot):
             "Support Server": "https://discord.gg/sP9xRy6",
         },
     )
-    license = "Mozilla Public License, v. 2.0"
+    license: str = "Mozilla Public License, v. 2.0"
     # ---
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(
             command_prefix=_callablePrefix,
             description=(
@@ -86,40 +89,44 @@ class ziBot(commands.Bot):
             heartbeat_timeout=150.0,
         )
         # make cogs case insensitive
-        self._BotBase__cogs = commands.core._CaseInsensitiveDict()
+        self._BotBase__cogs: commands.core._CaseInsensitiveDict = (
+            commands.core._CaseInsensitiveDict()
+        )
 
         # log
-        self.logger = logging.getLogger("discord")
+        self.logger: logging.Logger = logging.getLogger("discord")
 
         # Default colour for embed
-        self.colour = discord.Colour(0x3DB4FF)
-        self.color = self.colour
+        self.colour: discord.Colour = discord.Colour(0x3DB4FF)
+        self.color: discord.Colour = self.colour
 
         # Bot master(s)
         # self.master = (186713080841895936,)
-        self.master = (
+        self.master: tuple = (
             tuple()
             if not hasattr(config, "botMasters")
             else tuple([int(master) for master in config.botMasters])
         )
 
-        self.issueChannel = (
+        self.issueChannel: Optional[int] = (
             None if not hasattr(config, "issueChannel") else int(config.issueChannel)
         )
 
-        self.blacklist = Blacklist("blacklist.json")
+        self.blacklist: Blacklist = Blacklist("blacklist.json")
 
-        self.activityIndex = 0
-        self.commandUsage = 0
-        self.customCommandUsage = 0
+        self.activityIndex: int = 0
+        self.commandUsage: int = 0
+        self.customCommandUsage: int = 0
         # How many days before guild data get wiped when bot leaves the guild
-        self.guildDelDays = 30
+        self.guildDelDays: int = 30
 
         # bot's default prefix
-        self.defPrefix = ">" if not hasattr(config, "prefix") else config.prefix
+        self.defPrefix: str = (
+            ">" if not hasattr(config, "prefix") else str(config.prefix)
+        )
 
         # Caches
-        self.cache = (
+        self.cache: Cache = (
             Cache()
             .add(
                 "prefixes",
@@ -147,16 +154,16 @@ class ziBot(commands.Bot):
         )
 
         # database
-        self.db = Database(config.sql, factory=Connection)
+        self.db: Database = Database(config.sql, factory=Connection)
 
         # async init
-        self.session = aiohttp.ClientSession(
+        self.session: aiohttp.ClientSession = aiohttp.ClientSession(
             headers={"User-Agent": "Discord/Z3RO (ziBot/3.0 by ZiRO2264)"}
         )
         self.loop.create_task(self.asyncInit())
         self.loop.create_task(self.startUp())
 
-    async def asyncInit(self):
+    async def asyncInit(self) -> None:
         """`__init__` but async"""
         # self.db = await aiosqlite.connect("data/database.db")
         await self.db.connect()
@@ -171,7 +178,7 @@ class ziBot(commands.Bot):
             await self.db.execute(dbQuery.createDisabledTable)
             await self.db.execute(dbQuery.createGuildMutesTable)
 
-    async def startUp(self):
+    async def startUp(self) -> None:
         """Will run when the bot ready"""
         await self.wait_until_ready()
         if not self.master:
@@ -181,7 +188,7 @@ class ziBot(commands.Bot):
             )
 
         # Add application owner into bot master list
-        owner = (await self.application_info()).owner
+        owner: discord.User = (await self.application_info()).owner
         if owner and owner.id not in self.master:
             self.master += (owner.id,)
 
@@ -191,11 +198,11 @@ class ziBot(commands.Bot):
         await self.manageGuildDeletion()
 
         if not hasattr(self, "uptime"):
-            self.uptime = utcnow()
+            self.uptime: datetime.datetime = utcnow()
 
     async def getGuildConfigs(
         self, guildId: int, filters: Iterable = "*", table: str = "guildConfigs"
-    ):
+    ) -> Dict[str, Any]:
         # TODO: filters is deprecated, delete it later
         # Get guild configs and maybe cache it
         cached: CacheDictProperty = getattr(self.cache, table)
@@ -215,14 +222,14 @@ class ziBot(commands.Bot):
 
     async def getGuildConfig(
         self, guildId: int, configType: str, table: str = "guildConfigs"
-    ):
+    ) -> Optional[Any]:
         # Get guild's specific config
         configs: dict = await self.getGuildConfigs(guildId, table=table)
         return configs.get(configType)
 
     async def setGuildConfig(
         self, guildId: int, configType: str, configValue, table: str = "guildConfigs"
-    ):
+    ) -> Optional[Any]:
         # Set/edit guild's specific config
         if (
             config := await self.getGuildConfig(guildId, configType, table)
@@ -262,7 +269,7 @@ class ziBot(commands.Bot):
             cached.set(guildId, newData)
         return cached.get(guildId, {}).get(configType, None)
 
-    async def getGuildPrefix(self, guildId):
+    async def getGuildPrefix(self, guildId: int) -> List[str]:
         if self.cache.prefixes.get(guildId) is None:
             # Only executed when there's no cache for guild's prefix
             dbPrefixes = await self.db.fetch_all(
@@ -276,7 +283,7 @@ class ziBot(commands.Bot):
 
         return self.cache.prefixes[guildId]
 
-    async def addPrefix(self, guildId, prefix):
+    async def addPrefix(self, guildId: int, prefix: str) -> str:
         """Add a prefix"""
         # Fetch prefixes incase there's no cache
         await self.getGuildPrefix(guildId)
@@ -302,7 +309,7 @@ class ziBot(commands.Bot):
 
         return prefix
 
-    async def rmPrefix(self, guildId, prefix):
+    async def rmPrefix(self, guildId: int, prefix: str) -> str:
         """Remove a prefix"""
         await self.getGuildPrefix(guildId)
 
@@ -326,7 +333,7 @@ class ziBot(commands.Bot):
         return prefix
 
     @tasks.loop(seconds=15)
-    async def changing_presence(self):
+    async def changing_presence(self) -> None:
         activities = (
             discord.Activity(
                 name=f"over {len(self.guilds)} servers",
@@ -341,19 +348,16 @@ class ziBot(commands.Bot):
             ),
             discord.Activity(name=f"bot war", type=discord.ActivityType.competing),
         )
-        try:
-            self.activityIndex += 1
-            activity = activities[self.activityIndex]
-        except IndexError:
+        self.activityIndex += 1
+        if self.activityIndex > len(activities):
             self.activityIndex = 0
-            activity = activities[self.activityIndex]
 
         await self.change_presence(activity=activities[self.activityIndex])
 
-    async def on_ready(self):
+    async def on_ready(self) -> None:
         self.logger.warning("Ready: {0} (ID: {0.id})".format(self.user))
 
-    async def manageGuildDeletion(self):
+    async def manageGuildDeletion(self) -> None:
         """Manages guild deletion from database on boot"""
         async with self.db.transaction():
             timer: Timer = self.get_cog("Timer")
@@ -413,7 +417,7 @@ class ziBot(commands.Bot):
             elif not timer.currentTimer:
                 timer.restartTimer()
 
-    async def on_guild_join(self, guild):
+    async def on_guild_join(self, guild: discord.Guild) -> None:
         """Executed when bot joins a guild"""
         await self.wait_until_ready()
 
@@ -425,20 +429,20 @@ class ziBot(commands.Bot):
             # Cancel deletion
             await self.cancelDeletion(guild)
 
-    async def on_guild_remove(self, guild):
+    async def on_guild_remove(self, guild: discord.Guild) -> None:
         """Executed when bot leaves a guild"""
         await self.wait_until_ready()
         # Schedule deletion
         await self.scheduleDeletion(guild.id, days=self.guildDelDays)
 
-    async def scheduleDeletion(self, guildId: int, days: int = 30):
+    async def scheduleDeletion(self, guildId: int, days: int = 30) -> None:
         """Schedule guild deletion from `guilds` table"""
         timer: Timer = self.get_cog("Timer")
         now = utcnow()
         when = now + datetime.timedelta(days=days)
         await timer.createTimer(when, "guild_del", created=now, owner=guildId)
 
-    async def cancelDeletion(self, guild: discord.Guild):
+    async def cancelDeletion(self, guild: discord.Guild) -> None:
         """Cancel guild deletion"""
         timer: Timer = self.get_cog("Timer")
         # Remove the deletion timer and restart timer task
@@ -454,7 +458,7 @@ class ziBot(commands.Bot):
             if timer.currentTimer and timer.currentTimer.owner == guild.id:
                 timer.restartTimer()
 
-    async def on_guild_del_timer_complete(self, timer: TimerData):
+    async def on_guild_del_timer_complete(self, timer: TimerData) -> None:
         """Executed when guild deletion timer completed"""
         await self.wait_until_ready()
         guildId = timer.owner
@@ -484,7 +488,7 @@ class ziBot(commands.Bot):
                 except KeyError:
                     pass
 
-    async def process_commands(self, message):
+    async def process_commands(self, message: discord.Message) -> Optional[str]:
         # initial ctx
         ctx = await self.get_context(message, cls=Context)
 
@@ -553,7 +557,7 @@ class ziBot(commands.Bot):
                 self.customCommandUsage += 1
                 return ""
 
-    async def formattedPrefixes(self, guildId):
+    async def formattedPrefixes(self, guildId: int) -> str:
         prefixes = await self.getGuildPrefix(guildId)
         prefixes = ", ".join([f"`{x}`" for x in prefixes])
         result = "My default prefixes are `{}` or {}".format(
@@ -567,7 +571,7 @@ class ziBot(commands.Bot):
         #     self.user.mention if not codeblock else ("@" + self.user.display_name),
         # )
 
-    async def on_message(self, message):
+    async def on_message(self, message) -> None:
         # dont accept commands from bot
         if (
             message.author.bot
@@ -594,7 +598,7 @@ class ziBot(commands.Bot):
         if processed is not None:
             self.commandUsage += 1
 
-    async def close(self):
+    async def close(self) -> None:
         """Properly close/turn off bot"""
         await super().close()
         # Close database
@@ -603,7 +607,7 @@ class ziBot(commands.Bot):
         # Close aiohttp session
         await self.session.close()
 
-    def run(self):
+    def run(self) -> None:
         # load all listed extensions
         for extension in EXTS:
             self.load_extension(extension)
