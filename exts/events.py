@@ -3,6 +3,8 @@ This Source Code Form is subject to the terms of the Mozilla Public
 License, v. 2.0. If a copy of the MPL was not distributed with this
 file, You can obtain one at http://mozilla.org/MPL/2.0/.
 """
+from __future__ import annotations
+
 
 import asyncio
 import discord
@@ -14,23 +16,28 @@ import traceback
 import TagScriptEngine as tse
 
 
-from core import errors
-from core.mixin import CogMixin
+from core import errors  # type: ignore
+from core.mixin import CogMixin  # type: ignore
 from discord.ext import commands
-from exts.utils import tseBlocks
-from exts.utils.format import formatMissingArgError, ZEmbed
-from exts.utils.other import reactsToMessage, ArgumentError, utcnow
+from exts.utils import tseBlocks  # type: ignore
+from exts.utils.format import formatMissingArgError, ZEmbed  # type: ignore
+from exts.utils.other import reactsToMessage, ArgumentError, utcnow  # type: ignore
+from typing import Any, Dict, Optional, TYPE_CHECKING
+
+
+if TYPE_CHECKING:
+    from core.bot import ziBot  # type: ignore
 
 
 # TODO: Move this to exts.utils.other
 async def doModlog(
-    bot,
+    bot: ziBot,
     guild: discord.Guild,
     member: discord.abc.User,
     moderator: discord.abc.User,
     type: str,
     reason: str = None,
-):
+) -> None:
     """Basically handle formatting modlog events"""
     channel = await bot.getGuildConfig(guild.id, "modlogCh", "guildChannels")
     channel = bot.get_channel(channel)
@@ -55,7 +62,7 @@ async def doModlog(
 class EventHandler(commands.Cog, CogMixin):
     """Place for to put random events."""
 
-    def __init__(self, bot):
+    def __init__(self, bot: ziBot) -> None:
         super().__init__(bot)
 
         # TSE stuff
@@ -69,7 +76,7 @@ class EventHandler(commands.Cog, CogMixin):
         ]
         self.engine = tse.Interpreter(blocks)
 
-    def getGreetSeed(self, member: discord.Member):
+    def getGreetSeed(self, member: discord.Member) -> Dict[str, Any]:
         """For welcome and farewell message"""
         target = tse.MemberAdapter(member)
         guild = tse.GuildAdapter(member.guild)
@@ -80,7 +87,7 @@ class EventHandler(commands.Cog, CogMixin):
             "server": guild,
         }
 
-    async def handleGreeting(self, member: discord.Member, type: str):
+    async def handleGreeting(self, member: discord.Member, type: str) -> None:
         channel = await self.bot.getGuildConfig(
             member.guild.id, f"{type}Ch", "guildChannels"
         )
@@ -109,8 +116,8 @@ class EventHandler(commands.Cog, CogMixin):
             if react := result.actions.get("react"):
                 self.bot.loop.create_task(reactsToMessage(msg, react))
 
-    @commands.Cog.listener()
-    async def on_member_join(self, member: discord.Member):
+    @commands.Cog.listener("on_member_join")
+    async def onMemberJoin(self, member: discord.Member) -> None:
         """Welcome message"""
         await self.handleGreeting(member, "welcome")
         autoRole = await self.bot.getGuildConfig(
@@ -126,8 +133,8 @@ class EventHandler(commands.Cog, CogMixin):
                 # Something wrong happened
                 return
 
-    @commands.Cog.listener()
-    async def on_member_remove(self, member: discord.Member):
+    @commands.Cog.listener("on_member_remove")
+    async def onMemberRemove(self, member: discord.Member) -> None:
         """Farewell message"""
         # TODO: Add muted_member table to database to prevent mute evasion
         try:
@@ -149,14 +156,16 @@ class EventHandler(commands.Cog, CogMixin):
 
         return await self.handleGreeting(member, "farewell")
 
-    @commands.Cog.listener()
-    async def on_member_kick(self, member: discord.User, entry: discord.AuditLogEntry):
+    @commands.Cog.listener("on_member_kick")
+    async def onMemberKick(
+        self, member: discord.User, entry: discord.AuditLogEntry
+    ) -> None:
         await doModlog(
             self.bot, member.guild, entry.target, entry.user, "kick", entry.reason
         )
 
-    @commands.Cog.listener()
-    async def on_member_ban(self, guild: discord.Guild, member: discord.Member):
+    @commands.Cog.listener("on_member_ban")
+    async def onMemberBan(self, guild: discord.Guild, member: discord.Member) -> None:
         try:
             entries = await guild.audit_logs(
                 limit=5, action=discord.AuditLogAction.ban
@@ -172,8 +181,8 @@ class EventHandler(commands.Cog, CogMixin):
                 self.bot, guild, entry.target, entry.user, "ban", entry.reason
             )
 
-    @commands.Cog.listener()
-    async def on_command_error(self, ctx, error):
+    @commands.Cog.listener("on_command_error")
+    async def onCommandError(self, ctx, error) -> Optional[discord.Message]:
         # This prevents any commands with local handlers being handled here in on_command_error.
         if hasattr(ctx.command, "on_error"):
             return
@@ -214,7 +223,7 @@ class EventHandler(commands.Cog, CogMixin):
         ):
             return await ctx.error(str(error))
 
-        if isinstance(error, pytz.exceptions.UnknownTimeZoneError):
+        if isinstance(error, pytz.UnknownTimeZoneError):
             ctx.command.reset_cooldown(ctx)
             return await ctx.error(
                 "You can look them up at https://kevinnovak.github.io/Time-Zone-Picker/",
@@ -334,8 +343,10 @@ class EventHandler(commands.Cog, CogMixin):
 
         return
 
-    @commands.Cog.listener()
-    async def on_message_edit(self, before, after):
+    @commands.Cog.listener("on_message_edit")
+    async def onMessageEdit(
+        self, before: discord.Message, after: discord.Message
+    ) -> Optional[discord.Message]:
         if before.author.bot:
             return
 
@@ -399,8 +410,10 @@ class EventHandler(commands.Cog, CogMixin):
 
         return await logCh.send(embed=e)
 
-    @commands.Cog.listener()
-    async def on_message_delete(self, message):
+    @commands.Cog.listener("on_message_delete")
+    async def onMessageDelete(
+        self, message: discord.Message
+    ) -> Optional[discord.Message]:
         if message.author.bot:
             return
 
@@ -427,11 +440,10 @@ class EventHandler(commands.Cog, CogMixin):
 
         return await logCh.send(embed=e)
 
-    # @commands.Cog.listener()
-    # async def on_member_ban(self):
-
-    @commands.Cog.listener()
-    async def on_member_update(self, before, after):
+    @commands.Cog.listener("on_member_update")
+    async def onMemberUpdate(
+        self, before: discord.Member, after: discord.Member
+    ) -> None:
         if after.guild.id != 807260318270619748:
             return
 
