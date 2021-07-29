@@ -41,32 +41,27 @@ More feature coming soon!
 
 - Download this repository by executing `git clone https://github.com/ZiRO-Bot/Z3R0.git`
   or click "Code" -> "Download ZIP"
-- Install all the dependencies by executing this command,
+- Install poetry by executing this command,
 
    ```zsh
    # Windows
-   py -m pip install -r requirements.txt
+   py -m pip install poetry
 
    # Linux
-   python3 -m pip install -r requirements.txt
+   python3 -m pip install poetry
    ```
 
+- After poetry successfully installed, run `poetry install` to install all required dependencies
 - Copy and paste (or rename) [`config.py-example`](./config.py-example) to `config.py`
 - Edit all the necessary config value (`token`, `botMasters`, and `sql`)
-- Run the bot by executing this command,
-
-   ```zsh
-   # Windows
-   py main.py
-
-   # Linux
-   python3 main.py
-   ```
+- Run the bot by executing this command, `poetry run python main.py`
 - If everything is setup properly, the bot should be online!
 
 ### Development
 
-- Install pre-commit `pip install pre-commit` then run `pre-commit install`
+- Install poetry `pip install poetry` then run `poetry install`
+- Run `poetry run pre-commit install`
+- To run the bot executing this command, `poetry run python main.py`
 
 ## Overhaul
 

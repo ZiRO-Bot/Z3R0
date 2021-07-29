@@ -1,11 +1,15 @@
 repos:
-- repo: https://github.com/pycqa/isort
-  rev: 5.9.3
-  hooks:
-    - id: isort
-      args: ["--profile", "black", "--filter-files"]
-- repo: https://github.com/psf/black
-  rev: 21.7b0 # Replace by any tag/version: https://github.com/psf/black/tags
-  hooks:
-    - id: black
-      language_version: python3 # Should be a command that runs python3.6+
+  - repo: local
+    hooks:
+      - id: system
+        name: isort
+        entry: poetry run isort . --profile black --filter-files
+        pass_filenames: false
+        language: system
+  - repo: local
+    hooks:
+      - id: system
+        name: Black
+        entry: poetry run black .
+        pass_filenames: false
+        language: system

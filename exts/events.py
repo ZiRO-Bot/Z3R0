@@ -20,6 +20,7 @@ from exts.utils import tseBlocks
 from exts.utils.format import ZEmbed, formatMissingArgError
 from exts.utils.other import ArgumentError, reactsToMessage, utcnow
 
+
 if TYPE_CHECKING:
     from core.bot import ziBot  # type: ignore
 

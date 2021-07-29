@@ -1,5 +1,6 @@
 import random
 
+
 # Loot table based on MCJE 1.16.1
 LOOT_TABLE = [
     (5, "enchanted-book"),

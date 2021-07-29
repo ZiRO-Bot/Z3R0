@@ -11,6 +11,7 @@ from discord.ext import commands, menus
 from core.mixin import CogMixin
 from exts.utils.format import ZEmbed
 
+
 NEKO_API = "https://api.nekos.dev/api/v3"
 
 

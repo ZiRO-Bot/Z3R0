@@ -36,6 +36,7 @@ from exts.utils.cache import (
 from exts.utils.format import cleanifyPrefix
 from exts.utils.other import Blacklist, utcnow
 
+
 EXTS = []
 EXTS_DIR = "exts"
 EXTS_IGNORED = ("twitch.py", "youtube.py", "slash.py", "music.py")

@@ -9,7 +9,5 @@ config.json
 config.py
 
 discord.log
-pyproject.toml
-poetry.lock
 
 database.db

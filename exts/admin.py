@@ -15,6 +15,7 @@ from core.mixin import CogMixin
 from exts.utils.format import ZEmbed
 from exts.utils.other import ArgumentParser, UserFriendlyBoolean
 
+
 # Also includes aliases
 ROLE_TYPES = {
     "default": "autoRole",  # Role that automatically given upon joining a guild

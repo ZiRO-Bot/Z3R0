@@ -25,6 +25,7 @@ from pyparsing import (
     delimitedList,
 )
 
+
 PHI = (1 + math.sqrt(5)) / 2
 
 
