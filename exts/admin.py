@@ -15,7 +15,7 @@ from discord.ext import commands
 from exts.utils import dbQuery
 from exts.utils.format import ZEmbed
 from exts.utils.other import ArgumentParser, UserFriendlyBoolean
-from typing import Union
+from typing import Union, Optional
 
 # Also includes aliases
 ROLE_TYPES = {
@@ -266,9 +266,14 @@ class Admin(commands.Cog, CogMixin):
         # Role manager
         pass
 
-    async def setMutedPerms(self, ctx, role: discord.Role):
+    async def updateMutedRoles(
+        self,
+        guild: discord.Guild,
+        role: discord.Role,
+        creator: Optional[discord.Member] = None,
+    ) -> None:
         """Just loop through channels and overwriting muted role's perm"""
-        for channel in ctx.guild.channels:
+        for channel in guild.channels:
             perms: discord.PermissionOverwrite = channel.overwrites_for(role)
 
             perms.update(
@@ -276,11 +281,17 @@ class Admin(commands.Cog, CogMixin):
                 send_messages=False,
             )
 
+            reason = "Mute role set to {}".format(role.name)
+            if creator:
+                reason += " by {}".format(creator)
+
             await channel.set_permissions(
                 target=role,
                 overwrite=perms,
-                reason="Mute role set to {} by {}".format(role.name, ctx.author),
+                reason=reason,
             )
+
+        # TODO: "Merge" old mute role with new mute role (adding new mute role to muted members)
 
     @_role.command(
         name="create",
@@ -323,7 +334,7 @@ class Admin(commands.Cog, CogMixin):
                 await self.setGuildRole(ctx.guild.id, ROLE_TYPES[type], role.id)
 
                 if any([type == "mute", type == "muted"]):
-                    await self.setMutedPerms(ctx, role)
+                    await self.updateMutedRoles(ctx.guild, role, ctx.author)
 
             e = ZEmbed.success(
                 title="SUCCESS: Role has been created",
@@ -382,7 +393,7 @@ class Admin(commands.Cog, CogMixin):
                 await self.setGuildRole(ctx.guild.id, ROLE_TYPES[type], role.id)
 
                 if any([type == "mute", type == "muted"]):
-                    await self.setMutedPerms(ctx, role)
+                    await self.updateMutedRoles(ctx.guild, role, ctx.author)
 
             e = ZEmbed.success(
                 title="SUCCESS: Role has been modified",
