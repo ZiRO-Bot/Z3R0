@@ -100,3 +100,10 @@ def admin_or_permissions(**perms):
         return await check_guild_permissions(ctx, perms, check=any)
 
     return commands.check(predicate)
+
+
+def isRafael():
+    async def pred(ctx):
+        return ctx.author.id == 518154918276628490
+
+    return commands.check(pred)

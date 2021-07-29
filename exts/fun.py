@@ -9,14 +9,15 @@ import discord
 import io
 
 
-from core.converter import MemberOrUser
-from core.mixin import CogMixin
+from core import checks  # type: ignore
+from core.converter import MemberOrUser  # type: ignore
+from core.mixin import CogMixin  # type: ignore
 from discord.ext import commands
-from exts.api import reddit, graphql
-from exts.utils.format import ZEmbed
-from exts.utils.other import ArgumentParser, ArgumentError
-from exts.utils.piglin import Piglin
-from exts.utils.pillow import blurplify
+from exts.api import reddit, graphql  # type: ignore
+from exts.utils.format import ZEmbed  # type: ignore
+from exts.utils.other import ArgumentParser, ArgumentError  # type: ignore
+from exts.utils.piglin import Piglin  # type: ignore
+from exts.utils.pillow import blurplify  # type: ignore
 from random import choice, randint, shuffle, random, randrange
 
 
@@ -241,56 +242,51 @@ class Fun(commands.Cog, CogMixin):
         ),
     )
     @commands.cooldown(1, 5, commands.BucketType.user)
-    async def rps(self, ctx, _choice: str):
-        _choice = _choice.lower()
+    async def rps(self, ctx, choice_: str):
+        choice_ = choice_.lower()
         rps = ("rock", "paper", "scissors")
-        bot_choice = choice(rps)
+        botChoice = choice(rps)
 
-        if bot_choice == choice:
+        if botChoice == choice_:
             result = "It's a Tie!"
-        elif bot_choice == rps[0]:
 
-            def f(x):
+        elif botChoice == rps[0]:
+            def f(x): # type: ignore
                 return {"paper": "Paper wins!", "scissors": "Rock wins!"}.get(
                     x, "Rock wins!"
                 )
 
-            result = f(choice)
-        elif bot_choice == rps[1]:
+            result = f(choice_)
 
-            def f(x):
+        elif botChoice == rps[1]:
+            def f(x): # type: ignore
                 return {"rock": "Paper wins!", "scissors": "Scissors wins!"}.get(
                     x, "Paper wins!"
                 )
 
-            result = f(choice)
-        elif bot_choice == rps[2]:
+            result = f(choice_)
 
+        elif botChoice == rps[2]:
             def f(x):
                 return {"paper": "Scissors wins!", "rock": "Rock wins!"}.get(
                     x, "Scissors wins!"
                 )
 
-            result = f(choice)
+            result = f(choice_)
+
         else:
             return
 
-        if choice == "noob":
+        if choice_ == "noob":
             result = "Noob wins!"
 
         await ctx.try_reply(
-            f"You chose ***{_choice.capitalize()}***."
-            + f" I chose ***{bot_choice.capitalize()}***.\n{result}"
+            f"You chose ***{choice_.capitalize()}***."
+            + f" I chose ***{botChoice.capitalize()}***.\n{result}"
         )
 
-    def isRafael():
-        async def pred(ctx):
-            return ctx.author.id == 518154918276628490
-
-        return commands.check(pred)
-
     @commands.command(aliases=("find-waifu",))
-    @isRafael()
+    @checks.isRafael()
     async def findwaifu(self, ctx):
         """Rafael and his waifu."""
         f = discord.File("./assets/img/rafaelAndHisWaifu.png", filename="img.png")
