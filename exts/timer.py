@@ -3,6 +3,8 @@ This Source Code Form is subject to the terms of the Mozilla Public
 License, v. 2.0. If a copy of the MPL was not distributed with this
 file, You can obtain one at http://mozilla.org/MPL/2.0/.
 """
+from __future__ import annotations
+
 
 import asyncio
 import datetime as dt
@@ -10,12 +12,17 @@ import discord
 import json
 
 
-from core.converter import TimeAndArgument
-from core.mixin import CogMixin
+from core.converter import TimeAndArgument  # type: ignore
+from core.mixin import CogMixin  # type: ignore
 from discord.ext import commands
-from exts.utils import dbQuery
-from exts.utils.other import utcnow
-from exts.utils.format import formatDateTime, ZEmbed, formatDiscordDT
+from exts.utils import dbQuery  # type: ignore
+from exts.utils.other import utcnow  # type: ignore
+from exts.utils.format import formatDateTime, ZEmbed, formatDiscordDT  # type: ignore
+from typing import Optional, TYPE_CHECKING
+
+
+if TYPE_CHECKING:
+    from core.bot import ziBot  # type: ignore
 
 
 class TimerData:
@@ -33,14 +40,14 @@ class TimerData:
     def __init__(self, data):
         self.id = data[0]
         self.event = data[1]
+        self.args: list = []
+        self.kwargs: dict = {}
         try:
             self.extra = json.loads(data[2])
             self.args = self.extra.pop("args", [])
             self.kwargs = self.extra.pop("kwargs", {})
         except TypeError:
             self.extra = data[2]
-            self.args = None
-            self.kwargs = None
         self.expires = dt.datetime.fromtimestamp(data[3], dt.timezone.utc)
         self.createdAt = dt.datetime.fromtimestamp(data[4], dt.timezone.utc)
         self.owner = data[5]
@@ -58,28 +65,28 @@ class Timer(commands.Cog, CogMixin):
     icon = "🕑"
     cc = True
 
-    def __init__(self, bot):
+    def __init__(self, bot: ziBot) -> None:
         super().__init__(bot)
 
         self.haveData = asyncio.Event(loop=bot.loop)
         self.currentTimer = None
         self.bot.loop.create_task(self.asyncInit())
 
-    async def asyncInit(self):
+    async def asyncInit(self) -> None:
         async with self.bot.db.transaction():
             await self.bot.db.execute(dbQuery.createTimerTable)
         self.task = self.bot.loop.create_task(self.dispatchTimers())
 
-    def cog_unload(self):
+    def cog_unload(self) -> None:
         task = getattr(self, "task", None)
         if task:
             task.cancel()
 
-    def restartTimer(self):
+    def restartTimer(self) -> None:
         self.task.cancel()
         self.task = self.bot.loop.create_task(self.dispatchTimers())
 
-    async def getActiveTimer(self, days: int = 7):
+    async def getActiveTimer(self, days: int = 7) -> Optional[TimerData]:
         data = await self.bot.db.fetch_one(
             """
                 SELECT * FROM timer
@@ -92,18 +99,18 @@ class Timer(commands.Cog, CogMixin):
         )
         return TimerData(data) if data else None
 
-    async def waitForActiveTimer(self, days: int = 7):
-        timer = await self.getActiveTimer(days=days)
+    async def waitForActiveTimer(self, days: int = 7) -> Optional[TimerData]:
+        timer: Optional[TimerData] = await self.getActiveTimer(days=days)
         if timer is not None:
             self.haveData.set()
             return timer
 
         self.haveData.clear()
-        self.currentTimer = None
+        self.currentTimer: Optional[TimerData] = None
         await self.haveData.wait()
         return await self.getActiveTimer(days=days)
 
-    async def callTimer(self, timer):
+    async def callTimer(self, timer: TimerData) -> None:
         # delete the timer
         async with self.bot.db.transaction():
             await self.bot.db.execute(
@@ -114,7 +121,7 @@ class Timer(commands.Cog, CogMixin):
         eventName = f"{timer.event}_timer_complete"
         self.bot.dispatch(eventName, timer)
 
-    async def dispatchTimers(self):
+    async def dispatchTimers(self) -> None:
         try:
             while not self.bot.is_closed():
                 timer = self.currentTimer = await self.waitForActiveTimer(days=40)
@@ -130,7 +137,7 @@ class Timer(commands.Cog, CogMixin):
         except (OSError, discord.ConnectionClosed):
             self.restartTimer()
 
-    async def createTimer(self, *args, **kwargs):
+    async def createTimer(self, *args, **kwargs) -> TimerData:
         when, event, *args = args
 
         now = kwargs.pop("created", utcnow())
@@ -176,7 +183,7 @@ class Timer(commands.Cog, CogMixin):
         aliases=["timer", "remind"],
         brief="Reminds you about something after certain amount of time",
     )
-    async def reminder(self, ctx, *, argument: TimeAndArgument):
+    async def reminder(self, ctx, *, argument: TimeAndArgument) -> discord.Message:
         now = utcnow()
         when = argument.when
         message = argument.arg or "Reminder"
@@ -200,7 +207,7 @@ class Timer(commands.Cog, CogMixin):
         )
 
     @commands.command(brief="Get current time")
-    async def time(self, ctx):
+    async def time(self, ctx) -> None:
         # TODO: Add timezone
         e = discord.Embed(
             title="Current Time",
@@ -210,8 +217,8 @@ class Timer(commands.Cog, CogMixin):
         e.set_footer(text="Timezone coming soon\u2122!")
         await ctx.try_reply(embed=e)
 
-    @commands.Cog.listener()
-    async def on_reminder_timer_complete(self, timer: TimerData):
+    @commands.Cog.listener("on_reminder_timer_complete")
+    async def onReminderTimerComplete(self, timer: TimerData) -> None:
         channelId, message = timer.args
         authorId = timer.owner
 

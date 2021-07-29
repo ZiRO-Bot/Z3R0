@@ -237,8 +237,8 @@ class Moderation(commands.Cog, CogMixin):
             delete_message_days=0 if saveMsg else 1,
         )
 
-    @commands.Cog.listener()
-    async def on_ban_timer_complete(self, timer: TimerData):
+    @commands.Cog.listener("on_ban_timer_complete")
+    async def onBanTimerComplete(self, timer: TimerData):
         """Automatically unban."""
         guildId, modId, userId = timer.args
         await self.bot.wait_until_ready()
@@ -350,8 +350,8 @@ class Moderation(commands.Cog, CogMixin):
             # Missing mute role (either not yet added or deleted)
             raise MissingMuteRole(ctx) from None
 
-    @commands.Cog.listener()
-    async def on_mute_timer_complete(self, timer: TimerData):
+    @commands.Cog.listener("on_mute_timer_complete")
+    async def onMuteTimerComplete(self, timer: TimerData):
         """Automatically unmute."""
         guildId, modId, userId = timer.args
         await self.bot.wait_until_ready()
