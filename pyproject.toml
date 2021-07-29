@@ -49,7 +49,7 @@ voice = ["PyNaCl"]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
-[flake8]
+[tool.flake8]
 max-line-length = 88
 select = "C,E,F,W,B,B950"
 extend-ignore = "E203,E501"
