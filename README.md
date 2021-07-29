@@ -74,7 +74,6 @@ Moved to [CHANGELOG.md](./CHANGELOG.md)
 
 - Implement anti mute evasion
 - Cooldown
-- Migration tool, migrate from old database "layout" to newer "layout"
 - Image manipulation (Filter and stuff) (in `v3.1.0` maybe?)
 - Re-implement/improve old (`v2.x`) commands to ~~`v3.0.0`~~ `v3.1.0` (`85%` has been ported)
 - Event for banned member, ~~member boosting a guild~~ (Just need to implement setup for it), and muted member
