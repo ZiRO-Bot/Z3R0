@@ -329,9 +329,8 @@ class Moderation(commands.Cog, CogMixin):
     )
     @checks.mod_or_permissions(manage_messages=True)
     async def unmute(self, ctx, member: discord.Member, *, reason: str = "No reason"):
-        muteRoleId = await self.bot.getGuildConfig(
-            ctx.guild.id, "mutedRole", "guildRoles"
-        )
+        guildId = ctx.guild.id
+        muteRoleId = await self.bot.getGuildConfig(guildId, "mutedRole", "guildRoles")
         await member.remove_roles(discord.Object(id=muteRoleId), reason=reason)
         e = ZEmbed.success(
             title="Unmuted {} for {}".format(member, reason),
@@ -339,14 +338,39 @@ class Moderation(commands.Cog, CogMixin):
         await ctx.try_reply(embed=e)
 
     async def doMute(self, ctx, member: discord.Member, /, reason: str, **kwargs):
-        muteRoleId = await self.bot.getGuildConfig(
-            ctx.guild.id, "mutedRole", "guildRoles"
-        )
+        guildId = ctx.guild.id
+        muteRoleId = await self.bot.getGuildConfig(guildId, "mutedRole", "guildRoles")
         try:
             await member.add_roles(discord.Object(id=muteRoleId), reason=reason)
         except (TypeError, discord.errors.NotFound):
             # Missing mute role (either not yet added or deleted)
             raise MissingMuteRole(ctx) from None
+
+    @commands.Cog.listener("on_member_update")
+    async def onMemberUpdate(self, before: discord.Member, after: discord.Member):
+        # Used to manage muted members
+        if before.roles == after.roles:
+            return
+
+        guildId = after.guild.id
+        muteRoleId = await self.bot.getGuildConfig(guildId, "mutedRole", "guildRoles")
+        if not muteRoleId:
+            return
+
+        beforeHas = before._roles.has(muteRoleId)
+        afterHas = after._roles.has(muteRoleId)
+
+        if beforeHas == afterHas:
+            return
+
+        await self.manageMuted(after.id, afterHas)
+
+    async def manageMuted(self, memberId: int, mode: bool):
+        """Manage muted members, for anti mute evasion
+
+        mode: False = Deletion, True = Insertion"""
+        # TODO: Add the actual stuff
+        pass
 
     @commands.Cog.listener("on_mute_timer_complete")
     async def onMuteTimerComplete(self, timer: TimerData):
