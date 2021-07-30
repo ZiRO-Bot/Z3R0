@@ -70,9 +70,10 @@ class Admin(commands.Cog, CogMixin):
         raw = parsed.raw
 
         changeMsg = False
+        message = None
         if not raw and not disable and parsed.message:
             changeMsg = True
-            message = " ".join(parsed.message)
+            message = " ".join(parsed.message).strip()
 
         channel = None
         if not raw and not disable and parsed.channel:
@@ -94,9 +95,10 @@ class Admin(commands.Cog, CogMixin):
             message = await self.bot.getGuildConfig(ctx.guild.id, f"{type}Msg")
             return await ctx.try_reply(discord.utils.escape_markdown(message))
 
-        if changeMsg:
+        if changeMsg and message:
             await self.bot.setGuildConfig(ctx.guild.id, f"{type}Msg", message)
             e.add_field(name="Message", value=message, inline=False)
+
         if channel is not None:
             await self.bot.setGuildConfig(
                 ctx.guild.id, f"{type}Ch", channel.id, "guildChannels"
