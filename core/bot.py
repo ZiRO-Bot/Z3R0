@@ -3,7 +3,6 @@ from __future__ import annotations
 import copy
 import datetime
 import json
-import logging
 import os
 import re
 from contextlib import suppress
@@ -90,7 +89,7 @@ class ziBot(commands.Bot):
         )
 
         # log
-        self.logger: logging.Logger = logging.getLogger("discord")
+        # self.logger: logging.Logger = logging.getLogger("discord")
 
         # Default colour for embed
         self.colour: discord.Colour = discord.Colour(0x3DB4FF)

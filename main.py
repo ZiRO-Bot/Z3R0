@@ -4,9 +4,6 @@ import logging
 import os
 from logging.handlers import RotatingFileHandler
 
-import click
-
-import config
 import core.bot as _bot
 from exts.utils.other import utcnow
 
@@ -53,29 +50,24 @@ def setup_logging():
 
         yield
     finally:
-        handlers = logger.handlers[:]
+        handlers = logger.handlers[:]  # type: ignore
         for handler in handlers:
             handler.close()
-            logger.removeHandler(handler)
+            logger.removeHandler(handler)  # type: ignore
 
 
-def init_bot():
-    loop = asyncio.get_event_loop()
-    logger = logging.getLogger()
-
+def init_bot(loop):
     bot = _bot.ziBot()
     bot.uptime = utcnow()
+    bot.logger = logging.getLogger("discord")
     bot.run()
 
 
-@click.group(invoke_without_command=True)
-@click.pass_context
-def main(ctx):
+def main():
     """Launch the bot."""
-    if ctx.invoked_subcommand is None:
-        loop = asyncio.get_event_loop()
-        with setup_logging():
-            init_bot()
+    loop = asyncio.get_event_loop()
+    with setup_logging():
+        init_bot(loop)
 
 
 if __name__ == "__main__":
