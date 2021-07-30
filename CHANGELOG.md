@@ -3,6 +3,10 @@
 - [**New**] Re-added someone command (mimicking `@someone` April Fools command
   from discord) but only available on April Fools!
 
+# 3.0.5
+
+- [**Fixed**] Fix `CCommandNoPerm` not being handled by error handler
+
 # 3.0.4
 
 - [**Fixed**] Fix google search's safe search not working
