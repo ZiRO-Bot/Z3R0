@@ -5,7 +5,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 """
 
 from contextlib import suppress
-from typing import Union
+from typing import Optional, Union
 
 import discord
 from discord.ext import commands
@@ -47,18 +47,15 @@ class Moderation(commands.Cog, CogMixin):
             errMsg = "You can't {} guild owner!".format(action or "do this action to")
         else:
             # compare author and bot's top role vs target's top role
-            try:
+            with suppress(AttributeError):
                 if ctx.me.top_role <= user.top_role:
                     errMsg = (
                         "{}'s top role is higher than mine in the hierarchy!".format(
                             user
                         )
                     )
-            except:
-                # probably instance of discord.User
-                pass
 
-            try:
+            with suppress(AttributeError):
                 if (
                     ctx.author != ctx.guild.owner  # guild owner doesn't need this check
                     and ctx.author.top_role <= user.top_role
@@ -68,9 +65,6 @@ class Moderation(commands.Cog, CogMixin):
                             user
                         )
                     )
-            except:
-                # probably instance of discord.User
-                pass
 
         # errMsg will always None unless check fails
         if errMsg is not None:
@@ -79,7 +73,7 @@ class Moderation(commands.Cog, CogMixin):
         return True
 
     async def doModeration(
-        self, ctx, user, _time: TimeAndArgument, action: str, **kwargs
+        self, ctx, user, _time: Optional[TimeAndArgument], action: str, **kwargs
     ):
         """Ban function, self-explanatory"""
         actions = {
@@ -107,9 +101,9 @@ class Moderation(commands.Cog, CogMixin):
 
         # Try getting necessary variables
         try:
-            reason = _time.arg or defaultReason
-            delta = _time.delta
-            time = _time.when
+            reason = _time.arg or defaultReason  # type: ignore # handled by try-except
+            delta = _time.delta  # type: ignore
+            time = _time.when  # type: ignore
         except AttributeError:
             reason = kwargs.pop("reason", defaultReason) or defaultReason
 
@@ -260,7 +254,7 @@ class Moderation(commands.Cog, CogMixin):
         if not moderator:
             try:
                 moderator = self.bot.fetch_user(modId)
-            except:
+            except BaseException:
                 moderator = "Mod ID {}".format(modId)
 
         moderator = modTemplate.format(moderator, modId)
@@ -373,7 +367,7 @@ class Moderation(commands.Cog, CogMixin):
         if not moderator:
             try:
                 moderator = self.bot.fetch_user(modId)
-            except:
+            except BaseException:
                 moderator = "Mod ID {}".format(modId)
 
         moderator = modTemplate.format(moderator, modId)
@@ -516,7 +510,7 @@ class Moderation(commands.Cog, CogMixin):
                 oldest_first=False,
                 bulk=True,
             )
-        except Forbidden:
+        except discord.Forbidden:
             return await ctx.error(
                 "The bot doesn't have `Manage Messages` permission!",
                 title="Missing Permission",
