@@ -1,4 +1,6 @@
+import datetime as dt
 import re
+from typing import Optional
 
 import discord
 from dateutil.relativedelta import relativedelta
@@ -27,8 +29,8 @@ class TimeAndArgument(commands.Converter):
     async def convert(self, ctx: Context, argument: str):
         # Default values
         self.arg = argument
-        self.when = None
-        self.delta = None
+        self.when: Optional[dt.datetime] = None
+        self.delta: Optional[str] = None
 
         match = TIME_REGEX.match(argument)
         if match:

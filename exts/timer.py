@@ -68,7 +68,7 @@ class Timer(commands.Cog, CogMixin):
         super().__init__(bot)
 
         self.haveData = asyncio.Event(loop=bot.loop)
-        self.currentTimer = None
+        self._currentTimer: Optional[TimerData] = None
         self.bot.loop.create_task(self.asyncInit())
 
     async def asyncInit(self) -> None:
@@ -105,7 +105,7 @@ class Timer(commands.Cog, CogMixin):
             return timer
 
         self.haveData.clear()
-        self.currentTimer: Optional[TimerData] = None
+        self._currentTimer: Optional[TimerData] = None
         await self.haveData.wait()
         return await self.getActiveTimer(days=days)
 
@@ -123,14 +123,14 @@ class Timer(commands.Cog, CogMixin):
     async def dispatchTimers(self) -> None:
         try:
             while not self.bot.is_closed():
-                timer = self.currentTimer = await self.waitForActiveTimer(days=40)
+                timer = self._currentTimer = await self.waitForActiveTimer(days=40)
                 now = utcnow()
 
-                if timer.expires >= now:
-                    sleepAmount = (timer.expires - now).total_seconds()
+                if timer.expires >= now:  # type: ignore # Already waited for active timer
+                    sleepAmount = (timer.expires - now).total_seconds()  # type: ignore
                     await asyncio.sleep(sleepAmount)
 
-                await self.callTimer(timer)
+                await self.callTimer(timer)  # type: ignore
         except asyncio.CancelledError:
             raise
         except (OSError, discord.ConnectionClosed):
@@ -172,7 +172,7 @@ class Timer(commands.Cog, CogMixin):
         if delta <= (86400 * 40):  # 40 days
             self.haveData.set()
 
-        if self.currentTimer and when < self.currentTimer.expires:
+        if self._currentTimer and when < self._currentTimer.expires:
             # cancel the task and re-run it
             self.restartTimer()
 
@@ -189,7 +189,7 @@ class Timer(commands.Cog, CogMixin):
         if not when:
             return await ctx.try_reply("Invalid time.")
 
-        timer = await self.createTimer(
+        await self.createTimer(
             when,
             "reminder",
             ctx.channel.id,
@@ -198,6 +198,7 @@ class Timer(commands.Cog, CogMixin):
             created=now,
             owner=ctx.author.id,
         )
+
         return await ctx.try_reply(
             "In {}, {}".format(
                 argument.delta,

@@ -404,12 +404,12 @@ class ziBot(commands.Bot):
             )
 
             # Restart timer task
-            if timer.currentTimer and (
-                timer.currentTimer.owner in canceledScheduleGuilds
-                or when < timer.currentTimer.expires
+            if timer._currentTimer and (
+                timer._currentTimer.owner in canceledScheduleGuilds
+                or when < timer._currentTimer.expires
             ):
                 timer.restartTimer()
-            elif not timer.currentTimer:
+            elif not timer._currentTimer:
                 timer.restartTimer()
 
     async def on_guild_join(self, guild: discord.Guild) -> None:
@@ -450,7 +450,7 @@ class ziBot(commands.Bot):
                 """,
                 values={"id": guild.id},
             )
-            if timer.currentTimer and timer.currentTimer.owner == guild.id:
+            if timer._currentTimer and timer._currentTimer.owner == guild.id:
                 timer.restartTimer()
 
     async def on_guild_del_timer_complete(self, timer: TimerData) -> None:

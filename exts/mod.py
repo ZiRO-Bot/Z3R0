@@ -78,7 +78,9 @@ class Moderation(commands.Cog, CogMixin):
 
         return True
 
-    async def doModeration(self, ctx, user, time: TimerData, action: str, **kwargs):
+    async def doModeration(
+        self, ctx, user, _time: TimeAndArgument, action: str, **kwargs
+    ):
         """Ban function, self-explanatory"""
         actions = {
             "ban": self.doBan,
@@ -96,15 +98,18 @@ class Moderation(commands.Cog, CogMixin):
             )
 
         try:
-            check = await self.checkHierarchy(ctx, user, action)
+            await self.checkHierarchy(ctx, user, action)
         except HierarchyError as exc:
             return await ctx.error(str(exc))
 
+        time = None
+        delta = None
+
         # Try getting necessary variables
         try:
-            reason = time.arg or defaultReason
-            delta = time.delta
-            time = time.when
+            reason = _time.arg or defaultReason
+            delta = _time.delta
+            time = _time.when
         except AttributeError:
             reason = kwargs.pop("reason", defaultReason) or defaultReason
 
