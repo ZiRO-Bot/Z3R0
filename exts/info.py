@@ -55,18 +55,24 @@ class Info(commands.Cog, CogMixin):
         if not user:
             user = await authorOrReferenced(ctx)
 
+        # Links to avatar (with different formats)
+        links = (
+            "[`JPEG`]({})"
+            " | [`PNG`]({})"
+            " | [`WEBP`]({})".format(
+                user.avatar_url_as(format="jpg"),
+                user.avatar_url_as(format="png"),
+                user.avatar_url_as(format="webp"),
+            )
+        )
+        if user.is_avatar_animated():
+            links += " | [`GIF`]({})".format(user.avatar_url_as(format="gif"))
+
         # Embed stuff
         e = ZEmbed.default(
             ctx,
             title="{}'s Avatar".format(user.name),
-            description="[`JPEG`]({})".format(user.avatar_url_as(format="jpg"))
-            + " | [`PNG`]({})".format(user.avatar_url_as(format="png"))
-            + " | [`WEBP`]({})".format(user.avatar_url_as(format="webp"))
-            + (
-                " | [`GIF`]({})".format(user.avatar_url_as(format="gif"))
-                if user.is_avatar_animated()
-                else ""
-            ),
+            description=links,
         )
         e.set_image(url=user.avatar_url_as(size=1024))
         await ctx.try_reply(embed=e)
@@ -444,11 +450,14 @@ class Info(commands.Cog, CogMixin):
         e.add_field(
             name="General",
             value=(
-                "**Name**: {0.name} / {0.mention}\n".format(user)
-                + "**ID**: `{}`\n".format(user.id)
-                + "**Badges**: {}\n".format(" ".join(badges) or "No badges.")
-                + "**Created at**: {} ({})".format(
-                    formatDiscordDT(createdAt, "F"), formatDiscordDT(createdAt, "R")
+                "**Name**: {0.name} / {0.mention}\n"
+                "**ID**: `{0.id}`\n"
+                "**Badges**: {1}\n"
+                "**Created at**: {2} ({3})".format(
+                    user,
+                    " ".join(badges) or "No badges.",
+                    formatDiscordDT(createdAt, "F"),
+                    formatDiscordDT(createdAt, "R"),
                 )
             ),
             inline=False,
@@ -458,7 +467,7 @@ class Info(commands.Cog, CogMixin):
             name="Guild",
             value=(
                 "N/A"
-                if isUser
+                if isUser or not joinedAt
                 else (
                     "**Joined at**: {} ({})\n".format(
                         formatDiscordDT(joinedAt, "F"), formatDiscordDT(joinedAt, "R")
