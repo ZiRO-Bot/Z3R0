@@ -255,16 +255,18 @@ class CustomHelp(commands.HelpCommand):
 
         e = ZEmbed(
             description=infoQuote.info(
-                "- () : Required Argument\n"
-                + "+ [] : Optional Argument\n"
-                + "\nDon't literally type `[]`, `()` or `/`!",
-                codeBlock=True,
+                (
+                    "`( )` = Required Argument\n"
+                    "`[ ]` = Optional Argument\n"
+                    "` / ` = Choices\n"
+                    "**NOTE**: Don't literally type `[ ]`, `( )` or ` / ` when using a command!"
+                ),
             )
             + " | ".join("[{}]({})".format(k, v) for k, v in ctx.bot.links.items()),
         )
         e.set_author(name=ctx.author, icon_url=ctx.author.avatar_url)
         e.set_footer(
-            text="Use `{}help [category|command]` for more information".format(
+            text="Use `{}help [category / command]` for more information".format(
                 ctx.prefix
             )
         )
