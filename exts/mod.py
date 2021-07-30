@@ -219,10 +219,10 @@ class Moderation(commands.Cog, CogMixin):
         brief="Unban a member",
         extras=dict(example=("unban @Someone Wrong person", "unban @Someone")),
     )
-    async def unban(self, ctx, member: BannedMember, *, reason: str = "No reason."):
+    async def unban(self, ctx, member: BannedMember, *, reason: str = "No reason"):
         await ctx.guild.unban(member.user, reason=reason)
         e = ZEmbed.success(
-            title="Unbanned {}".format(member.user),
+            title="Unbanned {} for {}".format(member.user, reason),
         )
         await ctx.try_reply(embed=e)
 
@@ -328,13 +328,13 @@ class Moderation(commands.Cog, CogMixin):
         ),
     )
     @checks.mod_or_permissions(manage_messages=True)
-    async def unmute(self, ctx, member: discord.Member, *, reason: str = "No reason."):
+    async def unmute(self, ctx, member: discord.Member, *, reason: str = "No reason"):
         muteRoleId = await self.bot.getGuildConfig(
             ctx.guild.id, "mutedRole", "guildRoles"
         )
         await member.remove_roles(discord.Object(id=muteRoleId), reason=reason)
         e = ZEmbed.success(
-            title="Unmuted {}".format(member),
+            title="Unmuted {} for {}".format(member, reason),
         )
         await ctx.try_reply(embed=e)
 
