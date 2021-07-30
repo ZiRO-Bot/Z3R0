@@ -6,12 +6,12 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import difflib
 import re
-import shlex
 import time
 from typing import Optional
 
 import discord
 import humanize
+import sqlalchemy as sa
 import TagScriptEngine as tse
 from discord.ext import commands, menus
 
@@ -27,7 +27,7 @@ from core.errors import (
 from core.menus import ZMenu
 from core.mixin import CogMixin
 from core.objects import CustomCommand
-from exts.utils import dbQuery, infoQuote, tseBlocks
+from exts.utils import dbQuery, infoQuote, sql, tseBlocks
 from exts.utils.cache import CacheListProperty, CacheUniqueViolation
 from exts.utils.format import (
     CMDName,
@@ -89,14 +89,36 @@ async def getCustomCommand(ctx, command):
     """Get custom command from database."""
     db = ctx.db
     try:
-        _id, name = await db.fetch_one(
-            dbQuery.getCommandId, values={"name": command, "guildId": ctx.guild.id}
+        # Build query using SQLAlchemy
+        saQuery = (
+            sa.select([sql.commandsLookup.c.cmdId, sql.commandsLookup.c.name])
+            .where(sql.commandsLookup.c.name == command)
+            .where(sql.commandsLookup.c.guildId == ctx.guild.id)
         )
+        _id, name = await db.fetch_one(saQuery)
     except TypeError:
         # No command found
         raise CCommandNotFound(command)
 
-    result = await db.fetch_all(dbQuery.getCommandContent, values={"id": _id})
+    # Build query using SQLAlchemy
+    saQuery = (
+        sa.select(
+            [
+                sql.commands.c.content,
+                sql.commands.c.name,
+                sql.commandsLookup.c.name,
+                sql.commands.c.description,
+                sql.commands.c.category,
+                sql.commands.c.uses,
+                sql.commands.c.url,
+                sql.commands.c.ownerId,
+                sql.commands.c.enabled,
+            ]
+        )
+        .select_from(sql.commands.join(sql.commandsLookup))
+        .where(sql.commands.c.id == _id)
+    )
+    result = await db.fetch_all(saQuery)
     firstRes = result[0]
     return CustomCommand(
         id=_id,
