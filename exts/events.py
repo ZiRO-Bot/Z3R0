@@ -188,6 +188,15 @@ class EventHandler(commands.Cog, CogMixin):
         # If nothing is found. We keep the exception passed to on_command_error.
         error = getattr(error, "original", error)
 
+        # Errors that should be sent no matter what
+        # These errors should have `message` already defined
+        defaultError = (
+            errors.CCommandAlreadyExists,
+            commands.BadArgument,
+            errors.MissingMuteRole,
+            errors.CCommandNoPerm,
+        )
+
         if isinstance(error, commands.CommandNotFound) or isinstance(
             error, commands.DisabledCommand
         ):
@@ -207,14 +216,10 @@ class EventHandler(commands.Cog, CogMixin):
             e = formatMissingArgError(ctx, error)
             return await ctx.try_reply(embed=e)
 
-        if (
-            isinstance(error, errors.CCommandAlreadyExists)
-            or isinstance(error, commands.BadArgument)
-            or isinstance(error, errors.MissingMuteRole)
-        ):
+        if isinstance(error, defaultError):
             return await ctx.error(str(error))
 
-        if isinstance(error, pytz.exceptions.UnknownTimeZoneError):
+        if isinstance(error, pytz.UnknownTimeZoneError):
             ctx.command.reset_cooldown(ctx)
             return await ctx.error(
                 "You can look them up at https://kevinnovak.github.io/Time-Zone-Picker/",
