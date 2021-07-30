@@ -1,3 +1,7 @@
+# 3.0.5
+
+- [**Fixed**] Fix `CCommandNoPerm` not being handled by error handler
+
 # 3.0.4
 
 - [**Fixed**] Fix google search's safe search not working
