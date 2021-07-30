@@ -3,11 +3,12 @@ This Source Code Form is subject to the terms of the Mozilla Public
 License, v. 2.0. If a copy of the MPL was not distributed with this
 file, You can obtain one at http://mozilla.org/MPL/2.0/.
 """
+from __future__ import annotations
 
 import difflib
 import re
 import time
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 
 import discord
 import humanize
@@ -37,6 +38,10 @@ from exts.utils.format import (
     formatDiscordDT,
 )
 from exts.utils.other import ArgumentParser, reactsToMessage, utcnow
+
+
+if TYPE_CHECKING:
+    from core.bot import ziBot
 
 
 GIST_REGEX = re.compile(
@@ -264,7 +269,8 @@ class CustomHelp(commands.HelpCommand):
             )
         )
 
-        unsorted = mapping.pop(None)
+        # unsorted = mapping.pop(None)
+        mapping.pop(None)
         sortedCog = sorted(mapping.keys(), key=lambda c: c.qualified_name)
 
         ignored = ("EventHandler", "Jishaku", "NSFW")
@@ -360,7 +366,7 @@ class CustomHelp(commands.HelpCommand):
             command = await getCustomCommand(ctx, string)
             await self.send_command_help(command)
             return command
-        except:
+        except BaseException:
             return "No command called `{}` found.".format(string)
 
     async def send_error_message(self, error):
@@ -394,7 +400,7 @@ class Meta(commands.Cog, CogMixin):
     icon = "🤖"
     cc = True
 
-    def __init__(self, bot):
+    def __init__(self, bot: ziBot):
         super().__init__(bot)
 
         # Custom help command stuff
@@ -1590,5 +1596,5 @@ class Meta(commands.Cog, CogMixin):
         await ctx.try_reply(embed=e)
 
 
-def setup(bot):
+def setup(bot: ziBot):
     bot.add_cog(Meta(bot))
