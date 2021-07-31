@@ -364,7 +364,6 @@ class Moderation(commands.Cog, CogMixin):
 
         beforeHas = before._roles.has(muteRoleId)
         afterHas = after._roles.has(muteRoleId)
-        print(beforeHas, afterHas)
 
         if beforeHas == afterHas:
             return
