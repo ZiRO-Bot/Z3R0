@@ -2,6 +2,11 @@
 
 - [**New**] Re-added someone command (mimicking `@someone` April Fools command
   from discord) but only available on April Fools!
+- [**Improved**] **Behind the scene**: Use pre-commit to run isort and black
+  before committing changes
+- [**Improved**] **Behind the scene**: Replace requirements.txt with poetry
+- [**Improved**] **Behind the scene**: Use flake8 (pyproject-flake8) and
+  pyright
 
 # 3.0.5
 
