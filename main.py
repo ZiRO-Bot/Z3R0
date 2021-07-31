@@ -57,9 +57,12 @@ def setup_logging():
 
 
 def init_bot(loop):
+    # jishaku env stuff
+    os.environ["JISHAKU_NO_UNDERSCORE"] = "True"
+    os.environ["JISHAKU_NO_DM_TRACEBACK"] = "True"
+
     bot = _bot.ziBot()
     bot.uptime = utcnow()
-    bot.logger = logging.getLogger("discord")
     bot.run()
 
 
