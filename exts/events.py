@@ -452,7 +452,7 @@ class EventHandler(commands.Cog, CogMixin):
         channel = after.guild.get_channel(814009733006360597)
 
         role = after.guild.premium_subscriber_role
-        if not role in before.roles and role in after.roles:
+        if role not in before.roles and role in after.roles:
             e = ZEmbed(
                 description="<:booster:865087663609610241> {} has just boosted the server!".format(
                     after.mention
@@ -460,6 +460,14 @@ class EventHandler(commands.Cog, CogMixin):
                 color=self.bot.color,
             )
             await channel.send(embed=e)
+
+    @commands.Cog.listener("on_member_muted")
+    async def onMemberMuted(self, member: discord.Member):
+        return
+
+    @commands.Cog.listener("on_member_unmuted")
+    async def onMemberUnmuted(self, member: discord.Member):
+        return
 
 
 def setup(bot):

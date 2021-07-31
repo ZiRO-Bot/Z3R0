@@ -337,7 +337,7 @@ class Moderation(commands.Cog, CogMixin):
             await member.remove_roles(discord.Object(id=muteRoleId), reason=reason)
         except (discord.HTTPException, AttributeError):
             # Failed to remove role, just remove it manually
-            await self.manageMuted(member.id, guildId, False)
+            await self.manageMuted(member, False)
         e = ZEmbed.success(
             title="Unmuted {} for {}".format(member, reason),
         )
@@ -369,7 +369,7 @@ class Moderation(commands.Cog, CogMixin):
         if beforeHas == afterHas:
             return
 
-        await self.manageMuted(after.id, guildId, afterHas)
+        await self.manageMuted(after, afterHas)
 
     @commands.Cog.listener("on_mute_timer_complete")
     async def onMuteTimerComplete(self, timer: TimerData):
@@ -407,7 +407,7 @@ class Moderation(commands.Cog, CogMixin):
                     formatDateTime(timer.createdAt), moderator
                 ),
             )
-        await self.manageMuted(member.id, guildId, False)
+        await self.manageMuted(member, False)
 
     async def getMutedMembers(self, guildId: int):
         # Getting muted members from db/cache
@@ -424,10 +424,13 @@ class Moderation(commands.Cog, CogMixin):
                 mutedMembers = []
         return mutedMembers
 
-    async def manageMuted(self, memberId: int, guildId: int, mode: bool):
+    async def manageMuted(self, member: discord.Member, mode: bool):
         """Manage muted members, for anti mute evasion
 
         mode: False = Deletion, True = Insertion"""
+
+        memberId = member.id
+        guildId = member.guild.id
 
         await self.getMutedMembers(guildId)
 
@@ -448,6 +451,7 @@ class Moderation(commands.Cog, CogMixin):
                     """,
                     values={"guildId": guildId, "memberId": memberId},
                 )
+            self.bot.dispatch("member_unmuted", member)
 
         elif mode is True:
             # Add member to mutedMembers list
@@ -462,6 +466,7 @@ class Moderation(commands.Cog, CogMixin):
                     "INSERT INTO guildMutes VALUES (:guildId, :memberId)",
                     values={"guildId": guildId, "memberId": memberId},
                 )
+            self.bot.dispatch("member_muted", member)
 
     @commands.Cog.listener("on_member_join")
     async def handleMuteEvasion(self, member: discord.Member):
