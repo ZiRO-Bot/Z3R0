@@ -238,14 +238,12 @@ async def formatCommandInfo(ctx, command):
                 inline=False,
             )
 
-        rate = command._buckets._cooldown.rate  # type: ignore
-        time = command._buckets._cooldown.per  # type: ignore
-        cdType = command._buckets._cooldown.type  # type: ignore
-        if rate and time and cdType:
+        cooldown = command._buckets._cooldown  # type: ignore
+        if cooldown:
             e.add_field(
                 name="Cooldown",
-                value="> {} command per {} seconds, per {}".format(
-                    rate, time, cdType[0]
+                value="> {0.rate} command per {0.per} seconds, per {0.type[0]}".format(
+                    cooldown
                 ),
             )
 
