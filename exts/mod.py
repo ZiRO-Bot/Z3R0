@@ -168,7 +168,8 @@ class Moderation(commands.Cog, CogMixin):
         description=(
             "Ban a user, with optional time limit.\n\n Will delete user's "
             "message, use `save` subcommand to ban a user without deleting their "
-            "message"
+            "message. So instead of `>ban @User#0000` you do `>ban save "
+            "@User#0000`"
         ),
         extras=dict(
             example=(

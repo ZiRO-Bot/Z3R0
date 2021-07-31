@@ -7,6 +7,9 @@
 - [**Improved**] **Behind the scene**: Replace requirements.txt with poetry
 - [**Improved**] **Behind the scene**: Use flake8 (pyproject-flake8) and
   pyright
+- [**New**] Added anti mute evasion
+- [**Improved**] Alongside anti mute evasion, newly binded/set mute role will
+  merged with old mute rule (added automatically to muted members)
 
 # 3.0.5
 
