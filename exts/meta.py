@@ -205,7 +205,7 @@ async def formatCommandInfo(ctx, command):
         )
         e.set_author(name=author, icon_url=author.avatar_url)
 
-    if not isinstance(command, CustomCommand):
+    if isinstance(command, (commands.Command, commands.Group)):
         extras = getattr(command, "extras", {})
 
         optionDict: Optional[dict] = extras.get("flags")
@@ -236,6 +236,17 @@ async def formatCommandInfo(ctx, command):
                 name="Required Permissions",
                 value="> Bot: `{}`\n> User: `{}`".format(botPerm, userPerm),
                 inline=False,
+            )
+
+        rate = command._buckets._cooldown.rate  # type: ignore
+        time = command._buckets._cooldown.per  # type: ignore
+        cdType = command._buckets._cooldown.type  # type: ignore
+        if rate and time and cdType:
+            e.add_field(
+                name="Cooldown",
+                value="> {} command per {} seconds, per {}".format(
+                    rate, time, cdType[0]
+                ),
             )
 
     if isinstance(command, commands.Group):
@@ -336,8 +347,7 @@ class CustomHelp(commands.HelpCommand):
         filtered = sorted(filtered, key=lambda c: c.name)
 
         desc = infoQuote.info(
-            "- 'ᶜ': Custom Command\n+ 'ᵍ': Group (have subcommand(s))",
-            codeBlock=True,
+            "` ᶜ ` = Custom Command\n` ᵍ ` = Group (have subcommand(s))",
         )
 
         e = ZEmbed(
@@ -1043,7 +1053,6 @@ class Meta(commands.Cog, CogMixin):
             #   also `foreign_keys` enabled if you're using sqlite3
             async with ctx.db.transaction():
                 await ctx.db.execute(dbQuery.deleteCommand, values={"id": command.id})
-        # TODO: Adjust removed message
         return await ctx.success(
             title="{} `{}` has been removed".format(
                 "Alias" if isAlias else "Command", name
