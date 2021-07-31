@@ -477,6 +477,13 @@ class Moderation(commands.Cog, CogMixin):
             # Attempt to remute mute evader
             await self.doMute(None, member, "Mute evasion")
 
+    @commands.Cog.listener("on_muted_role_changed")
+    async def onMutedRoleChanged(self, guild: discord.Guild, role: discord.Role):
+        """Handle mute role changed"""
+        # TODO: "Merge" old mute role with new mute role (adding new mute role to muted members)
+        print("a")
+        pass
+
     @commands.command(
         brief="Kick a member",
         extras=dict(

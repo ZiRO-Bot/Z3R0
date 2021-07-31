@@ -275,24 +275,26 @@ class Admin(commands.Cog, CogMixin):
     ) -> None:
         """Just loop through channels and overwriting muted role's perm"""
         for channel in guild.channels:
-            perms: discord.PermissionOverwrite = channel.overwrites_for(role)
+            perms = channel.permissions_for(guild.me)
+            if perms.manage_roles:
+                overwrite: discord.PermissionOverwrite = channel.overwrites_for(role)
 
-            perms.update(
-                # speak=False,
-                send_messages=False,
-            )
+                overwrite.update(
+                    # speak=False,
+                    send_messages=False,
+                )
 
-            reason = "Mute role set to {}".format(role.name)
-            if creator:
-                reason += " by {}".format(creator)
+                reason = "Mute role set to {}".format(role.name)
+                if creator:
+                    reason += " by {}".format(creator)
 
-            await channel.set_permissions(
-                target=role,
-                overwrite=perms,
-                reason=reason,
-            )
+                await channel.set_permissions(
+                    target=role,
+                    overwrite=overwrite,
+                    reason=reason,
+                )
 
-        # TODO: "Merge" old mute role with new mute role (adding new mute role to muted members)
+        self.bot.dispatch("muted_role_changed", guild, role)
 
     @_role.command(
         name="create",
