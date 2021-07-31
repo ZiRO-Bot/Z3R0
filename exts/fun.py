@@ -34,6 +34,7 @@ class Fun(commands.Cog, CogMixin):
         )
 
     @commands.command(brief="Get random meme from reddit")
+    @commands.cooldown(1, 5, commands.BucketType.user)
     async def meme(self, ctx):
         # TODO: Add more meme subreddits
         memeSubreddits = ("memes", "funny")
@@ -77,7 +78,7 @@ class Fun(commands.Cog, CogMixin):
             flags={"mode": "Change display mode (modes: visual, classic, pipega)"},
         ),
     )
-    @commands.cooldown(1, 25, commands.BucketType.guild)
+    @commands.cooldown(1, 5, commands.BucketType.user)
     async def findseed(self, ctx, *, arguments: str = None):
         availableMode = ("visual", "classic", "pipega")
         aliasesMode = {"pepiga": "pipega"}
@@ -189,6 +190,7 @@ class Fun(commands.Cog, CogMixin):
         brief="Get http status code with cat in it",
         extras=dict(example=("httpcat 404",)),
     )
+    @commands.cooldown(1, 5, commands.BucketType.user)
     async def httpcat(self, ctx, status_code):
         async with self.bot.session.get(url=f"https://http.cat/{status_code}") as res:
             image = io.BytesIO(await res.read())
@@ -196,6 +198,7 @@ class Fun(commands.Cog, CogMixin):
             await ctx.try_reply(file=img)
 
     @commands.command(brief="Show your pp size")
+    @commands.cooldown(1, 5, commands.BucketType.user)
     async def pp(self, ctx):
         pp = "8" + "=" * randint(1, 500) + "D"
         e = discord.Embed(
@@ -317,6 +320,7 @@ class Fun(commands.Cog, CogMixin):
         usage="[dice size] (number of dice)",
         extras=dict(example=("roll 5", "roll d20", "role d00 4")),
     )
+    @commands.cooldown(1, 5, type=commands.BucketType.user)
     async def roll(self, ctx, *args):
         diceSize = {
             "d4": 4,
@@ -352,6 +356,7 @@ class Fun(commands.Cog, CogMixin):
         brief="👏",
         extras=dict(example=("clap hell yea", "clap clap clap")),
     )
+    @commands.cooldown(1, 5, type=commands.BucketType.user)
     async def clap(self, ctx, *text):
         return await ctx.try_reply(" 👏 ".join(text))
 
@@ -367,7 +372,7 @@ class Fun(commands.Cog, CogMixin):
             example=("barter 64", "piglin", "barter 262"),
         ),
     )
-    @commands.cooldown(5, 25, type=commands.BucketType.user)
+    @commands.cooldown(1, 5, type=commands.BucketType.user)
     async def barter(self, ctx, gold: int = 64):
         # limit gold amount up to 2240 (Minecraft inventory limit)
         if gold > 2240:
@@ -416,6 +421,7 @@ class Fun(commands.Cog, CogMixin):
         await ctx.try_reply(embed=e)
 
     @commands.command(brief="Get random anime")
+    @commands.cooldown(1, 5, commands.BucketType.user)
     async def findanime(self, ctx):
         query = await self.anilist.queryPost(
             """
@@ -477,6 +483,7 @@ class Fun(commands.Cog, CogMixin):
     #         await ctx.send(file=img)
 
     @commands.command(hidden=True)
+    @commands.cooldown(1, 5, commands.BucketType.user)
     async def blurplify(self, ctx, user: MemberOrUser = None):
         user: discord.User = user or ctx.author
         # TODO: Move to image category/ext

@@ -85,7 +85,6 @@ Moved to [CHANGELOG.md](./CHANGELOG.md)
 
 ### Overhaul Plan
 
-- Implement anti mute evasion
 - Cooldown
 - Image manipulation (Filter and stuff) (in `v3.1.0` maybe?)
 - Re-implement/improve old (`v2.x`) commands to ~~`v3.0.0`~~ `v3.1.0` (`85%` has been ported)
