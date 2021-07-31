@@ -477,12 +477,79 @@ class Moderation(commands.Cog, CogMixin):
             # Attempt to remute mute evader
             await self.doMute(None, member, "Mute evasion")
 
+    # https://github.com/Rapptz/RoboDanny/blob/0992171592f1b92ad74fe2eb5cf2efe1e9a51be8/bot.py#L226-L281
+    async def resolveMemberIds(self, guild, member_ids):
+        """Bulk resolves member IDs to member instances, if possible.
+        Members that can't be resolved are discarded from the list.
+        This is done lazily using an asynchronous iterator.
+        Note that the order of the resolved members is not the same as the input.
+        Parameters
+        -----------
+        guild: Guild
+            The guild to resolve from.
+        member_ids: Iterable[int]
+            An iterable of member IDs.
+        Yields
+        --------
+        Member
+            The resolved members.
+        """
+
+        needs_resolution = []
+        for member_id in member_ids:
+            member = guild.get_member(member_id)
+            if member is not None:
+                yield member
+            else:
+                needs_resolution.append(member_id)
+
+        total_need_resolution = len(needs_resolution)
+        if total_need_resolution == 0:
+            pass
+        elif total_need_resolution >= 1:
+            shard = self.get_shard(guild.shard_id)
+            if shard.is_ws_ratelimited():
+                try:
+                    member = await guild.fetch_member(needs_resolution[0])
+                except discord.HTTPException:
+                    pass
+                else:
+                    yield member
+            else:
+                members = await guild.query_members(
+                    limit=1, user_ids=needs_resolution, cache=True
+                )
+                if members:
+                    yield members[0]
+        elif total_need_resolution <= 100:
+            # Only a single resolution call needed here
+            resolved = await guild.query_members(
+                limit=100, user_ids=needs_resolution, cache=True
+            )
+            for member in resolved:
+                yield member
+        else:
+            # We need to chunk these in bits of 100...
+            for index in range(0, total_need_resolution, 100):
+                to_resolve = needs_resolution[index : index + 100]
+                members = await guild.query_members(
+                    limit=100, user_ids=to_resolve, cache=True
+                )
+                for member in members:
+                    yield member
+
     @commands.Cog.listener("on_muted_role_changed")
     async def onMutedRoleChanged(self, guild: discord.Guild, role: discord.Role):
         """Handle mute role changed"""
-        # TODO: "Merge" old mute role with new mute role (adding new mute role to muted members)
-        print("a")
-        pass
+        mutedMembers = await self.getMutedMembers(guild.id)
+        if mutedMembers:
+            reason = "Merging mute roles"
+            async for member in self.resolveMemberIds(guild, mutedMembers):
+                if not member._roles.has(role.id):
+                    try:
+                        await member.add_roles(role, reason=reason)
+                    except discord.HTTPException:
+                        pass
 
     @commands.command(
         brief="Kick a member",
