@@ -37,10 +37,10 @@ class CCommandDisabled(CCException):
 
 
 class MissingMuteRole(Exception):
-    def __init__(self, ctx):
+    def __init__(self, prefix):
         super().__init__(
             "This guild doesn't have mute role set yet!\n"
-            + "Use `{0}mute create Muted` or `{0}mute set @Muted` to setup mute role.".format(
-                ctx.clean_prefix
+            "Use `{0}mute create Muted` or `{0}mute set @Muted` to setup mute role.".format(
+                prefix
             )
         )

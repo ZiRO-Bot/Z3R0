@@ -11,7 +11,7 @@ import discord
 from discord.ext import commands
 
 from core import checks
-from core.converter import BannedMember, TimeAndArgument
+from core.converter import BannedMember, MemberOrUser, TimeAndArgument
 from core.errors import MissingMuteRole
 from core.mixin import CogMixin
 from exts.timer import Timer, TimerData
@@ -294,7 +294,7 @@ class Moderation(commands.Cog, CogMixin):
         *,
         time: TimeAndArgument = None,
     ):
-        await self.doModeration(ctx, user, time, "mute")
+        await self.doModeration(ctx, user, time, "mute", prefix=ctx.clean_prefix)
 
     @mute.command(
         name="create",
@@ -329,23 +329,27 @@ class Moderation(commands.Cog, CogMixin):
         ),
     )
     @checks.mod_or_permissions(manage_messages=True)
-    async def unmute(self, ctx, member: discord.Member, *, reason: str = "No reason"):
+    async def unmute(self, ctx, member: MemberOrUser, *, reason: str = "No reason"):
         guildId = ctx.guild.id
         muteRoleId = await self.bot.getGuildConfig(guildId, "mutedRole", "guildRoles")
-        await member.remove_roles(discord.Object(id=muteRoleId), reason=reason)
+        try:
+            await member.remove_roles(discord.Object(id=muteRoleId), reason=reason)
+        except (discord.HTTPException, AttributeError):
+            # Failed to remove role, just remove it manually
+            await self.manageMuted(member.id, guildId, False)
         e = ZEmbed.success(
             title="Unmuted {} for {}".format(member, reason),
         )
         await ctx.try_reply(embed=e)
 
-    async def doMute(self, ctx, member: discord.Member, /, reason: str, **kwargs):
-        guildId = ctx.guild.id
+    async def doMute(self, _, member: discord.Member, /, reason: str, **kwargs):
+        guildId = member.guild.id
         muteRoleId = await self.bot.getGuildConfig(guildId, "mutedRole", "guildRoles")
         try:
             await member.add_roles(discord.Object(id=muteRoleId), reason=reason)
         except (TypeError, discord.errors.NotFound):
             # Missing mute role (either not yet added or deleted)
-            raise MissingMuteRole(ctx) from None
+            raise MissingMuteRole(kwargs.get("prefix", self.bot.defPrefix)) from None
 
     @commands.Cog.listener("on_member_update")
     async def onMemberUpdate(self, before: discord.Member, after: discord.Member):
@@ -360,16 +364,55 @@ class Moderation(commands.Cog, CogMixin):
 
         beforeHas = before._roles.has(muteRoleId)
         afterHas = after._roles.has(muteRoleId)
+        print(beforeHas, afterHas)
 
         if beforeHas == afterHas:
             return
 
         await self.manageMuted(after.id, guildId, afterHas)
 
+    @commands.Cog.listener("on_mute_timer_complete")
+    async def onMuteTimerComplete(self, timer: TimerData):
+        """Automatically unmute."""
+        guildId, modId, userId = timer.args
+        await self.bot.wait_until_ready()
+
+        guild = self.bot.get_guild(guildId)
+        if not guild:
+            return
+
+        try:
+            moderator = guild.get_member(modId) or await guild.fetch_member(modId)
+        except discord.HTTPException:
+            moderator = None
+
+        modTemplate = "{} (ID: {})"
+        if not moderator:
+            try:
+                moderator = self.bot.fetch_user(modId)
+            except BaseException:
+                moderator = "Mod ID {}".format(modId)
+
+        moderator = modTemplate.format(moderator, modId)
+
+        member = guild.get_member(userId)
+        muteRoleId = await self.bot.getGuildConfig(guild.id, "mutedRole", "guildRoles")
+        role = discord.Object(id=muteRoleId)
+        with suppress(
+            discord.NotFound, discord.HTTPException
+        ):  # ignore NotFound incase mute role got removed
+            await member.remove_roles(
+                role,
+                reason="Automatically unmuted from timer on {} by {}".format(
+                    formatDateTime(timer.createdAt), moderator
+                ),
+            )
+        await self.manageMuted(member.id, guildId, False)
+
     async def getMutedMembers(self, guildId: int):
         # Getting muted members from db/cache
         # Will cache db results automatically
-        if mutedMembers := self.bot.cache.guildMutes.get(guildId) is None:
+        if (mutedMembers := self.bot.cache.guildMutes.get(guildId)) is None:
             dbMutes = await self.bot.db.fetch_all(
                 "SELECT * FROM guildMutes WHERE guildId=:id", values={"id": guildId}
             )
@@ -420,46 +463,20 @@ class Moderation(commands.Cog, CogMixin):
                     values={"guildId": guildId, "memberId": memberId},
                 )
 
-        else:
-            # What how?
+    @commands.Cog.listener("on_member_join")
+    async def handleMuteEvasion(self, member: discord.Member):
+        """Handle mute evaders"""
+        mutedMembers = await self.getMutedMembers(member.guild.id)
+        if not mutedMembers:
             return
 
-    @commands.Cog.listener("on_mute_timer_complete")
-    async def onMuteTimerComplete(self, timer: TimerData):
-        """Automatically unmute."""
-        guildId, modId, userId = timer.args
-        await self.bot.wait_until_ready()
-
-        guild = self.bot.get_guild(guildId)
-        if not guild:
+        if member.id not in mutedMembers:
+            # Not muted
             return
 
-        try:
-            moderator = guild.get_member(modId) or await guild.fetch_member(modId)
-        except discord.HTTPException:
-            moderator = None
-
-        modTemplate = "{} (ID: {})"
-        if not moderator:
-            try:
-                moderator = self.bot.fetch_user(modId)
-            except BaseException:
-                moderator = "Mod ID {}".format(modId)
-
-        moderator = modTemplate.format(moderator, modId)
-
-        member = guild.get_member(userId)
-        muteRoleId = await self.bot.getGuildConfig(guild.id, "mutedRole", "guildRoles")
-        role = discord.Object(id=muteRoleId)
-        with suppress(
-            discord.errors.NotFound
-        ):  # ignore NotFound incase mute role got removed
-            await member.remove_roles(
-                role,
-                reason="Automatically unmuted from timer on {} by {}".format(
-                    formatDateTime(timer.createdAt), moderator
-                ),
-            )
+        with suppress(MissingMuteRole):
+            # Attempt to remute mute evader
+            await self.doMute(None, member, "Mute evasion")
 
     @commands.command(
         brief="Kick a member",
