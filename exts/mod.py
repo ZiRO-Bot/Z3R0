@@ -15,6 +15,7 @@ from core.converter import BannedMember, TimeAndArgument
 from core.errors import MissingMuteRole
 from core.mixin import CogMixin
 from exts.timer import Timer, TimerData
+from exts.utils.cache import CacheUniqueViolation
 from exts.utils.format import ZEmbed, formatDateTime
 from exts.utils.other import ArgumentError, ArgumentParser, utcnow
 
@@ -363,14 +364,65 @@ class Moderation(commands.Cog, CogMixin):
         if beforeHas == afterHas:
             return
 
-        await self.manageMuted(after.id, afterHas)
+        await self.manageMuted(after.id, guildId, afterHas)
 
-    async def manageMuted(self, memberId: int, mode: bool):
+    async def getMutedMembers(self, guildId: int):
+        # Getting muted members from db/cache
+        # Will cache db results automatically
+        if mutedMembers := self.bot.cache.guildMutes.get(guildId) is None:
+            dbMutes = await self.bot.db.fetch_all(
+                "SELECT * FROM guildMutes WHERE guildId=:id", values={"id": guildId}
+            )
+
+            try:
+                mutedMembers = [m for _, m in dbMutes]
+                self.bot.cache.guildMutes.extend(guildId, mutedMembers)
+            except ValueError:
+                mutedMembers = []
+        return mutedMembers
+
+    async def manageMuted(self, memberId: int, guildId: int, mode: bool):
         """Manage muted members, for anti mute evasion
 
         mode: False = Deletion, True = Insertion"""
-        # TODO: Add the actual stuff
-        pass
+
+        await self.getMutedMembers(guildId)
+
+        if mode is False:
+            # Remove member from mutedMembers list
+            try:
+                self.bot.cache.guildMutes.remove(guildId, memberId)
+            except IndexError:
+                # It's not in the list so we'll just return
+                return
+
+            async with self.db.transaction():
+                await self.db.execute(
+                    "INSERT INTO guildMutes VALUES (:guildId, :memberId)",
+                    values={"guildId": guildId, "memberId": memberId},
+                )
+
+        elif mode is True:
+            # Add member to mutedMembers list
+            try:
+                self.bot.cache.guildMutes.add(guildId, memberId)
+            except CacheUniqueViolation:
+                # Already in the list
+                return
+
+            async with self.db.transaction():
+                await self.db.execute(
+                    """
+                        DELETE FROM guildMutes
+                        WHERE
+                            guildId=:guildId AND mutedId=:memberId
+                    """,
+                    values={"guildId": guildId, "memberId": memberId},
+                )
+
+        else:
+            # What how?
+            return
 
     @commands.Cog.listener("on_mute_timer_complete")
     async def onMuteTimerComplete(self, timer: TimerData):
