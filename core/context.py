@@ -8,7 +8,7 @@ from exts.utils.format import ZEmbed
 
 
 class Context(commands.Context):
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
 
     @property
@@ -18,6 +18,10 @@ class Context(commands.Context):
     @property
     def db(self):
         return self.bot.db
+
+    @property
+    def cache(self):
+        return self.bot.cache
 
     async def try_reply(self, content=None, *, mention_author=False, **kwargs):
         """Try reply, if failed do send instead"""
