@@ -440,7 +440,11 @@ class Moderation(commands.Cog, CogMixin):
 
             async with self.db.transaction():
                 await self.db.execute(
-                    "INSERT INTO guildMutes VALUES (:guildId, :memberId)",
+                    """
+                        DELETE FROM guildMutes
+                        WHERE
+                            guildId=:guildId AND mutedId=:memberId
+                    """,
                     values={"guildId": guildId, "memberId": memberId},
                 )
 
@@ -454,11 +458,7 @@ class Moderation(commands.Cog, CogMixin):
 
             async with self.db.transaction():
                 await self.db.execute(
-                    """
-                        DELETE FROM guildMutes
-                        WHERE
-                            guildId=:guildId AND mutedId=:memberId
-                    """,
+                    "INSERT INTO guildMutes VALUES (:guildId, :memberId)",
                     values={"guildId": guildId, "memberId": memberId},
                 )
 
