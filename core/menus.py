@@ -40,7 +40,7 @@ class ZMenu(menus.MenuPages):
 
 class ZReplyMenu(ZMenu):
     def __init__(self, source, ping=False):
-        self.ping = ping
+        self.ping = ping or False
         super().__init__(source=source, check_embeds=True)
 
     async def start(self, ctx):
@@ -53,14 +53,12 @@ class ZReplyMenu(ZMenu):
             await self.init_msg.edit(**kwargs)
             return self.init_msg
         else:
-            e = discord.Embed(title="Loading...", colour=discord.Colour.blue())
-            self.init_msg = await ctx.reply(
-                mention_author=False if not self.ping else True, **kwargs
-            )
+            # e = discord.Embed(title="Loading...", colour=discord.Colour.blue())
+            self.init_msg = await ctx.try_reply(**kwargs)
             return self.init_msg
 
     async def _get_kwargs_from_page(self, page):
-        no_ping = {"mention_author": False if not self.ping else True}
+        no_ping = {"mention_author": self.ping}
         value = await discord.utils.maybe_coroutine(
             self._source.format_page, self, page
         )

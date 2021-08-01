@@ -25,7 +25,7 @@ from core.errors import (
     CCommandNotInGuild,
     NotInGuild,
 )
-from core.menus import ZMenu
+from core.menus import ZReplyMenu
 from core.mixin import CogMixin
 from core.objects import CustomCommand
 from exts.utils import dbQuery, infoQuote, sql, tseBlocks
@@ -1563,7 +1563,9 @@ class Meta(commands.Cog, CogMixin):
     )
     async def prefList(self, ctx):
         prefixes = await self.bot.getGuildPrefix(ctx.guild.id)
-        menu = ZMenu(source=PrefixesPageSource(ctx, ["placeholder"] * 2 + prefixes))
+        menu = ZReplyMenu(
+            source=PrefixesPageSource(ctx, ["placeholder"] * 2 + prefixes)
+        )
         await menu.start(ctx)
 
     @prefix.command(
