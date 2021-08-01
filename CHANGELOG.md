@@ -10,6 +10,7 @@
 - [**New**] Added anti mute evasion
 - [**Improved**] Alongside anti mute evasion, newly binded/set mute role will
   merged with old mute rule (added automatically to muted members)
+- [**Changed**] Splitted `>command set` and `>command edit` (prevent accidental `set content`)
 - [**New**] Finally added functionality to `>command set category`
 
 # 3.0.5
