@@ -94,6 +94,7 @@ Moved to [CHANGELOG.md](./CHANGELOG.md)
 - Unify categories/exts emoji
 - Channel manager commands
 - Anime (using AniList API) commands
+- Reaction Role
 
 ### Pending Plan
 

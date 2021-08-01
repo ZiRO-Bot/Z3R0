@@ -1584,21 +1584,18 @@ class Meta(commands.Cog, CogMixin):
 
     @commands.command(brief="Get bot's invite link")
     async def invite(self, ctx):
+        clientId = self.bot.user.id
         e = ZEmbed(
             title=f"Want to invite {self.bot.user.name}?",
             description="[Invite with administrator permission]("
             + discord.utils.oauth_url(
-                self.bot.user.id,
+                clientId,
                 permissions=discord.Permissions(8),
-                guild=None,
-                redirect_uri=None,
             )
             + ")\n[Invite with necessary premissions (**recommended**)]("
             + discord.utils.oauth_url(
-                self.bot.user.id,
+                clientId,
                 permissions=discord.Permissions(4260883702),
-                guild=None,
-                redirect_uri=None,
             )
             + ")",
         )
