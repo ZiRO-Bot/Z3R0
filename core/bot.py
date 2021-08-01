@@ -11,7 +11,7 @@ from typing import Any, Dict, Iterable, List, Optional
 
 import aiohttp
 import discord
-from databases import Database
+from databases import Database, DatabaseURL
 from discord.ext import commands, tasks
 
 import config
@@ -150,7 +150,14 @@ class ziBot(commands.Bot):
         )
 
         # database
-        self.db: Database = Database(config.sql, factory=Connection)
+        dbUrl = DatabaseURL(config.sql)
+        dbKwargs = {}
+        if dbUrl.scheme == "sqlite":
+            # Custom factory for sqlite
+            # This thing here since sqlite3 doesn't do foreign_keys=ON by
+            # default
+            dbKwargs = {"factory": Connection}
+        self.db: Database = Database(dbUrl, **dbKwargs)
 
         # async init
         self.session: aiohttp.ClientSession = aiohttp.ClientSession(
@@ -486,7 +493,7 @@ class ziBot(commands.Bot):
 
     async def process_commands(self, message: discord.Message) -> Optional[str]:
         # initial ctx
-        ctx = await self.get_context(message, cls=Context)
+        ctx: Context = await self.get_context(message, cls=Context)
 
         if not ctx.prefix:
             return

@@ -393,15 +393,54 @@ class CustomHelp(commands.HelpCommand):
         await ctx.try_reply(embed=e)
 
     async def send_group_help(self, group):
-        ctx = self.context
+        await self.send_command_help(group)
+        # ctx = self.context
 
-        e = await formatCommandInfo(ctx, group)
+        # e = await formatCommandInfo(ctx, group)
 
-        await ctx.try_reply(embed=e)
+        # await ctx.try_reply(embed=e)
 
     # TODO: Override command_callback to get custom command properly, flags,
     # filter, etc
-    # async def command_callback(self, ctx, *, command=None):
+    # Current design: ">help command custom: on"
+    # async def command_callback(self, ctx, *, arguments=None):
+    #     await self.prepare_help_command(ctx, arguments)
+    #     bot = ctx.bot
+
+    #     if arguments is None:
+    #         mapping = self.get_bot_mapping()
+    #         return await self.send_bot_help(mapping)
+
+    #     # Check if it's a cog
+    #     cog = bot.get_cog(arguments)
+    #     if cog is not None:
+    #         return await self.send_cog_help(cog)
+
+    #     maybeCoro = discord.utils.maybe_coroutine
+
+    #     # If it's not a cog then it's a command.
+    #     # Since we want to have detailed errors when someone
+    #     # passes an invalid subcommand, we need to walk through
+    #     # the command group chain ourselves.
+    #     keys = arguments.split(' ')
+    #     cmd = bot.all_commands.get(keys[0])
+    #     if cmd is None:
+    #         string = await maybeCoro(self.command_not_found, self.remove_mentions(keys[0]))
+    #         return await self.send_error_message(string)
+
+    #     for key in keys[1:]:
+    #         try:
+    #             found = cmd.all_commands.get(key)
+    #         except AttributeError:
+    #             string = await maybeCoro(self.subcommand_not_found, cmd, self.remove_mentions(key))
+    #             return await self.send_error_message(string)
+    #         else:
+    #             if found is None:
+    #                 string = await maybeCoro(self.subcommand_not_found, cmd, self.remove_mentions(key))
+    #                 return await self.send_error_message(string)
+    #             cmd = found
+
+    #     return await self.send_command_help(cmd)  # works for both Group and Command
 
 
 class Meta(commands.Cog, CogMixin):

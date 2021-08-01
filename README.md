@@ -95,6 +95,7 @@ Moved to [CHANGELOG.md](./CHANGELOG.md)
 - Channel manager commands
 - Anime (using AniList API) commands
 - Reaction Role
+- Make flags like `"Non flag value" flag: value` invalid (Dpy `v2.0` will not have this kind of behaviour)
 
 ### Pending Plan
 
