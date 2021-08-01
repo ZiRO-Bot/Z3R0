@@ -1440,7 +1440,9 @@ class Meta(commands.Cog, CogMixin):
         return await ctx.try_reply(embed=e)
 
     @commands.command(
-        name="commands", aliases=("cmds",), brief="Alias for command list"
+        name="commands",
+        aliases=("cmds",),
+        brief="Show all custom commands. Alias for `command list`",
     )
     async def _commands(self, ctx):
         await ctx.try_invoke(self.cmdList)
