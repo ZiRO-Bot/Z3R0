@@ -402,10 +402,15 @@ class CustomHelp(commands.HelpCommand):
 
     # TODO: Override command_callback to get custom command properly, flags,
     # filter, etc
-    # Current design: ">help command custom: on"
+    # Current design: ">help command filter: custom built-in category"
     # async def command_callback(self, ctx, *, arguments=None):
     #     await self.prepare_help_command(ctx, arguments)
     #     bot = ctx.bot
+
+    #     # hardcoded for testing
+    #     filters = ("built-in", "custom", "built-in", "category")
+    #     # get unique value from filters without sorting it
+    #     unique = tuple(dict.fromkeys(filters))
 
     #     if arguments is None:
     #         mapping = self.get_bot_mapping()

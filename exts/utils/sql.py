@@ -1,6 +1,5 @@
 # My attempt on using SQLAlchemy to support multiple SQL Languages
 
-import sqlalchemy as sa
 from sqlalchemy import (
     BigInteger,
     Column,
@@ -62,5 +61,6 @@ guilds = Table(
 )
 
 if __name__ == "__main__":
-    # print(commandsLookup.create)
-    print(commands.update(commands.c.id == 5).values(category="test"))
+    import sqlalchemy as sa
+
+    print(commandsLookup.create)
