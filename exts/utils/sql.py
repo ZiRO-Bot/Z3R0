@@ -62,5 +62,5 @@ guilds = Table(
 )
 
 if __name__ == "__main__":
-    print(commandsLookup.create)
-    # print(sa.select([commandsLookup.c.cmdId, commands.c.name]).select_from(commands.join(commandsLookup)).where(commandsLookup.c.name == ":name").where(commandsLookup.c.cmdId == 5))
+    # print(commandsLookup.create)
+    print(commands.update(commands.c.id == 5).values(category="test"))

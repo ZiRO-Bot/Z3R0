@@ -897,9 +897,23 @@ class Meta(commands.Cog, CogMixin):
                     title="Alias `{}` for `{}` has been created".format(alias, command)
                 )
 
-    @command.group(
+    @command.command(
         name="edit",
-        aliases=("&", "set"),
+        brief="Edit custom command's content",
+        description=(
+            "Edit custom command's content.\n\n" "Alias for `command set content`"
+        ),
+        extras=dict(
+            perms={
+                "user": "Depends on custom command mode",
+            },
+        ),
+    )
+    async def cmdEdit(self, ctx, command: CMDName, *, content):
+        await self.setContent(ctx, command, content=content)
+
+    @command.group(
+        name="set",
         brief="Edit custom command's property",
         description=(
             "Edit custom command's property\n\nBy default, will edit command's "
@@ -913,10 +927,9 @@ class Meta(commands.Cog, CogMixin):
                 "command & example-cmd This is an edit",
             )
         ),
-        invoke_without_command=True,
     )
-    async def cmdSet(self, ctx, name: CMDName, *, content):
-        await self.setContent(ctx, name, content=content)
+    async def cmdSet(self, ctx):
+        pass
 
     @cmdSet.command(
         name="content",
@@ -957,7 +970,9 @@ class Meta(commands.Cog, CogMixin):
         await self.alias(ctx, command, alias)
 
     @cmdSet.command(
+        name="category",
         aliases=("cat", "mv"),
+        usage="(command) (category)",
         brief="Move a custom command to a category",
         extras=dict(
             perms={
@@ -965,9 +980,7 @@ class Meta(commands.Cog, CogMixin):
             },
         ),
     )
-    async def category(self, ctx, command: CMDName, category: CMDName):
-        return await ctx.try_reply("Coming soon.")
-
+    async def setCategory(self, ctx, _command: CMDName, category: CMDName):
         category = category.lower()
 
         availableCats = [
@@ -978,7 +991,7 @@ class Meta(commands.Cog, CogMixin):
         if category not in availableCats:
             return await ctx.error(title="Invalid category")
 
-        command = await getCustomCommand(ctx, command)
+        command = await getCustomCommand(ctx, _command)
 
         perm = await self.ccModeCheck(ctx, command=command)
         if not perm:
@@ -988,7 +1001,15 @@ class Meta(commands.Cog, CogMixin):
             return await ctx.success(
                 title="{} already in {}!".format(command, category)
             )
-        # TODO: Add the actual stuff
+
+        async with ctx.db.transaction():
+            query = sql.commands.update(sql.commands.c.id == command.id).values(
+                category=category
+            )
+            await ctx.db.execute(query)
+            return await ctx.success(
+                title="{}'s category has been set to {}!".format(command, category)
+            )
 
     @cmdSet.command(
         name="mode",
