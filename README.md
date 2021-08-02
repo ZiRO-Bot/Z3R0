@@ -98,7 +98,8 @@ Moved to [CHANGELOG.md](./CHANGELOG.md)
 - Channel manager commands
 - Anime (using AniList API) commands
 - Reaction Role
-- Make flags like `"Optional non-flag value" flag: value` invalid (Dpy `v2.0` will not have this kind of behaviour)
+- ~~Make flags like `"Optional non-flag value" flag: value` invalid (Dpy `v2.0` will not have this kind of behaviour)~~
+   - Added string-flags separator into `exts/utils/format.py` maybe that could re-added this behaviour
 
 ### Pending Plan
 
