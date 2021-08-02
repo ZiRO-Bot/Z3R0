@@ -1,6 +1,6 @@
 import datetime as dt
 import re
-from typing import Union
+from typing import Tuple, Union
 
 import discord
 from discord.ext import commands
@@ -184,3 +184,25 @@ def renderBar(
     return gapFill.join(
         [fill] * (fillLength - len(point)) + [point] + [empty] * emptyLength
     )
+
+
+FLAG_REGEX = re.compile(r"(\S+):")
+
+
+def separateStringFlags(string: str) -> Tuple[str, str]:
+    """Separate string and flags
+
+    'String flags: String String' -> ('String', 'flags: String String'])
+    """
+    command = []
+    inFlags = False
+    flags = []
+    for i in string.split(" "):
+        if not inFlags and FLAG_REGEX.match(i):
+            inFlags = True
+
+        if not inFlags:
+            command.append(i)
+        else:
+            flags.append(i)
+    return (" ".join(command), " ".join(flags))
