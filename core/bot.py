@@ -6,8 +6,9 @@ import json
 import logging
 import os
 import re
+from collections import Counter
 from contextlib import suppress
-from typing import Any, Dict, Iterable, List, Optional
+from typing import Any, Dict, Iterable, List, Optional, Union
 
 import aiohttp
 import discord
@@ -111,7 +112,7 @@ class ziBot(commands.Bot):
         self.blacklist: Blacklist = Blacklist("blacklist.json")
 
         self.activityIndex: int = 0
-        self.commandUsage: int = 0
+        self.commandUsage: Counter = Counter()
         self.customCommandUsage: int = 0
         # How many days before guild data get wiped when bot leaves the guild
         self.guildDelDays: int = 30
@@ -491,7 +492,9 @@ class ziBot(commands.Bot):
                 except KeyError:
                     pass
 
-    async def process_commands(self, message: discord.Message) -> Optional[str]:
+    async def process_commands(
+        self, message: discord.Message
+    ) -> Optional[Union[str, commands.Command, commands.Group]]:
         # initial ctx
         ctx: Context = await self.get_context(message, cls=Context)
 
@@ -552,7 +555,7 @@ class ziBot(commands.Bot):
             # no need to try getting custom command
             # Also executed when custom command failed to run
             await self.invoke(ctx)
-            return ""
+            return ctx.command
         else:
             with suppress(CCommandNotFound, CCommandNotInGuild, CCommandDisabled):
                 # Can't run built-in command, straight to trying custom command
@@ -598,8 +601,9 @@ class ziBot(commands.Bot):
             await message.reply(embed=e)
 
         processed = await self.process_commands(message)
-        if processed is not None:
-            self.commandUsage += 1
+        if processed is not None and not isinstance(processed, str):
+            cmd = processed.root_parent or processed
+            self.commandUsage[cmd.qualified_name] += 1
 
     async def close(self) -> None:
         """Properly close/turn off bot"""

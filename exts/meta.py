@@ -1570,7 +1570,7 @@ class Meta(commands.Cog, CogMixin):
         e.add_field(
             name="<:terminal:852787866554859591> | Command Usage (This session)",
             value="{} commands ({} custom commands)".format(
-                self.bot.commandUsage, self.bot.customCommandUsage
+                sum(self.bot.commandUsage.values()), self.bot.customCommandUsage
             ),
             inline=False,
         )
