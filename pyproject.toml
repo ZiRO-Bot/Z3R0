@@ -6,7 +6,7 @@ authors = ["null2264"]
 license = "MPL-2.0"
 
 [tool.poetry.dependencies]
-aiohttp = "3.6.2"
+aiohttp = "3.7.3"
 python = "^3.8"
 beautifulsoup4 = "^4.9.3"
 "zidiscord.py" = "1.7.3.3"
