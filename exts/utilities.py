@@ -4,8 +4,6 @@ License, v. 2.0. If a copy of the MPL was not distributed with this
 file, You can obtain one at http://mozilla.org/MPL/2.0/.
 """
 
-import asyncio
-import re
 import sys
 from decimal import InvalidOperation, Overflow
 
@@ -60,7 +58,7 @@ class Utilities(commands.Cog, CogMixin):
             formattedResult, result = ("Infinity",) * 2
         except InvalidOperation:
             formattedResult, result = ("ERR",) * 2
-        except Exception as exc:
+        except Exception:
             return await ctx.send("I couldn't read that expression properly.")
 
         e = ZEmbed.default(
@@ -77,8 +75,14 @@ class Utilities(commands.Cog, CogMixin):
     @commands.command(
         aliases=("exec", "run"),
         brief="Execute a code",
-        description="Execute a code\nWill executes python code by default",
-        extras=dict(example=('execute print("Hello World")',)),
+        description=(
+            "Execute a code\n"
+            "Will executes python code by default if there's no language specified\n\n"
+            "**Usage**:\n"
+            ">execute \`\`\`language\ncodes\n\`\`\`\n"  # type: ignore # noqa: W605
+            ">execute \`python code\`\n"  # type: ignore # noqa: W605
+        ),
+        # extras=dict(example=('execute print("Hello World")',)),
     )
     async def execute(self, ctx, *, argument):
         lang, code = parseCodeBlock(argument)
@@ -130,6 +134,9 @@ class Utilities(commands.Cog, CogMixin):
             kwargs["dest"] = parsed[0]
 
         translated = await self.googletrans.translate(text, **kwargs)
+        if not translated:
+            return await ctx.error("Translation failed. Please try again later...")
+
         e = ZEmbed.default(ctx)
         e.set_author(
             name="Google Translate", icon_url="https://translate.google.com/favicon.ico"

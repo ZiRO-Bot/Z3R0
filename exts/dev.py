@@ -65,7 +65,10 @@ class Developer(*STANDARD_FEATURES, *OPTIONAL_FEATURES):
     #     await ctx.send("You have perm")
 
     @Feature.Command(
-        name="jishaku", aliases=["jsk"], invoke_without_command=True, ignore_extra=False
+        name="jishaku",
+        aliases=("dev", "jsk"),
+        invoke_without_command=True,
+        ignore_extra=False,
     )
     async def jsk(self, ctx):
         await ctx.try_invoke("botinfo")

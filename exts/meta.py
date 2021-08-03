@@ -399,7 +399,7 @@ class CustomHelp(commands.HelpCommand):
         filters = ("category", "built-in", "custom")
 
         # hardcoded for testing, TODO: replace with parsed flag result later
-        filters = ("category",)
+        # filters = ("category",)
 
         # All available filters
         filterAvailable = ("category", "custom", "built-in")
