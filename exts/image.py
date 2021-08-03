@@ -22,7 +22,7 @@ class Image(commands.Cog, CogMixin):
         super().__init__(bot)
         # Image manipulation are too heavy for my stuff apparently
         # so i host it on repl.it
-        # Source: https://github.com/null2264/imagemanip
+        # Source: https://github.com/ZiRO-Bot/ImageManip
         self.imageManipUrl = "https://imagemanip.null2264.repl.co"
 
     @commands.command()

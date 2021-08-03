@@ -33,7 +33,7 @@ def rectangle(R: int, G: int, B: int) -> BytesIO:
 
 # Stuff below will be replaced by ImageManip repo (which can be hosted using
 # heroku or glitch or repl.it)
-# https://github.com/null2264/imagemanip
+# https://github.com/ZiRO-Bot/ImageManip
 
 
 @in_executor()
