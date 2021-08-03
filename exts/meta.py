@@ -507,7 +507,15 @@ class Meta(commands.Cog, CogMixin):
             usage="[category|command]",
             brief="Get information of a command or category",
             description="Get information of a command or category",
-            extras=dict(example=("help info", "? weather")),
+            extras=dict(
+                example=("help info", "? weather"),
+                flags={
+                    ("filters", "filter", "filt"): (
+                        "Filter command type or category, "
+                        "also work as priority system"
+                    ),
+                },
+            ),
         )
         # Backup the old/original command incase this cog unloaded
         self._original_help_command = bot.help_command
