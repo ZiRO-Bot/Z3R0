@@ -371,13 +371,13 @@ class CustomHelp(commands.HelpCommand):
         )
         await ctx.try_reply(embed=e)
 
-    async def command_not_found(self, string):
-        return "No command called `{}` found.".format(string)
+    async def command_not_found(self, type_: str, string):
+        return "No {} called `{}` found.".format(type_, string)
 
     async def send_error_message(self, error):
         if isinstance(error, CustomCommand):
             return
-        await self.context.try_reply(error)
+        await self.context.error(error)
 
     # TODO: Add aliases to group and command help
     async def send_command_help(self, command):
@@ -387,34 +387,19 @@ class CustomHelp(commands.HelpCommand):
 
         await ctx.try_reply(embed=e)
 
-    async def send_group_help(self, group):
-        await self.send_command_help(group)
-        # ctx = self.context
+    async def prepare_help_command(self, ctx, arguments) -> tuple:
+        if arguments is None:
+            return None, None, None
 
-        # e = await formatCommandInfo(ctx, group)
-
-        # await ctx.try_reply(embed=e)
-
-    # TODO: Override command_callback to get custom command properly, flags,
-    # filter, etc
-    # Current design: ">help command filter: custom built-in category"
-    async def command_callback(self, ctx, *, arguments=None):
-        await self.prepare_help_command(ctx, arguments)
-        bot = ctx.bot
-
-        command = None
-        args = None
-        if arguments:
-            # separate string from flags
-            # String filters: String -> ("String", "filters: String")
-            command, args = separateStringFlags(arguments)
-            print(command, args)
+        # separate string from flags
+        # String filters: String -> ("String", "filters: String")
+        command, args = separateStringFlags(arguments)
 
         # default filters, based on original help cmd
         filters = ("category", "built-in", "custom")
 
         # hardcoded for testing, TODO: replace with parsed flag result later
-        filters = ("C", "c", "built-in", "custom", "built-in", "category")
+        filters = ("category",)
 
         # All available filters
         filterAvailable = ("category", "custom", "built-in")
@@ -432,17 +417,29 @@ class CustomHelp(commands.HelpCommand):
             if f in filterAvailable and f not in unique:
                 unique.append(f)
 
+        return command, args, unique
+
+    # TODO: Override command_callback to get custom command properly, flags,
+    # filter, etc
+    # Current design: ">help command filter: custom built-in category"
+    async def command_callback(self, ctx, *, arguments=None):
+        command, args, filters = await self.prepare_help_command(ctx, arguments)
+        bot = ctx.bot
+
         if command is None:
             mapping = self.get_bot_mapping()
             return await self.send_bot_help(mapping)
 
         maybeCoro = discord.utils.maybe_coroutine
 
-        for filter_ in unique:
+        type_ = "built-in command"
+
+        for filter_ in filters:
             if filter_ == "category":
                 # Check if it's a cog
                 cog = bot.get_cog(command)
                 if cog is None:
+                    type_ = "category"
                     continue
                 return await self.send_cog_help(cog)
 
@@ -451,6 +448,7 @@ class CustomHelp(commands.HelpCommand):
                     cc = await getCustomCommand(ctx, command)
                     return await self.send_command_help(cc)
                 except CCommandNotFound:
+                    type_ = "custom command"
                     continue
 
             # If it's not a cog then it's a command.
@@ -460,10 +458,8 @@ class CustomHelp(commands.HelpCommand):
             keys = command.split(" ")
             cmd = bot.all_commands.get(keys[0])
             if cmd is None:
-                string = await maybeCoro(
-                    self.command_not_found, self.remove_mentions(keys[0])
-                )
-                return await self.send_error_message(string)
+                type_ = "built-in command"
+                break
 
             for key in keys[1:]:
                 try:
@@ -482,6 +478,16 @@ class CustomHelp(commands.HelpCommand):
                     cmd = found
 
             return await self.send_command_help(cmd)  # works for both Group and Command
+
+        try:
+            cmdName = keys[0]  # type: ignore # handled using except
+        except (IndexError, UnboundLocalError):
+            cmdName = command
+
+        string = await maybeCoro(
+            self.command_not_found, type_, self.remove_mentions(cmdName)
+        )
+        return await self.send_error_message(string)
 
 
 class Meta(commands.Cog, CogMixin):
