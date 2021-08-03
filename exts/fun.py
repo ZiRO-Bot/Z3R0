@@ -11,13 +11,11 @@ import discord
 from discord.ext import commands
 
 from core import checks
-from core.converter import MemberOrUser
 from core.mixin import CogMixin
 from exts.api import graphql, reddit
 from exts.utils.format import ZEmbed
 from exts.utils.other import ArgumentError, ArgumentParser
 from exts.utils.piglin import Piglin
-from exts.utils.pillow import blurplify
 
 
 class Fun(commands.Cog, CogMixin):
@@ -481,15 +479,6 @@ class Fun(commands.Cog, CogMixin):
     #         image = io.BytesIO(await res.read())
     #         img = discord.File(fp=image, filename="triggered.gif")
     #         await ctx.send(file=img)
-
-    @commands.command(hidden=True)
-    @commands.cooldown(1, 5, commands.BucketType.user)
-    async def blurplify(self, ctx, user: MemberOrUser = None):
-        user: discord.User = user or ctx.author
-        # TODO: Move to image category/ext
-        imgBytes = await blurplify(await user.avatar_url_as(format="png").read())
-        img = discord.File(fp=imgBytes, filename="blurplified.png")
-        await ctx.try_reply(file=img)
 
 
 def setup(bot):
