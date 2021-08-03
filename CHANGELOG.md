@@ -12,6 +12,8 @@
   merged with old mute rule (added automatically to muted members)
 - [**Changed**] Splitted `>command set` and `>command edit` (prevent accidental `set content`)
 - [**New**] Finally added functionality to `>command set category`
+- [**New**] Added Image category and re-added triggered
+- [**New**] Added blurplify
 
 # 3.0.5
 

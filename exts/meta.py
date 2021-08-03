@@ -204,7 +204,7 @@ async def formatCommandInfo(ctx, command):
         author = ctx.bot.get_user(command.owner) or await ctx.bot.fetch_user(
             command.owner
         )
-        e.set_author(name=author, icon_url=author.avatar_url)
+        e.set_author(name="By {}".format(author), icon_url=author.avatar_url)
 
     if isinstance(command, (commands.Command, commands.Group)):
         extras = getattr(command, "extras", {})
@@ -365,7 +365,7 @@ class CustomHelp(commands.HelpCommand):
                 value="> " + (cmd.brief or "No description"),
             )
         e.set_footer(
-            text="Use `{}command info command-name` to check custom command's information".format(
+            text="Use `{}help command-name filter: custom` to check custom command's information".format(
                 ctx.clean_prefix
             )
         )
@@ -394,12 +394,23 @@ class CustomHelp(commands.HelpCommand):
         # separate string from flags
         # String filters: String -> ("String", "filters: String")
         command, args = separateStringFlags(arguments)
+        await super().prepare_help_command(ctx, command)
+        if not command:
+            return None, None, None
 
         # default filters, based on original help cmd
-        filters = ("category", "built-in", "custom")
+        defFilters = ("category", "built-in", "custom")
 
-        # hardcoded for testing, TODO: replace with parsed flag result later
-        # filters = ("category",)
+        # parse flags
+        parser = ArgumentParser(allow_abbrev=False)
+        parser.add_argument(
+            "--filters", aliases=("--filter", "--filt"), action="extend", nargs="*"
+        )
+
+        parsed, _ = await parser.parse_known_from_string(args)
+        filters = parsed.filters
+        if not filters:
+            filters = defFilters
 
         # All available filters
         filterAvailable = ("category", "custom", "built-in")
@@ -419,9 +430,6 @@ class CustomHelp(commands.HelpCommand):
 
         return command, args, unique
 
-    # TODO: Override command_callback to get custom command properly, flags,
-    # filter, etc
-    # Current design: ">help command filter: custom built-in category"
     async def command_callback(self, ctx, *, arguments=None):
         command, args, filters = await self.prepare_help_command(ctx, arguments)
         bot = ctx.bot
@@ -431,6 +439,8 @@ class CustomHelp(commands.HelpCommand):
             return await self.send_bot_help(mapping)
 
         maybeCoro = discord.utils.maybe_coroutine
+
+        string = None
 
         type_ = "built-in command"
 
@@ -459,7 +469,7 @@ class CustomHelp(commands.HelpCommand):
             cmd = bot.all_commands.get(keys[0])
             if cmd is None:
                 type_ = "built-in command"
-                break
+                continue
 
             for key in keys[1:]:
                 try:
@@ -468,25 +478,26 @@ class CustomHelp(commands.HelpCommand):
                     string = await maybeCoro(
                         self.subcommand_not_found, cmd, self.remove_mentions(key)
                     )
-                    return await self.send_error_message(string)
+                    continue
                 else:
                     if found is None:
                         string = await maybeCoro(
                             self.subcommand_not_found, cmd, self.remove_mentions(key)
                         )
-                        return await self.send_error_message(string)
+                        continue
                     cmd = found
 
             return await self.send_command_help(cmd)  # works for both Group and Command
 
-        try:
-            cmdName = keys[0]  # type: ignore # handled using except
-        except (IndexError, UnboundLocalError):
-            cmdName = command
+        if string is None:
+            try:
+                cmdName = keys[0]  # type: ignore # handled using except
+            except (IndexError, UnboundLocalError):
+                cmdName = command
+            string = await maybeCoro(
+                self.command_not_found, type_, self.remove_mentions(cmdName)
+            )
 
-        string = await maybeCoro(
-            self.command_not_found, type_, self.remove_mentions(cmdName)
-        )
         return await self.send_error_message(string)
 
 
@@ -506,13 +517,25 @@ class Meta(commands.Cog, CogMixin):
             aliases=("?",),
             usage="[category|command]",
             brief="Get information of a command or category",
-            description="Get information of a command or category",
+            description=(
+                "Get information of a command or category.\n\n"
+                "You can use `filters` flag to set priority.\n"
+                "For example: `>help command filters: custom built-in`, will try to "
+                "get custom command called `command` first before getting built-in "
+                "command with the same name, **BUT** will not try to get category "
+                "named `command`.\n\n"
+                "All available filters: category (cat, C), custom (c), and built-in (b)"
+            ),
             extras=dict(
-                example=("help info", "? weather"),
+                example=(
+                    "help info",
+                    "? weather",
+                    "help custom-cmd filters: custom",
+                ),
                 flags={
                     ("filters", "filter", "filt"): (
                         "Filter command type or category, "
-                        "also work as priority system"
+                        "also work as priority system."
                     ),
                 },
             ),
@@ -1479,22 +1502,25 @@ class Meta(commands.Cog, CogMixin):
         aliases=("?",),
         brief="Show command's information",
         description=(
-            "Show command's information.\n\nSimilar to `help` but "
+            "Show command's information.\n\nAlias for `help` but "
             "prioritize custom commands"
         ),
         extras=dict(
-            example=("command info help", "cmd info command", "cmd ? example-cmd")
+            example=(
+                "command info help",
+                "cmd info command",
+                "cmd ? example-cmd",
+                "cmd ? cmd filters: custom built-in",
+            )
         ),
     )
-    async def info(self, ctx, *, name):
-        # TODO: Merge this command with help command
-        # Executes {prefix}help {name} if its built-in command
-        try:
-            command = await getCustomCommand(ctx, name)
-            e = await formatCommandInfo(ctx, command)
-            return await ctx.try_reply(embed=e)
-        except CCommandNotFound:
-            return await ctx.send_help(name)
+    async def info(self, ctx, *, name: str = None):
+        cmd: CustomHelp = ctx.bot.help_command
+        cmd = cmd.copy()
+        cmd.context = ctx
+        await cmd.command_callback(
+            ctx, arguments=f"{name} filters: custom built-in category"
+        )
 
     @command.command(name="list", aliases=("ls",), brief="Show all custom commands")
     async def cmdList(self, ctx):

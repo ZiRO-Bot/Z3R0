@@ -87,10 +87,12 @@ class Context(commands.Context):
             "@{}".format(self.me.display_name.replace("\\", r"\\")), self.prefix
         )
 
-    async def try_invoke(self, command: Union[commands.Command, str], *args, **kwargs):
+    async def try_invoke(
+        self, command: Union[commands.Command, str], *args, **kwargs  # type: ignore
+    ):
         """Similar to invoke() except it triggers checks"""
         if isinstance(command, str):
-            command = self.bot.get_command(command)
+            command: commands.Command = self.bot.get_command(command)
 
         canRun = await command.can_run(self)
         if canRun:
