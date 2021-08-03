@@ -34,7 +34,7 @@ from exts.utils.cache import (
     CacheListProperty,
     CacheUniqueViolation,
 )
-from exts.utils.format import cleanifyPrefix
+from exts.utils.format import cleanifyPrefix, formatCmd
 from exts.utils.other import Blacklist, utcnow
 
 
@@ -602,8 +602,7 @@ class ziBot(commands.Bot):
 
         processed = await self.process_commands(message)
         if processed is not None and not isinstance(processed, str):
-            cmd = processed.root_parent or processed
-            self.commandUsage[cmd.qualified_name] += 1
+            self.commandUsage[formatCmd("", processed, params=False)] += 1
 
     async def close(self) -> None:
         """Properly close/turn off bot"""
