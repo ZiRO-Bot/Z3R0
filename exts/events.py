@@ -6,6 +6,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 from __future__ import annotations
 
 import asyncio
+from contextlib import suppress
 from typing import TYPE_CHECKING, Any, Dict, Optional
 
 import discord
@@ -232,18 +233,17 @@ class EventHandler(commands.Cog, CogMixin):
             )
 
         if isinstance(error, commands.CommandOnCooldown):
+            retryAfter = error.retry_after  # type: ignore
             bot_msg = await ctx.error(
                 (
-                    "You can use it again in {:.2f} seconds.\n".format(
-                        error.retry_after
-                    )
+                    "You can use it again in {:.2f} seconds.\n".format(retryAfter)
                     + "Default cooldown: {0.rate} times per {0.per} seconds, per {1}".format(
-                        error.cooldown, error.cooldown.type[0]
+                        error.cooldown, error.cooldown.type[0]  # type: ignore
                     )
                 ),
                 title="Command is on a cooldown!",
             )
-            await asyncio.sleep(round(error.retry_after))
+            await asyncio.sleep(round(retryAfter))
             return await bot_msg.delete()
 
         if isinstance(error, commands.CheckFailure):
@@ -253,7 +253,7 @@ class EventHandler(commands.Cog, CogMixin):
         # Give details about the error
         _traceback = "".join(
             prettify_exceptions.DefaultFormatter().format_exception(
-                type(error), error, error.__traceback__
+                type(error), error, error.__traceback__  # type: ignore
             )
         )
         self.bot.logger.error("Something went wrong! error: {}".format(_traceback))
@@ -311,10 +311,8 @@ class EventHandler(commands.Cog, CogMixin):
                     text="You were too late to answer.", icon_url=ctx.author.avatar_url
                 )
                 await msg.edit(embed=e)
-                try:
+                with suppress(discord.Forbidden, discord.HTTPException):
                     await msg.clear_reactions()
-                except:
-                    pass
             else:
                 e_owner = ZEmbed.error(
                     title="ERROR: Something went wrong!",
@@ -329,11 +327,8 @@ class EventHandler(commands.Cog, CogMixin):
                     icon_url=ctx.author.avatar_url,
                 )
                 await msg.edit(embed=e)
-                try:
+                with suppress(discord.Forbidden, discord.HTTPException):
                     await msg.clear_reactions()
-                except:
-                    # Probably in a DM, lets just pass it
-                    pass
         except IndexError:
             e = ZEmbed.error(
                 title="ERROR: Something went wrong!",
