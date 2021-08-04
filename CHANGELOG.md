@@ -10,13 +10,17 @@
 - [**New**] Added anti mute evasion
 - [**Improved**] Alongside anti mute evasion, newly binded/set mute role will
   merged with old mute rule (added automatically to muted members)
-- [**Changed**] Splitted `>command set` and `>command edit` (prevent accidental `set content`)
+- [**Changed**] Splitted `>command set` and `>command edit` (prevent accidental
+  `set content`)
 - [**New**] Finally added functionality to `>command set category`
 - [**New**] Added Image category and re-added triggered
 - [**New**] Added blurplify
 - [**Improved**] Added `filters` flag to help command
-- [**Improved**] `>command set mode` success message now show mode's description
+- [**Improved**] `>command set mode` success message now show mode's
+  description
 - [**New**] Added redify and polaroid to Image category
+- [**Improved**] Modlog events now getch the "real moderator" when mod commands
+  is used to trigger the events
 
 # 3.0.5
 
