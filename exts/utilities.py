@@ -70,7 +70,7 @@ class Utilities(commands.Cog, CogMixin):
                 ("Raw Result", result),
             ],
         )
-        e.set_author(name="Simple Math Evaluator", icon_url=ctx.bot.user.avatar_url)
+        e.set_author(name="Simple Math Evaluator", icon_url=ctx.bot.user.avatar.url)
         return await ctx.try_reply(embed=e)
 
     @commands.command(

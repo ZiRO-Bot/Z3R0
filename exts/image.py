@@ -34,7 +34,7 @@ class Image(commands.Cog, CogMixin):
         format: str = "png",
     ) -> discord.Message:
         user: discord.User = _user or ctx.author
-        userAv = user.avatar_url_as(format="png")
+        userAv = user.avatar.with_format("png").url
 
         e = ZEmbed.loading()
         msg = await ctx.try_reply(embed=e)

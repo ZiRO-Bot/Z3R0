@@ -52,22 +52,24 @@ class Info(commands.Cog, CogMixin):
         aliases=["av", "userpfp", "pfp"], brief="Get member's avatar image"
     )
     @commands.cooldown(1, 5, commands.BucketType.user)
-    async def avatar(self, ctx, user: MemberOrUser = None):
-        if not user:
-            user = await authorOrReferenced(ctx)
+    async def avatar(self, ctx, _user: MemberOrUser = None):
+        user: Union[discord.Member, discord.User] = _user or await authorOrReferenced(
+            ctx
+        )
+        user.avatar.with_format("jpg").url
 
         # Links to avatar (with different formats)
         links = (
             "[`JPEG`]({})"
             " | [`PNG`]({})"
             " | [`WEBP`]({})".format(
-                user.avatar_url_as(format="jpg"),
-                user.avatar_url_as(format="png"),
-                user.avatar_url_as(format="webp"),
+                user.avatar.with_format("jpg").url,
+                user.avatar.with_format("png").url,
+                user.avatar.with_format("webp").url,
             )
         )
-        if user.is_avatar_animated():
-            links += " | [`GIF`]({})".format(user.avatar_url_as(format="gif"))
+        if user.avatar.is_animated():
+            links += " | [`GIF`]({})".format(user.avatar.with_format("gif").url)
 
         # Embed stuff
         e = ZEmbed.default(
@@ -75,7 +77,7 @@ class Info(commands.Cog, CogMixin):
             title="{}'s Avatar".format(user.name),
             description=links,
         )
-        e.set_image(url=user.avatar_url_as(size=1024))
+        e.set_image(url=user.avatar.with_size(1024).url)
         await ctx.try_reply(embed=e)
 
     @commands.command(
@@ -455,8 +457,8 @@ class Info(commands.Cog, CogMixin):
 
         e = (
             ZEmbed()
-            .set_author(name=user, icon_url=user.avatar_url)
-            .set_thumbnail(url=user.avatar_url)
+            .set_author(name=user, icon_url=user.avatar.url)
+            .set_thumbnail(url=user.avatar.url)
         )
 
         e.add_field(
@@ -677,7 +679,7 @@ class Info(commands.Cog, CogMixin):
         try:
             permissions = memberOrRole.permissions  # type: ignore
         except AttributeError:
-            permissions = memberOrRole.permissions_in(ctx.channel)  # type: ignore
+            permissions = ctx.channel.permissions_for(memberOrRole)  # type: ignore
 
         e = ZEmbed.default(
             ctx,
@@ -691,7 +693,7 @@ class Info(commands.Cog, CogMixin):
             ),
         )
         with suppress(AttributeError):
-            e.set_thumbnail(url=memberOrRole.avatar_url)  # type: ignore
+            e.set_thumbnail(url=memberOrRole.avatar.url)  # type: ignore
 
         await ctx.try_reply(embed=e)
 

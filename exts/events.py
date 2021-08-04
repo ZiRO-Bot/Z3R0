@@ -301,7 +301,7 @@ class EventHandler(commands.Cog, CogMixin):
                 description=desc,
                 # colour=discord.Colour(0x2F3136),
             )
-            e.set_footer(text="Waiting for answer...", icon_url=ctx.author.avatar_url)
+            e.set_footer(text="Waiting for answer...", icon_url=ctx.author.avatar.url)
             msg = await ctx.send(embed=e)
 
             # Report stuff
@@ -320,7 +320,7 @@ class EventHandler(commands.Cog, CogMixin):
                 )
             except asyncio.TimeoutError:
                 e.set_footer(
-                    text="You were too late to answer.", icon_url=ctx.author.avatar_url
+                    text="You were too late to answer.", icon_url=ctx.author.avatar.url
                 )
                 await msg.edit(embed=e)
                 with suppress(discord.Forbidden, discord.HTTPException):
@@ -336,7 +336,7 @@ class EventHandler(commands.Cog, CogMixin):
                 await dest.send(embed=e_owner)
                 e.set_footer(
                     text="Error has been reported to {}".format(destName),
-                    icon_url=ctx.author.avatar_url,
+                    icon_url=ctx.author.avatar.url,
                 )
                 await msg.edit(embed=e)
                 with suppress(discord.Forbidden, discord.HTTPException):
@@ -374,7 +374,7 @@ class EventHandler(commands.Cog, CogMixin):
 
         e = ZEmbed(timestamp=utcnow(), title="Edited Message")
 
-        e.set_author(name=before.author, icon_url=before.author.avatar_url)
+        e.set_author(name=before.author, icon_url=before.author.avatar.url)
 
         e.add_field(
             name="Before",
@@ -438,7 +438,7 @@ class EventHandler(commands.Cog, CogMixin):
 
         e = ZEmbed(timestamp=utcnow(), title="Deleted Message")
 
-        e.set_author(name=message.author, icon_url=message.author.avatar_url)
+        e.set_author(name=message.author, icon_url=message.author.avatar.url)
 
         e.description = (
             message.content[:1020] + " ..."

@@ -203,7 +203,7 @@ class CustomHelp(commands.HelpCommand):
             )
             + " | ".join("[{}]({})".format(k, v) for k, v in ctx.bot.links.items()),
         )
-        e.set_author(name=ctx.author, icon_url=ctx.author.avatar_url)
+        e.set_author(name=ctx.author, icon_url=ctx.author.avatar.url)
         e.set_footer(
             text="Use `{}help [category / command]` for more information".format(
                 ctx.prefix
@@ -321,7 +321,7 @@ class CustomHelp(commands.HelpCommand):
             author = ctx.bot.get_user(command.owner) or await ctx.bot.fetch_user(
                 command.owner
             )
-            e.set_author(name="By {}".format(author), icon_url=author.avatar_url)
+            e.set_author(name="By {}".format(author), icon_url=author.avatar.url)
 
         if isinstance(command, (commands.Command, commands.Group)):
             extras = getattr(command, "extras", {})
@@ -1592,7 +1592,7 @@ class Meta(commands.Cog, CogMixin):
             description=self.bot.description
             + "\n\nThis bot is licensed under **{}**.".format(ctx.bot.license),
         )
-        e.set_author(name=ctx.bot.user.name, icon_url=ctx.bot.user.avatar_url)
+        e.set_author(name=ctx.bot.user.name, icon_url=ctx.bot.user.avatar.url)
         e.set_image(url="attachment://banner.png")
         e.add_field(name="Author", value=ctx.bot.author)
         e.add_field(
@@ -1620,7 +1620,7 @@ class Meta(commands.Cog, CogMixin):
         uptime = utcnow() - self.bot.uptime
         e = ZEmbed.default(ctx)
         e.set_author(
-            name=ctx.bot.user.name + "'s stats", icon_url=ctx.bot.user.avatar_url
+            name=ctx.bot.user.name + "'s stats", icon_url=ctx.bot.user.avatar.url
         )
         e.add_field(
             name="🕙 | Uptime", value=humanize.precisedelta(uptime), inline=False

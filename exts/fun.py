@@ -199,14 +199,11 @@ class Fun(commands.Cog, CogMixin):
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def pp(self, ctx):
         pp = "8" + "=" * randint(1, 500) + "D"
-        e = discord.Embed(
+        e = ZEmbed.default(
+            ctx,
             title="Your pp looks like this:",
             description="`{}`".format(pp),
             colour=discord.Colour.random(),
-        )
-        e.set_author(
-            name=f"{ctx.message.author}",
-            icon_url=ctx.message.author.avatar_url,
         )
         await ctx.send(embed=e)
 
@@ -236,7 +233,7 @@ class Fun(commands.Cog, CogMixin):
             "https://icanhazdadjoke.com/", headers=headers
         ) as req:
             dadjoke = (await req.json())["joke"]
-        e = discord.Embed(title=dadjoke, color=discord.Colour(0xFEDE58))
+        e = ZEmbed.default(ctx, title=dadjoke, color=discord.Colour(0xFEDE58))
         e.set_author(
             name="icanhazdadjoke",
             icon_url="https://raw.githubusercontent.com/null2264/null2264/master/epicface.png",

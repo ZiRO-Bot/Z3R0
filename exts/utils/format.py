@@ -24,7 +24,7 @@ class ZEmbed(discord.Embed):
     def default(cls, ctx, timestamp=None, **kwargs):
         instance = cls.minimal(timestamp=timestamp or utcnow(), **kwargs)
         instance.set_footer(
-            text="Requested by {}".format(ctx.author), icon_url=ctx.author.avatar_url
+            text="Requested by {}".format(ctx.author), icon_url=ctx.author.avatar.url
         )
         return instance
 
