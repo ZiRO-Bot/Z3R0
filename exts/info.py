@@ -237,7 +237,7 @@ class Info(commands.Cog, CogMixin):
     @checks.guildOnly()
     @checks.mod_or_permissions(manage_emojis=True)
     async def emojiSteal(self, ctx, emoji: Union[discord.Emoji, discord.PartialEmoji]):
-        emojiByte = await emoji.url.read()
+        emojiByte = await emoji.read()
 
         try:
             addedEmoji = await ctx.guild.create_custom_emoji(
@@ -280,7 +280,7 @@ class Info(commands.Cog, CogMixin):
     ):
         if emoji is not None:
             try:
-                emojiByte = await emoji.url.read()  # type: ignore
+                emojiByte = await emoji.read()  # type: ignore
             except AttributeError:
                 # Probably a url?
                 try:

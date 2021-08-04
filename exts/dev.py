@@ -81,14 +81,14 @@ class Developer(*STANDARD_FEATURES, *OPTIONAL_FEATURES):
             or f"{EXTS_DIR}.{extension}" in self.bot.extensions
             else "load"
         )
-        action: str = getattr(
+        action = getattr(
             self.bot,
             f"{actionType}_extension",
         )
         try:
             try:
                 action(extension)
-            except:
+            except BaseException:
                 action(f"{EXTS_DIR}.{extension}")
         except Exception as exc:
             # await ctx.send("{} failed to reload! Check the log for details.")
@@ -103,7 +103,7 @@ class Developer(*STANDARD_FEATURES, *OPTIONAL_FEATURES):
         for extension in exts:
             try:
                 self.tryLoadReload(extension)
-            except:
+            except BaseException:
                 status[extension] = ERR
             else:
                 status[extension] = OK
