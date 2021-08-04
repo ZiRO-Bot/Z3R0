@@ -332,12 +332,13 @@ class Moderation(commands.Cog, CogMixin):
     @checks.mod_or_permissions(manage_messages=True)
     async def unmute(self, ctx, member: MemberOrUser, *, reason: str = "No reason"):
         guildId = ctx.guild.id
-        muteRoleId = await self.bot.getGuildConfig(guildId, "mutedRole", "guildRoles")
+        mutedRoleId = await self.bot.getGuildConfig(guildId, "mutedRole", "guildRoles")
+        role = discord.Object(id=mutedRoleId)
         try:
-            await member.remove_roles(discord.Object(id=muteRoleId), reason=reason)
+            await member.remove_roles(role, reason=reason)
         except (discord.HTTPException, AttributeError):
             # Failed to remove role, just remove it manually
-            await self.manageMuted(member, False)
+            await self.manageMuted(member, False, role)
         e = ZEmbed.success(
             title="Unmuted {} for {}".format(member, reason),
         )
@@ -345,9 +346,9 @@ class Moderation(commands.Cog, CogMixin):
 
     async def doMute(self, _, member: discord.Member, /, reason: str, **kwargs):
         guildId = member.guild.id
-        muteRoleId = await self.bot.getGuildConfig(guildId, "mutedRole", "guildRoles")
+        mutedRoleId = await self.bot.getGuildConfig(guildId, "mutedRole", "guildRoles")
         try:
-            await member.add_roles(discord.Object(id=muteRoleId), reason=reason)
+            await member.add_roles(discord.Object(id=mutedRoleId), reason=reason)
         except (TypeError, discord.errors.NotFound):
             # Missing mute role (either not yet added or deleted)
             raise MissingMuteRole(kwargs.get("prefix", self.bot.defPrefix)) from None
@@ -359,17 +360,17 @@ class Moderation(commands.Cog, CogMixin):
             return
 
         guildId = after.guild.id
-        muteRoleId = await self.bot.getGuildConfig(guildId, "mutedRole", "guildRoles")
-        if not muteRoleId:
+        mutedRoleId = await self.bot.getGuildConfig(guildId, "mutedRole", "guildRoles")
+        if not mutedRoleId:
             return
 
-        beforeHas = before._roles.has(muteRoleId)
-        afterHas = after._roles.has(muteRoleId)
+        beforeHas = before._roles.has(mutedRoleId)
+        afterHas = after._roles.has(mutedRoleId)
 
         if beforeHas == afterHas:
             return
 
-        await self.manageMuted(after, afterHas)
+        await self.manageMuted(after, afterHas, discord.Object(id=mutedRoleId))
 
     @commands.Cog.listener("on_mute_timer_complete")
     async def onMuteTimerComplete(self, timer: TimerData):
@@ -396,8 +397,8 @@ class Moderation(commands.Cog, CogMixin):
         moderator = modTemplate.format(moderator, modId)
 
         member = guild.get_member(userId)
-        muteRoleId = await self.bot.getGuildConfig(guild.id, "mutedRole", "guildRoles")
-        role = discord.Object(id=muteRoleId)
+        mutedRoleId = await self.bot.getGuildConfig(guild.id, "mutedRole", "guildRoles")
+        role = discord.Object(id=mutedRoleId)
         with suppress(
             discord.NotFound, discord.HTTPException
         ):  # ignore NotFound incase mute role got removed
@@ -407,7 +408,7 @@ class Moderation(commands.Cog, CogMixin):
                     formatDateTime(timer.createdAt), moderator
                 ),
             )
-        await self.manageMuted(member, False)
+        await self.manageMuted(member, False, role)
 
     async def getMutedMembers(self, guildId: int):
         # Getting muted members from db/cache
@@ -424,7 +425,9 @@ class Moderation(commands.Cog, CogMixin):
                 mutedMembers = []
         return mutedMembers
 
-    async def manageMuted(self, member: discord.Member, mode: bool):
+    async def manageMuted(
+        self, member: discord.Member, mode: bool, mutedRole: discord.Role
+    ):
         """Manage muted members, for anti mute evasion
 
         mode: False = Deletion, True = Insertion"""
@@ -451,7 +454,7 @@ class Moderation(commands.Cog, CogMixin):
                     """,
                     values={"guildId": guildId, "memberId": memberId},
                 )
-            self.bot.dispatch("member_unmuted", member)
+            self.bot.dispatch("member_unmuted", member, mutedRole)
 
         elif mode is True:
             # Add member to mutedMembers list
@@ -466,7 +469,7 @@ class Moderation(commands.Cog, CogMixin):
                     "INSERT INTO guildMutes VALUES (:guildId, :memberId)",
                     values={"guildId": guildId, "memberId": memberId},
                 )
-            self.bot.dispatch("member_muted", member)
+            self.bot.dispatch("member_muted", member, mutedRole)
 
     @commands.Cog.listener("on_member_join")
     async def handleMuteEvasion(self, member: discord.Member):

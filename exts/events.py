@@ -6,6 +6,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 from __future__ import annotations
 
 import asyncio
+import re
 from contextlib import suppress
 from typing import TYPE_CHECKING, Any, Dict, Optional
 
@@ -26,6 +27,9 @@ if TYPE_CHECKING:
     from core.bot import ziBot  # type: ignore
 
 
+REASON_REGEX = re.compile(r"^\[\S+\#\d+ \(ID: (\d+)\)\]: (.*)")
+
+
 # TODO: Move this to exts.utils.other
 async def doModlog(
     bot: ziBot,
@@ -41,6 +45,14 @@ async def doModlog(
     if not channel:
         # No channel found.
         return
+
+    if reason and moderator.id == bot.user.id:
+        # Get the real moderator
+        match = REASON_REGEX.match(reason)
+        if match:
+            modId = match.group(1)
+            moderator = bot.get_user(modId) or await bot.fetch_user(modId)
+            reason = match.group(2)
 
     # TODO: Add caselog for modlog
 
@@ -457,11 +469,26 @@ class EventHandler(commands.Cog, CogMixin):
             await channel.send(embed=e)
 
     @commands.Cog.listener("on_member_muted")
-    async def onMemberMuted(self, member: discord.Member):
-        return
+    async def onMemberMuted(self, member: discord.Member, mutedRole: discord.Object):
+        guild = member.guild
+        try:
+            entries = await guild.audit_logs(
+                limit=5, action=discord.AuditLogAction.member_role_update
+            ).flatten()
+            entry: discord.AuditLogEntry = discord.utils.find(
+                lambda e: (e.target == member and e.target._roles.has(mutedRole.id)),
+                entries,
+            )
+        except discord.Forbidden:
+            entry = None
+
+        if entry:
+            await doModlog(
+                self.bot, member.guild, entry.target, entry.user, "muted", entry.reason
+            )
 
     @commands.Cog.listener("on_member_unmuted")
-    async def onMemberUnmuted(self, member: discord.Member):
+    async def onMemberUnmuted(self, member: discord.Member, mutedRole: discord.Role):
         return
 
 
