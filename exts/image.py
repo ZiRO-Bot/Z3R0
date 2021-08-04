@@ -64,6 +64,17 @@ class Image(commands.Cog, CogMixin):
     async def triggered(self, ctx, memberOrUser: MemberOrUser = None):
         await self.doImageFilter(ctx, memberOrUser, "triggered", "gif")
 
+    @commands.command()
+    @commands.cooldown(1, 5, commands.BucketType.user)
+    async def redify(self, ctx, memberOrUser: MemberOrUser = None):
+        await self.doImageFilter(ctx, memberOrUser, "red")
+
+    @commands.command()
+    @commands.cooldown(1, 5, commands.BucketType.user)
+    async def polaroid(self, ctx, memberOrUser: MemberOrUser = None):
+        # Currently kinda broken
+        await self.doImageFilter(ctx, memberOrUser, "polaroid")
+
 
 def setup(bot):
     bot.add_cog(Image(bot))
