@@ -29,6 +29,7 @@
 - Flags/Options: better specify your needs by using flags! (example: `>command disable category: info` will disable all command inside Information category)
 - Fun commands: games, meme and other fun stuff.
 - Powerful moderation command.
+- Image manipulation/filters.
 - Useful utility command such as `execute` (execute python/other programming language code), `google`, `calc` / `math`, and more!
 
 More feature coming soon!
@@ -89,7 +90,6 @@ Moved to [CHANGELOG.md](./CHANGELOG.md)
 ### Overhaul Plan
 
 - Cooldown
-- Image manipulation (Filter and stuff) (in `v3.1.0` maybe?)
 - Event for ~~banned member~~, ~~member boosting a guild~~ (Just need to implement setup for it), and muted member
 - Add case log (in `v3.1.0` maybe?)
 - Properly support different SQL scheme (databases have `database_url.scheme` to check scheme type) (in `v3.1.0` maybe?)

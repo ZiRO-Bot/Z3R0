@@ -16,6 +16,7 @@
 - [**New**] Added blurplify
 - [**Improved**] Added `filters` flag to help command
 - [**Improved**] `>command set mode` success message now show mode's description
+- [**New**] Added redify and polaroid to Image category
 
 # 3.0.5
 
