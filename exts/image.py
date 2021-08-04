@@ -11,6 +11,7 @@ from discord.ext import commands
 
 from core.converter import MemberOrUser
 from core.mixin import CogMixin
+from exts.utils.format import ZEmbed
 
 
 class Image(commands.Cog, CogMixin):
@@ -25,31 +26,43 @@ class Image(commands.Cog, CogMixin):
         # Source: https://github.com/ZiRO-Bot/ImageManip
         self.imageManipUrl = "https://imagemanip.null2264.repl.co"
 
+    async def doImageFilter(
+        self,
+        ctx,
+        _user: discord.User,
+        type: str,
+        format: str = "png",
+    ) -> discord.Message:
+        user: discord.User = _user or ctx.author
+        userAv = user.avatar_url_as(format="png")
+
+        e = ZEmbed.loading()
+        msg = await ctx.try_reply(embed=e)
+
+        async with self.bot.session.get(
+            f"{self.imageManipUrl}/{type}?url={userAv}"
+        ) as req:
+            if str(req.content_type).startswith("image/"):
+                filename = f"{type}.{format}"
+                imgBytes = await req.read()
+                img = discord.File(fp=BytesIO(imgBytes), filename=filename)
+                e = ZEmbed.default(ctx)
+                e.set_image(url=f"attachment://{filename}")
+                await msg.delete()
+                return await ctx.try_reply(embed=e, file=img)
+            else:
+                await msg.delete()
+                return await ctx.error("Unable to retrieve image")
+
     @commands.command()
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def blurplify(self, ctx, memberOrUser: MemberOrUser = None):
-        user: discord.User = memberOrUser or ctx.author
-        userAv = user.avatar_url_as(format="png")
-        async with self.bot.session.get(
-            f"{self.imageManipUrl}/blurplify?url={userAv}"
-        ) as req:
-            if str(req.content_type).startswith("image/"):
-                imgBytes = await req.read()
-                img = discord.File(fp=BytesIO(imgBytes), filename="blurplified.png")
-                await ctx.try_reply(file=img)
+        await self.doImageFilter(ctx, memberOrUser, "blurplify")
 
     @commands.command()
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def triggered(self, ctx, memberOrUser: MemberOrUser = None):
-        user: discord.User = memberOrUser or ctx.author
-        userAv = user.avatar_url_as(format="png")
-        async with self.bot.session.get(
-            f"{self.imageManipUrl}/triggered?url={userAv}"
-        ) as req:
-            if str(req.content_type).startswith("image/"):
-                imgBytes = await req.read()
-                img = discord.File(fp=BytesIO(imgBytes), filename="triggered.gif")
-                await ctx.try_reply(file=img)
+        await self.doImageFilter(ctx, memberOrUser, "triggered", "gif")
 
 
 def setup(bot):
