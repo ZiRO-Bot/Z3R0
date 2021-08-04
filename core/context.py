@@ -1,5 +1,4 @@
 import io
-import re
 from typing import Union
 
 import discord
@@ -80,13 +79,6 @@ class Context(commands.Context):
         if success_message is not None:
             e.description = str(success_message)
         return await self.try_reply(embed=e)
-
-    @property
-    def clean_prefix(self):
-        pattern = re.compile(r"<@!?{}>".format(self.me.id))
-        return pattern.sub(
-            "@{}".format(self.me.display_name.replace("\\", r"\\")), self.prefix
-        )
 
     async def try_invoke(
         self, command: Union[commands.Command, str], *args, **kwargs  # type: ignore
