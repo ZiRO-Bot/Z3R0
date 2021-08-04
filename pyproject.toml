@@ -9,7 +9,7 @@ license = "MPL-2.0"
 aiohttp = "3.7.3"
 python = "^3.8"
 beautifulsoup4 = "^4.9.3"
-"zidiscord.py" = "1.7.3.3"
+"zidiscord.py" = {git = "https://github.com/null2264/discord.py", branch="next"}
 discord-ext-menus = "^1.1"
 fuzzywuzzy = "0.18.0"
 humanize = "3.7.0"
