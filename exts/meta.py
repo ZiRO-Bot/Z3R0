@@ -229,16 +229,13 @@ class CustomHelp(commands.HelpCommand):
         )
         # TODO: Make a command to set this without reloading the extension
         e.add_field(
-            name="News | Updated at: {}".format(formatDiscordDT(1627024924, "F")),
+            name="News | Updated at: {}".format(formatDiscordDT(1628066360, "F")),
             value=(
-                "Z3R0 is third major update for ziBot, "
-                "this update changed and add a lot of things.\n\n"
-                "In this version, we introduce you to:"
-                "\n- Flags, Example: `>welcome Welcome! channel: #welcome`"
-                "\n- Custom Command integrated to help command (not fully implemented)"
-                "\n- Better timer for temp ban and temp mute"
-                "\n- New help command"
-                "\n- And many more! (more changes and features coming soon!)"
+                "Changelogs:"
+                "\n- Added Image category"
+                "\n- Added cooldown"
+                "\n- Changed how help command looks (again)"
+                "\n- Added anti-mute evasion"
                 "\n\n[Click here to see the full changelog!]"
                 "(https://github.com/ZiRO-Bot/Z3R0/blob/overhaul/CHANGELOG.md)\n"
             ),
