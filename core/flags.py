@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import List, Optional
 
 import discord
 from discord.ext import commands
@@ -10,3 +10,7 @@ class GreetingFlag(commands.FlagConverter):
     channel: Optional[discord.TextChannel] = MISSING
     disable: Optional[bool] = False
     message: str
+
+
+class HelpFlag(commands.FlagConverter):
+    filters: List[str] = commands.flag(name="filter", aliases=("filters", "filt"))

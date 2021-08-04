@@ -25,6 +25,7 @@ from core.errors import (
     CCommandNotInGuild,
     NotInGuild,
 )
+from core.flags import HelpFlag
 from core.menus import ZReplyMenu
 from core.mixin import CogMixin
 from core.objects import CustomCommand
@@ -356,12 +357,13 @@ class CustomHelp(commands.HelpCommand):
                     inline=False,
                 )
 
-            cooldown = command._buckets._cooldown  # type: ignore
-            if cooldown:
+            cooldown = command._buckets  # type: ignore
+            if cooldown._cooldown:
                 e.add_field(
                     name="Cooldown",
-                    value="> {0.rate} command per {0.per} seconds, per {0.type[0]}".format(
-                        cooldown
+                    value=(
+                        "> {0._cooldown.rate} command per "
+                        "{0._cooldown.per} seconds, per {0.type[0]}".format(cooldown)
                     ),
                 )
             e.set_footer(
@@ -399,13 +401,9 @@ class CustomHelp(commands.HelpCommand):
 
         # parse flags is not an empty string
         if args:
-            parser = ArgumentParser(allow_abbrev=False)
-            parser.add_argument(
-                "--filters", aliases=("--filter", "--filt"), action="extend", nargs="*"
-            )
-
-            parsed, _ = await parser.parse_known_from_string(args)
-            filters = parsed.filters
+            parsed = await HelpFlag.convert(ctx, args)
+            for f in parsed.filters:
+                filters.extend(f.strip().split())
 
         # All available filters
         filterAvailable = ("category", "custom", "built-in")
@@ -419,7 +417,7 @@ class CustomHelp(commands.HelpCommand):
         # get unique value from filters (also get "real value" if its an alias)
         unique = []
         for f in filters:
-            f = filterAliases.get(f, f)
+            f = filterAliases.get(f.strip(), f)
             if f in filterAvailable and f not in unique:
                 unique.append(f)
 
