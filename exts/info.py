@@ -51,6 +51,7 @@ class Info(commands.Cog, CogMixin):
     @commands.command(
         aliases=["av", "userpfp", "pfp"], brief="Get member's avatar image"
     )
+    @commands.cooldown(1, 5, commands.BucketType.user)
     async def avatar(self, ctx, user: MemberOrUser = None):
         if not user:
             user = await authorOrReferenced(ctx)
@@ -82,6 +83,7 @@ class Info(commands.Cog, CogMixin):
         brief="Get current weather for specific city",
         extras=dict(example=("weather Palembang", "w London")),
     )
+    @commands.cooldown(1, 5, commands.BucketType.user)
     async def weather(self, ctx, *, city):
         if not self.openweather.apiKey:
             return await ctx.error(
@@ -120,6 +122,7 @@ class Info(commands.Cog, CogMixin):
         ),
         extras=dict(example=("colour ffffff", "clr 0xffffff", "color #ffffff")),
     )
+    @commands.cooldown(1, 5, commands.BucketType.user)
     async def colour(self, ctx, value: str):
         # Pre processing
         value = value.lstrip("#")[:6]
@@ -148,6 +151,7 @@ class Info(commands.Cog, CogMixin):
         return await ctx.try_reply(file=f, embed=e)
 
     @commands.command(aliases=["lvl", "rank"], hidden=True, brief="Level")
+    @commands.cooldown(1, 5, commands.BucketType.user)
     async def level(self, ctx):
         return await ctx.try_reply(
             "https://tenor.com/view/stop-it-get-some-help-gif-7929301"
@@ -169,6 +173,7 @@ class Info(commands.Cog, CogMixin):
         ),
         invoke_without_command=True,
     )
+    @commands.cooldown(1, 5, commands.BucketType.user)
     async def emoji(self, ctx, emoji: Union[discord.Emoji, discord.PartialEmoji, str]):
         # TODO: Add emoji list
         await ctx.try_invoke(self.emojiInfo, emoji)
@@ -186,16 +191,17 @@ class Info(commands.Cog, CogMixin):
             )
         ),
     )
+    @commands.cooldown(1, 5, commands.BucketType.user)
     async def emojiInfo(
         self, ctx, emoji: Union[discord.Emoji, discord.PartialEmoji, str]
     ):
         try:
             e = ZEmbed.default(
                 ctx,
-                title=f":{emoji.name}:",
-                description=f"`ID: {emoji.id}`\n`Type: Custom Emoji`",
+                title=f":{emoji.name}:",  # type: ignore
+                description=f"`ID: {emoji.id}`\n`Type: Custom Emoji`",  # type: ignore
             )
-            e.set_image(url=emoji.url)
+            e.set_image(url=emoji.url)  # type: ignore
         except AttributeError:
             # TODO: Doesn't work with :rock:, find a fix
             try:
@@ -272,7 +278,7 @@ class Info(commands.Cog, CogMixin):
     ):
         if emoji is not None:
             try:
-                emojiByte = await emoji.url.read()
+                emojiByte = await emoji.url.read()  # type: ignore
             except AttributeError:
                 # Probably a url?
                 try:
@@ -294,7 +300,10 @@ class Info(commands.Cog, CogMixin):
                 )
 
         try:
-            addedEmoji = await ctx.guild.create_custom_emoji(name=name, image=emojiByte)
+            addedEmoji = await ctx.guild.create_custom_emoji(
+                name=name,
+                image=emojiByte,  # type: ignore
+            )
         except discord.Forbidden:
             return await ctx.error("I don't have permission to `Manage Emojis`!")
 
@@ -318,6 +327,7 @@ class Info(commands.Cog, CogMixin):
             )
         ),
     )
+    @commands.cooldown(1, 5, commands.BucketType.user)
     async def jisho(self, ctx, *, words):
         async with ctx.bot.session.get(
             "https://jisho.org/api/v1/search/words", params={"keyword": words}
@@ -326,7 +336,7 @@ class Info(commands.Cog, CogMixin):
 
             try:
                 result = result["data"][0]
-            except:
+            except BaseException:
                 return await ctx.error(
                     "Sorry, couldn't find any words matching `{}`".format(words)
                 )
@@ -356,6 +366,7 @@ class Info(commands.Cog, CogMixin):
     @commands.command(
         brief="Show covid information on certain country",
     )
+    @commands.cooldown(1, 5, commands.BucketType.user)
     async def covid(self, ctx, *, country):
         # TODO: Remove later
         if country.lower() in ("united state of america", "america"):
@@ -385,6 +396,7 @@ class Info(commands.Cog, CogMixin):
         aliases=("ui", "whois"),
         brief="Get user's information",
     )
+    @commands.cooldown(1, 5, commands.BucketType.user)
     async def userinfo(self, ctx, *, user: MemberOrUser = None):
         if not user:
             user = await authorOrReferenced(ctx)
@@ -505,6 +517,7 @@ class Info(commands.Cog, CogMixin):
         aliases=("gi", "serverinfo", "si"),
         brief="Get guild's information",
     )
+    @commands.cooldown(1, 5, commands.BucketType.user)
     @checks.guildOnly()
     async def guildinfo(self, ctx):
         guild: discord.Guild = ctx.guild
@@ -593,6 +606,7 @@ class Info(commands.Cog, CogMixin):
         aliases=("spotify", "spot"),
         brief="Show what song a member listening to in Spotify",
     )
+    @commands.cooldown(1, 5, commands.BucketType.user)
     @checks.guildOnly()
     async def spotifyinfo(self, ctx, user: discord.Member = None):
         user = user or ctx.author
@@ -652,6 +666,7 @@ class Info(commands.Cog, CogMixin):
         brief="Show what permissions a member/role has",
         usage="[member / role]",
     )
+    @commands.cooldown(1, 5, commands.BucketType.user)
     @checks.guildOnly()
     async def permissions(
         self, ctx, memberOrRole: Union[discord.Member, discord.Role, str] = None
@@ -660,13 +675,13 @@ class Info(commands.Cog, CogMixin):
             memberOrRole = ctx.author
 
         try:
-            permissions = memberOrRole.permissions
+            permissions = memberOrRole.permissions  # type: ignore
         except AttributeError:
-            permissions = memberOrRole.permissions_in(ctx.channel)
+            permissions = memberOrRole.permissions_in(ctx.channel)  # type: ignore
 
         e = ZEmbed.default(
             ctx,
-            title="{}'s Permissions".format(memberOrRole.name),
+            title="{}'s Permissions".format(memberOrRole.name),  # type: ignore
             description=", ".join(
                 [
                     "`{}`".format(str(i[0]).replace("_", " ").title())
@@ -676,7 +691,7 @@ class Info(commands.Cog, CogMixin):
             ),
         )
         with suppress(AttributeError):
-            e.set_thumbnail(url=memberOrRole.avatar_url)
+            e.set_thumbnail(url=memberOrRole.avatar_url)  # type: ignore
 
         await ctx.try_reply(embed=e)
 
@@ -684,6 +699,7 @@ class Info(commands.Cog, CogMixin):
         brief="Get information of a python project from pypi",
         usage="(project name)",
     )
+    @commands.cooldown(1, 5, commands.BucketType.user)
     async def pypi(self, ctx, project: str):
         async with self.bot.session.get(f"https://pypi.org/pypi/{project}/json") as res:
             try:

@@ -8,9 +8,11 @@ from __future__ import annotations
 import asyncio
 import datetime as dt
 import json
+from contextlib import suppress
 from typing import TYPE_CHECKING, Optional
 
 import discord
+import pytz
 from discord.ext import commands
 
 from core.converter import TimeAndArgument
@@ -182,6 +184,7 @@ class Timer(commands.Cog, CogMixin):
         aliases=["timer", "remind"],
         brief="Reminds you about something after certain amount of time",
     )
+    @commands.cooldown(2, 5, commands.BucketType.user)
     async def reminder(self, ctx, *, argument: TimeAndArgument) -> discord.Message:
         now = utcnow()
         when = argument.when
@@ -207,11 +210,21 @@ class Timer(commands.Cog, CogMixin):
         )
 
     @commands.command(brief="Get current time")
-    async def time(self, ctx) -> None:
+    @commands.cooldown(1, 5, commands.BucketType.user)
+    async def time(self, ctx, timezone: str = None) -> None:
+        tz = None
+        if timezone:
+            with suppress(pytz.UnknownTimeZoneError):
+                tz = pytz.timezone(timezone)
+
+        dt = utcnow()
+        if tz:
+            dt = dt.astimezone(tz)
+
         # TODO: Add timezone
         e = discord.Embed(
             title="Current Time",
-            description=formatDateTime(utcnow()),
+            description=formatDateTime(dt),
             colour=self.bot.colour,
         )
         e.set_footer(text="Timezone coming soon\u2122!")

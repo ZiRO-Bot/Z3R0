@@ -308,7 +308,6 @@ class CustomHelp(commands.HelpCommand):
             return
         await self.context.error(error)
 
-    # TODO: Add aliases to group and command help
     async def send_command_help(self, command):
         ctx = self.context
         prefix = ctx.clean_prefix
@@ -430,11 +429,11 @@ class CustomHelp(commands.HelpCommand):
         if not unique:
             unique = defFilters
 
-        if not command and len(unique) == 1:
-            # TODO: get command list if no command specified and 1 filters specified
-            # This will merge `>command list`
-            # return None, None, unique
-            pass
+        # if not command and len(unique) == 1:
+        # TODO: get command list if no command specified and 1 filters specified
+        # This will merge `>command list`
+        # return None, None, unique
+        # pass
 
         return command, args, unique
 
@@ -1548,6 +1547,7 @@ class Meta(commands.Cog, CogMixin):
         await ctx.try_reply(embed=e)
 
     @command.command(name="mode", brief="Show current custom command mode")
+    @commands.cooldown(1, 5, commands.BucketType.user)
     async def cmdMode(self, ctx):
         mode = await self.bot.getGuildConfig(ctx.guild.id, "ccMode") or 0
 
@@ -1557,6 +1557,7 @@ class Meta(commands.Cog, CogMixin):
         return await ctx.try_reply(embed=e)
 
     @command.command(name="modes", brief="Show all different custom command modes")
+    @commands.cooldown(1, 5, commands.BucketType.user)
     async def cmdModes(self, ctx):
         e = ZEmbed.minimal(
             title="Custom Command Modes",
@@ -1574,14 +1575,17 @@ class Meta(commands.Cog, CogMixin):
         aliases=("cmds",),
         brief="Show all custom commands. Alias for `command list`",
     )
+    @commands.cooldown(1, 5, commands.BucketType.user)
     async def _commands(self, ctx):
         await ctx.try_invoke(self.cmdList)
 
     @commands.command(brief="Get link to my source code")
+    @commands.cooldown(1, 5, commands.BucketType.user)
     async def source(self, ctx):
         await ctx.send("My source code: {}".format(self.bot.links["Source Code"]))
 
     @commands.command(aliases=("botinfo", "bi"), brief="Information about me")
+    @commands.cooldown(1, 5, commands.BucketType.user)
     async def about(self, ctx):
         # Z3R0 Banner
         f = discord.File("./assets/img/banner.png", filename="banner.png")
@@ -1614,6 +1618,7 @@ class Meta(commands.Cog, CogMixin):
         await ctx.try_reply(file=f, embed=e)
 
     @commands.command(brief="Information about my stats")
+    @commands.cooldown(1, 5, commands.BucketType.user)
     async def stats(self, ctx):
         uptime = utcnow() - self.bot.uptime
         e = ZEmbed.default(ctx)
@@ -1643,6 +1648,7 @@ class Meta(commands.Cog, CogMixin):
         ),
         invoke_without_command=True,
     )
+    @commands.cooldown(1, 5, commands.BucketType.user)
     async def prefix(self, ctx):
         await ctx.try_invoke(self.prefList)
 
@@ -1652,6 +1658,7 @@ class Meta(commands.Cog, CogMixin):
         brief="Get all prefixes",
         exemple=("prefix ls", "pref list"),
     )
+    @commands.cooldown(1, 5, commands.BucketType.user)
     async def prefList(self, ctx):
         prefixes = await self.bot.getGuildPrefix(ctx.guild.id)
         menu = ZReplyMenu(

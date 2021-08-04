@@ -76,7 +76,7 @@ class Fun(commands.Cog, CogMixin):
             flags={"mode": "Change display mode (modes: visual, classic, pipega)"},
         ),
     )
-    @commands.cooldown(1, 5, commands.BucketType.user)
+    @commands.cooldown(5, 25, commands.BucketType.user)
     async def findseed(self, ctx, *, arguments: str = None):
         availableMode = ("visual", "classic", "pipega")
         aliasesMode = {"pepiga": "pipega"}
@@ -229,6 +229,7 @@ class Fun(commands.Cog, CogMixin):
             await ctx.send(f"{ctx.author.mention}, you're a crewmate!")
 
     @commands.command(aliases=("badjokes",), brief="Get random dad jokes")
+    @commands.cooldown(1, 5, commands.BucketType.user)
     async def dadjokes(self, ctx):
         headers = {"accept": "application/json"}
         async with self.bot.session.get(
@@ -370,7 +371,7 @@ class Fun(commands.Cog, CogMixin):
             example=("barter 64", "piglin", "barter 262"),
         ),
     )
-    @commands.cooldown(1, 5, type=commands.BucketType.user)
+    @commands.cooldown(5, 25, type=commands.BucketType.user)
     async def barter(self, ctx, gold: int = 64):
         # limit gold amount up to 2240 (Minecraft inventory limit)
         if gold > 2240:
@@ -459,26 +460,6 @@ class Fun(commands.Cog, CogMixin):
             ctx, title=mediaData["title"]["userPreferred"], url=mediaData["siteUrl"]
         ).set_image(url=f"https://img.anili.st/media/{id}")
         await ctx.try_reply(embed=e)
-
-    # TODO: Enable this later
-    # @commands.command(usage="(member)")
-    # @commands.cooldown(5, 25, type=commands.BucketType.user)
-    # @commands.max_concurrency(1, per=commands.BucketType.guild)
-    # async def triggered(self, ctx, member: discord.User = None):
-    #     """Make your or someone else's avatar triggered."""
-    #     if "dagpi_token" not in self.bot.config:
-    #         return
-    #     if not member:
-    #         member = ctx.author
-    #     url = "https://api.dagpi.xyz/image/triggered/?url=" + str(
-    #         member.avatar_url_as(format="png", size=1024)
-    #     )
-    #     async with self.bot.session.get(
-    #         url=url, headers={"Authorization": self.bot.config["dagpi_token"]}
-    #     ) as res:
-    #         image = io.BytesIO(await res.read())
-    #         img = discord.File(fp=image, filename="triggered.gif")
-    #         await ctx.send(file=img)
 
 
 def setup(bot):

@@ -89,7 +89,6 @@ Moved to [CHANGELOG.md](./CHANGELOG.md)
 
 ### Overhaul Plan
 
-- Cooldown
 - Event for ~~member boosting a guild~~ (Just need to implement setup for it)
 - Add case log (in `v3.1.0` maybe?)
 - Properly support different SQL scheme (databases have `database_url.scheme` to check scheme type) (in `v3.1.0` maybe?)

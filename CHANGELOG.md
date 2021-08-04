@@ -21,6 +21,9 @@
 - [**New**] Added redify and polaroid to Image category
 - [**Improved**] Modlog events now getch the "real moderator" when mod commands
   is used to trigger the events
+- [**Changed**] Added cooldown to most of the commands, to prevent spam
+- [**Improved**] Added timezone argument to time command (user timezone still
+  coming soon)
 
 # 3.0.5
 

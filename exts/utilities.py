@@ -47,6 +47,7 @@ class Utilities(commands.Cog, CogMixin):
             )
         ),
     )
+    @commands.cooldown(1, 5, commands.BucketType.user)
     async def math(self, ctx, *, equation):
         try:
             result = NumericStringParser().eval(equation)
@@ -84,6 +85,7 @@ class Utilities(commands.Cog, CogMixin):
         ),
         # extras=dict(example=('execute print("Hello World")',)),
     )
+    @commands.cooldown(1, 5, commands.BucketType.user)
     async def execute(self, ctx, *, argument):
         lang, code = parseCodeBlock(argument)
 
@@ -120,6 +122,7 @@ class Utilities(commands.Cog, CogMixin):
             example=("translate fr->en Bonjour", "trans id Hola", "tr en<-ja こんにちは")
         ),
     )
+    @commands.cooldown(1, 5, commands.BucketType.user)
     async def translate(self, ctx, language, *, text):
         # parse "source->dest" or "dest<-source"
         arrow = pyp.Literal("->") | pyp.Literal("<-")
@@ -152,6 +155,7 @@ class Utilities(commands.Cog, CogMixin):
     @commands.command(
         brief="Encode a text into morse code",
     )
+    @commands.cooldown(1, 5, commands.BucketType.user)
     async def morse(self, ctx, *, text):
         try:
             await ctx.try_reply(f"`{encodeMorse(text)}`")
@@ -165,6 +169,7 @@ class Utilities(commands.Cog, CogMixin):
         brief="Decode a morse code",
         usage="(morse code)",
     )
+    @commands.cooldown(1, 5, commands.BucketType.user)
     async def unmorse(self, ctx, *, code):
         try:
             await ctx.try_reply(f"`{decodeMorse(code)}`")
