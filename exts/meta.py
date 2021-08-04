@@ -247,6 +247,11 @@ async def formatCommandInfo(ctx, command):
                     cooldown
                 ),
             )
+        e.set_footer(
+            text="Use `{}command info command-name` to check custom command's information".format(
+                ctx.clean_prefix
+            )
+        )
 
     if isinstance(command, commands.Group):
         subcmds = sorted(command.commands, key=lambda c: c.name)  # type: ignore # 'command' already checked as commands.Group
@@ -365,7 +370,7 @@ class CustomHelp(commands.HelpCommand):
                 value="> " + (cmd.brief or "No description"),
             )
         e.set_footer(
-            text="Use `{}help command-name filter: custom` to check custom command's information".format(
+            text="Use `{}command info command-name` to check custom command's information".format(
                 ctx.clean_prefix
             )
         )
@@ -400,17 +405,17 @@ class CustomHelp(commands.HelpCommand):
 
         # default filters, based on original help cmd
         defFilters = ("category", "built-in", "custom")
+        filters = []
 
-        # parse flags
-        parser = ArgumentParser(allow_abbrev=False)
-        parser.add_argument(
-            "--filters", aliases=("--filter", "--filt"), action="extend", nargs="*"
-        )
+        # parse flags is not an empty string
+        if args:
+            parser = ArgumentParser(allow_abbrev=False)
+            parser.add_argument(
+                "--filters", aliases=("--filter", "--filt"), action="extend", nargs="*"
+            )
 
-        parsed, _ = await parser.parse_known_from_string(args)
-        filters = parsed.filters
-        if not filters:
-            filters = defFilters
+            parsed, _ = await parser.parse_known_from_string(args)
+            filters = parsed.filters
 
         # All available filters
         filterAvailable = ("category", "custom", "built-in")
@@ -421,12 +426,21 @@ class CustomHelp(commands.HelpCommand):
             "b": "built-in",
         }
 
-        # get unique value from filters
+        # get unique value from filters (also get "real value" if its an alias)
         unique = []
         for f in filters:
             f = filterAliases.get(f, f)
             if f in filterAvailable and f not in unique:
                 unique.append(f)
+
+        if not unique:
+            unique = defFilters
+
+        if not command and len(unique) == 1:
+            # TODO: get command list if no command specified and 1 filters specified
+            # This will merge `>command list`
+            # return None, None, unique
+            pass
 
         return command, args, unique
 
@@ -442,14 +456,14 @@ class CustomHelp(commands.HelpCommand):
 
         string = None
 
-        type_ = "built-in command"
+        type_ = "command/category"
 
         for filter_ in filters:
             if filter_ == "category":
                 # Check if it's a cog
                 cog = bot.get_cog(command)
                 if cog is None:
-                    type_ = "category"
+                    # type_ = "category"
                     continue
                 return await self.send_cog_help(cog)
 
@@ -458,7 +472,7 @@ class CustomHelp(commands.HelpCommand):
                     cc = await getCustomCommand(ctx, command)
                     return await self.send_command_help(cc)
                 except CCommandNotFound:
-                    type_ = "custom command"
+                    # type_ = "command"
                     continue
 
             # If it's not a cog then it's a command.
@@ -468,7 +482,7 @@ class CustomHelp(commands.HelpCommand):
             keys = command.split(" ")
             cmd = bot.all_commands.get(keys[0])
             if cmd is None:
-                type_ = "built-in command"
+                # type_ = "command"
                 continue
 
             for key in keys[1:]:
