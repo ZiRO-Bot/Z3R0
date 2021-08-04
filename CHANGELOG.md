@@ -15,6 +15,7 @@
 - [**New**] Added Image category and re-added triggered
 - [**New**] Added blurplify
 - [**Improved**] Added `filters` flag to help command
+- [**Improved**] `>command set mode` success message now show mode's description
 
 # 3.0.5
 

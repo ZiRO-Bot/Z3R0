@@ -1166,7 +1166,8 @@ class Meta(commands.Cog, CogMixin):
         result = await self.bot.setGuildConfig(ctx.guild.id, "ccMode", mode)
         if result is not None:
             return await ctx.success(
-                title="Custom command mode has been set to `{}`".format(mode)
+                MODES[mode],
+                title="Custom command mode has been set to `{}`".format(mode),
             )
 
     @command.command(
