@@ -188,82 +188,6 @@ async def getCustomCommands(db, guildId, category: str = None):
     return [CustomCommand(id=k, **v) for k, v in cmds.items()]
 
 
-async def formatCommandInfo(ctx, command):
-    """Format command help"""
-    prefix = ctx.clean_prefix
-
-    e = ZEmbed(
-        title=formatCmd(prefix, command),
-        description="**Aliases**: `{}`\n".format(
-            ", ".join(command.aliases) if command.aliases else "No alias"
-        )
-        + (command.description or command.brief or "No description"),
-    )
-
-    if isinstance(command, CustomCommand):
-        author = ctx.bot.get_user(command.owner) or await ctx.bot.fetch_user(
-            command.owner
-        )
-        e.set_author(name="By {}".format(author), icon_url=author.avatar_url)
-
-    if isinstance(command, (commands.Command, commands.Group)):
-        extras = getattr(command, "extras", {})
-
-        optionDict: Optional[dict] = extras.get("flags")
-        if optionDict:
-            optionStr = []
-            for key, value in optionDict.items():
-                name = (
-                    " | ".join([f"`{i}`" for i in key])
-                    if isinstance(key, tuple)
-                    else f"`{key}`"
-                )
-                optionStr.append(f"> {name}: {value}")
-            e.add_field(name="Options", value="\n".join(optionStr), inline=False)
-
-        examples = extras.get("example")
-        if examples:
-            e.add_field(
-                name="Example",
-                value="\n".join([f"> `{prefix}{x}`" for x in examples]),
-                inline=False,
-            )
-
-        perms = extras.get("perms", {})
-        botPerm = perms.get("bot")
-        userPerm = perms.get("user")
-        if botPerm is not None or userPerm is not None:
-            e.add_field(
-                name="Required Permissions",
-                value="> Bot: `{}`\n> User: `{}`".format(botPerm, userPerm),
-                inline=False,
-            )
-
-        cooldown = command._buckets._cooldown  # type: ignore
-        if cooldown:
-            e.add_field(
-                name="Cooldown",
-                value="> {0.rate} command per {0.per} seconds, per {0.type[0]}".format(
-                    cooldown
-                ),
-            )
-        e.set_footer(
-            text="Use `{}command info command-name` to check custom command's information".format(
-                ctx.clean_prefix
-            )
-        )
-
-    if isinstance(command, commands.Group):
-        subcmds = sorted(command.commands, key=lambda c: c.name)  # type: ignore # 'command' already checked as commands.Group
-        if subcmds:
-            e.add_field(
-                name="Subcommands",
-                value="\n".join([f"> `{formatCmd(prefix, cmd)}`" for cmd in subcmds]),
-            )
-
-    return e
-
-
 class CustomHelp(commands.HelpCommand):
     async def send_bot_help(self, mapping):
         ctx = self.context
@@ -370,7 +294,7 @@ class CustomHelp(commands.HelpCommand):
                 value="> " + (cmd.brief or "No description"),
             )
         e.set_footer(
-            text="Use `{}command info command-name` to check custom command's information".format(
+            text="Use `{}command info command-name` to get custom command's information".format(
                 ctx.clean_prefix
             )
         )
@@ -387,8 +311,78 @@ class CustomHelp(commands.HelpCommand):
     # TODO: Add aliases to group and command help
     async def send_command_help(self, command):
         ctx = self.context
+        prefix = ctx.clean_prefix
 
-        e = await formatCommandInfo(ctx, command)
+        e = ZEmbed(
+            title=formatCmd(prefix, command),
+            description="**Aliases**: `{}`\n".format(
+                ", ".join(command.aliases) if command.aliases else "No alias"
+            )
+            + (command.description or command.brief or "No description"),
+        )
+
+        if isinstance(command, CustomCommand):
+            author = ctx.bot.get_user(command.owner) or await ctx.bot.fetch_user(
+                command.owner
+            )
+            e.set_author(name="By {}".format(author), icon_url=author.avatar_url)
+
+        if isinstance(command, (commands.Command, commands.Group)):
+            extras = getattr(command, "extras", {})
+
+            optionDict: Optional[dict] = extras.get("flags")
+            if optionDict:
+                optionStr = []
+                for key, value in optionDict.items():
+                    name = (
+                        " | ".join([f"`{i}`" for i in key])
+                        if isinstance(key, tuple)
+                        else f"`{key}`"
+                    )
+                    optionStr.append(f"> {name}: {value}")
+                e.add_field(name="Options", value="\n".join(optionStr), inline=False)
+
+            examples = extras.get("example")
+            if examples:
+                e.add_field(
+                    name="Example",
+                    value="\n".join([f"> `{prefix}{x}`" for x in examples]),
+                    inline=False,
+                )
+
+            perms = extras.get("perms", {})
+            botPerm = perms.get("bot")
+            userPerm = perms.get("user")
+            if botPerm is not None or userPerm is not None:
+                e.add_field(
+                    name="Required Permissions",
+                    value="> Bot: `{}`\n> User: `{}`".format(botPerm, userPerm),
+                    inline=False,
+                )
+
+            cooldown = command._buckets._cooldown  # type: ignore
+            if cooldown:
+                e.add_field(
+                    name="Cooldown",
+                    value="> {0.rate} command per {0.per} seconds, per {0.type[0]}".format(
+                        cooldown
+                    ),
+                )
+            e.set_footer(
+                text="Use `{}command info command-name` to get custom command's information".format(
+                    ctx.clean_prefix
+                )
+            )
+
+        if isinstance(command, commands.Group):
+            subcmds = sorted(command.commands, key=lambda c: c.name)  # type: ignore # 'command' already checked as commands.Group
+            if subcmds:
+                e.add_field(
+                    name="Subcommands",
+                    value="\n".join(
+                        [f"> `{formatCmd(prefix, cmd)}`" for cmd in subcmds]
+                    ),
+                )
 
         await ctx.try_reply(embed=e)
 
@@ -529,7 +523,7 @@ class Meta(commands.Cog, CogMixin):
         attributes = dict(
             name="help",
             aliases=("?",),
-            usage="[category|command]",
+            usage="[category / command]",
             brief="Get information of a command or category",
             description=(
                 "Get information of a command or category.\n\n"
@@ -538,7 +532,8 @@ class Meta(commands.Cog, CogMixin):
                 "get custom command called `command` first before getting built-in "
                 "command with the same name, **BUT** will not try to get category "
                 "named `command`.\n\n"
-                "All available filters: category (cat, C), custom (c), and built-in (b)"
+                "All available filters: `category` (`cat`, `C`), `custom` (`c`), and "
+                "`built-in` (`b`)"
             ),
             extras=dict(
                 example=(
