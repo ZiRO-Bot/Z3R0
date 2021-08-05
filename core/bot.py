@@ -41,11 +41,13 @@ from utils.other import Blacklist, utcnow
 EXTS = []
 EXTS_DIR = "exts"
 EXTS_IGNORED = ("twitch.py", "youtube.py", "slash.py", "music.py")
-for filename in os.listdir("./{}".format(EXTS_DIR)):
-    if filename in EXTS_IGNORED:
-        continue
-    if filename.endswith(".py"):
-        EXTS.append("{}.{}".format(EXTS_DIR, filename[:-3]))
+FMT = "./{}".format(EXTS_DIR)
+for filename in os.listdir(FMT):
+    if os.path.isdir(os.path.join(FMT, filename)):
+        if filename in EXTS_IGNORED:
+            continue
+        if not filename.startswith("_"):
+            EXTS.append("{}.{}".format(EXTS_DIR, filename))
 
 
 async def _callablePrefix(bot: ziBot, message: discord.Message) -> list:
