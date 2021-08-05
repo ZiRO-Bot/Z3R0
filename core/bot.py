@@ -24,8 +24,8 @@ from core.errors import (
     NotInGuild,
 )
 from core.objects import Connection
-from exts.meta import getCustomCommands
-from exts.timer import Timer, TimerData
+from exts.meta.meta import getCustomCommands
+from exts.timer.timer import Timer, TimerData
 from utils import dbQuery
 from utils.cache import (
     Cache,
