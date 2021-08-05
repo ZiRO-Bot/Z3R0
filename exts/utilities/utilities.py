@@ -192,7 +192,8 @@ class Utilities(commands.Cog, CogMixin):
                 title="Not found!",
             )
 
-        e = ZEmbed.default(ctx, title="Google Search: {}...".format(query))
+        e = ZEmbed.default(ctx)
+        e.set_author(name="Search result for '{}'".format(query))
 
         e.set_footer(text=results["stats"])
 
