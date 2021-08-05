@@ -7,9 +7,10 @@ from random import randrange
 
 from discord.ext import commands
 
+from core.embed import ZEmbed
 from core.mixin import CogMixin
 from utils.api import graphql
-from utils.format import ZEmbed, separateStringFlags
+from utils.format import separateStringFlags
 
 from ._flags import AnimeSearchFlags
 

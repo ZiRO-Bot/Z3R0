@@ -16,9 +16,10 @@ import pytz
 from discord.ext import commands
 
 from core.converter import TimeAndArgument
+from core.embed import ZEmbed
 from core.mixin import CogMixin
 from utils import dbQuery
-from utils.format import ZEmbed, formatDateTime, formatDiscordDT
+from utils.format import formatDateTime, formatDiscordDT
 from utils.other import utcnow
 
 

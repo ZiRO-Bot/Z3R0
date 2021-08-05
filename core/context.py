@@ -4,7 +4,7 @@ from typing import Union
 import discord
 from discord.ext import commands
 
-from utils.format import ZEmbed
+from core.embed import ZEmbed
 
 
 class Context(commands.Context):

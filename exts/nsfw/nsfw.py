@@ -8,8 +8,8 @@ import aiohttp
 import discord
 from discord.ext import commands, menus
 
+from core.embed import ZEmbed
 from core.mixin import CogMixin
-from utils.format import ZEmbed
 
 
 NEKO_API = "https://api.nekos.dev/api/v3"

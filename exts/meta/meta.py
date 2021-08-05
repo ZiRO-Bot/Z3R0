@@ -16,6 +16,7 @@ import TagScriptEngine as tse
 from discord.ext import commands
 
 from core import checks
+from core.embed import ZEmbed
 from core.errors import (
     CCommandAlreadyExists,
     CCommandDisabled,
@@ -27,7 +28,7 @@ from core.menus import ZReplyMenu
 from core.mixin import CogMixin
 from utils import dbQuery, sql, tseBlocks
 from utils.cache import CacheListProperty, CacheUniqueViolation
-from utils.format import CMDName, ZEmbed, cleanifyPrefix
+from utils.format import CMDName, cleanifyPrefix
 from utils.other import ArgumentParser, reactsToMessage, utcnow
 
 from ._custom_command import CustomCommand, getCustomCommand, getCustomCommands

@@ -15,10 +15,11 @@ from discord.ext import commands
 
 from core import checks
 from core.converter import MemberOrUser
+from core.embed import ZEmbed
 from core.mixin import CogMixin
 from utils import pillow
 from utils.api.openweather import CityNotFound, OpenWeatherAPI
-from utils.format import ZEmbed, formatDiscordDT, renderBar
+from utils.format import formatDiscordDT, renderBar
 from utils.infoQuote import *  # noqa:  F403
 from utils.other import utcnow
 

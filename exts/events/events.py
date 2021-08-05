@@ -17,9 +17,10 @@ import TagScriptEngine as tse
 from discord.ext import commands
 
 from core import errors
+from core.embed import ZEmbed
 from core.mixin import CogMixin
 from utils import tseBlocks
-from utils.format import ZEmbed, formatMissingArgError
+from utils.format import formatMissingArgError
 from utils.other import ArgumentError, reactsToMessage, utcnow
 
 

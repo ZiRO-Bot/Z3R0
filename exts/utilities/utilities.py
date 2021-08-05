@@ -11,11 +11,11 @@ import discord
 import pyparsing as pyp
 from discord.ext import commands
 
+from core.embed import ZEmbed
 from core.mixin import CogMixin
 from utils.api.google import Google
 from utils.api.googletrans import GoogleTranslate
 from utils.api.piston import Piston
-from utils.format import ZEmbed
 from utils.other import NumericStringParser, decodeMorse, encodeMorse, parseCodeBlock
 
 

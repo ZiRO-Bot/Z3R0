@@ -10,8 +10,8 @@ import discord
 from discord.ext import commands
 
 from core.converter import MemberOrUser
+from core.embed import ZEmbed
 from core.mixin import CogMixin
-from utils.format import ZEmbed
 
 
 class Image(commands.Cog, CogMixin):

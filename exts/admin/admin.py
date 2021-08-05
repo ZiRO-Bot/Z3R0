@@ -10,8 +10,9 @@ from discord.ext import commands
 from discord.utils import MISSING
 
 from core import checks, flags
+from core.embed import ZEmbed
 from core.mixin import CogMixin
-from utils.format import ZEmbed, separateStringFlags
+from utils.format import separateStringFlags
 
 
 # Also includes aliases

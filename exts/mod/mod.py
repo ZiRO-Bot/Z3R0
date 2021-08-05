@@ -12,11 +12,12 @@ from discord.ext import commands
 
 from core import checks
 from core.converter import BannedMember, MemberOrUser, TimeAndArgument
+from core.embed import ZEmbed
 from core.errors import MissingMuteRole
 from core.mixin import CogMixin
 from exts.timer.timer import Timer, TimerData
 from utils.cache import CacheUniqueViolation
-from utils.format import ZEmbed, formatDateTime
+from utils.format import formatDateTime
 from utils.other import ArgumentError, ArgumentParser, utcnow
 
 

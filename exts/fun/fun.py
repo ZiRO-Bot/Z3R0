@@ -11,9 +11,9 @@ import discord
 from discord.ext import commands
 
 from core import checks
+from core.embed import ZEmbed
 from core.mixin import CogMixin
 from utils.api import reddit
-from utils.format import ZEmbed
 from utils.other import ArgumentError, ArgumentParser
 from utils.piglin import Piglin
 
