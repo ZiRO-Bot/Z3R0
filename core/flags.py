@@ -31,7 +31,3 @@ class HelpFlags(commands.FlagConverter, case_insensitive=True):
     filters: List[str] = commands.flag(
         name="filter", aliases=("filters", "filt"), default=[]
     )
-
-
-class AnimeSearchFlags(commands.FlagConverter, case_insensitive=True):
-    format_: str = commands.flag(name="format", default="TV")
