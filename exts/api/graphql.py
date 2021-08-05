@@ -30,9 +30,15 @@ class GraphQL:
 
     def __init__(self, baseUrl: str, **kwargs):
         self.baseUrl = baseUrl
-        self.session = kwargs.pop("session", None) or aiohttp.ClientSession()
+        self.session = kwargs.pop("session", None)
+
+    async def generateSession(self):
+        if self.session is None:
+            self.session = aiohttp.ClientSession()
 
     async def query(self, query, /, method: str = "POST", **kwargs):
+        await self.generateSession()
+
         async with getattr(self.session, method.lower())(
             self.baseUrl, json={"query": query, "variables": kwargs}
         ) as req:

@@ -5,14 +5,14 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 """
 
 import io
-from random import choice, randint, random, randrange, shuffle
+from random import choice, randint, random, shuffle
 
 import discord
 from discord.ext import commands
 
 from core import checks
 from core.mixin import CogMixin
-from exts.api import graphql, reddit
+from exts.api import reddit
 from exts.utils.format import ZEmbed
 from exts.utils.other import ArgumentError, ArgumentParser
 from exts.utils.piglin import Piglin
@@ -27,9 +27,6 @@ class Fun(commands.Cog, CogMixin):
     def __init__(self, bot):
         super().__init__(bot)
         self.reddit = reddit.Reddit(self.bot.session)
-        self.anilist = graphql.GraphQL(
-            "https://graphql.anilist.co", session=self.bot.session
-        )
 
     @commands.command(brief="Get random meme from reddit")
     @commands.cooldown(1, 5, commands.BucketType.user)
@@ -414,48 +411,6 @@ class Fun(commands.Cog, CogMixin):
             ),
             colour=discord.Colour.gold(),
         )
-        await ctx.try_reply(embed=e)
-
-    @commands.command(brief="Get random anime")
-    @commands.cooldown(1, 5, commands.BucketType.user)
-    async def findanime(self, ctx):
-        query = await self.anilist.queryPost(
-            """
-            {
-                Page(perPage:1) {
-                    pageInfo {
-                        lastPage
-                    }
-                    media(type: ANIME, format_in:[MOVIE, TV, TV_SHORT]) {
-                        id
-                    }
-                }
-            }
-            """
-        )
-        lastPage = query["data"]["Page"]["pageInfo"]["lastPage"]
-        query = await self.anilist.queryPost(
-            """
-            query ($random: Int) {
-                Page(page: $random, perPage: 1) {
-                    pageInfo {
-                        total
-                    }
-                    media(type: ANIME, isAdult: false, status_not: NOT_YET_RELEASED) {
-                        id,
-                        title { userPreferred },
-                        siteUrl
-                    }
-                }
-            }
-            """,
-            random=randrange(1, lastPage),
-        )
-        mediaData = query["data"]["Page"]["media"][0]
-        id = mediaData["id"]
-        e = ZEmbed.default(
-            ctx, title=mediaData["title"]["userPreferred"], url=mediaData["siteUrl"]
-        ).set_image(url=f"https://img.anili.st/media/{id}")
         await ctx.try_reply(embed=e)
 
 
