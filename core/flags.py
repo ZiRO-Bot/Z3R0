@@ -25,9 +25,3 @@ class RoleCreateFlags(commands.FlagConverter, case_insensitive=True):
 class RoleSetFlags(commands.FlagConverter, case_insensitive=True):
     type_: str = commands.flag(name="type")
     role: Optional[discord.Role]
-
-
-class HelpFlags(commands.FlagConverter, case_insensitive=True):
-    filters: List[str] = commands.flag(
-        name="filter", aliases=("filters", "filt"), default=[]
-    )
