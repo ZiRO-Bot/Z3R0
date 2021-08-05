@@ -262,19 +262,45 @@ python-versions = ">=3.5.3"
 "discord.py" = ">=1.2.5"
 
 [[package]]
+name = "discord-ext-menus-views"
+version = "0.1.0"
+description = "A discord.ext.menus Menu backed by Views and Buttons instead of reactions."
+category = "main"
+optional = false
+python-versions = "^3.8"
+develop = false
+
+[package.dependencies]
+"discord.py" = "branch master"
+
+[package.source]
+type = "git"
+url = "https://github.com/oliver-ni/discord-ext-menus-views"
+reference = "1ac5b6eaeb55032376afc51c195640aa85a74f3c"
+resolved_reference = "1ac5b6eaeb55032376afc51c195640aa85a74f3c"
+
+[[package]]
 name = "discord.py"
-version = "1.7.3"
+version = "2.0.0a3453+g58ca9e99"
 description = "A Python wrapper for the Discord API"
 category = "main"
 optional = false
-python-versions = ">=3.5.3"
+python-versions = ">=3.8.0"
+develop = false
 
 [package.dependencies]
 aiohttp = ">=3.6.0,<3.8.0"
 
 [package.extras]
-docs = ["sphinx (==3.0.3)", "sphinxcontrib-trio (==1.1.2)", "sphinxcontrib-websupport"]
+docs = ["sphinx (==4.0.2)", "sphinxcontrib-trio (==1.1.2)", "sphinxcontrib-websupport"]
+speed = ["orjson (>=3.5.4)"]
 voice = ["PyNaCl (>=1.3.0,<1.5)"]
+
+[package.source]
+type = "git"
+url = "https://github.com/Rapptz/discord.py.git"
+reference = "master"
+resolved_reference = "58ca9e99325ac2678a51cd63afd7ae917f14bc8d"
 
 [[package]]
 name = "distlib"
@@ -791,7 +817,7 @@ voice = ["PyNaCl"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "a96baef8ea904444c4862fac32657fd3b7d2beba2cd8efae88fd6c8a87cafe48"
+content-hash = "3262d66c273ea6c37a91b85d13d36a938e11580754035c545a0c82059b124e5d"
 
 [metadata.files]
 aiohttp = [
@@ -974,10 +1000,8 @@ discord-ext-menus = [
     {file = "discord-ext-menus-1.1.tar.gz", hash = "sha256:96104fb63aae63846b7f722ca29da31f143e273d1c5745ef7427540814a31da8"},
     {file = "discord_ext_menus-1.1-py3-none-any.whl", hash = "sha256:d3c9fc8cacf533ed78fc177482889ae72236f09968184ac90bdfa6a8555b5108"},
 ]
-"discord.py" = [
-    {file = "discord.py-1.7.3-py3-none-any.whl", hash = "sha256:c6f64db136de0e18e090f6752ea68bdd4ab0a61b82dfe7acecefa22d6477bb0c"},
-    {file = "discord.py-1.7.3.tar.gz", hash = "sha256:462cd0fe307aef8b29cbfa8dd613e548ae4b2cb581d46da9ac0d46fb6ea19408"},
-]
+discord-ext-menus-views = []
+"discord.py" = []
 distlib = [
     {file = "distlib-0.3.2-py2.py3-none-any.whl", hash = "sha256:23e223426b28491b1ced97dc3bbe183027419dfc7982b4fa2f05d5f3ff10711c"},
     {file = "distlib-0.3.2.zip", hash = "sha256:106fef6dc37dd8c0e2c0a60d3fca3e77460a48907f335fa28420463a6f799736"},
