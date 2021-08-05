@@ -25,7 +25,7 @@ from core.errors import (
     CCommandNotInGuild,
     NotInGuild,
 )
-from core.flags import HelpFlag
+from core.flags import HelpFlags
 from core.menus import ZReplyMenu
 from core.mixin import CogMixin
 from core.objects import CustomCommand
@@ -401,7 +401,7 @@ class CustomHelp(commands.HelpCommand):
 
         # parse flags is not an empty string
         if args:
-            parsed = await HelpFlag.convert(ctx, args)
+            parsed = await HelpFlags.convert(ctx, args)
             for f in parsed.filters:
                 filters.extend(f.strip().split())
 

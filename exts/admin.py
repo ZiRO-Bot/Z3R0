@@ -11,8 +11,9 @@ import discord
 from discord.ext import commands
 
 from core import checks
+from core.flags import GreetingFlags
 from core.mixin import CogMixin
-from exts.utils.format import ZEmbed
+from exts.utils.format import ZEmbed, separateStringFlags
 from exts.utils.other import ArgumentParser, UserFriendlyBoolean
 
 
@@ -56,28 +57,23 @@ class Admin(commands.Cog, CogMixin):
             # Nothing to do here.
             return
 
-        # Parsing arguments
-        parser = ArgumentParser(allow_abbrev=False)
-        parser.add_argument("--channel", aliases=("--ch",))
-        parser.add_argument("--raw", "-r", action=UserFriendlyBoolean)
-        parser.add_argument("--disable", "-d", action=UserFriendlyBoolean)
-        parser.add_argument("message", action="extend", nargs="*")
-        parser.add_argument("--message", action="extend", nargs="*")
+        changeMsg = False
+        message, args = separateStringFlags(arguments)
+        if message != "":
+            changeMsg = True
 
-        parsed, _ = await parser.parse_known_from_string(arguments)
+        parsed = await GreetingFlags.convert(ctx, args)
 
         disable = parsed.disable
         raw = parsed.raw
 
-        changeMsg = False
-        message = None
-        if not raw and not disable and parsed.message:
+        if not raw and not disable and parsed.messages:
             changeMsg = True
-            message = " ".join(parsed.message).strip()
+            message = " ".join([message] + parsed.messages).strip()
 
         channel = None
         if not raw and not disable and parsed.channel:
-            channel = await commands.TextChannelConverter().convert(ctx, parsed.channel)
+            channel = parsed.channel
 
         e = ZEmbed.success(
             title=("Welcome" if type == "welcome" else "Farewell")
