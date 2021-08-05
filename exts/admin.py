@@ -370,7 +370,8 @@ class Admin(commands.Cog, CogMixin):
             role = await commands.RoleConverter().convert(ctx, roleArg.strip())
 
         if not role:
-            return await ctx.error("Role can't be empty!")
+            # should already handled by command.RoleConverter but just incase
+            return
 
         type = parsed.type_
 
