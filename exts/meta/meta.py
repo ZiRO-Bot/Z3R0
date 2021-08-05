@@ -14,7 +14,7 @@ import discord
 import humanize
 import sqlalchemy as sa
 import TagScriptEngine as tse
-from discord.ext import commands, menus
+from discord.ext import commands
 
 from core import checks
 from core.errors import (
@@ -41,6 +41,8 @@ from utils.format import (
 )
 from utils.other import ArgumentParser, reactsToMessage, utcnow
 
+from ._pages import PrefixesPageSource
+
 
 if TYPE_CHECKING:
     from core.bot import ziBot
@@ -61,35 +63,6 @@ MODES = [
     "Member can add custom command but can only manage **their own** commands",
     "**A N A R C H Y**",
 ]
-
-
-class PrefixesPageSource(menus.ListPageSource):
-    def __init__(self, ctx, prefixes):
-        self.prefixes = prefixes
-        self.ctx = ctx
-
-        super().__init__(prefixes, per_page=6)
-
-    async def format_page(self, menu: menus.MenuPages, prefixes: list):
-        ctx = self.ctx
-
-        e = ZEmbed(
-            title="{} Prefixes".format(ctx.guild), description="**Custom Prefixes**:\n"
-        )
-
-        if menu.current_page == 0:
-            prefixes.pop(0)
-            prefixes.pop(0)
-            e.description = (
-                "**Default Prefixes**: `{}` or `{} `\n\n**Custom Prefixes**:\n".format(
-                    ctx.bot.defPrefix, cleanifyPrefix(ctx.bot, ctx.me.mention)
-                )
-            )
-        e.description += (
-            "\n".join([f"• `{cleanifyPrefix(ctx.bot, p)}`" for p in prefixes])
-            or "No custom prefix."
-        )
-        return e
 
 
 async def getCustomCommand(ctx, command):
