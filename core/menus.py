@@ -54,18 +54,10 @@ class ZReplyMenu(ZMenu):
             return self.init_msg
         else:
             # e = discord.Embed(title="Loading...", colour=discord.Colour.blue())
+            kwargs.update({"mention_author": self.ping})
             self.init_msg = await ctx.try_reply(**kwargs)
             return self.init_msg
 
-    async def _get_kwargs_from_page(self, page):
-        no_ping = {"mention_author": self.ping}
-        value = await discord.utils.maybe_coroutine(
-            self._source.format_page, self, page
-        )
-        if isinstance(value, dict):
-            return value.update(no_ping)
-        elif isinstance(value, str):
-            no_ping.update({"content": value})
-        elif isinstance(value, discord.Embed):
-            no_ping.update({"embed": value})
-        return no_ping
+
+class ZMenuView:
+    pass

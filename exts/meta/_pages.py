@@ -1,6 +1,7 @@
 from discord.ext import menus
 
-from utils.format import ZEmbed, cleanifyPrefix
+from core.embed import ZEmbed
+from utils.format import cleanifyPrefix
 
 
 class PrefixesPageSource(menus.ListPageSource):

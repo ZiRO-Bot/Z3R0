@@ -8,14 +8,16 @@ from random import randrange
 from discord.ext import commands
 
 from core.embed import ZEmbed
+from core.menus import ZReplyMenu
 from core.mixin import CogMixin
 from utils.api import graphql
 from utils.format import separateStringFlags
 
 from ._flags import AnimeSearchFlags
+from ._pages import AnimeSearchPageSource
 
 
-class Anime(commands.Cog, CogMixin):
+class AniList(commands.Cog, CogMixin):
     """Cog about Anime and Manga."""
 
     def __init__(self, bot):
@@ -90,7 +92,8 @@ class Anime(commands.Cog, CogMixin):
             perPage=10,
         )
         aniData = query["data"]["Page"]["media"]
-        print(aniData[0])
+        menu = ZReplyMenu(source=AnimeSearchPageSource(ctx, aniData))
+        await menu.start(ctx)
 
     @commands.command(brief="Get random anime")
     @commands.cooldown(1, 5, commands.BucketType.user)

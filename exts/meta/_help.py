@@ -3,10 +3,11 @@ from typing import Optional
 import discord
 from discord.ext import commands
 
+from core.embed import ZEmbed
 from core.errors import CCommandNotFound, NotInGuild
 from core.objects import CustomCommand
 from utils import infoQuote
-from utils.format import ZEmbed, formatCmd, formatDiscordDT, separateStringFlags
+from utils.format import formatCmd, formatDiscordDT, separateStringFlags
 
 from ._custom_command import getCustomCommand, getCustomCommands
 from ._flags import HelpFlags
