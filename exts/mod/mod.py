@@ -14,7 +14,7 @@ from core import checks
 from core.converter import BannedMember, MemberOrUser, TimeAndArgument
 from core.errors import MissingMuteRole
 from core.mixin import CogMixin
-from exts.timer import Timer, TimerData
+from exts.timer.timer import Timer, TimerData
 from utils.cache import CacheUniqueViolation
 from utils.format import ZEmbed, formatDateTime
 from utils.other import ArgumentError, ArgumentParser, utcnow
