@@ -4,17 +4,15 @@ License, v. 2.0. If a copy of the MPL was not distributed with this
 file, You can obtain one at http://mozilla.org/MPL/2.0/.
 """
 
-import argparse
 from typing import Optional, Union
 
 import discord
 from discord.ext import commands
+from discord.utils import MISSING
 
-from core import checks
-from core.flags import GreetingFlags
+from core import checks, flags
 from core.mixin import CogMixin
 from exts.utils.format import ZEmbed, separateStringFlags
-from exts.utils.other import ArgumentParser, UserFriendlyBoolean
 
 
 # Also includes aliases
@@ -59,17 +57,15 @@ class Admin(commands.Cog, CogMixin):
 
         changeMsg = False
         message, args = separateStringFlags(arguments)
-        if message != "":
-            changeMsg = True
 
-        parsed = await GreetingFlags.convert(ctx, args)
+        parsed = await flags.GreetingFlags.convert(ctx, args)
 
         disable = parsed.disable
         raw = parsed.raw
 
-        if not raw and not disable and parsed.messages:
+        message = " ".join([message.strip()] + parsed.messages).strip()
+        if not raw and not disable and message:
             changeMsg = True
-            message = " ".join([message] + parsed.messages).strip()
 
         channel = None
         if not raw and not disable and parsed.channel:
@@ -168,12 +164,14 @@ class Admin(commands.Cog, CogMixin):
     async def handleLogConfig(self, ctx, arguments, type: str):
         """Handle configuration for logs (modlog, purgatory)"""
         # Parsing arguments
-        parser = ArgumentParser(allow_abbrev=False)
-        parser.add_argument("--disable", action=UserFriendlyBoolean)
-        parser.add_argument("channel", nargs="?", default=argparse.SUPPRESS)
-        parser.add_argument("--channel", aliases=("--ch",))
+        channel, args = separateStringFlags(arguments)
+        channel = channel.strip()
+        if channel != "":
+            channel = await commands.TextChannelConverter().convert(ctx, channel)
+        else:
+            channel = None
 
-        parsed, _ = await parser.parse_known_from_string(arguments)
+        parsed = await flags.LogConfigFlags.convert(ctx, args)
 
         disable = parsed.disable
 
@@ -182,20 +180,25 @@ class Admin(commands.Cog, CogMixin):
             + " config has been updated"
         )
 
-        if disable:
-            await self.bot.setGuildConfig(
-                ctx.guild.id, f"{type}Ch", None, "guildChannels"
-            )
-            e.add_field(name="Status", value="`Disabled`")
-            return await ctx.try_reply(embed=e)
-
         if parsed.channel is not None:
-            channel = await commands.TextChannelConverter().convert(ctx, parsed.channel)
-            await self.bot.setGuildConfig(
-                ctx.guild.id, f"{type}Ch", channel.id, "guildChannels"
-            )
+            channel = parsed.channel
+
+        channelId = MISSING
+        if channel is not None and not disable:
+            channelId = channel.id
             e.add_field(name="Channel", value=channel.mention)
-            return await ctx.try_reply(embed=e)
+        else:
+            channelId = None
+            e.add_field(name="Status", value="`Disabled`")
+
+        if channelId is not MISSING:
+            await self.bot.setGuildConfig(
+                ctx.guild.id, f"{type}Ch", channelId, "guildChannels"
+            )
+        else:
+            e.description = "Nothing changed."
+
+        return await ctx.try_reply(embed=e)
 
     @commands.command(
         aliases=("ml",),
@@ -304,19 +307,15 @@ class Admin(commands.Cog, CogMixin):
             },
         ),
     )
-    async def roleMake(self, ctx, *, arguments):
-        parser = ArgumentParser(allow_abbrev=False)
-        parser.add_argument("--type")
-        parser.add_argument("name", action="extend", nargs="*")
-        parser.add_argument("--name", action="extend", nargs="+")
+    async def roleCreate(self, ctx, *, arguments):
+        name, args = separateStringFlags(arguments)
+        parsed = await flags.RoleCreateFlags.convert(ctx, args)
 
-        parsed, _ = await parser.parse_known_from_string(arguments)
-
-        name = " ".join(parsed.name).strip()
+        name = " ".join([name.strip()] + parsed.nameList).strip()
         if not name:
             return await ctx.error("Name can't be empty!")
 
-        type = parsed.type or "regular"
+        type = parsed.type_ or "regular"
 
         if (type := type.lower()) in ROLE_TYPES:
             msg = await ctx.try_reply(
@@ -363,18 +362,17 @@ class Admin(commands.Cog, CogMixin):
         ),
     )
     async def roleSet(self, ctx, *, arguments):
-        parser = ArgumentParser(allow_abbrev=False)
-        parser.add_argument("--type", "-t", required=True)
-        parser.add_argument("role", action="extend", nargs="*")
-        parser.add_argument("--role", action="extend", nargs="+")
+        roleArg, args = separateStringFlags(arguments)
+        parsed = await flags.RoleSetFlags.convert(ctx, args)
+        if parsed.role:
+            role = parsed.role
+        else:
+            role = await commands.RoleConverter().convert(ctx, roleArg.strip())
 
-        parsed, _ = await parser.parse_known_from_string(arguments)
+        if not role:
+            return await ctx.error("Role can't be empty!")
 
-        roleArg = " ".join(parsed.role).strip()
-        if not roleArg:
-            return await ctx.error("Role name can't be empty!")
-
-        type = parsed.type
+        type = parsed.type_
 
         disallowed = ("regular",)
 
@@ -382,11 +380,6 @@ class Admin(commands.Cog, CogMixin):
             msg = await ctx.try_reply(
                 embed=ZEmbed.loading(),
             )
-
-            role = await commands.RoleConverter().convert(ctx, roleArg)
-
-            if not role:
-                return
 
             if type != "regular":
                 await self.setGuildRole(ctx.guild.id, ROLE_TYPES[type], role.id)
@@ -436,7 +429,7 @@ class Admin(commands.Cog, CogMixin):
     )
     async def autorole(self, ctx, name: Union[discord.Role, str]):
         await ctx.try_invoke(
-            self.roleMake if isinstance(name, str) else self.roleSet,
+            self.roleCreate if isinstance(name, str) else self.roleSet,
             arguments=f"{getattr(name, 'id', name)} type: member",
         )
 
