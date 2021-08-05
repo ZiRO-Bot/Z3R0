@@ -10,7 +10,7 @@ from jishaku.cog import OPTIONAL_FEATURES, STANDARD_FEATURES
 from jishaku.features.baseclass import Feature
 
 from core.bot import EXTS_DIR
-from exts.utils.format import ZEmbed
+from utils.format import ZEmbed
 
 
 # --- For reload all command status

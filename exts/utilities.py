@@ -12,16 +12,11 @@ import pyparsing as pyp
 from discord.ext import commands
 
 from core.mixin import CogMixin
-from exts.api.google import Google
-from exts.api.googletrans import GoogleTranslate
-from exts.api.piston import Piston
-from exts.utils.format import ZEmbed
-from exts.utils.other import (
-    NumericStringParser,
-    decodeMorse,
-    encodeMorse,
-    parseCodeBlock,
-)
+from utils.api.google import Google
+from utils.api.googletrans import GoogleTranslate
+from utils.api.piston import Piston
+from utils.format import ZEmbed
+from utils.other import NumericStringParser, decodeMorse, encodeMorse, parseCodeBlock
 
 
 class Utilities(commands.Cog, CogMixin):

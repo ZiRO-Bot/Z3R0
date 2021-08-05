@@ -12,7 +12,7 @@ import asyncio
 
 from databases import Database
 
-from exts.utils import dbQuery
+from utils import dbQuery
 
 
 OLD_DB = Database("sqlite:///data/database2_0.db")

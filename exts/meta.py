@@ -29,9 +29,9 @@ from core.flags import HelpFlags
 from core.menus import ZReplyMenu
 from core.mixin import CogMixin
 from core.objects import CustomCommand
-from exts.utils import dbQuery, infoQuote, sql, tseBlocks
-from exts.utils.cache import CacheListProperty, CacheUniqueViolation
-from exts.utils.format import (
+from utils import dbQuery, infoQuote, sql, tseBlocks
+from utils.cache import CacheListProperty, CacheUniqueViolation
+from utils.format import (
     CMDName,
     ZEmbed,
     cleanifyPrefix,
@@ -39,7 +39,7 @@ from exts.utils.format import (
     formatDiscordDT,
     separateStringFlags,
 )
-from exts.utils.other import ArgumentParser, reactsToMessage, utcnow
+from utils.other import ArgumentParser, reactsToMessage, utcnow
 
 
 if TYPE_CHECKING:

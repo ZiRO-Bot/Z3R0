@@ -17,9 +17,9 @@ from discord.ext import commands
 
 from core.converter import TimeAndArgument
 from core.mixin import CogMixin
-from exts.utils import dbQuery
-from exts.utils.format import ZEmbed, formatDateTime, formatDiscordDT
-from exts.utils.other import utcnow
+from utils import dbQuery
+from utils.format import ZEmbed, formatDateTime, formatDiscordDT
+from utils.other import utcnow
 
 
 if TYPE_CHECKING:

@@ -12,10 +12,10 @@ from discord.ext import commands
 
 from core import checks
 from core.mixin import CogMixin
-from exts.api import reddit
-from exts.utils.format import ZEmbed
-from exts.utils.other import ArgumentError, ArgumentParser
-from exts.utils.piglin import Piglin
+from utils.api import reddit
+from utils.format import ZEmbed
+from utils.other import ArgumentError, ArgumentParser
+from utils.piglin import Piglin
 
 
 class Fun(commands.Cog, CogMixin):

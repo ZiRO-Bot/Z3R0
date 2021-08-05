@@ -8,7 +8,7 @@ from discord.ext import commands
 from humanize import naturaldelta
 
 from core.context import Context
-from exts.utils.other import utcnow
+from utils.other import utcnow
 
 
 TIME_REGEX = re.compile(

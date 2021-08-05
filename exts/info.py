@@ -16,11 +16,11 @@ from discord.ext import commands
 from core import checks
 from core.converter import MemberOrUser
 from core.mixin import CogMixin
-from exts.api.openweather import CityNotFound, OpenWeatherAPI
-from exts.utils import pillow
-from exts.utils.format import ZEmbed, formatDiscordDT, renderBar
-from exts.utils.infoQuote import *  # noqa:  F403
-from exts.utils.other import utcnow
+from utils import pillow
+from utils.api.openweather import CityNotFound, OpenWeatherAPI
+from utils.format import ZEmbed, formatDiscordDT, renderBar
+from utils.infoQuote import *  # noqa:  F403
+from utils.other import utcnow
 
 
 # TODO: Move this somewhere in `exts/utils/` folder

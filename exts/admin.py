@@ -12,7 +12,7 @@ from discord.utils import MISSING
 
 from core import checks, flags
 from core.mixin import CogMixin
-from exts.utils.format import ZEmbed, separateStringFlags
+from utils.format import ZEmbed, separateStringFlags
 
 
 # Also includes aliases

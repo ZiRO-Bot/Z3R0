@@ -6,7 +6,7 @@ import discord
 from discord.ext import commands
 
 from core.objects import CustomCommand
-from exts.utils.other import utcnow
+from utils.other import utcnow
 
 
 class ZEmbed(discord.Embed):

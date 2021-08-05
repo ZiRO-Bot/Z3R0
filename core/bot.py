@@ -26,16 +26,16 @@ from core.errors import (
 from core.objects import Connection
 from exts.meta import getCustomCommands
 from exts.timer import Timer, TimerData
-from exts.utils import dbQuery
-from exts.utils.cache import (
+from utils import dbQuery
+from utils.cache import (
     Cache,
     CacheDictProperty,
     CacheListFull,
     CacheListProperty,
     CacheUniqueViolation,
 )
-from exts.utils.format import cleanifyPrefix, formatCmd
-from exts.utils.other import Blacklist, utcnow
+from utils.format import cleanifyPrefix, formatCmd
+from utils.other import Blacklist, utcnow
 
 
 EXTS = []

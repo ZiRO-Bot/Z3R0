@@ -5,7 +5,7 @@ import os
 from logging.handlers import RotatingFileHandler
 
 import core.bot as _bot
-from exts.utils.other import utcnow
+from utils.other import utcnow
 
 
 # Use uvloop as loop policy if possible (Linux only)

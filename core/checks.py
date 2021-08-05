@@ -1,7 +1,7 @@
 from discord.ext import commands
 
 from core.errors import NotInGuild
-from exts.utils.other import utcnow
+from utils.other import utcnow
 
 
 async def isMod(ctx):

@@ -7,9 +7,10 @@ from random import randrange
 
 from discord.ext import commands
 
+from core import flags
 from core.mixin import CogMixin
-from exts.api import graphql
-from exts.utils.format import ZEmbed
+from utils.api import graphql
+from utils.format import ZEmbed, separateStringFlags
 
 
 class Anime(commands.Cog, CogMixin):
@@ -32,12 +33,16 @@ class Anime(commands.Cog, CogMixin):
         aliases=("find", "?", "info"),
         brief="Search for an anime with AniList",
     )
-    async def animeSearch(self, ctx, *, name: str):
-        return
+    async def animeSearch(self, ctx, *, arguments: str):
+        name, args = separateStringFlags(arguments)
+        if not name:
+            await ctx.error("You need to specify the name!")
+        parsed = await flags.AnimeSearchFlags.convert(ctx, args)
+
         query = await self.anilist.queryPost(
             """
-            query($name: String, $format: MediaFormat, $page: Int, $amount: Int=5) {
-                Page(perPage:$amount, page:$page) {
+            query($name: String, $format: MediaFormat, $page: Int, $perPage: Int=5) {
+                Page(perPage:$perPage, page:$page) {
                     pageInfo{hasNextPage, currentPage, lastPage}
                     media(search:$name,type:ANIME,format:$format){
                         id,
@@ -77,11 +82,13 @@ class Anime(commands.Cog, CogMixin):
                 }
             }
             """,
-            name="Koe no Katachi",
-            format="MOVIE",
+            name=name,
+            format=parsed.format_.strip().upper().replace(" ", "_"),
             page=1,
+            perPage=10,
         )
-        print(query)
+        aniData = query["data"]["Page"]["media"]
+        print(aniData[0])
 
     @commands.command(brief="Get random anime")
     @commands.cooldown(1, 5, commands.BucketType.user)

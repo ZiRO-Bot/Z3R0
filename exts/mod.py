@@ -15,9 +15,9 @@ from core.converter import BannedMember, MemberOrUser, TimeAndArgument
 from core.errors import MissingMuteRole
 from core.mixin import CogMixin
 from exts.timer import Timer, TimerData
-from exts.utils.cache import CacheUniqueViolation
-from exts.utils.format import ZEmbed, formatDateTime
-from exts.utils.other import ArgumentError, ArgumentParser, utcnow
+from utils.cache import CacheUniqueViolation
+from utils.format import ZEmbed, formatDateTime
+from utils.other import ArgumentError, ArgumentParser, utcnow
 
 
 class HierarchyError(Exception):

@@ -11,7 +11,7 @@ from discord.ext import commands
 
 from core.converter import MemberOrUser
 from core.mixin import CogMixin
-from exts.utils.format import ZEmbed
+from utils.format import ZEmbed
 
 
 class Image(commands.Cog, CogMixin):

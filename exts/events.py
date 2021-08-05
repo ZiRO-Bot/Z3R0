@@ -18,9 +18,9 @@ from discord.ext import commands
 
 from core import errors
 from core.mixin import CogMixin
-from exts.utils import tseBlocks
-from exts.utils.format import ZEmbed, formatMissingArgError
-from exts.utils.other import ArgumentError, reactsToMessage, utcnow
+from utils import tseBlocks
+from utils.format import ZEmbed, formatMissingArgError
+from utils.other import ArgumentError, reactsToMessage, utcnow
 
 
 if TYPE_CHECKING:
