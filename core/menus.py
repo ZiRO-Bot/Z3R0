@@ -1,3 +1,5 @@
+from typing import Optional
+
 import discord
 from discord.ext import menus
 
@@ -59,5 +61,40 @@ class ZReplyMenu(ZMenu):
             return self.init_msg
 
 
-class ZMenuView:
-    pass
+class ZMenuView(discord.ui.View):
+    def __init__(self, ctx, source, timeout: float = 180.0):
+        super().__init__(timeout=timeout)
+        self.context = ctx
+        self._source = source
+        self._message: Optional[discord.Message] = None
+
+    @discord.ui.button(emoji="⏪")
+    async def _first(self, button: discord.ui.Button, interaction: discord.Interaction):
+        pass
+
+    @discord.ui.button(emoji="◀️")
+    async def _back(self, button: discord.ui.Button, interaction: discord.Interaction):
+        pass
+
+    @discord.ui.button(emoji="⏹️")
+    async def _stop(self, button: discord.ui.Button, interaction: discord.Interaction):
+        await interaction.message.edit(content=":)")
+        await self.stop()
+
+    @discord.ui.button(emoji="▶️")
+    async def _forward(
+        self, button: discord.ui.Button, interaction: discord.Interaction
+    ):
+        pass
+
+    @discord.ui.button(emoji="⏩")
+    async def _last(self, button: discord.ui.Button, interaction: discord.Interaction):
+        pass
+
+    async def start(self):
+        self._message = await self.context.send("test", view=self)
+
+    async def stop(self):
+        if self._message:
+            await self._message.edit(view=None)
+        super().stop()

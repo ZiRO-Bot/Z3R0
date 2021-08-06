@@ -11,6 +11,7 @@ from jishaku.features.baseclass import Feature
 
 from core.bot import EXTS_DIR
 from core.embed import ZEmbed
+from core.menus import ZMenuView
 
 
 # --- For reload all command status
@@ -131,3 +132,8 @@ class Developer(*STANDARD_FEATURES, *OPTIONAL_FEATURES):
     @commands.command(aliases=["reload"])
     async def load(self, ctx, *extensions):
         await self.jsk_load(ctx, *extensions)
+
+    @commands.command()
+    async def testmenu(self, ctx):
+        menu = ZMenuView(ctx, None, timeout=60)
+        await menu.start()
