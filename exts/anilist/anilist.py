@@ -20,6 +20,8 @@ from ._pages import AnimeSearchPageSource
 class AniList(commands.Cog, CogMixin):
     """Cog about Anime and Manga."""
 
+    icon = "<:AniList:872771143797440533>"
+
     def __init__(self, bot):
         super().__init__(bot)
         self.anilist = graphql.GraphQL(
