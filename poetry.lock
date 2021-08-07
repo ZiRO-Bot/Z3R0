@@ -262,24 +262,6 @@ python-versions = ">=3.5.3"
 "discord.py" = ">=1.2.5"
 
 [[package]]
-name = "discord-ext-menus-views"
-version = "0.1.0"
-description = "A discord.ext.menus Menu backed by Views and Buttons instead of reactions."
-category = "main"
-optional = false
-python-versions = "^3.8"
-develop = false
-
-[package.dependencies]
-"discord.py" = "branch master"
-
-[package.source]
-type = "git"
-url = "https://github.com/oliver-ni/discord-ext-menus-views"
-reference = "1ac5b6eaeb55032376afc51c195640aa85a74f3c"
-resolved_reference = "1ac5b6eaeb55032376afc51c195640aa85a74f3c"
-
-[[package]]
 name = "discord.py"
 version = "2.0.0a3453+g58ca9e99"
 description = "A Python wrapper for the Discord API"
@@ -817,7 +799,7 @@ voice = ["PyNaCl"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "3262d66c273ea6c37a91b85d13d36a938e11580754035c545a0c82059b124e5d"
+content-hash = "a96baef8ea904444c4862fac32657fd3b7d2beba2cd8efae88fd6c8a87cafe48"
 
 [metadata.files]
 aiohttp = [
@@ -1000,7 +982,6 @@ discord-ext-menus = [
     {file = "discord-ext-menus-1.1.tar.gz", hash = "sha256:96104fb63aae63846b7f722ca29da31f143e273d1c5745ef7427540814a31da8"},
     {file = "discord_ext_menus-1.1-py3-none-any.whl", hash = "sha256:d3c9fc8cacf533ed78fc177482889ae72236f09968184ac90bdfa6a8555b5108"},
 ]
-discord-ext-menus-views = []
 "discord.py" = []
 distlib = [
     {file = "distlib-0.3.2-py2.py3-none-any.whl", hash = "sha256:23e223426b28491b1ced97dc3bbe183027419dfc7982b4fa2f05d5f3ff10711c"},

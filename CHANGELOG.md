@@ -1,3 +1,10 @@
+# 3.2.0a (`discord.py v2.0`)
+
+- [**Improved**] Used `discord.py v2.0`
+- [**New**] Re-added AniList category
+- [**New**] Added ZMenuPagesView (ZMenu but using `discord.ui.View` instead of
+  reactions)
+
 # 3.1.0
 
 - [**New**] Re-added someone command (mimicking `@someone` April Fools command
