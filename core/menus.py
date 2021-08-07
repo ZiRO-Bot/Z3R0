@@ -184,7 +184,7 @@ class ZMenuPagesView(ZMenuView):
     async def finalize(self, timedOut: bool):
         if self._message:
             await self._message.edit(view=None)
-        await super().stop()
+        super().finalize(timedOut)
 
     @discord.ui.button(emoji="⏪")
     async def _first(self, button: discord.ui.Button, interaction: discord.Interaction):
