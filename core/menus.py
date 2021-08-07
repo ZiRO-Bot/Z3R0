@@ -77,7 +77,6 @@ class ZMenuView(discord.ui.View):
         ctx,
         source: Union[menus.PageSource, Pages],
         timeout: float = 180.0,
-        deleteOnTimeout: bool = False,
         autoDefer: bool = True,
     ) -> None:
         super().__init__(timeout=timeout)
@@ -85,7 +84,6 @@ class ZMenuView(discord.ui.View):
         self._source: Union[menus.PageSource, Pages] = source
         self._message: Optional[discord.Message] = None
         self.currentPage: int = 0
-        self.deleteOnTimeout: bool = deleteOnTimeout
         self.autoDefer: bool = autoDefer
 
     def getMaxPages(self):
@@ -109,9 +107,9 @@ class ZMenuView(discord.ui.View):
     async def getPage(self, pageNumber):
         source = self._source
         if isinstance(source, list):
-            page = 0
+            page = pageNumber
         else:
-            page = await source.get_page(0)
+            page = await source.get_page(pageNumber)
 
         return await self.getKwargsFromPage(page)
 
@@ -144,15 +142,16 @@ class ZMenuView(discord.ui.View):
     async def start(self):
         self._message = await self.sendInitialMessage(self.context)
 
-    async def stop(self, timeout: bool = False):
-        if self._message and self.deleteOnTimeout and timeout:
-            await self._message.delete()
-        elif self._message:
+    async def finalize(self, timedOut: bool):
+        if self._message:
             await self._message.edit(view=None)
         super().stop()
 
+    async def stop(self):
+        await self.finalize(False)
+
     async def on_timeout(self):
-        await self.stop(True)
+        await self.finalize(True)
 
     @discord.ui.button(emoji="⏪")
     async def _first(self, button: discord.ui.Button, interaction: discord.Interaction):
