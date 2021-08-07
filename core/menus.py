@@ -157,7 +157,10 @@ class ZMenuPagesView(ZMenuView):
         kwargs = await self.getPage(0)
         if self.shouldAddButtons():
             kwargs["view"] = self
-        self._pageInfo.label = f"Page 1/{self.getMaxPages()}"
+            self._pageInfo.label = f"Page 1/{self.getMaxPages()}"
+            if self.getMaxPages() == 2:
+                self.remove_item(self._first)
+                self.remove_item(self._last)
         return await ctx.send(**kwargs)
 
     async def sendPage(self, interaction: discord.Interaction, pageNumber):
