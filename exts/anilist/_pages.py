@@ -12,7 +12,7 @@ class AnimeSearchPageSource(menus.ListPageSource):
     async def format_page(self, menu: menus.MenuPages, anime):
         isAdult = anime["isAdult"]
 
-        print(anime)
+        # print(anime)
         desc = anime["description"]
         if desc:
             for d in ("</i>", "<i>", "<br>", "</br>"):

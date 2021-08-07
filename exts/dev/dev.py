@@ -135,5 +135,5 @@ class Developer(*STANDARD_FEATURES, *OPTIONAL_FEATURES):
 
     @commands.command()
     async def testmenu(self, ctx):
-        menu = ZMenuView(ctx, None, timeout=60)
+        menu = ZMenuView(ctx, ["1", "2", "3"], timeout=5, deleteOnTimeout=True)
         await menu.start()

@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import List, Optional, Union
 
 import discord
 from discord.ext import menus
@@ -61,40 +61,125 @@ class ZReplyMenu(ZMenu):
             return self.init_msg
 
 
+Pages = List[Union[str, dict, discord.Embed]]
+
+
 class ZMenuView(discord.ui.View):
-    def __init__(self, ctx, source, timeout: float = 180.0):
+    """Menus made out of Discord "View" components
+
+    Accept list of str, dict, or discord.Embed
+
+    Also accepts menus.PageSource for compatibility
+    """
+
+    def __init__(
+        self,
+        ctx,
+        source: Union[menus.PageSource, Pages],
+        timeout: float = 180.0,
+        deleteOnTimeout: bool = False,
+        autoDefer: bool = True,
+    ) -> None:
         super().__init__(timeout=timeout)
         self.context = ctx
-        self._source = source
+        self._source: Union[menus.PageSource, Pages] = source
         self._message: Optional[discord.Message] = None
+        self.currentPage: int = 0
+        self.deleteOnTimeout: bool = deleteOnTimeout
+        self.autoDefer: bool = autoDefer
+
+    def getMaxPages(self):
+        source = self._source
+        return len(source) if isinstance(source, list) else source.get_max_pages()
+
+    async def getKwargsFromPage(self, page):
+        source = self._source
+        if isinstance(source, list):
+            value = source[page]
+        else:
+            value = await discord.utils.maybe_coroutine(source.format_page, self, page)
+
+        if isinstance(value, dict):
+            return value
+        elif isinstance(value, str):
+            return {"content": value, "embed": None}
+        elif isinstance(value, discord.Embed):
+            return {"embed": value, "content": None}
+
+    async def getPage(self, pageNumber):
+        source = self._source
+        if isinstance(source, list):
+            page = 0
+        else:
+            page = await source.get_page(0)
+
+        return await self.getKwargsFromPage(page)
+
+    async def sendInitialMessage(self, ctx):
+        kwargs = await self.getPage(0)
+        self._pageInfo.label = f"Page 1/{self.getMaxPages()}"
+        return await ctx.send(view=self, **kwargs)
+
+    async def sendPage(self, interaction: discord.Interaction, pageNumber):
+        if self.autoDefer:
+            await interaction.response.defer()
+
+        kwargs = await self.getPage(pageNumber)
+        self.currentPage = pageNumber
+        self._pageInfo.label = f"Page {pageNumber+1}/{self.getMaxPages()}"
+        await interaction.message.edit(view=self, **kwargs)
+
+    async def sendCheckedPage(self, interaction: discord.Interaction, pageNumber):
+        maxPages = self.getMaxPages()
+        try:
+            if maxPages is None:
+                # If it doesn't give maximum pages, it cannot be checked
+                await self.sendPage(interaction, pageNumber)
+            elif maxPages > pageNumber >= 0:
+                await self.sendPage(interaction, pageNumber)
+        except IndexError:
+            # An error happened that can be handled, so ignore it.
+            pass
+
+    async def start(self):
+        self._message = await self.sendInitialMessage(self.context)
+
+    async def stop(self, timeout: bool = False):
+        if self._message and self.deleteOnTimeout and timeout:
+            await self._message.delete()
+        elif self._message:
+            await self._message.edit(view=None)
+        super().stop()
+
+    async def on_timeout(self):
+        await self.stop(True)
 
     @discord.ui.button(emoji="⏪")
     async def _first(self, button: discord.ui.Button, interaction: discord.Interaction):
-        pass
+        await self.sendPage(interaction, 0)
 
     @discord.ui.button(emoji="◀️")
     async def _back(self, button: discord.ui.Button, interaction: discord.Interaction):
-        pass
+        await self.sendCheckedPage(interaction, self.currentPage - 1)
 
-    @discord.ui.button(emoji="⏹️")
-    async def _stop(self, button: discord.ui.Button, interaction: discord.Interaction):
-        await interaction.message.edit(content=":)")
-        await self.stop()
+    @discord.ui.button(label="Page NaN/NaN", disabled=True)
+    async def _pageInfo(
+        self, button: discord.ui.Button, interaction: discord.Interaction
+    ):
+        pass
 
     @discord.ui.button(emoji="▶️")
     async def _forward(
         self, button: discord.ui.Button, interaction: discord.Interaction
     ):
-        pass
+        await self.sendCheckedPage(interaction, self.currentPage + 1)
 
     @discord.ui.button(emoji="⏩")
     async def _last(self, button: discord.ui.Button, interaction: discord.Interaction):
-        pass
+        await self.sendPage(interaction, self.getMaxPages() - 1)
 
-    async def start(self):
-        self._message = await self.context.send("test", view=self)
-
-    async def stop(self):
-        if self._message:
-            await self._message.edit(view=None)
-        super().stop()
+    @discord.ui.button(
+        label="Stop paginator", emoji="\u23F9", style=discord.ButtonStyle.red
+    )
+    async def _stop(self, button: discord.ui.Button, interaction: discord.Interaction):
+        await self.stop()
