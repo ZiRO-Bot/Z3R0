@@ -179,8 +179,8 @@ class ZMenuPagesView(ZMenuView):
     async def sendPage(self, interaction: discord.Interaction, pageNumber):
         await interaction.response.defer()
 
-        kwargs = await self.getPage(pageNumber)
         self.currentPage = pageNumber
+        kwargs = await self.getPage(pageNumber)
         self._pageInfo.label = f"Page {pageNumber+1}/{self.getMaxPages()}"
         await interaction.message.edit(view=self, **kwargs)
 

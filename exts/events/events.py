@@ -251,7 +251,7 @@ class EventHandler(commands.Cog, CogMixin):
                 (
                     "You can use it again in {:.2f} seconds.\n".format(retryAfter)
                     + "Default cooldown: {0.rate} times per {0.per} seconds, per {1}".format(
-                        error.cooldown, error.cooldown.type[0]  # type: ignore
+                        error.cooldown, error.type[0]  # type: ignore
                     )
                 ),
                 title="Command is on a cooldown!",

@@ -1,6 +1,7 @@
 from discord.ext import menus
 
 from core.embed import ZEmbed
+from core.menus import ZMenuView
 from utils.format import cleanifyPrefix
 
 
@@ -11,23 +12,30 @@ class PrefixesPageSource(menus.ListPageSource):
 
         super().__init__(prefixes, per_page=6)
 
-    async def format_page(self, menu: menus.MenuPages, prefixes: list):
+    async def format_page(self, menu: ZMenuView, _prefixes: list):
         ctx = self.ctx
 
         e = ZEmbed(
             title="{} Prefixes".format(ctx.guild), description="**Custom Prefixes**:\n"
         )
 
-        if menu.current_page == 0:
-            prefixes.pop(0)
-            prefixes.pop(0)
+        if menu.currentPage == 0:
+            _prefixes.pop(0)
+            _prefixes.pop(0)
             e.description = (
                 "**Default Prefixes**: `{}` or `{} `\n\n**Custom Prefixes**:\n".format(
                     ctx.bot.defPrefix, cleanifyPrefix(ctx.bot, ctx.me.mention)
                 )
             )
-        e.description += (
-            "\n".join([f"• `{cleanifyPrefix(ctx.bot, p)}`" for p in prefixes])
-            or "No custom prefix."
-        )
+
+        prefixes = []
+        for prefix in _prefixes:
+            prefix = cleanifyPrefix(ctx.bot, prefix)
+            fmt = "• "
+            if prefix == "`":
+                fmt += "`` {} ``"
+            else:
+                fmt += "`{}`"
+            prefixes.append(fmt.format(prefix))
+        e.description += "\n".join(prefixes) or "No custom prefix."
         return e

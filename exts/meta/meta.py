@@ -24,7 +24,7 @@ from core.errors import (
     CCommandNotFound,
     CCommandNotInGuild,
 )
-from core.menus import ZReplyMenu
+from core.menus import ZMenuPagesView
 from core.mixin import CogMixin
 from utils import dbQuery, sql, tseBlocks
 from utils.cache import CacheListProperty, CacheUniqueViolation
@@ -1204,10 +1204,10 @@ class Meta(commands.Cog, CogMixin):
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def prefList(self, ctx):
         prefixes = await self.bot.getGuildPrefix(ctx.guild.id)
-        menu = ZReplyMenu(
-            source=PrefixesPageSource(ctx, ["placeholder"] * 2 + prefixes)
+        menu = ZMenuPagesView(
+            ctx, source=PrefixesPageSource(ctx, ["placeholder"] * 2 + prefixes)
         )
-        await menu.start(ctx)
+        await menu.start()
 
     @prefix.command(
         name="add",
