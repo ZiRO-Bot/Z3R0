@@ -205,14 +205,12 @@ class ZMenuPagesView(ZMenuView):
 
     @discord.ui.button(
         emoji=Emojis.first,
-        style=discord.ButtonStyle.blurple,
     )
     async def _first(self, button: discord.ui.Button, interaction: discord.Interaction):
         await self.sendPage(interaction, 0)
 
     @discord.ui.button(
         emoji=Emojis.back,
-        style=discord.ButtonStyle.blurple,
     )
     async def _back(self, button: discord.ui.Button, interaction: discord.Interaction):
         await self.sendCheckedPage(interaction, self.currentPage - 1)
@@ -225,7 +223,6 @@ class ZMenuPagesView(ZMenuView):
 
     @discord.ui.button(
         emoji=Emojis.next,
-        style=discord.ButtonStyle.blurple,
     )
     async def _forward(
         self, button: discord.ui.Button, interaction: discord.Interaction
@@ -234,7 +231,6 @@ class ZMenuPagesView(ZMenuView):
 
     @discord.ui.button(
         emoji=Emojis.last,
-        style=discord.ButtonStyle.blurple,
     )
     async def _last(self, button: discord.ui.Button, interaction: discord.Interaction):
         await self.sendPage(interaction, self.getMaxPages() - 1)
