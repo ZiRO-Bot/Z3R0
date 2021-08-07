@@ -33,7 +33,7 @@ class PrefixesPageSource(menus.ListPageSource):
             fmt = "• "
             if prefix == "`":
                 fmt += "`` {} ``"
-            elif prefix == "`":
+            elif prefix == "``":
                 fmt += "` {} `"
             else:
                 fmt += "`{}`"
