@@ -99,10 +99,10 @@ class ZMenuView(discord.ui.View):
         return True
 
     async def sendInitialMessage(self, ctx):
-        raise RuntimeError("Not implemented!")
+        raise NotImplementedError
 
     async def sendPage(self, interaction: discord.Interaction, pageNumber):
-        raise RuntimeError("Not implemented!")
+        raise NotImplementedError
 
     async def start(self):
         self._message = await self.sendInitialMessage(self.context)
