@@ -8,7 +8,7 @@ from random import randrange
 from discord.ext import commands
 
 from core.embed import ZEmbed
-from core.menus import ZMenuView, ZReplyMenu
+from core.menus import ZMenuPagesView
 from core.mixin import CogMixin
 from utils.api import graphql
 from utils.format import separateStringFlags
@@ -94,7 +94,7 @@ class AniList(commands.Cog, CogMixin):
             perPage=10,
         )
         aniData = query["data"]["Page"]["media"]
-        menu = ZMenuView(ctx, source=AnimeSearchPageSource(ctx, aniData))
+        menu = ZMenuPagesView(ctx, source=AnimeSearchPageSource(ctx, aniData))
         await menu.start()
 
     @commands.command(brief="Get random anime")

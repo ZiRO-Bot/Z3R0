@@ -64,7 +64,7 @@ class ZReplyMenu(ZMenu):
 Pages = List[Union[str, dict, discord.Embed]]
 
 
-class ZMenuView(discord.ui.View):
+class ZMenuPagesView(discord.ui.View):
     """Menus made out of Discord "View" components
 
     Accept list of str, dict, or discord.Embed
