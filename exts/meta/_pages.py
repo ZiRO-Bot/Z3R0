@@ -30,12 +30,13 @@ class PrefixesPageSource(menus.ListPageSource):
 
         prefixes = []
         for prefix in _prefixes:
-            prefix = cleanifyPrefix(ctx.bot, prefix)
             fmt = "• "
             if prefix == "`":
                 fmt += "`` {} ``"
+            elif prefix == "`":
+                fmt += "` {} `"
             else:
                 fmt += "`{}`"
-            prefixes.append(fmt.format(prefix))
+            prefixes.append(fmt.format(cleanifyPrefix(ctx.bot, prefix)))
         e.description += "\n".join(prefixes) or "No custom prefix."
         return e
