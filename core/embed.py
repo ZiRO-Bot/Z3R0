@@ -1,5 +1,6 @@
 import discord
 
+from core.enums import Emojis
 from utils.other import utcnow
 
 
@@ -26,7 +27,7 @@ class ZEmbed(discord.Embed):
     def error(
         cls,
         *,
-        emoji="<:error:783265883228340245>",
+        emoji=Emojis.error,
         title="Error",
         color=None,
         **kwargs,
@@ -41,7 +42,7 @@ class ZEmbed(discord.Embed):
     def success(
         cls,
         *,
-        emoji="<:ok:864033138832703498>",
+        emoji=Emojis.ok,
         title="Success",
         color=None,
         **kwargs,
@@ -56,7 +57,7 @@ class ZEmbed(discord.Embed):
     def loading(
         cls,
         *,
-        emoji="<a:loading:776255339716673566>",
+        emoji=Emojis.loading,
         title="Loading...",
         **kwargs,
     ):
