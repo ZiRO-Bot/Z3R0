@@ -36,7 +36,7 @@ class AniList(commands.Cog, CogMixin):
 
     @anime.command(
         name="search",
-        aliases=("find", "?", "info"),
+        aliases=("s", "find", "?", "info"),
         brief="Search for an anime with AniList",
     )
     async def animeSearch(self, ctx, *, arguments: str):

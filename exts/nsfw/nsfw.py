@@ -58,7 +58,7 @@ class NekoMenu(ZMenuView):
     async def getNewNeko(
         self, button: discord.ui.Button, interaction: discord.Interaction
     ):
-        e = await self.getNeko()
+        e = await self.getNeko(interaction)
         await interaction.message.edit(embed=e)
 
 

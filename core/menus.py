@@ -72,13 +72,11 @@ class ZMenuView(discord.ui.View):
         ctx,
         *,
         timeout: float = 180.0,
-        autoDefer: bool = True,
     ) -> None:
         super().__init__(timeout=timeout)
         self.context = ctx
         self._message: Optional[discord.Message] = None
         self.currentPage: int = 0
-        self.autoDefer: bool = autoDefer
 
     def shouldAddButtons(self):
         return True
@@ -161,11 +159,10 @@ class ZMenuPagesView(ZMenuView):
             if self.getMaxPages() == 2:
                 self.remove_item(self._first)
                 self.remove_item(self._last)
-        return await ctx.send(**kwargs)
+        return await ctx.try_reply(**kwargs)
 
     async def sendPage(self, interaction: discord.Interaction, pageNumber):
-        if self.autoDefer:
-            await interaction.response.defer()
+        await interaction.response.defer()
 
         kwargs = await self.getPage(pageNumber)
         self.currentPage = pageNumber
