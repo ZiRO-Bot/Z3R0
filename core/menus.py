@@ -3,6 +3,8 @@ from typing import List, Optional, Union
 import discord
 from discord.ext import menus
 
+from core.enums import Emojis
+
 
 class ZMenu(menus.MenuPages):
     def __init__(self, source, init_msg=None, check_embeds=True, ping=False, loop=None):
@@ -202,14 +204,14 @@ class ZMenuPagesView(ZMenuView):
         super().finalize(timedOut)
 
     @discord.ui.button(
-        emoji="\N{BLACK LEFT-POINTING DOUBLE TRIANGLE WITH VERTICAL BAR}",
+        emoji=Emojis.first,
         style=discord.ButtonStyle.blurple,
     )
     async def _first(self, button: discord.ui.Button, interaction: discord.Interaction):
         await self.sendPage(interaction, 0)
 
     @discord.ui.button(
-        emoji="\N{BLACK LEFT-POINTING TRIANGLE}",
+        emoji=Emojis.back,
         style=discord.ButtonStyle.blurple,
     )
     async def _back(self, button: discord.ui.Button, interaction: discord.Interaction):
@@ -222,7 +224,7 @@ class ZMenuPagesView(ZMenuView):
         pass
 
     @discord.ui.button(
-        emoji="\N{BLACK RIGHT-POINTING TRIANGLE}",
+        emoji=Emojis.next,
         style=discord.ButtonStyle.blurple,
     )
     async def _forward(
@@ -231,7 +233,7 @@ class ZMenuPagesView(ZMenuView):
         await self.sendCheckedPage(interaction, self.currentPage + 1)
 
     @discord.ui.button(
-        emoji="\N{BLACK RIGHT-POINTING DOUBLE TRIANGLE WITH VERTICAL BAR}",
+        emoji=Emojis.last,
         style=discord.ButtonStyle.blurple,
     )
     async def _last(self, button: discord.ui.Button, interaction: discord.Interaction):
@@ -239,7 +241,7 @@ class ZMenuPagesView(ZMenuView):
 
     @discord.ui.button(
         label="Stop paginator",
-        emoji="\N{BLACK SQUARE FOR STOP}",
+        emoji=Emojis.stop,
         style=discord.ButtonStyle.red,
     )
     async def _stop(self, button: discord.ui.Button, interaction: discord.Interaction):
