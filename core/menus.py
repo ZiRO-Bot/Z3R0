@@ -201,11 +201,17 @@ class ZMenuPagesView(ZMenuView):
             await self._message.edit(view=None)
         super().finalize(timedOut)
 
-    @discord.ui.button(emoji="⏪")
+    @discord.ui.button(
+        emoji="\N{BLACK LEFT-POINTING DOUBLE TRIANGLE WITH VERTICAL BAR}",
+        style=discord.ButtonStyle.blurple,
+    )
     async def _first(self, button: discord.ui.Button, interaction: discord.Interaction):
         await self.sendPage(interaction, 0)
 
-    @discord.ui.button(emoji="◀️")
+    @discord.ui.button(
+        emoji="\N{BLACK LEFT-POINTING TRIANGLE}",
+        style=discord.ButtonStyle.blurple,
+    )
     async def _back(self, button: discord.ui.Button, interaction: discord.Interaction):
         await self.sendCheckedPage(interaction, self.currentPage - 1)
 
@@ -215,13 +221,19 @@ class ZMenuPagesView(ZMenuView):
     ):
         pass
 
-    @discord.ui.button(emoji="\N{BLACK RIGHT-POINTING TRIANGLE}")
+    @discord.ui.button(
+        emoji="\N{BLACK RIGHT-POINTING TRIANGLE}",
+        style=discord.ButtonStyle.blurple,
+    )
     async def _forward(
         self, button: discord.ui.Button, interaction: discord.Interaction
     ):
         await self.sendCheckedPage(interaction, self.currentPage + 1)
 
-    @discord.ui.button(emoji="⏩")
+    @discord.ui.button(
+        emoji="\N{BLACK RIGHT-POINTING DOUBLE TRIANGLE WITH VERTICAL BAR}",
+        style=discord.ButtonStyle.blurple,
+    )
     async def _last(self, button: discord.ui.Button, interaction: discord.Interaction):
         await self.sendPage(interaction, self.getMaxPages() - 1)
 
