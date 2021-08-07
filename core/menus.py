@@ -72,11 +72,26 @@ class ZMenuView(discord.ui.View):
         ctx,
         *,
         timeout: float = 180.0,
+        ownerOnly: bool = True,
     ) -> None:
         super().__init__(timeout=timeout)
         self.context = ctx
         self._message: Optional[discord.Message] = None
         self.currentPage: int = 0
+        self._ownerOnly = ownerOnly
+
+    async def interaction_check(self, interaction: discord.Interaction) -> bool:
+        if not self._ownerOnly:
+            return True
+
+        # Prevent other user other than interaction owner using this interaction
+        owner = self.context.author
+        if interaction.user.id != owner.id:
+            await interaction.response.send_message(
+                f"This interaction belongs to {owner.mention}", ephemeral=True
+            )
+            return False
+        return True
 
     def shouldAddButtons(self):
         return True

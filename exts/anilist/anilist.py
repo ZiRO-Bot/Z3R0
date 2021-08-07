@@ -94,9 +94,7 @@ class AniList(commands.Cog, CogMixin):
             perPage=10,
         )
         aniData = query["data"]["Page"]["media"]
-        menu = ZMenuPagesView(
-            ctx, source=AnimeSearchPageSource(ctx, aniData), timeout=3
-        )
+        menu = ZMenuPagesView(ctx, source=AnimeSearchPageSource(ctx, aniData))
         await menu.start()
 
     @commands.command(brief="Get random anime")
