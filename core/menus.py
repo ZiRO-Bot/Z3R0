@@ -86,11 +86,15 @@ class ZMenuPagesView(discord.ui.View):
         self.currentPage: int = 0
         self.autoDefer: bool = autoDefer
 
+    def shouldAddButtons(self):
+        source = self._source
+        return len(source) > 1 if isinstance(source, list) else source.is_paginating()
+
     def getMaxPages(self):
         source = self._source
         return len(source) if isinstance(source, list) else source.get_max_pages()
 
-    async def getKwargsFromPage(self, page):
+    async def getKwargsFromPage(self, page) -> dict:
         source = self._source
         if isinstance(source, list):
             value = source[page]
@@ -103,6 +107,7 @@ class ZMenuPagesView(discord.ui.View):
             return {"content": value, "embed": None}
         elif isinstance(value, discord.Embed):
             return {"embed": value, "content": None}
+        return {}
 
     async def getPage(self, pageNumber):
         source = self._source
@@ -116,7 +121,9 @@ class ZMenuPagesView(discord.ui.View):
     async def sendInitialMessage(self, ctx):
         kwargs = await self.getPage(0)
         self._pageInfo.label = f"Page 1/{self.getMaxPages()}"
-        return await ctx.send(view=self, **kwargs)
+        if self.shouldAddButtons():
+            kwargs["view"] = self
+        return await ctx.send(**kwargs)
 
     async def sendPage(self, interaction: discord.Interaction, pageNumber):
         if self.autoDefer:
@@ -141,6 +148,8 @@ class ZMenuPagesView(discord.ui.View):
 
     async def start(self):
         self._message = await self.sendInitialMessage(self.context)
+        if not self.shouldAddButtons():
+            super().stop()
 
     async def finalize(self, timedOut: bool):
         if self._message:
