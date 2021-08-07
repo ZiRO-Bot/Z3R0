@@ -1154,17 +1154,11 @@ class Meta(commands.Cog, CogMixin):
             ),
         )
         e.add_field(name="Version", value=ctx.bot.version)
-        e.add_field(
-            name="Links",
-            value="\n".join(
-                [
-                    "- [{}]({})".format(k, v) if v else "- {}".format(k)
-                    for k, v in ctx.bot.links.items()
-                ]
-            ),
-            inline=False,
-        )
-        await ctx.try_reply(file=f, embed=e)
+        view = discord.ui.View()
+        for k, v in ctx.bot.links.items():
+            if k and v:
+                view.add_item(discord.ui.Button(label=k, url=v))
+        await ctx.try_reply(file=f, embed=e, view=view)
 
     @commands.command(brief="Information about my stats")
     @commands.cooldown(1, 5, commands.BucketType.user)
