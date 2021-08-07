@@ -64,7 +64,47 @@ class ZReplyMenu(ZMenu):
 Pages = List[Union[str, dict, discord.Embed]]
 
 
-class ZMenuPagesView(discord.ui.View):
+class ZMenuView(discord.ui.View):
+    """Base class for View-based menus"""
+
+    def __init__(
+        self,
+        ctx,
+        *,
+        timeout: float = 180.0,
+        autoDefer: bool = True,
+    ) -> None:
+        super().__init__(timeout=timeout)
+        self.context = ctx
+        self._message: Optional[discord.Message] = None
+        self.currentPage: int = 0
+        self.autoDefer: bool = autoDefer
+
+    def shouldAddButtons(self):
+        return True
+
+    async def sendInitialMessage(self, ctx):
+        raise RuntimeError("Not implemented!")
+
+    async def sendPage(self, interaction: discord.Interaction, pageNumber):
+        raise RuntimeError("Not implemented!")
+
+    async def start(self):
+        self._message = await self.sendInitialMessage(self.context)
+        if not self.shouldAddButtons():
+            super().stop()
+
+    def finalize(self, timedOut: bool):
+        super().stop()
+
+    async def stop(self):
+        await discord.utils.maybe_coroutine(self.finalize, False)
+
+    async def on_timeout(self):
+        await discord.utils.maybe_coroutine(self.finalize, True)
+
+
+class ZMenuPagesView(ZMenuView):
     """Menus made out of Discord "View" components
 
     Accept list of str, dict, or discord.Embed
@@ -76,15 +116,10 @@ class ZMenuPagesView(discord.ui.View):
         self,
         ctx,
         source: Union[menus.PageSource, Pages],
-        timeout: float = 180.0,
-        autoDefer: bool = True,
+        **kwargs,
     ) -> None:
-        super().__init__(timeout=timeout)
-        self.context = ctx
         self._source: Union[menus.PageSource, Pages] = source
-        self._message: Optional[discord.Message] = None
-        self.currentPage: int = 0
-        self.autoDefer: bool = autoDefer
+        super().__init__(ctx, **kwargs)
 
     def shouldAddButtons(self):
         source = self._source
@@ -120,9 +155,9 @@ class ZMenuPagesView(discord.ui.View):
 
     async def sendInitialMessage(self, ctx):
         kwargs = await self.getPage(0)
-        self._pageInfo.label = f"Page 1/{self.getMaxPages()}"
         if self.shouldAddButtons():
             kwargs["view"] = self
+        self._pageInfo.label = f"Page 1/{self.getMaxPages()}"
         return await ctx.send(**kwargs)
 
     async def sendPage(self, interaction: discord.Interaction, pageNumber):
@@ -146,21 +181,10 @@ class ZMenuPagesView(discord.ui.View):
             # An error happened that can be handled, so ignore it.
             pass
 
-    async def start(self):
-        self._message = await self.sendInitialMessage(self.context)
-        if not self.shouldAddButtons():
-            super().stop()
-
     async def finalize(self, timedOut: bool):
         if self._message:
             await self._message.edit(view=None)
-        super().stop()
-
-    async def stop(self):
-        await self.finalize(False)
-
-    async def on_timeout(self):
-        await self.finalize(True)
+        await super().stop()
 
     @discord.ui.button(emoji="⏪")
     async def _first(self, button: discord.ui.Button, interaction: discord.Interaction):
@@ -176,7 +200,7 @@ class ZMenuPagesView(discord.ui.View):
     ):
         pass
 
-    @discord.ui.button(emoji="▶️")
+    @discord.ui.button(emoji="\N{BLACK RIGHT-POINTING TRIANGLE}")
     async def _forward(
         self, button: discord.ui.Button, interaction: discord.Interaction
     ):
@@ -187,7 +211,9 @@ class ZMenuPagesView(discord.ui.View):
         await self.sendPage(interaction, self.getMaxPages() - 1)
 
     @discord.ui.button(
-        label="Stop paginator", emoji="\u23F9", style=discord.ButtonStyle.red
+        label="Stop paginator",
+        emoji="\N{BLACK SQUARE FOR STOP}",
+        style=discord.ButtonStyle.red,
     )
     async def _stop(self, button: discord.ui.Button, interaction: discord.Interaction):
         await self.stop()

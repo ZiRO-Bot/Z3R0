@@ -9,53 +9,57 @@ import discord
 from discord.ext import commands, menus
 
 from core.embed import ZEmbed
+from core.menus import ZMenuView
 from core.mixin import CogMixin
 
 
 NEKO_API = "https://api.nekos.dev/api/v3"
 
 
-class NekoMenu(menus.Menu):
-    def __init__(self, source, **kwargs):
+class NekoMenu(ZMenuView):
+    def __init__(self, ctx, source, **kwargs):
         self._source = source
-        super().__init__(**kwargs)
+        super().__init__(ctx, **kwargs)
 
     @property
     def source(self):
         return self._source
 
-    async def getNeko(self):
+    def shouldAddButtons(self):
+        return self._source.is_paginating()
+
+    async def getNeko(self, interaction: discord.Interaction = None):
+        if interaction:
+            await interaction.response.defer()
         page = await self._source.getNeko()
         return page
 
-    async def send_initial_message(self, ctx, channel):
+    async def sendInitialMessage(self, ctx):
         e = await self.getNeko()
-        return await channel.send(embed=e)
+        return await ctx.send(embed=e, view=self)
 
-    async def update(self, payload):
-        if self._can_remove_reactions:
-            if payload.event_type == "REACTION_ADD":
-                channel = self.bot.get_channel(payload.channel_id)
-                msg = channel.get_partial_message(payload.message_id)
-                await msg.remove_reaction(payload.emoji, payload.member)
-            elif payload.event_type == "REACTION_REMOVE":
-                return
-        await super().update(payload)
-
-    @menus.button("\N{BLACK SQUARE FOR STOP}\ufe0f", position=menus.First(0))
-    async def stopNeko(self, payload):
-        self.stop()
-
-    @menus.button("\N{BLACK RIGHT-POINTING TRIANGLE}\ufe0f", position=menus.First(1))
-    async def getNewNeko(self, payload):
-        e = await self.getNeko()
-        await self.message.edit(embed=e)
-
-    async def finalize(self, timed_out):
+    async def finalize(self, timedOut):
         try:
-            await self.message.clear_reactions()
+            if self._message:
+                for item in self.children:
+                    item.disabled = True
+                await self._message.edit(view=self)
+            super().finalize(timedOut)
         except discord.HTTPException:
             pass
+
+    @discord.ui.button(emoji="\N{BLACK SQUARE FOR STOP}")
+    async def stopNeko(
+        self, button: discord.ui.Button, interaction: discord.Interaction
+    ):
+        await self.stop()
+
+    @discord.ui.button(emoji="\N{BLACK RIGHT-POINTING TRIANGLE}")
+    async def getNewNeko(
+        self, button: discord.ui.Button, interaction: discord.Interaction
+    ):
+        e = await self.getNeko()
+        await interaction.message.edit(embed=e)
 
 
 class NekoPageSource(menus.PageSource):
@@ -91,30 +95,34 @@ class NSFW(commands.Cog, CogMixin):
     @commands.command()
     async def pussy(self, ctx):
         menus = NekoMenu(
-            NekoPageSource(self.bot.session, "/images/nsfw/img/pussy_lewd")
+            ctx, NekoPageSource(self.bot.session, "/images/nsfw/img/pussy_lewd")
         )
-        await menus.start(ctx)
+        await menus.start()
 
     @commands.command()
     async def pantyhose(self, ctx):
         menus = NekoMenu(
-            NekoPageSource(self.bot.session, "/images/nsfw/img/pantyhose_lewd")
+            ctx, NekoPageSource(self.bot.session, "/images/nsfw/img/pantyhose_lewd")
         )
-        await menus.start(ctx)
+        await menus.start()
 
     @commands.command(aliases=("boobs",))
     async def tits(self, ctx):
-        menus = NekoMenu(NekoPageSource(self.bot.session, "/images/nsfw/img/tits_lewd"))
-        await menus.start(ctx)
+        menus = NekoMenu(
+            ctx, NekoPageSource(self.bot.session, "/images/nsfw/img/tits_lewd")
+        )
+        await menus.start()
 
     @commands.command()
     async def yuri(self, ctx):
-        menus = NekoMenu(NekoPageSource(self.bot.session, "/images/nsfw/img/yuri_lewd"))
-        await menus.start(ctx)
+        menus = NekoMenu(
+            ctx, NekoPageSource(self.bot.session, "/images/nsfw/img/yuri_lewd")
+        )
+        await menus.start()
 
     @commands.command()
     async def cosplay(self, ctx):
         menus = NekoMenu(
-            NekoPageSource(self.bot.session, "/images/nsfw/img/cosplay_lewd")
+            ctx, NekoPageSource(self.bot.session, "/images/nsfw/img/cosplay_lewd")
         )
-        await menus.start(ctx)
+        await menus.start()
