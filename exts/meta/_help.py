@@ -1,3 +1,4 @@
+from contextlib import suppress
 from typing import Optional
 
 import discord
@@ -5,12 +6,14 @@ from discord.ext import commands
 
 from core.embed import ZEmbed
 from core.errors import CCommandNotFound, NotInGuild
-from core.objects import CustomCommand
+from core.menus import ZMenuPagesView
 from utils import infoQuote
 from utils.format import formatCmd, formatDiscordDT, separateStringFlags
 
 from ._custom_command import getCustomCommand, getCustomCommands
 from ._flags import HelpFlags
+from ._objects import CustomCommand, Group
+from ._pages import HelpCommandPage
 
 
 class CustomHelp(commands.HelpCommand):
@@ -122,91 +125,29 @@ class CustomHelp(commands.HelpCommand):
         )
         await ctx.try_reply(embed=e)
 
-    async def command_not_found(self, type_: str, string):
-        return "No {} called `{}` found.".format(type_, string)
+    async def command_not_found(self, string):
+        return "No command/category called `{}` found.".format(string)
 
     async def send_error_message(self, error):
         if isinstance(error, CustomCommand):
             return
         await self.context.error(error)
 
-    async def send_command_help(self, command):
+    async def send_command_help(self, commands_):
         ctx = self.context
-        prefix = ctx.clean_prefix
 
-        e = ZEmbed(
-            title=formatCmd(prefix, command),
-            description="**Aliases**: `{}`\n".format(
-                ", ".join(command.aliases) if command.aliases else "No alias"
-            )
-            + (command.description or command.brief or "No description"),
-        )
+        filtered = []
+        for command in commands_:
+            if isinstance(command, commands.Group):
+                list_ = list(command.commands)
+                perList = 5
+                res = [list_[i : i + perList] for i in range(0, len(list_), perList)]
+                filtered.extend([Group(command, i) for i in res])
+            else:
+                filtered.append(command)
 
-        if isinstance(command, CustomCommand):
-            author = ctx.bot.get_user(command.owner) or await ctx.bot.fetch_user(
-                command.owner
-            )
-            e.set_author(name="By {}".format(author), icon_url=author.avatar.url)
-
-        if isinstance(command, (commands.Command, commands.Group)):
-            extras = getattr(command, "extras", {})
-
-            optionDict: Optional[dict] = extras.get("flags")
-            if optionDict:
-                optionStr = []
-                for key, value in optionDict.items():
-                    name = (
-                        " | ".join([f"`{i}`" for i in key])
-                        if isinstance(key, tuple)
-                        else f"`{key}`"
-                    )
-                    optionStr.append(f"> {name}: {value}")
-                e.add_field(name="Options", value="\n".join(optionStr), inline=False)
-
-            examples = extras.get("example")
-            if examples:
-                e.add_field(
-                    name="Example",
-                    value="\n".join([f"> `{prefix}{x}`" for x in examples]),
-                    inline=False,
-                )
-
-            perms = extras.get("perms", {})
-            botPerm = perms.get("bot")
-            userPerm = perms.get("user")
-            if botPerm is not None or userPerm is not None:
-                e.add_field(
-                    name="Required Permissions",
-                    value="> Bot: `{}`\n> User: `{}`".format(botPerm, userPerm),
-                    inline=False,
-                )
-
-            cooldown = command._buckets  # type: ignore
-            if cooldown._cooldown:
-                e.add_field(
-                    name="Cooldown",
-                    value=(
-                        "> {0._cooldown.rate} command per "
-                        "{0._cooldown.per} seconds, per {0.type[0]}".format(cooldown)
-                    ),
-                )
-            e.set_footer(
-                text="Use `{}command info command-name` to get custom command's information".format(
-                    ctx.clean_prefix
-                )
-            )
-
-        if isinstance(command, commands.Group):
-            subcmds = sorted(command.commands, key=lambda c: c.name)  # type: ignore # 'command' already checked as commands.Group
-            if subcmds:
-                e.add_field(
-                    name="Subcommands",
-                    value="\n".join(
-                        [f"> `{formatCmd(prefix, cmd)}`" for cmd in subcmds]
-                    ),
-                )
-
-        await ctx.try_reply(embed=e)
+        view = ZMenuPagesView(ctx, source=HelpCommandPage(ctx, filtered))
+        await view.start()
 
     async def prepare_help_command(self, ctx, arguments) -> tuple:
         if arguments is None:
@@ -256,72 +197,40 @@ class CustomHelp(commands.HelpCommand):
 
         return command, args, unique
 
-    async def command_callback(self, ctx, *, arguments=None):
-        command, args, filters = await self.prepare_help_command(ctx, arguments)
+    async def command_callback(self, ctx, *, command=None):
+        # command, args, filters = await self.prepare_help_command(ctx, arguments)
         bot = ctx.bot
 
         if command is None:
             mapping = self.get_bot_mapping()
             return await self.send_bot_help(mapping)
 
+        cog = bot.get_cog(command)
+        if cog:
+            return await self.send_cog_help(cog)
+
         maybeCoro = discord.utils.maybe_coroutine
 
-        string = None
+        # contains custom commands and built-in commands
+        foundList = []
+        with suppress(CCommandNotFound):
+            cc = await getCustomCommand(ctx, command)
+            foundList.append(cc)
 
-        type_ = "command/category"
-
-        for filter_ in filters:
-            if filter_ == "category":
-                # Check if it's a cog
-                cog = bot.get_cog(command)
-                if cog is None:
-                    # type_ = "category"
-                    continue
-                return await self.send_cog_help(cog)
-
-            if filter_ == "custom":
-                try:
-                    cc = await getCustomCommand(ctx, command)
-                    return await self.send_command_help(cc)
-                except CCommandNotFound:
-                    # type_ = "command"
-                    continue
-
-            # If it's not a cog then it's a command.
-            # Since we want to have detailed errors when someone
-            # passes an invalid subcommand, we need to walk through
-            # the command group chain ourselves.
-            keys = command.split(" ")
-            cmd = bot.all_commands.get(keys[0])
-            if cmd is None:
-                # type_ = "command"
-                continue
-
+        keys = command.split(" ")
+        cmd = bot.all_commands.get(keys[0])
+        if cmd:
             for key in keys[1:]:
-                try:
+                with suppress(AttributeError):
                     found = cmd.all_commands.get(key)
-                except AttributeError:
-                    string = await maybeCoro(
-                        self.subcommand_not_found, cmd, self.remove_mentions(key)
-                    )
-                    continue
-                else:
-                    if found is None:
-                        string = await maybeCoro(
-                            self.subcommand_not_found, cmd, self.remove_mentions(key)
-                        )
-                        continue
-                    cmd = found
+                    if found:
+                        cmd = found
+            foundList.append(cmd)
 
-            return await self.send_command_help(cmd)  # works for both Group and Command
-
-        if string is None:
-            try:
-                cmdName = keys[0]  # type: ignore # handled using except
-            except (IndexError, UnboundLocalError):
-                cmdName = command
+        if not foundList:
             string = await maybeCoro(
-                self.command_not_found, type_, self.remove_mentions(cmdName)
+                self.command_not_found, self.remove_mentions(command)
             )
+            return await self.send_error_message(string)
 
-        return await self.send_error_message(string)
+        await self.send_command_help(foundList)

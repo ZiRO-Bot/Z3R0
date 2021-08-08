@@ -6,7 +6,7 @@ import discord
 from discord.ext import commands
 
 from core.embed import ZEmbed
-from core.objects import CustomCommand
+from exts.meta._objects import CustomCommand
 
 
 def formatCmdParams(command):

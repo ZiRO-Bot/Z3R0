@@ -31,8 +31,9 @@ from utils.cache import CacheListProperty, CacheUniqueViolation
 from utils.format import CMDName, cleanifyPrefix
 from utils.other import ArgumentParser, reactsToMessage, utcnow
 
-from ._custom_command import CustomCommand, getCustomCommand, getCustomCommands
+from ._custom_command import getCustomCommand, getCustomCommands
 from ._help import CustomHelp
+from ._objects import CustomCommand
 from ._pages import PrefixesPageSource
 
 

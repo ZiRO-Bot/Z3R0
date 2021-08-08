@@ -1,8 +1,9 @@
 import sqlalchemy as sa
 
 from core.errors import CCommandNotFound
-from core.objects import CustomCommand
 from utils import dbQuery, sql
+
+from ._objects import CustomCommand
 
 
 async def getCustomCommand(ctx, command):
