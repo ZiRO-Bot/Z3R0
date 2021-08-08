@@ -40,9 +40,21 @@ class AniList(commands.Cog, CogMixin):
         brief="Search for an anime with AniList",
     )
     async def animeSearch(self, ctx, *, arguments: AnimeSearchFlags):
-        name, parsed = arguments
+        try:
+            name, parsed = arguments
+        except ValueError:
+            name, parsed = None, arguments
+
         if not name:
-            await ctx.error("You need to specify the name!")
+            return await ctx.error("You need to specify the name!")
+
+        kwargs = {
+            "name": name,
+            "page": 1,
+            "perPage": 10,
+        }
+        if parsed.format_:
+            kwargs["format"] = parsed.format_.strip().upper().replace(" ", "_")
 
         query = await self.anilist.queryPost(
             """
@@ -92,10 +104,7 @@ class AniList(commands.Cog, CogMixin):
                 }
             }
             """,
-            name=name,
-            format=parsed.format_.strip().upper().replace(" ", "_"),
-            page=1,
-            perPage=10,
+            **kwargs,
         )
         aniData = query["data"]["Page"]["media"]
         menu = ZMenuPagesView(ctx, source=AnimeSearchPageSource(ctx, aniData))

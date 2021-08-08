@@ -11,7 +11,8 @@ class StringAndFlags(commands.FlagConverter):
     @classmethod
     async def convert(cls, ctx, arguments: str):
         string, arguments = separateStringFlags(arguments)
-        return (string, await super().convert(ctx, arguments))
+        parsed = await super().convert(ctx, arguments)
+        return string, parsed
 
 
 class GreetingFlags(commands.FlagConverter, case_insensitive=True):
