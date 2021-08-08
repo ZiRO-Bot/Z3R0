@@ -59,7 +59,7 @@ class AniList(commands.Cog, CogMixin):
         kwargs = {
             "name": name,
             "page": 1,
-            "perPage": 10,
+            "perPage": 25,
         }
         if parsed.format_:
             kwargs["format"] = parsed.format_.strip().upper().replace(" ", "_")
