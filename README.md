@@ -98,24 +98,21 @@ Moved to [CHANGELOG.md](./CHANGELOG.md)
 - Anime (using AniList API) commands
 - Reaction Role
 - Starboard
+- Slash command (Waiting for implementation)
+- Use flags from Dpy `v2.0` when it released (In progress)
+   - Filter to show/hide user-made command for help commands using flags
+     (Current design: `>help category filters: custom` will only show custom command in that category)
 
 ### Pending Plan
 
-> Waiting for Dpy `v2.0` to release
-- Slash command (Waiting for Dpy `v2.0`)
-- ~~Integrate user-made commands into help commands~~
-- ~~Add flags ('--something', also waiting for Dpy `v2.0`)~~
-   - ~~Replace more POSIX-style flags with Discord-style flags~~
-   - Use flags from Dpy `v2.0` when it released
-   - Filter to show/hide user-made command for help commands using flags
+- i18n using gettext (Learning how gettext works)
 
 ### Scrapped Plan
 
 > Plan that unfortunately not possible (atleast for now)
-- Music Player
+- Music Player (ffmpeg+ytdl vs lavalink?)
 - Public/Private commands, allowing other user to use each other's command in a different server.
-- Twitch and YouTube notification (Maybe?)
-- i18n (If possible)
+- Twitch and YouTube notification (Find how to refresh webhook thingy reliably)
 
 ## License
 
