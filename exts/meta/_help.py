@@ -151,7 +151,7 @@ class CustomHelp(commands.HelpCommand):
 
     async def prepare_help_command(self, ctx, arguments) -> tuple:
         if arguments is None:
-            return None, None, None
+            return None, None
 
         # separate string from flags
         # String filters: String -> ("String", "filters: String")

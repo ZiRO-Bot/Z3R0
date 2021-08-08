@@ -589,6 +589,11 @@ class ziBot(commands.Bot):
         #     self.user.mention if not codeblock else ("@" + self.user.display_name),
         # )
 
+    async def process(self, message):
+        processed = await self.process_commands(message)
+        if processed is not None and not isinstance(processed, str):
+            self.commandUsage[formatCmd("", processed, params=False)] += 1
+
     async def on_message(self, message) -> None:
         # dont accept commands from bot
         if (
@@ -612,9 +617,10 @@ class ziBot(commands.Bot):
             )
             await message.reply(embed=e)
 
-        processed = await self.process_commands(message)
-        if processed is not None and not isinstance(processed, str):
-            self.commandUsage[formatCmd("", processed, params=False)] += 1
+        await self.process(message)
+
+    async def on_message_edit(self, before, after):
+        await self.process(after)
 
     async def close(self) -> None:
         """Properly close/turn off bot"""
