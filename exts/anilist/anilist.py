@@ -11,7 +11,6 @@ from core.embed import ZEmbed
 from core.menus import ZMenuPagesView
 from core.mixin import CogMixin
 from utils.api import graphql
-from utils.format import separateStringFlags
 
 from ._flags import AnimeSearchFlags
 from ._pages import AnimeSearchPageSource
@@ -29,6 +28,7 @@ class AniList(commands.Cog, CogMixin):
         )
 
     @commands.group(
+        aliases=("ani",),
         brief="Get information about anime",
     )
     async def anime(self, ctx):
@@ -39,18 +39,22 @@ class AniList(commands.Cog, CogMixin):
         aliases=("s", "find", "?", "info"),
         brief="Search for an anime with AniList",
     )
-    async def animeSearch(self, ctx, *, arguments: str):
-        name, args = separateStringFlags(arguments)
+    async def animeSearch(self, ctx, *, arguments: AnimeSearchFlags):
+        name, parsed = arguments
         if not name:
             await ctx.error("You need to specify the name!")
-        parsed = await AnimeSearchFlags.convert(ctx, args)
 
         query = await self.anilist.queryPost(
             """
-            query($name: String, $format: MediaFormat, $page: Int, $perPage: Int=5) {
+            query(
+                $name: String
+                $format: MediaFormat
+                $page: Int
+                $perPage: Int=5
+            ) {
                 Page(perPage:$perPage, page:$page) {
                     pageInfo{hasNextPage, currentPage, lastPage}
-                    media(search:$name,type:ANIME,format:$format){
+                    media(search:$name, type:ANIME, format:$format){
                         id,
                         format,
                         title {

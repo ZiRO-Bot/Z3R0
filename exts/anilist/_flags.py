@@ -1,5 +1,7 @@
 from discord.ext import commands
 
+from core.flags import StringAndFlags
 
-class AnimeSearchFlags(commands.FlagConverter, case_insensitive=True):
+
+class AnimeSearchFlags(StringAndFlags, case_insensitive=True):
     format_: str = commands.flag(name="format", default="TV")

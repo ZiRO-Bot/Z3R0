@@ -3,8 +3,17 @@ from typing import List, Optional
 import discord
 from discord.ext import commands
 
+from utils.format import separateStringFlags
+
 
 # New features from discord.py v2.0, will be replacing ArgumentParser
+class StringAndFlags(commands.FlagConverter):
+    @classmethod
+    async def convert(cls, ctx, arguments: str):
+        string, arguments = separateStringFlags(arguments)
+        return (string, await super().convert(ctx, arguments))
+
+
 class GreetingFlags(commands.FlagConverter, case_insensitive=True):
     channel: Optional[discord.TextChannel] = commands.flag(aliases=("ch",))
     raw: bool = commands.flag(aliases=("r",), default=False)

@@ -33,7 +33,8 @@ class AnimeSearchPageSource(menus.ListPageSource):
             description=desc,
         )
 
-        if not isAdult:
+        chNsfw = self.ctx.channel.is_nsfw()
+        if not isAdult or (isAdult and chNsfw):
             cover = anime["coverImage"]["large"]
             if cover:
                 e.set_thumbnail(url=cover)
