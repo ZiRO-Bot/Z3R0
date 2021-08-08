@@ -48,6 +48,7 @@ class AnimeSearchPageSource(menus.ListPageSource):
         e = ZEmbed.default(
             self.ctx,
             title=anime["title"]["romaji"],
+            url=anime["siteUrl"],
             description=desc,
         )
 

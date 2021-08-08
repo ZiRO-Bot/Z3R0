@@ -107,7 +107,8 @@ class AniList(commands.Cog, CogMixin):
                             site,
                             url
                         },
-                        isAdult
+                        isAdult,
+                        siteUrl
                     }
                 }
             }
