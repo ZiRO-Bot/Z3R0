@@ -620,7 +620,17 @@ class ziBot(commands.Bot):
         await self.process(message)
 
     async def on_message_edit(self, before, after):
-        await self.process(after)
+        message = after
+
+        # dont accept commands from bot
+        if (
+            message.author.bot
+            or message.author.id in self.blacklist.users
+            or (message.guild and message.guild.id in self.blacklist.guilds)
+        ) and message.author.id not in self.master:
+            return
+
+        await self.process(message)
 
     async def close(self) -> None:
         """Properly close/turn off bot"""
