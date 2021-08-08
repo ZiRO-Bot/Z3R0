@@ -1,6 +1,7 @@
 from discord.ext import menus
 
 from core.embed import ZEmbed
+from core.enums import Emojis
 
 
 class AnimeSearchPageSource(menus.ListPageSource):
@@ -24,7 +25,9 @@ class AnimeSearchPageSource(menus.ListPageSource):
         if len(desc) > maxLen:
             origLen = len(desc)
             desc = desc[:maxLen]
-            hidden = "... **+{}** hidden".format(origLen - len(desc))
+            hidden = "... **+{}** hidden\n(click {} to read more)".format(
+                origLen - len(desc), Emojis.info
+            )
             desc += hidden
 
         e = ZEmbed.default(
@@ -54,3 +57,6 @@ class AnimeSearchPageSource(menus.ListPageSource):
                 )
 
         return e
+
+    def sendSynopsis(self, anime):
+        return anime["description"] or "No description."

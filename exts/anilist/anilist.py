@@ -5,15 +5,26 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 """
 from random import randrange
 
+import discord
 from discord.ext import commands
 
 from core.embed import ZEmbed
+from core.enums import Emojis
 from core.menus import ZMenuPagesView
 from core.mixin import CogMixin
 from utils.api import graphql
 
 from ._flags import AnimeSearchFlags
 from ._pages import AnimeSearchPageSource
+
+
+class ReadMore(discord.ui.Button):
+    async def callback(self, interaction: discord.Interaction):
+        view: ZMenuPagesView = self.view
+        page = await view._source.get_page(view.currentPage)  # type: ignore
+        synopsis = view._source.sendSynopsis(page)  # type: ignore
+        e = ZEmbed(description=synopsis)
+        await interaction.response.send_message(embed=e, ephemeral=True)
 
 
 class AniList(commands.Cog, CogMixin):
@@ -105,6 +116,7 @@ class AniList(commands.Cog, CogMixin):
         )
         aniData = query["data"]["Page"]["media"]
         menu = ZMenuPagesView(ctx, source=AnimeSearchPageSource(ctx, aniData))
+        menu.add_item(ReadMore(emoji=Emojis.info))
         await menu.start()
 
     @commands.command(brief="Get random anime")
