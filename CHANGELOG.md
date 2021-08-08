@@ -4,6 +4,13 @@
 - [**New**] Re-added AniList category
 - [**New**] Added ZMenuPagesView (ZMenu but using `discord.ui.View` instead of
   reactions)
+- [**Changed**] Replace most if not all ArgumentParser-based flags with
+  discord.py's FlagConverter
+- [**Changed**] Changed help command behaviour, filters now only works for
+  category (`>help info filters: custom built-in` will show custom commands
+  first, `>help info filters: custom` will **only** show custom commands)
+- [**Improved**] ZMenuPagesView's `_pageInfo` now acts like "Jump to" button
+- [**Improved**] Added "Read More" button to AniList
 
 # 3.1.0
 

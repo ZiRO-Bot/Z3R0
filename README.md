@@ -98,8 +98,6 @@ Moved to [CHANGELOG.md](./CHANGELOG.md)
 - Starboard
 - Slash command (Waiting for implementation)
 - Use flags from Dpy `v2.0` when it released (In progress)
-   - Filter to show/hide user-made command for help commands using flags
-     (Current design: `>help category filters: custom` will only show custom command in that category)
 
 ### Pending Plan
 
