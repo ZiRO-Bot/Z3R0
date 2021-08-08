@@ -6,16 +6,15 @@ import discord
 from discord.ext import commands
 
 from core.embed import ZEmbed
-from exts.meta._objects import CustomCommand
 
 
 def formatCmdParams(command):
-    if isinstance(command, CustomCommand):
+    try:
+        usage = command.usage
+        if usage:
+            return usage
+    except AttributeError:
         return ""
-
-    usage = command.usage
-    if usage:
-        return usage
 
     params = command.clean_params
     if not params:

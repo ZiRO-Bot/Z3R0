@@ -567,8 +567,17 @@ class ziBot(commands.Bot):
                 return ""
 
     async def formattedPrefixes(self, guildId: int) -> str:
-        prefixes = await self.getGuildPrefix(guildId)
-        prefixes = ", ".join([f"`{x}`" for x in prefixes])
+        _prefixes = await self.getGuildPrefix(guildId)
+        prefixes = []
+        for pref in _prefixes:
+            if pref.strip() == "`":
+                prefixes.append(f"`` {pref} ``")
+            elif pref.strip() == "``":
+                prefixes.append(f"` {pref} `")
+            else:
+                prefixes.append(f"`{pref}`")
+        prefixes = ", ".join(prefixes)
+
         result = "My default prefixes are `{}` or {}".format(
             self.defPrefix, self.user.mention
         )

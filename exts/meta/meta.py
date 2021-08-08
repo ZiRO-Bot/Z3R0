@@ -1059,10 +1059,7 @@ class Meta(commands.Cog, CogMixin):
     @command.command(
         aliases=("?",),
         brief="Show command's information",
-        description=(
-            "Show command's information.\n\nAlias for `help` but "
-            "prioritize custom commands"
-        ),
+        description=("Show command's information.\n\nAlias for `help`"),
         extras=dict(
             example=(
                 "command info help",
@@ -1076,9 +1073,7 @@ class Meta(commands.Cog, CogMixin):
         cmd: CustomHelp = ctx.bot.help_command
         cmd = cmd.copy()
         cmd.context = ctx
-        await cmd.command_callback(
-            ctx, arguments=f"{name} filters: custom built-in category"
-        )
+        await cmd.command_callback(ctx, command=name)
 
     @command.command(name="list", aliases=("ls",), brief="Show all custom commands")
     async def cmdList(self, ctx):
