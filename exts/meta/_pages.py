@@ -4,6 +4,7 @@ from discord.ext import commands, menus
 
 from core.embed import ZEmbed
 from core.menus import ZMenuView
+from utils import infoQuote
 from utils.format import cleanifyPrefix, formatCmd
 
 from ._objects import CustomCommand, Group
@@ -46,13 +47,48 @@ class PrefixesPageSource(menus.ListPageSource):
         return e
 
 
+class HelpCogPage(menus.ListPageSource):
+    def __init__(self, cog: commands.Cog, commands):
+        self.cog = cog
+        super().__init__(commands, per_page=6)
+
+    async def format_page(self, menu: ZMenuView, _commands):
+        ctx = menu.context
+        cog = self.cog
+
+        desc = infoQuote.info(
+            "` ᶜ ` = Custom Command\n` ᵍ ` = Group (have subcommand(s))",
+        )
+
+        e = ZEmbed(
+            title=f"{getattr(cog, 'icon', '❓')} | Category: {cog.qualified_name}",
+            description=desc,
+        )
+        for cmd in _commands:
+            name = cmd.name
+            if isinstance(cmd, CustomCommand):
+                name += "ᶜ"
+            if isinstance(cmd, commands.Group):
+                name += "ᵍ"
+
+            e.add_field(
+                name=name,
+                value="> " + (cmd.brief or "No description"),
+            )
+        e.set_footer(
+            text="Use `{}command info command-name` to get custom command's information".format(
+                ctx.clean_prefix
+            )
+        )
+        return e
+
+
 class HelpCommandPage(menus.ListPageSource):
-    def __init__(self, ctx, commands):
-        self.context = ctx
+    def __init__(self, commands):
         super().__init__(commands, per_page=1)
 
     async def format_page(self, menu: ZMenuView, command):
-        ctx = self.context
+        ctx = menu.context
         prefix = ctx.clean_prefix
 
         subcmds = None

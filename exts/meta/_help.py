@@ -1,5 +1,4 @@
 from contextlib import suppress
-from typing import Optional
 
 import discord
 from discord.ext import commands
@@ -8,12 +7,12 @@ from core.embed import ZEmbed
 from core.errors import CCommandNotFound, NotInGuild
 from core.menus import ZMenuPagesView
 from utils import infoQuote
-from utils.format import formatCmd, formatDiscordDT, separateStringFlags
+from utils.format import formatDiscordDT
 
 from ._custom_command import getCustomCommand, getCustomCommands
 from ._flags import HelpFlags
 from ._objects import CustomCommand, Group
-from ._pages import HelpCommandPage
+from ._pages import HelpCogPage, HelpCommandPage
 
 
 class CustomHelp(commands.HelpCommand):
@@ -99,31 +98,8 @@ class CustomHelp(commands.HelpCommand):
                 filtered.append(cmd)
         filtered = sorted(filtered, key=lambda c: c.name)
 
-        desc = infoQuote.info(
-            "` ᶜ ` = Custom Command\n` ᵍ ` = Group (have subcommand(s))",
-        )
-
-        e = ZEmbed(
-            title=f"{getattr(cog, 'icon', '❓')} | Category: {cog.qualified_name}",
-            description=desc,
-        )
-        for cmd in filtered:
-            name = cmd.name
-            if isinstance(cmd, CustomCommand):
-                name += "ᶜ"
-            if isinstance(cmd, commands.Group):
-                name += "ᵍ"
-
-            e.add_field(
-                name=name,
-                value="> " + (cmd.brief or "No description"),
-            )
-        e.set_footer(
-            text="Use `{}command info command-name` to get custom command's information".format(
-                ctx.clean_prefix
-            )
-        )
-        await ctx.try_reply(embed=e)
+        view = ZMenuPagesView(ctx, source=HelpCogPage(cog, filtered))
+        await view.start()
 
     async def command_not_found(self, string):
         return "No command/category called `{}` found.".format(string)
@@ -146,7 +122,7 @@ class CustomHelp(commands.HelpCommand):
             else:
                 filtered.append(command)
 
-        view = ZMenuPagesView(ctx, source=HelpCommandPage(ctx, filtered))
+        view = ZMenuPagesView(ctx, source=HelpCommandPage(filtered))
         await view.start()
 
     async def prepare_help_command(self, ctx, arguments) -> tuple:
