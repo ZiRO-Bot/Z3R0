@@ -40,10 +40,7 @@ class AniList(commands.Cog, CogMixin):
         brief="Search for an anime with AniList",
     )
     async def animeSearch(self, ctx, *, arguments: AnimeSearchFlags):
-        try:
-            name, parsed = arguments
-        except ValueError:
-            name, parsed = None, arguments
+        name, parsed = arguments
 
         if not name:
             return await ctx.error("You need to specify the name!")

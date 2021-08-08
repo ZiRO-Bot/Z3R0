@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Any, List, Optional, Tuple
 
 import discord
 from discord.ext import commands
@@ -9,10 +9,13 @@ from utils.format import separateStringFlags
 # New features from discord.py v2.0, will be replacing ArgumentParser
 class StringAndFlags(commands.FlagConverter):
     @classmethod
-    async def convert(cls, ctx, arguments: str):
+    async def _construct_default(cls, ctx) -> Tuple[None, Any]:
+        return None, await super()._construct_default(ctx)
+
+    @classmethod
+    async def convert(cls, ctx, arguments: str) -> Tuple[str, Any]:
         string, arguments = separateStringFlags(arguments)
-        parsed = await super().convert(ctx, arguments)
-        return string, parsed
+        return string, await super().convert(ctx, arguments)
 
 
 class GreetingFlags(commands.FlagConverter, case_insensitive=True):
