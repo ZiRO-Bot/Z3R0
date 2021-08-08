@@ -1,5 +1,4 @@
 import asyncio
-import time
 from contextlib import suppress
 from typing import List, Optional, Union
 
@@ -221,7 +220,10 @@ class ZMenuPagesView(ZMenuView):
     async def _back(self, button: discord.ui.Button, interaction: discord.Interaction):
         await self.sendCheckedPage(interaction, self.currentPage - 1)
 
-    @discord.ui.button(label="Page NaN/NaN")
+    @discord.ui.button(
+        label="Page NaN/NaN",
+        style=discord.ButtonStyle.blurple,
+    )
     async def _pageInfo(
         self, button: discord.ui.Button, interaction: discord.Interaction
     ):
