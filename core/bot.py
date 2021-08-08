@@ -16,6 +16,7 @@ from databases import Database, DatabaseURL
 from discord.ext import commands, tasks
 
 import config
+from core.colour import ZColour
 from core.context import Context
 from core.errors import (
     CCommandDisabled,
@@ -96,8 +97,8 @@ class ziBot(commands.Bot):
         self.logger: logging.Logger = logging.getLogger("discord")
 
         # Default colour for embed
-        self.colour: discord.Colour = discord.Colour(0x3DB4FF)
-        self.color: discord.Colour = self.colour
+        self.colour: ZColour = ZColour.me()
+        self.color: ZColour = self.colour
 
         # Bot master(s)
         # self.master = (186713080841895936,)
@@ -593,7 +594,7 @@ class ziBot(commands.Bot):
         if re.fullmatch(pattern, message.content):
             e = discord.Embed(
                 description=await self.formattedPrefixes(message.guild.id),
-                colour=discord.Colour.rounded(),
+                colour=ZColour.rounded(),
             )
             e.set_footer(
                 text="Use `@{} help` to learn how to use the bot".format(
