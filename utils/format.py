@@ -42,7 +42,7 @@ def formatCmd(prefix, command, params=True):
         if (not parent.signature or parent.invoke_without_command) and not params:
             entries.append(parent.name)
         else:
-            entries.append(parent.name + " " + formatCmdParams(parent))
+            entries.append((parent.name + " " + formatCmdParams(parent)).strip())
         parent = parent.parent
     names = " ".join(reversed([command.name] + entries))
 
