@@ -87,16 +87,22 @@ class CustomHelp(commands.HelpCommand):
 
         return ret
 
-    async def send_cog_help(self, cog):
+    async def send_cog_help(self, cog, filters):
         ctx = self.context
 
+        filtered = []
         # Getting all the commands
-        filtered = await self.filter_commands(cog.get_commands())
-        if ctx.guild:
-            ccs = await getCustomCommands(ctx.db, ctx.guild.id, cog.qualified_name)
-            for cmd in ccs:
-                filtered.append(cmd)
-        filtered = sorted(filtered, key=lambda c: c.name)
+        for f in filters:
+            if f == "built-in":
+                filtered.extend(await self.filter_commands(cog.get_commands()))
+
+            if f == "custom":
+                if ctx.guild:
+                    ccs = await getCustomCommands(
+                        ctx.db, ctx.guild.id, cog.qualified_name
+                    )
+                    for cmd in ccs:
+                        filtered.append(cmd)
 
         view = ZMenuPagesView(ctx, source=HelpCogPage(cog, filtered))
         await view.start()
@@ -177,7 +183,7 @@ class CustomHelp(commands.HelpCommand):
 
         cog = bot.get_cog(command)
         if cog:
-            return await self.send_cog_help(cog)
+            return await self.send_cog_help(cog, filters)
 
         maybeCoro = discord.utils.maybe_coroutine
 

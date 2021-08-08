@@ -77,23 +77,21 @@ class Meta(commands.Cog, CogMixin):
             description=(
                 "Get information of a command or category.\n\n"
                 "You can use `filters` flag to set priority.\n"
-                "For example: `>help command filters: custom built-in`, will try to "
-                "get custom command called `command` first before getting built-in "
-                "command with the same name, **BUT** will not try to get category "
-                "named `command`.\n\n"
-                "All available filters: `category` (`cat`, `C`), `custom` (`c`), and "
-                "`built-in` (`b`)"
+                "For example:\n`>help info filters: custom built-in`, "
+                "will show custom commands first then built-in commands "
+                "in **info** category\n`>help info filters: custom`, "
+                "will **only** show custom commands in **info** category"
             ),
             extras=dict(
                 example=(
                     "help info",
                     "? weather",
-                    "help custom-cmd filters: custom",
+                    "help info filters: custom",
                 ),
                 flags={
                     ("filters", "filter", "filt"): (
-                        "Filter command type or category, "
-                        "also work as priority system."
+                        "Filter command type (`custom` or `built-in`), also "
+                        "work as priority system. (Only works on category)"
                     ),
                 },
             ),
