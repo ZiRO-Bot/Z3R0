@@ -81,13 +81,11 @@ More feature coming soon!
 - Run `poetry run pre-commit install`
 - To run the bot executing this command, `poetry run python main.py`
 
-## Overhaul
-
-### Changelog
+## Changelog
 
 Moved to [CHANGELOG.md](./CHANGELOG.md)
 
-### Overhaul Plan
+## Plans
 
 - Event for ~~member boosting a guild~~ (Just need to implement setup for it)
 - Add case log (in `v3.2.0` maybe?)
