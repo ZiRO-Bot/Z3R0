@@ -1073,7 +1073,7 @@ class Meta(commands.Cog, CogMixin):
         cmd: CustomHelp = ctx.bot.help_command
         cmd = cmd.copy()
         cmd.context = ctx
-        await cmd.command_callback(ctx, command=name)
+        await cmd.command_callback(ctx, arguments=name)
 
     @command.command(name="list", aliases=("ls",), brief="Show all custom commands")
     async def cmdList(self, ctx):

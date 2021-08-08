@@ -155,26 +155,19 @@ class CustomHelp(commands.HelpCommand):
 
         # separate string from flags
         # String filters: String -> ("String", "filters: String")
-        command, args = separateStringFlags(arguments)
+        command, parsed = await HelpFlags.convert(ctx, arguments)
         await super().prepare_help_command(ctx, command)
-        if not command:
-            return None, None, None
 
         # default filters, based on original help cmd
-        defFilters = ("category", "built-in", "custom")
-        filters = []
+        defFilters = ("built-in", "custom")
 
-        # parse flags is not an empty string
-        if args:
-            parsed = await HelpFlags.convert(ctx, args)
-            for f in parsed.filters:
-                filters.extend(f.strip().split())
+        filters = []
+        for f in parsed.filters:
+            filters.extend(f.strip().split())
 
         # All available filters
-        filterAvailable = ("category", "custom", "built-in")
+        filterAvailable = ("custom", "built-in")
         filterAliases = {
-            "cat": "category",
-            "C": "category",
             "c": "custom",
             "b": "built-in",
         }
@@ -195,10 +188,11 @@ class CustomHelp(commands.HelpCommand):
         # return None, None, unique
         # pass
 
-        return command, args, unique
+        return command, unique
 
-    async def command_callback(self, ctx, *, command=None):
-        # command, args, filters = await self.prepare_help_command(ctx, arguments)
+    async def command_callback(self, ctx, *, arguments=None):
+        command, filters = await self.prepare_help_command(ctx, arguments)
+
         bot = ctx.bot
 
         if command is None:
