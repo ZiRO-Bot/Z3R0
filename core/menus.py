@@ -1,3 +1,6 @@
+import asyncio
+import time
+from contextlib import suppress
 from typing import List, Optional, Union
 
 import discord
@@ -178,8 +181,11 @@ class ZMenuPagesView(ZMenuView):
                 self.remove_item(self._last)
         return await ctx.try_reply(**kwargs)
 
-    async def sendPage(self, interaction: discord.Interaction, pageNumber):
-        await interaction.response.defer()
+    async def sendPage(
+        self, interaction: discord.Interaction, pageNumber, doDefer: bool = True
+    ):
+        if doDefer:
+            await interaction.response.defer()
 
         self.currentPage = pageNumber
         kwargs = await self.getPage(pageNumber)
@@ -215,11 +221,33 @@ class ZMenuPagesView(ZMenuView):
     async def _back(self, button: discord.ui.Button, interaction: discord.Interaction):
         await self.sendCheckedPage(interaction, self.currentPage - 1)
 
-    @discord.ui.button(label="Page NaN/NaN", disabled=True)
+    @discord.ui.button(label="Page NaN/NaN")
     async def _pageInfo(
         self, button: discord.ui.Button, interaction: discord.Interaction
     ):
-        pass
+        await interaction.response.send_message(
+            content=(
+                "{}, which page would you like to jump to? "
+                "(within `1` to `{}`)".format(
+                    self.context.author.mention, self.getMaxPages()
+                )
+            ),
+            ephemeral=True,
+        )
+
+        with suppress(asyncio.TimeoutError):
+            message: discord.Message = await self.context.bot.wait_for(
+                "message",
+                timeout=30.0,
+                check=lambda msg: msg.author.id == interaction.user.id
+                and msg.channel.id == interaction.channel.id
+                and msg.content.isdigit(),
+            )
+            with suppress(discord.HTTPException, discord.NotFound):
+                await message.delete()
+
+            pageNumber = min(self.getMaxPages(), max(1, int(message.content))) - 1
+            await self.sendPage(interaction, pageNumber, doDefer=False)
 
     @discord.ui.button(
         emoji=Emojis.next,
