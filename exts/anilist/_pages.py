@@ -34,13 +34,23 @@ class AnimeSearchPageSource(menus.ListPageSource):
         )
 
         chNsfw = self.ctx.channel.is_nsfw()
+        cover = anime["coverImage"]["large"]
+        banner = anime["bannerImage"]
         if not isAdult or (isAdult and chNsfw):
-            cover = anime["coverImage"]["large"]
             if cover:
                 e.set_thumbnail(url=cover)
 
-            banner = anime["bannerImage"]
             if banner:
                 e.set_image(url=banner)
+        elif isAdult and not chNsfw:
+            if cover:
+                e.set_thumbnail(
+                    url=f"https://imagemanip.null2264.repl.co/blur?url={cover}&fixed=false"
+                )
+
+            if banner:
+                e.set_image(
+                    url=f"https://imagemanip.null2264.repl.co/blur?url={banner}&fixed=false"
+                )
 
         return e
