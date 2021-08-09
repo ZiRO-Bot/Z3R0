@@ -5,8 +5,8 @@ import datetime as dt
 import json
 import math
 import operator
-import re
-import shlex
+import os
+import uuid
 from decimal import Decimal
 from typing import Tuple
 
@@ -23,8 +23,6 @@ from pyparsing import (
     alphas,
     delimitedList,
 )
-
-from core.errors import ArgumentError
 
 
 PHI = (1 + math.sqrt(5)) / 2
@@ -226,39 +224,6 @@ class UserFriendlyBoolean(argparse.Action):
 
     def __call__(self, parser, namespace, values, option_string=None):
         setattr(namespace, self.dest, boolFromString(values))
-
-
-class ArgumentParser(argparse.ArgumentParser):
-    """Argument parser that don't exit on error
-
-    Temporary flags solution while waiting for v2.0 to release
-    """
-
-    def __init__(self, *args, add_help=False, **kwargs):
-        super().__init__(*args, add_help=add_help, **kwargs)
-        self.arguments = []
-
-    def error(self, message):
-        raise ArgumentError(message)
-
-    def add_argument(self, *args, **kwargs):
-        aliases = kwargs.pop("aliases", [])
-        strings = list(args) + list(aliases)
-
-        if kwargs.get("action") == "bool":
-            kwargs["action"] = UserFriendlyBoolean
-
-        argument = super().add_argument(*strings, **kwargs)
-        self.arguments.extend([argument.dest] + [str(a).lstrip("-") for a in aliases])
-        return argument
-
-    async def parse_known_from_string(self, string: str):
-        arguments = "|".join(set(self.arguments))
-        # parse "arg: value" into "--arg value"
-        pattern = re.compile(f"(()(?P<flag>{arguments}):)", re.IGNORECASE)
-        sub = pattern.sub(r"--\g<flag> ", string)
-
-        return self.parse_known_args(shlex.split(sub))
 
 
 class Blacklist:

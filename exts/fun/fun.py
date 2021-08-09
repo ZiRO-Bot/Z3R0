@@ -12,9 +12,9 @@ from discord.ext import commands
 
 from core import checks
 from core.embed import ZEmbed
+from core.errors import ArgumentError
 from core.mixin import CogMixin
 from utils.api import reddit
-from utils.other import ArgumentError
 from utils.piglin import Piglin
 
 from ._flags import FindseedFlags

@@ -96,7 +96,6 @@ Moved to [CHANGELOG.md](./CHANGELOG.md)
 - Reaction Role
 - Starboard
 - Slash command (Waiting for implementation)
-- Use flags from Dpy `v2.0` when it released (In progress)
 
 ### Pending Plan
 

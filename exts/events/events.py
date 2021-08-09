@@ -21,7 +21,7 @@ from core.embed import ZEmbed
 from core.mixin import CogMixin
 from utils import tseBlocks
 from utils.format import formatMissingArgError
-from utils.other import ArgumentError, doCaselog, reactsToMessage, utcnow
+from utils.other import doCaselog, reactsToMessage, utcnow
 
 
 if TYPE_CHECKING:
@@ -244,7 +244,7 @@ class EventHandler(commands.Cog, CogMixin):
                 return await ctx.error("Unicode is not supported!")
 
         if isinstance(error, commands.MissingRequiredArgument) or isinstance(
-            error, ArgumentError
+            error, errors.ArgumentError
         ):
             e = formatMissingArgError(ctx, error)
             return await ctx.try_reply(embed=e)
