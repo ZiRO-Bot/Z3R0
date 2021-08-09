@@ -23,6 +23,8 @@ from utils import tseBlocks
 from utils.format import formatMissingArgError
 from utils.other import doCaselog, reactsToMessage, utcnow
 
+from ._views import Report
+
 
 if TYPE_CHECKING:
     from core.bot import ziBot
@@ -305,9 +307,7 @@ class EventHandler(commands.Cog, CogMixin):
 
             # Embed things
             desc += (
-                "React with <:greenTick:767209095090274325> to report the error to {}".format(
-                    destName
-                )
+                "Click 'Report Error' button to report the error to {}".format(destName)
                 if destName
                 else ""
             )
@@ -317,29 +317,19 @@ class EventHandler(commands.Cog, CogMixin):
                 # colour=discord.Colour(0x2F3136),
             )
             e.set_footer(text="Waiting for answer...", icon_url=ctx.author.avatar.url)
-            msg = await ctx.send(embed=e)
 
-            # Report stuff
-            await msg.add_reaction("<:greenTick:767209095090274325>")
+            view = Report(ctx.author, timeout=60.0)
 
-            def check(reaction, user):
-                # Check if user want to report the error message
-                return (
-                    user == ctx.author
-                    and str(reaction.emoji) == "<:greenTick:767209095090274325>"
-                )
+            msg = await ctx.send(embed=e, view=view)
 
-            try:
-                reaction, user = await self.bot.wait_for(
-                    "reaction_add", timeout=60.0, check=check
-                )
-            except asyncio.TimeoutError:
+            await view.wait()
+
+            if not view.value:
                 e.set_footer(
                     text="You were too late to answer.", icon_url=ctx.author.avatar.url
                 )
-                await msg.edit(embed=e)
-                with suppress(discord.Forbidden, discord.HTTPException):
-                    await msg.clear_reactions()
+                view.report.disabled = True
+                await msg.edit(embed=e, view=view)
             else:
                 e_owner = ZEmbed.error(
                     title="ERROR: Something went wrong!",
@@ -353,9 +343,9 @@ class EventHandler(commands.Cog, CogMixin):
                     text="Error has been reported to {}".format(destName),
                     icon_url=ctx.author.avatar.url,
                 )
-                await msg.edit(embed=e)
-                with suppress(discord.Forbidden, discord.HTTPException):
-                    await msg.clear_reactions()
+                view.report.disabled = True
+                await msg.edit(embed=e, view=view)
+
         except IndexError:
             e = ZEmbed.error(
                 title="ERROR: Something went wrong!",
