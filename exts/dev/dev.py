@@ -3,7 +3,9 @@ This Source Code Form is subject to the terms of the Mozilla Public
 License, v. 2.0. If a copy of the MPL was not distributed with this
 file, You can obtain one at http://mozilla.org/MPL/2.0/.
 """
+from __future__ import annotations
 
+import os
 
 from discord.ext import commands
 from jishaku.cog import OPTIONAL_FEATURES, STANDARD_FEATURES
@@ -128,6 +130,12 @@ class Developer(*STANDARD_FEATURES, *OPTIONAL_FEATURES):
             )
 
         return await ctx.try_reply(embed=e)
+
+    @Feature.Command(parent="jsk", name="restart")
+    async def jsk_restart(self, ctx):
+        # NOTE: You'll need supervisor to use this
+        await ctx.send("Restarting...")
+        os.system("supervisorctl restart zibot &")
 
     @commands.command(aliases=["reload"])
     async def load(self, ctx, *extensions):
