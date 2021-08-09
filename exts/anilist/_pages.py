@@ -1,4 +1,5 @@
 import datetime as dt
+import re
 
 import humanize
 from discord.ext import menus
@@ -20,21 +21,19 @@ STREAM_SITES = (
 )
 
 
+HTML_REGEX = re.compile(r"<(\S+)>(?P<content>.*)</\1>")
+
+
 class AnimeSearchPageSource(menus.ListPageSource):
-    def __init__(self, ctx, anime):
-        self.ctx = ctx
+    def __init__(self, dataList):
+        super().__init__(dataList, per_page=1)
 
-        super().__init__(anime, per_page=1)
+    async def format_page(self, menu: menus.MenuPages, data):
+        ctx = menu.context
 
-    async def format_page(self, menu: menus.MenuPages, anime):
-        isAdult = anime["isAdult"]
+        isAdult = data["isAdult"]
 
-        desc = anime["description"]
-        if desc:
-            for d in ("</i>", "<i>", "<br>", "</br>"):
-                desc = desc.replace(d, "")
-        else:
-            desc = "No description."
+        desc = HTML_REGEX.sub(r"\g<content>", data["description"] or "No description")
 
         maxLen = 250
         if len(desc) > maxLen:
@@ -46,13 +45,13 @@ class AnimeSearchPageSource(menus.ListPageSource):
             desc += hidden
 
         e = ZEmbed.default(
-            self.ctx,
-            title=anime["title"]["romaji"],
-            url=anime["siteUrl"],
+            ctx,
+            title=data["title"]["romaji"],
+            url=data["siteUrl"],
             description=desc,
         )
 
-        rating = anime["averageScore"] or -1
+        rating = data["averageScore"] or -1
         if rating >= 90:
             ratingEmoji = "😃"
         elif rating >= 75:
@@ -69,9 +68,9 @@ class AnimeSearchPageSource(menus.ListPageSource):
             icon_url="https://gblobscdn.gitbook.com/spaces%2F-LHizcWWtVphqU90YAXO%2Favatar.png",
         )
 
-        chNsfw = self.ctx.channel.is_nsfw()
-        cover = anime["coverImage"]["large"]
-        banner = anime["bannerImage"]
+        chNsfw = ctx.channel.is_nsfw()
+        cover = data["coverImage"]["large"]
+        banner = data["bannerImage"]
         if not isAdult or (isAdult and chNsfw):
             if cover:
                 e.set_thumbnail(url=cover)
@@ -91,33 +90,52 @@ class AnimeSearchPageSource(menus.ListPageSource):
 
         e.add_field(
             name="Studios",
-            value=", ".join([studio["name"] for studio in anime["studios"]["nodes"]])
+            value=", ".join([studio["name"] for studio in data["studios"]["nodes"]])
             or "Unknown",
             inline=False,
         )
 
-        e.add_field(name="Format", value=anime["format"].replace("_", " "))
+        e.add_field(name="Format", value=data["format"].replace("_", " "))
 
-        if str(anime["format"]).lower() in ["movie", "music"]:
-            if anime["duration"]:
-                duration = humanize.precisedelta(
-                    dt.timedelta(seconds=anime["duration"] * 60)
-                )
+        if data["type"] == "ANIME":
+            if data["format"] in ["MOVIE", "MUSIC"]:
+                if data["duration"]:
+                    duration = humanize.precisedelta(
+                        dt.timedelta(seconds=data["duration"] * 60)
+                    )
+                else:
+                    duration = "?"
+                e.add_field(name="Duration", value=duration)
             else:
-                duration = "?"
-            e.add_field(name="Duration", value=duration)
+                e.add_field(name="Episodes", value=data["episodes"] or "0")
         else:
-            e.add_field(name="Episodes", value=anime["episodes"] or "0")
+            e.add_field(name="Chapters", value=data["chapters"] or "0")
 
-        e.add_field(name="Status", value=str(anime["status"]).title())
+        status = str(data["status"])
+        e.add_field(name="Status", value=status.title())
+
+        startDate = data["startDate"]
+        if startDate["day"]:
+            e.add_field(
+                name="Start Date",
+                value="{0[day]}/{0[month]}/{0[year]}".format(startDate),
+            )
+
+        if status == "FINISHED":
+            endDate = data["endDate"]
+            if endDate["day"]:
+                e.add_field(
+                    name="End Date",
+                    value="{0[day]}/{0[month]}/{0[year]}".format(endDate),
+                )
 
         e.add_field(
-            name="Genres", value=", ".join(anime["genres"]) or "Unknown", inline=False
+            name="Genres", value=", ".join(data["genres"]) or "Unknown", inline=False
         )
 
         sites = [
             "[{0['site']}]({0['url']})".format(site)
-            for site in anime["externalLinks"]
+            for site in data["externalLinks"]
             if site in STREAM_SITES
         ]
         if sites:
@@ -125,5 +143,5 @@ class AnimeSearchPageSource(menus.ListPageSource):
 
         return e
 
-    def sendSynopsis(self, anime):
-        return anime["description"] or "No description."
+    def sendSynopsis(self, data):
+        return HTML_REGEX.sub(r"\g<content>", data["description"] or "No description.")

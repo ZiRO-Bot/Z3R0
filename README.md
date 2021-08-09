@@ -92,7 +92,6 @@ Moved to [CHANGELOG.md](./CHANGELOG.md)
 - Tags (stripped version of custom command)
 - Unify categories/exts emoji
 - Channel manager commands
-- ~~Anime~~ and Manga (using AniList API) commands
 - Reaction Role
 - Starboard
 - Slash command (Waiting for implementation)

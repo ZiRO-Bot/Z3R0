@@ -16,6 +16,7 @@ from utils.api import graphql
 
 from ._flags import AnimeSearchFlags
 from ._pages import AnimeSearchPageSource
+from ._query import searchQuery
 
 
 class ReadMore(discord.ui.Button):
@@ -40,7 +41,7 @@ class AniList(commands.Cog, CogMixin):
 
     @commands.group(
         aliases=("ani",),
-        brief="Get information about anime",
+        brief="Get anime's information",
     )
     async def anime(self, ctx):
         pass
@@ -49,6 +50,14 @@ class AniList(commands.Cog, CogMixin):
         name="search",
         aliases=("s", "find", "?", "info"),
         brief="Search for an anime with AniList",
+        usage="(name) [options]",
+        extras=dict(
+            flags={
+                "format": (
+                    "Anime's format (TV, TV SHORT, OVA, ONA, MOVIE, " "SPECIAL, MUSIC)"
+                ),
+            }
+        ),
     )
     async def animeSearch(self, ctx, *, arguments: AnimeSearchFlags):
         name, parsed = arguments
@@ -60,63 +69,56 @@ class AniList(commands.Cog, CogMixin):
             "name": name,
             "page": 1,
             "perPage": 25,
+            "type": "ANIME",
         }
         if parsed.format_:
             kwargs["format"] = parsed.format_.strip().upper().replace(" ", "_")
 
-        query = await self.anilist.queryPost(
-            """
-            query(
-                $name: String
-                $format: MediaFormat
-                $page: Int
-                $perPage: Int=5
-            ) {
-                Page(perPage:$perPage, page:$page) {
-                    pageInfo{hasNextPage, currentPage, lastPage}
-                    media(search:$name, type:ANIME, format:$format){
-                        id,
-                        format,
-                        title {
-                            romaji,
-                            english
-                        },
-                        episodes,
-                        duration,
-                        status,
-                        startDate {
-                            year,
-                            month,
-                            day
-                        },
-                        endDate {
-                            year,
-                            month,
-                            day
-                        },
-                        genres,
-                        coverImage {
-                            large
-                        },
-                        bannerImage,
-                        description,
-                        averageScore,
-                        studios { nodes { name } },
-                        seasonYear,
-                        externalLinks {
-                            site,
-                            url
-                        },
-                        isAdult,
-                        siteUrl
-                    }
-                }
-            }
-            """,
+        req = await self.anilist.queryPost(
+            searchQuery,
             **kwargs,
         )
-        aniData = query["data"]["Page"]["media"]
-        menu = ZMenuPagesView(ctx, source=AnimeSearchPageSource(ctx, aniData))
+        aniData = req["data"]["Page"]["media"]
+        menu = ZMenuPagesView(ctx, source=AnimeSearchPageSource(aniData))
+        menu.add_item(ReadMore(emoji=Emojis.info))
+        await menu.start()
+
+    @commands.group(brief="Get manga's information")
+    async def manga(self, ctx):
+        pass
+
+    @manga.command(
+        name="search",
+        aliases=("s", "find", "?", "info"),
+        brief="Search for a manga with AniList",
+        usage="(name) [options]",
+        extras=dict(
+            flags={
+                "format": "Manga's format (MANGA, NOVEL, ONE SHOT)",
+            }
+        ),
+    )
+    async def mangaSearch(self, ctx, *, arguments: AnimeSearchFlags):
+        name, parsed = arguments
+
+        if not name:
+            return await ctx.error("You need to specify the name!")
+
+        kwargs = {
+            "name": name,
+            "page": 1,
+            "perPage": 25,
+            "type": "MANGA",
+        }
+        if parsed.format_:
+            kwargs["format"] = parsed.format_.strip().upper().replace(" ", "_")
+
+        req = await self.anilist.queryPost(
+            searchQuery,
+            **kwargs,
+        )
+        aniData = req["data"]["Page"]["media"]
+        menu = ZMenuPagesView(ctx, source=AnimeSearchPageSource(aniData))
         menu.add_item(ReadMore(emoji=Emojis.info))
         await menu.start()
 
