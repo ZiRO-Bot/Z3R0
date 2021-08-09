@@ -78,6 +78,7 @@ class NumericStringParser(object):
 
         expr = Forward()
         expr_list = delimitedList(Group(expr))
+
         # add parse action that replaces the function identifier with a (name, number of args) tuple
         def insert_fn_argcount_tuple(t):
             fn = t.pop(0)
@@ -168,7 +169,7 @@ class NumericStringParser(object):
 
     def eval(self, num_string, parseAll=True):
         self.exprStack = []
-        results = self.bnf.parseString(num_string, parseAll)
+        self.bnf.parseString(num_string, parseAll)
         val = self.evaluateStack(self.exprStack[:])
         return val
 
@@ -178,8 +179,8 @@ async def reactsToMessage(message: discord.Message, reactions: list = []):
     for reaction in reactions:
         try:
             await message.add_reaction(reaction)
-        except:
-            # Probably don't have perms to do reaction
+        except discord.Forbidden:
+            # Don't have perms to do reaction
             continue
 
 
@@ -190,6 +191,7 @@ class ArgumentError(commands.CommandError):
         super().__init__(discord.utils.escape_mentions(message))
 
 
+# TODO: Deprecated, remove soon.
 class UserFriendlyBoolean(argparse.Action):
     def __init__(
         self,
@@ -426,6 +428,49 @@ def decodeMorse(msg):
                 ]
                 temp = ""
     return decoded
+
+
+async def doCaselog(
+    bot,
+    *,
+    guildId: int,
+    type: str,
+    modId: int,
+    targetId: int,
+    reason: str,
+):
+    caseNums = await bot.db.fetch_one(
+        "SELECT IFNULL(MAX(caseId)+1, 1) FROM caseLog WHERE guildId=:guildId",
+        values={"guildId": guildId},
+    )
+    caseNum = None
+    if caseNums:
+        caseNum = caseNums[0]
+
+    if caseNum:
+        async with bot.db.transaction():
+            await bot.db.execute(
+                """
+                    INSERT INTO caseLog
+                    VALUES (
+                        :caseId,
+                        :guildId,
+                        :type,
+                        :modId,
+                        :targetId,
+                        :reason
+                    )
+                """,
+                values={
+                    "caseId": caseNum,
+                    "guildId": guildId,
+                    "type": type,
+                    "modId": modId,
+                    "targetId": targetId,
+                    "reason": reason,
+                },
+            )
+        return caseNum
 
 
 if __name__ == "__main__":

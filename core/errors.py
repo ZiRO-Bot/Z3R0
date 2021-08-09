@@ -36,7 +36,7 @@ class CCommandDisabled(CCException):
         super().__init__("This command is disabled")
 
 
-class MissingMuteRole(Exception):
+class MissingMuteRole(BotException):
     def __init__(self, prefix):
         super().__init__(
             "This guild doesn't have mute role set yet!\n"

@@ -179,6 +179,18 @@ createGuildMutesTable = """
     )
 """
 
+createCaseLogTable = """
+    CREATE TABLE IF NOT EXISTS caseLog (
+        caseId INTEGER NOT NULL,
+        guildId INTEGER NOT NULL,
+        type STRING,
+        modId INTEGER,
+        targetId INTEGER,
+        reason STRING,
+        FOREIGN KEY ("guildId") REFERENCES guilds ("id") ON DELETE CASCADE
+    )
+"""
+
 # --- Alpha feature, not pushed to git yet (Still debating if i should add it or not).
 createYTChannelTable = """
     CREATE TABLE IF NOT EXISTS yt_channels (

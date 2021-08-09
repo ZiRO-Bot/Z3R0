@@ -184,6 +184,7 @@ class ziBot(commands.Bot):
             await self.db.execute(dbQuery.createPrefixesTable)
             await self.db.execute(dbQuery.createDisabledTable)
             await self.db.execute(dbQuery.createGuildMutesTable)
+            await self.db.execute(dbQuery.createCaseLogTable)
 
     async def startUp(self) -> None:
         """Will run when the bot ready"""

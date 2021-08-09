@@ -21,11 +21,11 @@ from core.embed import ZEmbed
 from core.mixin import CogMixin
 from utils import tseBlocks
 from utils.format import formatMissingArgError
-from utils.other import ArgumentError, reactsToMessage, utcnow
+from utils.other import ArgumentError, doCaselog, reactsToMessage, utcnow
 
 
 if TYPE_CHECKING:
-    from core.bot import ziBot  # type: ignore
+    from core.bot import ziBot
 
 
 REASON_REGEX = re.compile(r"^\[\S+\#\d+ \(ID: (\d+)\)\]: (.*)")
@@ -41,21 +41,35 @@ async def doModlog(
     reason: str = None,
 ) -> None:
     """Basically handle formatting modlog events"""
+
     channel = await bot.getGuildConfig(guild.id, "modlogCh", "guildChannels")
     channel = bot.get_channel(channel)
+
+    if moderator.id == bot.user.id:
+        # This usually True when mods use moderation commands
+        # Or when bots doing automod stuff
+        if reason and channel:
+            # Get the real moderator
+            match = REASON_REGEX.match(reason)
+            if match:
+                modId = match.group(1)
+                moderator = bot.get_user(modId) or await bot.fetch_user(modId)
+                reason = match.group(2)
+
+    else:
+        # Since moderation is done manually, caselog will be done here
+        await doCaselog(
+            bot,
+            guildId=guild.id,
+            type=type,
+            modId=moderator.id,
+            targetId=member.id,
+            reason=reason or "No reason",
+        )
+
     if not channel:
-        # No channel found.
+        # No channel found, don't do modlog
         return
-
-    if reason and moderator.id == bot.user.id:
-        # Get the real moderator
-        match = REASON_REGEX.match(reason)
-        if match:
-            modId = match.group(1)
-            moderator = bot.get_user(modId) or await bot.fetch_user(modId)
-            reason = match.group(2)
-
-    # TODO: Add caselog for modlog
 
     e = ZEmbed.minimal(
         title="Modlog - {}".format(type.title()),

@@ -35,11 +35,13 @@ class Admin(commands.Cog, CogMixin):
     def __init__(self, bot):
         super().__init__(bot)
 
-    async def getGuildRole(self, guildId: int, roleType: str):
-        return await self.bot.getGuildConfig(guildId, roleType, "guildRoles")
+    @staticmethod
+    async def getGuildRole(bot, guildId: int, roleType: str):
+        return await bot.getGuildConfig(guildId, roleType, "guildRoles")
 
-    async def setGuildRole(self, guildId: int, roleType: str, roleId: int):
-        return await self.bot.setGuildConfig(guildId, roleType, roleId, "guildRoles")
+    @staticmethod
+    async def setGuildRole(bot, guildId: int, roleType: str, roleId: Optional[int]):
+        return await bot.setGuildConfig(guildId, roleType, roleId, "guildRoles")
 
     async def cog_check(self, ctx):
         if not ctx.guild:
@@ -329,7 +331,9 @@ class Admin(commands.Cog, CogMixin):
                 return
 
             if type != "regular":
-                await self.setGuildRole(ctx.guild.id, ROLE_TYPES[type], role.id)
+                await self.setGuildRole(
+                    self.bot, ctx.guild.id, ROLE_TYPES[type], role.id
+                )
 
                 if any([type == "mute", type == "muted"]):
                     await self.updateMutedRoles(ctx.guild, role, ctx.author)
@@ -383,7 +387,9 @@ class Admin(commands.Cog, CogMixin):
             )
 
             if type != "regular":
-                await self.setGuildRole(ctx.guild.id, ROLE_TYPES[type], role.id)
+                await self.setGuildRole(
+                    self.bot, ctx.guild.id, ROLE_TYPES[type], role.id
+                )
 
                 if any([type == "mute", type == "muted"]):
                     await self.updateMutedRoles(ctx.guild, role, ctx.author)

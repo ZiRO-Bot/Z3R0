@@ -15,10 +15,11 @@ from core.converter import BannedMember, MemberOrUser, TimeAndArgument
 from core.embed import ZEmbed
 from core.errors import MissingMuteRole
 from core.mixin import CogMixin
+from exts.admin.admin import Admin
 from exts.timer.timer import Timer, TimerData
 from utils.cache import CacheUniqueViolation
 from utils.format import formatDateTime
-from utils.other import ArgumentError, ArgumentParser, utcnow
+from utils.other import ArgumentError, ArgumentParser, doCaselog, utcnow
 
 
 class HierarchyError(Exception):
@@ -138,6 +139,17 @@ class Moderation(commands.Cog, CogMixin):
             )
         except discord.Forbidden:
             return await ctx.try_reply("I don't have permission to ban a user!")
+
+        caseNum = await doCaselog(
+            self.bot,
+            guildId=ctx.guild.id,
+            type=action,
+            modId=ctx.author.id,
+            targetId=user.id,
+            reason=reason,
+        )
+        if caseNum:
+            desc += "\n**Case**: #{}".format(caseNum)
 
         if time is not None:
             # Temporary ban
@@ -296,7 +308,25 @@ class Moderation(commands.Cog, CogMixin):
         *,
         time: TimeAndArgument = None,
     ):
-        await self.doModeration(ctx, user, time, "mute", prefix=ctx.clean_prefix)
+        mutedRoleId = await self.bot.getGuildConfig(
+            ctx.guild.id, "mutedRole", "guildRoles"
+        )
+        if not mutedRoleId:
+            raise MissingMuteRole(ctx.clean_prefix) from None
+
+        if user._roles.has(mutedRoleId):
+            return await ctx.error(f"{user.mention} is already muted!")
+
+        await self.doModeration(
+            ctx, user, time, "mute", prefix=ctx.clean_prefix, mutedRoleId=mutedRoleId
+        )
+
+    async def doMute(self, _n, member: discord.Member, /, reason: str, **kwargs):
+        mutedRoleId = kwargs.get("mutedRoleId", 0)
+        try:
+            await member.add_roles(discord.Object(id=mutedRoleId), reason=reason)
+        except TypeError:
+            pass
 
     @mute.command(
         name="create",
@@ -333,8 +363,15 @@ class Moderation(commands.Cog, CogMixin):
     @checks.mod_or_permissions(manage_messages=True)
     async def unmute(self, ctx, member: MemberOrUser, *, reason: str = "No reason"):
         guildId = ctx.guild.id
-        mutedRoleId = await self.bot.getGuildConfig(guildId, "mutedRole", "guildRoles")
+        mutedRoleId = await Admin.getGuildRole(self.bot, guildId, "mutedRole")
+        if not mutedRoleId:
+            raise MissingMuteRole(ctx.clean_prefix) from None
+
+        if not member._roles.has(mutedRoleId):
+            return await ctx.error(f"{member.mention} is not muted!")
+
         role = discord.Object(id=mutedRoleId)
+
         try:
             await member.remove_roles(role, reason=reason)
         except (discord.HTTPException, AttributeError):
@@ -345,15 +382,6 @@ class Moderation(commands.Cog, CogMixin):
         )
         await ctx.try_reply(embed=e)
 
-    async def doMute(self, _, member: discord.Member, /, reason: str, **kwargs):
-        guildId = member.guild.id
-        mutedRoleId = await self.bot.getGuildConfig(guildId, "mutedRole", "guildRoles")
-        try:
-            await member.add_roles(discord.Object(id=mutedRoleId), reason=reason)
-        except (TypeError, discord.errors.NotFound):
-            # Missing mute role (either not yet added or deleted)
-            raise MissingMuteRole(kwargs.get("prefix", self.bot.defPrefix)) from None
-
     @commands.Cog.listener("on_member_update")
     async def onMemberUpdate(self, before: discord.Member, after: discord.Member):
         # Used to manage muted members
@@ -361,7 +389,7 @@ class Moderation(commands.Cog, CogMixin):
             return
 
         guildId = after.guild.id
-        mutedRoleId = await self.bot.getGuildConfig(guildId, "mutedRole", "guildRoles")
+        mutedRoleId = await Admin.getGuildRole(self.bot, guildId, "mutedRole")
         if not mutedRoleId:
             return
 
@@ -372,6 +400,14 @@ class Moderation(commands.Cog, CogMixin):
             return
 
         await self.manageMuted(after, afterHas, discord.Object(id=mutedRoleId))
+
+    @commands.Cog.listener("on_guild_role_delete")
+    async def onMutedRoleDeleted(self, role):
+        mutedRoleId = await Admin.getGuildRole(self.bot, role.guild.id, "mutedRole")
+        if not mutedRoleId or mutedRoleId != role.id:
+            return
+
+        await Admin.setGuildRole(self.bot, role.guild.id, "mutedRole", None)
 
     @commands.Cog.listener("on_mute_timer_complete")
     async def onMuteTimerComplete(self, timer: TimerData):
@@ -398,8 +434,12 @@ class Moderation(commands.Cog, CogMixin):
         moderator = modTemplate.format(moderator, modId)
 
         member = guild.get_member(userId)
-        mutedRoleId = await self.bot.getGuildConfig(guild.id, "mutedRole", "guildRoles")
+        mutedRoleId = await Admin.getGuildRole(self.bot, guild.id, "mutedRole")
+        if not mutedRoleId:
+            return await self.manageMuted(member, False, None)
+
         role = discord.Object(id=mutedRoleId)
+
         with suppress(
             discord.NotFound, discord.HTTPException
         ):  # ignore NotFound incase mute role got removed
@@ -420,7 +460,7 @@ class Moderation(commands.Cog, CogMixin):
             )
 
             try:
-                mutedMembers = [m for _, m in dbMutes]
+                mutedMembers = [m for _n, m in dbMutes]
                 self.bot.cache.guildMutes.extend(guildId, mutedMembers)
             except ValueError:
                 mutedMembers = []
