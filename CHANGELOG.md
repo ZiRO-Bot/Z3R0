@@ -11,6 +11,7 @@
   first, `>help info filters: custom` will **only** show custom commands)
 - [**Improved**] ZMenuPagesView's `_pageInfo` now acts like "Jump to" button
 - [**Improved**] Added "Read More" button to AniList
+- [**New**] Added Caselog, to keep track of your moderation records
 
 # 3.1.0
 
