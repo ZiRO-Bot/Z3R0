@@ -19,7 +19,9 @@ from exts.admin.admin import Admin
 from exts.timer.timer import Timer, TimerData
 from utils.cache import CacheUniqueViolation
 from utils.format import formatDateTime
-from utils.other import ArgumentError, ArgumentParser, doCaselog, utcnow
+from utils.other import doCaselog, utcnow
+
+from ._flags import AnnouncementFlags
 
 
 class HierarchyError(Exception):
@@ -632,7 +634,7 @@ class Moderation(commands.Cog, CogMixin):
         extras=dict(
             example=(
                 "announce Hello World!",
-                "announce target: everyone msg: Totally important message",
+                "announce Totally important announcement target: everyone",
                 "announce Exclusive announcement for @role target: @role ch: #test",
             ),
             flags={
@@ -641,49 +643,28 @@ class Moderation(commands.Cog, CogMixin):
                     "by default set by `announcement @role` command)"
                 ),
                 "target": "Ping target (everyone, here, or @role)",
-                ("message", "msg"): "Edit/extend announcement message",
             },
         ),
         usage="(message) [options]",
     )
-    async def announce(self, ctx, *, arguments: str):
-        parsed = await self.parseAnnouncement(arguments)
+    async def announce(self, ctx, *, arguments: AnnouncementFlags):
+        message, parsed = arguments
         annCh = parsed.channel
         if not annCh:
             annCh = await self.bot.getGuildConfig(
                 ctx.guild.id, "announcementCh", "guildChannels"
             )
             annCh = ctx.guild.get_channel(annCh)
-        else:
-            annCh: discord.TextChannel = await commands.TextChannelConverter().convert(
-                ctx, annCh
-            )
+            if not annCh:
+                return await ctx.error("No announcement channel found!")
 
-        try:
+        target = parsed.target
+        if isinstance(target, str):
             target = parsed.target.lstrip("@")
-        except AttributeError:
-            target = "everyone"
+            if target.endswith("everyone") or target.endswith("here"):
+                target = f"@{target}"
 
-        if target.endswith("everyone") or target.endswith("here"):
-            target = f"@{target}"
-        else:
-            target = await commands.RoleConverter().convert(ctx, target)
-
-        await self.doAnnouncement(ctx, " ".join(parsed.message), target, annCh)
-
-    async def parseAnnouncement(self, arguments: str):
-        parser = ArgumentParser(allow_abbrev=False)
-        parser.add_argument("--target")
-        parser.add_argument("--channel", aliases=("--ch",))
-        parser.add_argument("message", action="extend", nargs="*")
-        parser.add_argument("--message", aliases=("--msg",), action="extend", nargs="+")
-
-        parsed, _ = await parser.parse_known_from_string(arguments)
-
-        if not parsed.message:
-            raise ArgumentError("Missing announcement message")
-
-        return parsed
+        await self.doAnnouncement(ctx, message, target, annCh)
 
     async def doAnnouncement(
         self, ctx, announcement, target, dest: discord.TextChannel
