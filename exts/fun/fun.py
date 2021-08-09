@@ -14,8 +14,10 @@ from core import checks
 from core.embed import ZEmbed
 from core.mixin import CogMixin
 from utils.api import reddit
-from utils.other import ArgumentError, ArgumentParser
+from utils.other import ArgumentError
 from utils.piglin import Piglin
+
+from ._flags import FindseedFlags
 
 
 class Fun(commands.Cog, CogMixin):
@@ -68,27 +70,19 @@ class Fun(commands.Cog, CogMixin):
     @commands.command(
         brief="Get your minecraft seed's eye count",
         aliases=("fs", "vfs"),
+        usage="[options]",
         extras=dict(
             example=("findseed", "findseed mode: classic", "fs mode: pipega"),
             flags={"mode": "Change display mode (modes: visual, classic, pipega)"},
         ),
     )
     @commands.cooldown(5, 25, commands.BucketType.user)
-    async def findseed(self, ctx, *, arguments: str = None):
+    async def findseed(self, ctx, *, arguments: FindseedFlags):
         availableMode = ("visual", "classic", "pipega")
         aliasesMode = {"pepiga": "pipega"}
-        mode = "visual"
 
-        if arguments is not None:
-            parser = ArgumentParser(allow_abbrev=False)
-            parser.add_argument("--mode")
-
-            parsed, _ = await parser.parse_known_from_string(arguments)
-
-            if parsed.mode:
-                mode = str(parsed.mode).lower()
-                mode = aliasesMode.get(mode, mode)
-                mode = "visual" if mode not in availableMode else mode
+        argMode = aliasesMode.get(arguments.mode, arguments.mode)
+        mode = "visual" if argMode not in availableMode else argMode
 
         defaultEmojis = {
             "{air}": "<:empty:754550188269633556>",
