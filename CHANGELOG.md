@@ -1,6 +1,6 @@
 # 3.2.0a (`discord.py v2.0`)
 
-- [**Improved**] Used `discord.py v2.0`
+- [**Improved**] Updated `discord.py` (`v1.7.3` -> `v2.0.0`)
 - [**New**] Re-added AniList category
 - [**New**] Added ZMenuPagesView (ZMenu but using `discord.ui.View` instead of
   reactions)
@@ -12,6 +12,12 @@
 - [**Improved**] ZMenuPagesView's `_pageInfo` now acts like "Jump to" button
 - [**Improved**] Added "Read More" button to AniList
 - [**New**] Added Caselog, to keep track of your moderation records
+- [**Improved**] Added Info/Stats to Custom Command's help page
+- [**Improved**] Disabled command will displayed ~~crossed~~ on category
+  commands' page (`>help category`)
+- [**Changed**] Rename custom commands' `raw` -> `source` (but `raw` stays as
+  alias for `source`)
+- [**Fixed**] Fixed command disabler not working properly
 
 # 3.1.0
 
