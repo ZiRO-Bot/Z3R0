@@ -56,13 +56,14 @@ class CustomHelp(commands.HelpCommand):
         )
         # TODO: Make a command to set this without reloading the extension
         e.add_field(
-            name="News | Updated at: {}".format(formatDiscordDT(1628066360, "F")),
+            name="News | Updated at: {}".format(formatDiscordDT(1628505078, "F")),
             value=(
                 "Changelogs:"
-                "\n- Added Image category"
-                "\n- Added cooldown"
-                "\n- Changed how help command looks (again)"
-                "\n- Added anti-mute evasion"
+                "\n- Updated `discord.py` to v2.0"
+                "\n- Buttons!"
+                "\n- Improved help command behaviour"
+                "\n- Added AniList category (Anime ~~and Manga~~ commands)"
+                "\n- Fixed some issues"
                 "\n\n[Click here to see the full changelog!]"
                 "(https://github.com/ZiRO-Bot/Z3R0/blob/overhaul/CHANGELOG.md)\n"
             ),
