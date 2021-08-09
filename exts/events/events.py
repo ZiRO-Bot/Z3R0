@@ -7,7 +7,6 @@ from __future__ import annotations
 
 import asyncio
 import re
-from contextlib import suppress
 from typing import TYPE_CHECKING, Any, Dict, Optional
 
 import discord
@@ -230,6 +229,7 @@ class EventHandler(commands.Cog, CogMixin):
             commands.BadArgument,
             errors.MissingMuteRole,
             errors.CCommandNoPerm,
+            errors.CCommandDisabled,
         )
 
         if isinstance(error, commands.CommandNotFound) or isinstance(

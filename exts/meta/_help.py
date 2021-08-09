@@ -94,7 +94,11 @@ class CustomHelp(commands.HelpCommand):
         # Getting all the commands
         for f in filters:
             if f == "built-in":
-                filtered.extend(await self.filter_commands(cog.get_commands()))
+                builtIns = sorted(
+                    await self.filter_commands(cog.get_commands()),
+                    key=lambda cmd: cmd.name,
+                )
+                filtered.extend(builtIns)
 
             if f == "custom":
                 if ctx.guild:

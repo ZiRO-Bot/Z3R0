@@ -36,6 +36,7 @@ from ._flags import CmdManagerFlags
 from ._help import CustomHelp
 from ._objects import CustomCommand
 from ._pages import PrefixesPageSource
+from ._utils import getDisabledCommands
 
 
 if TYPE_CHECKING:
@@ -106,6 +107,7 @@ class Meta(commands.Cog, CogMixin):
         self.bot.cache.add(
             "disabled",
             cls=CacheListProperty,
+            unique=True,
         )
 
         # TSE stuff
@@ -140,22 +142,11 @@ class Meta(commands.Cog, CogMixin):
             parent = parent.parent
         return " ".join(reversed([command.name] + commands))
 
-    async def getDisabledCommands(self, ctx, guildId):
-        if self.bot.cache.disabled.get(guildId) is None:
-            dbDisabled = await ctx.db.fetch_all(
-                "SELECT command FROM disabled WHERE guildId=:id", values={"id": guildId}
-            )
-            try:
-                self.bot.cache.disabled.extend(guildId, [c[0] for c in dbDisabled])
-            except ValueError:
-                return []
-        return self.bot.cache.disabled.get(guildId, [])
-
     async def bot_check(self, ctx):
         """Global check"""
         if not ctx.guild:
             return True
-        disableCmds = await self.getDisabledCommands(ctx, ctx.guild.id)
+        disableCmds = await getDisabledCommands(self.bot, ctx.guild.id)
         cmdName = self.formatCmdName(ctx.command)
         if cmdName in disableCmds:
             if not ctx.author.guild_permissions.manage_guild:
@@ -192,11 +183,14 @@ class Meta(commands.Cog, CogMixin):
         if not ctx.guild:
             raise CCommandNotInGuild
         cmd = await getCustomCommand(ctx, command)
-        if not cmd.enabled:
-            raise CCommandDisabled
+
         if raw:
             content = discord.utils.escape_markdown(cmd.content)
             return await ctx.try_reply(content)
+
+        # "raw" bypass disable
+        if not cmd.enabled:
+            raise CCommandDisabled
 
         async with ctx.db.transaction():
             # Increment uses
@@ -277,8 +271,13 @@ class Meta(commands.Cog, CogMixin):
     async def run(self, ctx, name: CMDName, argument: str = None):
         return await self.execCustomCommand(ctx, name)
 
-    @command.command(brief="Get raw content of a custom command")
-    async def raw(self, ctx, name: CMDName):
+    @command.command(
+        name="source",
+        aliases=("src", "raw"),
+        brief="Get raw content of a custom command",
+    )
+    @commands.cooldown(1, 5, commands.BucketType.user)
+    async def _source(self, ctx, name: CMDName):
         return await self.execCustomCommand(ctx, name, raw=True)
 
     async def addCmd(self, ctx, name: str, content: str, **kwargs):
@@ -825,7 +824,7 @@ class Meta(commands.Cog, CogMixin):
                 return await ctx.error(title="This command can't be disabled!")
 
             # Make sure disable command is cached from database
-            await self.getDisabledCommands(ctx, ctx.guild.id)
+            await getDisabledCommands(self.bot, ctx.guild.id)
 
             try:
                 self.bot.cache.disabled.append(ctx.guild.id, cmdName)
@@ -850,7 +849,7 @@ class Meta(commands.Cog, CogMixin):
             ]
 
             # Make sure disable command is cached from database
-            await self.getDisabledCommands(ctx, ctx.guild.id)
+            await getDisabledCommands(self.bot, ctx.guild.id)
 
             added = []
             for c in commands:
@@ -964,7 +963,7 @@ class Meta(commands.Cog, CogMixin):
             # format command name
             cmdName = self.formatCmdName(command)
 
-            await self.getDisabledCommands(ctx, ctx.guild.id)
+            await getDisabledCommands(self.bot, ctx.guild.id)
 
             try:
                 self.bot.cache.disabled.remove(ctx.guild.id, cmdName)
@@ -986,7 +985,7 @@ class Meta(commands.Cog, CogMixin):
 
         elif mode == "category":
             category = self.bot.get_cog(name)
-            await self.getDisabledCommands(ctx, ctx.guild.id)
+            await getDisabledCommands(self.bot, ctx.guild.id)
             commands = [c.name for c in category.get_commands()]
 
             removed = []

@@ -8,6 +8,7 @@ from utils import infoQuote
 from utils.format import cleanifyPrefix, formatCmd
 
 from ._objects import CustomCommand, Group
+from ._utils import getDisabledCommands
 
 
 class PrefixesPageSource(menus.ListPageSource):
@@ -50,14 +51,20 @@ class PrefixesPageSource(menus.ListPageSource):
 class HelpCogPage(menus.ListPageSource):
     def __init__(self, cog: commands.Cog, commands):
         self.cog = cog
+        self.disabled = None
         super().__init__(commands, per_page=6)
 
     async def format_page(self, menu: ZMenuView, _commands):
         ctx = menu.context
         cog = self.cog
 
+        if not self.disabled:
+            self.disabled = await getDisabledCommands(ctx.bot, ctx.guild.id)
+
         desc = infoQuote.info(
-            "` ᶜ ` = Custom Command\n` ᵍ ` = Group (have subcommand(s))",
+            "` ᶜ ` = Custom Command\n"
+            "` ᵍ ` = Group (have subcommand(s))\n"
+            "~~` C `~~ = Disabled",
         )
 
         e = ZEmbed(
@@ -67,7 +74,12 @@ class HelpCogPage(menus.ListPageSource):
         for cmd in _commands:
             name = cmd.name
             if isinstance(cmd, CustomCommand):
+                if not cmd.enabled:
+                    name = f"~~{name}~~"
                 name += "ᶜ"
+            else:
+                if cmd.name in self.disabled:
+                    name = f"~~{name}~~"
             if isinstance(cmd, commands.Group):
                 name += "ᵍ"
 
@@ -75,11 +87,6 @@ class HelpCogPage(menus.ListPageSource):
                 name=name,
                 value="> " + (cmd.brief or "No description"),
             )
-        e.set_footer(
-            text="Use `{}command info command-name` to get custom command's information".format(
-                ctx.clean_prefix
-            )
-        )
         return e
 
 
@@ -106,7 +113,20 @@ class HelpCommandPage(menus.ListPageSource):
 
         if isinstance(command, CustomCommand):
             e.title = e.title.strip() + "ᶜ"
-            e.description += f"\n\n**Owner**: <@{command.owner}>"
+            e.add_field(
+                name="Info/Stats",
+                value=(
+                    "**Owner**: <@{0.owner}>\n"
+                    "**Uses**: `{0.uses}`\n"
+                    "**Enabled**: `{0.enabled}`".format(command)
+                ),
+            )
+            e.set_footer(
+                text=(
+                    "Add extra `>` or `!` after prefix to prioritize custom "
+                    "command.\nExample: `{0}>example` or `{0}!example`".format(prefix)
+                )
+            )
 
         if isinstance(command, (commands.Command, commands.Group)):
             extras = getattr(command, "extras", {})
