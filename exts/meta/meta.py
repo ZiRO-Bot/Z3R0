@@ -29,9 +29,10 @@ from core.mixin import CogMixin
 from utils import dbQuery, sql, tseBlocks
 from utils.cache import CacheListProperty, CacheUniqueViolation
 from utils.format import CMDName, cleanifyPrefix
-from utils.other import ArgumentParser, reactsToMessage, utcnow
+from utils.other import reactsToMessage, utcnow
 
 from ._custom_command import getCustomCommand, getCustomCommands
+from ._flags import CmdManagerFlags
 from ._help import CustomHelp
 from ._objects import CustomCommand
 from ._pages import PrefixesPageSource
@@ -783,17 +784,10 @@ class Meta(commands.Cog, CogMixin):
         ),
         usage="(name) [options]",
     )
-    async def disable(self, ctx, *, arguments):
-        # parse name and flags from arguments
-        parser = ArgumentParser(allow_abbrev=False)
-        parser.add_argument("--built-in", action="bool")
-        parser.add_argument("--custom", action="bool")
-        parser.add_argument("--category", aliases=("--cat",), action="bool")
-        parser.add_argument("name", action="extend", nargs="+")
-        parser.add_argument("--name", action="extend", nargs="+")
-
-        # parsed, _ = parser.parse_known_args(shlex.split(arguments))
-        parsed, _ = await parser.parse_known_from_string(arguments)
+    async def disable(self, ctx, *, arguments: CmdManagerFlags):
+        name, parsed = arguments
+        if not name:
+            return await ctx.error("You need to specify the command's name!")
 
         isMod = await checks.isMod(ctx)
 
@@ -804,8 +798,6 @@ class Meta(commands.Cog, CogMixin):
             mode = "built-in" if not parsed.category else "category"
         if not parsed.built_in and parsed.custom:
             mode = "custom"
-
-        name = " ".join(parsed.name)
 
         successMsg = "`{}` has been disabled"
         alreadyMsg = "`{}` already disabled!"
@@ -937,16 +929,10 @@ class Meta(commands.Cog, CogMixin):
         ),
         usage="(name) [options]",
     )
-    async def enable(self, ctx, *, arguments):
-        # parse name and flags from arguments
-        parser = ArgumentParser(allow_abbrev=False)
-        parser.add_argument("--built-in", action="bool")
-        parser.add_argument("--custom", action="bool")
-        parser.add_argument("--category", aliases=("--cat",), action="bool")
-        parser.add_argument("name", action="extend", nargs="+")
-        parser.add_argument("--name", action="extend", nargs="+")
-
-        parsed, _ = await parser.parse_known_from_string(arguments)
+    async def enable(self, ctx, *, arguments: CmdManagerFlags):
+        name, parsed = arguments
+        if not name:
+            return await ctx.error("You need to specify the command's name!")
 
         isMod = await checks.isMod(ctx)
 
@@ -957,8 +943,6 @@ class Meta(commands.Cog, CogMixin):
             mode = "built-in" if not parsed.category else "category"
         if not parsed.built_in and parsed.custom:
             mode = "custom"
-
-        name = " ".join(parsed.name)
 
         successMsg = "`{}` has been enabled"
         alreadyMsg = "`{}` already enabled!"

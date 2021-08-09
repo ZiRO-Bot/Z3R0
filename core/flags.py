@@ -8,6 +8,11 @@ from utils.format import separateStringFlags
 
 # New features from discord.py v2.0, will be replacing ArgumentParser
 class StringAndFlags(commands.FlagConverter):
+    """FlagConverter with similar behaviour as ArgumentParser
+
+    `string flag: value` -> ('string', parsedFlags)
+    """
+
     @classmethod
     async def _construct_default(cls, ctx) -> Tuple[None, Any]:
         return None, await super()._construct_default(ctx)

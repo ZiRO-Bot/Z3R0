@@ -11,7 +11,6 @@ from decimal import Decimal
 from typing import Tuple
 
 import discord
-from discord.ext import commands
 from pyparsing import (
     CaselessKeyword,
     Forward,
@@ -24,6 +23,8 @@ from pyparsing import (
     alphas,
     delimitedList,
 )
+
+from core.errors import ArgumentError
 
 
 PHI = (1 + math.sqrt(5)) / 2
@@ -182,13 +183,6 @@ async def reactsToMessage(message: discord.Message, reactions: list = []):
         except discord.Forbidden:
             # Don't have perms to do reaction
             continue
-
-
-class ArgumentError(commands.CommandError):
-    """Error class for ArgumentParser"""
-
-    def __init__(self, message):
-        super().__init__(discord.utils.escape_mentions(message))
 
 
 # TODO: Deprecated, remove soon.

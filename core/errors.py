@@ -1,3 +1,6 @@
+import discord
+
+
 class BotException(Exception):
     pass
 
@@ -44,3 +47,8 @@ class MissingMuteRole(BotException):
                 prefix
             )
         )
+
+
+class ArgumentError(BotException):
+    def __init__(self, message):
+        super().__init__(discord.utils.escape_mentions(message))
