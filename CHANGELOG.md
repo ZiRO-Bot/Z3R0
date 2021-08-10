@@ -1,3 +1,8 @@
+# 3.2.3
+
+- [**Improved**] Merged `anime search` and `manga search` into 1 function
+- [**Fixed**] Fixed IndexError when there's no anime/manga found
+
 # 3.2.2
 
 - [**Fixed**] Fixed a lot of issue with v3.2.1

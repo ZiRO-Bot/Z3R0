@@ -39,6 +39,37 @@ class AniList(commands.Cog, CogMixin):
             "https://graphql.anilist.co", session=self.bot.session
         )
 
+    async def anilistSearch(self, ctx, name: str, parsed, type: str = "ANIME"):
+        """Function for 'manga search' and 'anime search' command"""
+        type = type.upper().replace(" ", "_")
+
+        if not name:
+            return await ctx.error("You need to specify the name!")
+
+        kwargs = {
+            "name": name,
+            "page": 1,
+            "perPage": 25,
+            "type": "ANIME",
+        }
+        if parsed.format_:
+            kwargs["format"] = parsed.format_.strip().upper().replace(" ", "_")
+
+        req = await self.anilist.queryPost(
+            searchQuery,
+            **kwargs,
+        )
+        aniData = req["data"]["Page"]["media"]
+        if not aniData:
+            return await ctx.error(
+                f"No {type.lower().replace('_', '')} called `{name}` found.",
+                title="No result",
+            )
+
+        menu = ZMenuPagesView(ctx, source=AnimeSearchPageSource(aniData))
+        menu.add_item(ReadMore(emoji=Emojis.info))
+        await menu.start()
+
     @commands.group(
         aliases=("ani",),
         brief="Get anime's information",
@@ -62,26 +93,7 @@ class AniList(commands.Cog, CogMixin):
     async def animeSearch(self, ctx, *, arguments: AnimeSearchFlags):
         name, parsed = arguments
 
-        if not name:
-            return await ctx.error("You need to specify the name!")
-
-        kwargs = {
-            "name": name,
-            "page": 1,
-            "perPage": 25,
-            "type": "ANIME",
-        }
-        if parsed.format_:
-            kwargs["format"] = parsed.format_.strip().upper().replace(" ", "_")
-
-        req = await self.anilist.queryPost(
-            searchQuery,
-            **kwargs,
-        )
-        aniData = req["data"]["Page"]["media"]
-        menu = ZMenuPagesView(ctx, source=AnimeSearchPageSource(aniData))
-        menu.add_item(ReadMore(emoji=Emojis.info))
-        await menu.start()
+        await self.anilistSearch(ctx, name, parsed, "ANIME")
 
     @commands.group(brief="Get manga's information")
     async def manga(self, ctx):
@@ -101,26 +113,7 @@ class AniList(commands.Cog, CogMixin):
     async def mangaSearch(self, ctx, *, arguments: AnimeSearchFlags):
         name, parsed = arguments
 
-        if not name:
-            return await ctx.error("You need to specify the name!")
-
-        kwargs = {
-            "name": name,
-            "page": 1,
-            "perPage": 25,
-            "type": "MANGA",
-        }
-        if parsed.format_:
-            kwargs["format"] = parsed.format_.strip().upper().replace(" ", "_")
-
-        req = await self.anilist.queryPost(
-            searchQuery,
-            **kwargs,
-        )
-        aniData = req["data"]["Page"]["media"]
-        menu = ZMenuPagesView(ctx, source=AnimeSearchPageSource(aniData))
-        menu.add_item(ReadMore(emoji=Emojis.info))
-        await menu.start()
+        await self.anilistSearch(ctx, name, parsed, "MANGA")
 
     @commands.command(brief="Get random anime")
     @commands.cooldown(1, 5, commands.BucketType.user)
