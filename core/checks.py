@@ -36,9 +36,10 @@ async def check_guild_permissions(ctx, perms, *, check=all):
     )
 
 
-def has_guild_permissions(*, check=all, **perms):
+def has_guild_permissions(**perms):
     async def predicate(ctx):
-        return await check_guild_permissions(ctx, perms, check=check)
+        orig = commands.has_guild_permissions(**perms).predicate
+        return ctx.author.id in ctx.bot.master or await orig(ctx)
 
     return commands.check(predicate)
 
@@ -59,9 +60,7 @@ def is_mod():
         role = ctx.guild.get_role(roleId)
 
         try:
-            check = await commands.has_guild_permissions(manage_guild=True).predicate(
-                ctx
-            )
+            check = await has_guild_permissions(manage_guild=True).predicate(ctx)
         except commands.MissingPermissions:
             raise MissingModPrivilege from None
 
@@ -78,7 +77,7 @@ def mod_or_permissions(**perms):
             orig = False
 
         try:
-            permCheck = await commands.has_guild_permissions(**perms).predicate(ctx)
+            permCheck = await has_guild_permissions(**perms).predicate(ctx)
         except commands.MissingPermissions as err:
             raise MissingModPrivilege(err.missing_permissions) from None
 
@@ -98,9 +97,7 @@ async def isModOrPerms(ctx, perms, check=all):
 def is_admin():
     async def predicate(ctx):
         try:
-            return await commands.has_guild_permissions(administrator=True).predicate(
-                ctx
-            )
+            return await has_guild_permissions(administrator=True).predicate(ctx)
         except commands.MissingPermissions:
             raise MissingAdminPrivilege from None
 
@@ -115,7 +112,7 @@ def admin_or_permissions(**perms):
             orig = False
 
         try:
-            permCheck = await commands.has_guild_permissions(**perms).predicate(ctx)
+            permCheck = await has_guild_permissions(**perms).predicate(ctx)
         except commands.MissingPermissions as err:
             raise MissingModPrivilege(err.missing_permissions) from None
 
