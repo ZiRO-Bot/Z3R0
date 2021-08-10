@@ -1,5 +1,6 @@
 from discord.ext import commands
 
+from core.errors import MissingAdminPrivilege, MissingModPrivilege
 from utils.other import utcnow
 
 
@@ -57,17 +58,31 @@ def is_mod():
         roleId = await ctx.bot.getGuildConfig(ctx.guild.id, "modRole", "guildRoles")
         role = ctx.guild.get_role(roleId)
 
-        return role in ctx.author.roles or await has_guild_permissions(
-            manage_guild=True
-        ).predicate(ctx)
+        try:
+            check = await commands.has_guild_permissions(manage_guild=True).predicate(
+                ctx
+            )
+        except commands.MissingPermissions:
+            raise MissingModPrivilege from None
+
+        return role in ctx.author.roles or check
 
     return commands.check(predicate)
 
 
 def mod_or_permissions(**perms):
     async def predicate(ctx):
-        orig = await is_mod().predicate(ctx)
-        return orig or await has_guild_permissions(**perms).predicate(ctx)
+        try:
+            orig = await is_mod().predicate(ctx)
+        except MissingModPrivilege:
+            orig = False
+
+        try:
+            permCheck = await commands.has_guild_permissions(**perms).predicate(ctx)
+        except commands.MissingPermissions as err:
+            raise MissingModPrivilege(err.missing_permissions) from None
+
+        return orig or permCheck
 
     return commands.check(predicate)
 
@@ -82,15 +97,29 @@ async def isModOrPerms(ctx, perms, check=all):
 
 def is_admin():
     async def predicate(ctx):
-        return await has_guild_permissions(administrator=True).predicate(ctx)
+        try:
+            return await commands.has_guild_permissions(administrator=True).predicate(
+                ctx
+            )
+        except commands.MissingPermissions:
+            raise MissingAdminPrivilege from None
 
     return commands.check(predicate)
 
 
 def admin_or_permissions(**perms):
     async def predicate(ctx):
-        orig = await is_admin().predicate(ctx)
-        return orig or await has_guild_permissions(**perms, check=any).predicate(ctx)
+        try:
+            orig = await is_admin().predicate(ctx)
+        except MissingAdminPrivilege:
+            orig = False
+
+        try:
+            permCheck = await commands.has_guild_permissions(**perms).predicate(ctx)
+        except commands.MissingPermissions as err:
+            raise MissingModPrivilege(err.missing_permissions) from None
+
+        return orig or permCheck
 
     return commands.check(predicate)
 

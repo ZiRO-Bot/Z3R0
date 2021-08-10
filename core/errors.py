@@ -1,11 +1,10 @@
 import discord
+from discord.ext.commands.errors import CommandError
+
+from utils.format import formatPerms
 
 
-class BotException(Exception):
-    pass
-
-
-class CCException(BotException):
+class CCException(CommandError):
     pass
 
 
@@ -34,7 +33,7 @@ class CCommandDisabled(CCException):
         super().__init__("This command is disabled")
 
 
-class MissingMuteRole(BotException):
+class MissingMuteRole(CommandError):
     def __init__(self, prefix):
         super().__init__(
             "This guild doesn't have mute role set yet!\n"
@@ -44,14 +43,40 @@ class MissingMuteRole(BotException):
         )
 
 
-class ArgumentError(BotException):
+class ArgumentError(CommandError):
     def __init__(self, message):
         super().__init__(discord.utils.escape_mentions(message))
 
 
-class HierarchyError(BotException):
+class HierarchyError(CommandError):
     def __init__(self, message: str = None):
         super().__init__(
             message
             or "My top role is lower than the target's top role in the hierarchy!"
         )
+
+
+class MissingModPrivilege(CommandError):
+    def __init__(self, missing_permissions=None, *args):
+        self.missing_permissions = missing_permissions
+
+        message = "You are missing mod privilege"
+        if self.missing_permissions:
+            message += " or {} permission(s) to run this commad.".format(
+                formatPerms(self.missing_permissions)
+            )
+
+        super().__init__(message, *args)
+
+
+class MissingAdminPrivilege(CommandError):
+    def __init__(self, missing_permissions=None, *args):
+        self.missing_permissions = missing_permissions
+
+        message = "You are missing admin privilege"
+        if self.missing_permissions:
+            message += " or {} permission(s) to run this commad.".format(
+                formatPerms(self.missing_permissions)
+            )
+
+        super().__init__(message, *args)

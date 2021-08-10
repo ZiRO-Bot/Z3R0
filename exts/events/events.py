@@ -230,9 +230,9 @@ class EventHandler(commands.Cog, CogMixin):
             errors.MissingMuteRole,
             errors.CCommandNoPerm,
             errors.CCommandDisabled,
+            errors.MissingModPrivilege,
+            errors.MissingAdminPrivilege,
         )
-
-        print(type(error))
 
         if isinstance(error, commands.CommandNotFound) or isinstance(
             error, commands.DisabledCommand
