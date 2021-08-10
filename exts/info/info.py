@@ -545,8 +545,8 @@ class Info(commands.Cog, CogMixin):
 
         e = (
             ZEmbed()
-            .set_author(name=guild, icon_url=guild.icon_url)
-            .set_thumbnail(url=guild.icon_url)
+            .set_author(name=guild, icon_url=guild.icon.url)
+            .set_thumbnail(url=guild.icon.url)
         )
 
         e.add_field(
