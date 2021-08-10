@@ -18,12 +18,7 @@ from discord.ext import commands, tasks
 import config
 from core.colour import ZColour
 from core.context import Context
-from core.errors import (
-    CCommandDisabled,
-    CCommandNotFound,
-    CCommandNotInGuild,
-    NotInGuild,
-)
+from core.errors import CCommandDisabled, CCommandNotFound, CCommandNotInGuild
 from core.objects import Connection
 from exts.meta._utils import getDisabledCommands
 from exts.meta.meta import getCustomCommands
@@ -553,10 +548,8 @@ class ziBot(commands.Bot):
         if ctx.command:
             try:
                 canRun = await ctx.command.can_run(ctx)
-            except commands.CheckFailure:
+            except Exception:
                 canRun = False
-            except NotInGuild as err:
-                await ctx.error(str(err))
 
         # Apparently commands are callable, so ctx.invoke longer needed
         executeCC = self.get_command("command run")
@@ -579,6 +572,8 @@ class ziBot(commands.Bot):
                 await executeCC(*args)
                 self.customCommandUsage += 1
                 return ""
+            await self.invoke(ctx)
+            return ctx.command
 
     async def formattedPrefixes(self, guildId: int) -> str:
         _prefixes = await self.getGuildPrefix(guildId)

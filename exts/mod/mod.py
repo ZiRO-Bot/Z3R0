@@ -651,14 +651,10 @@ class Moderation(commands.Cog, CogMixin):
 
         msg = await ctx.send(embed=e)
 
-        def isLoading(m):
-            return m != msg
-
         try:
             deleted_msg = await ctx.message.channel.purge(
-                limit=num + 1,
-                check=isLoading,
-                before=None,
+                limit=num,
+                before=ctx.message,
                 after=None,
                 around=None,
                 oldest_first=False,
@@ -674,8 +670,6 @@ class Moderation(commands.Cog, CogMixin):
 
         if msg_num == 0:
             resp = "Deleted `0 message` 😔 "
-            # resp = "Deleted `0 message` 🙄  \n (I can't delete messages "\
-            # "older than 2 weeks due to discord limitations)"
         else:
             resp = "Deleted `{} message{}` ✨ ".format(
                 msg_num, "" if msg_num < 2 else "s"

@@ -235,7 +235,7 @@ class Info(commands.Cog, CogMixin):
             },
         ),
     )
-    @checks.guildOnly()
+    @commands.guild_only()
     @checks.mod_or_permissions(manage_emojis=True)
     async def emojiSteal(self, ctx, emoji: Union[discord.Emoji, discord.PartialEmoji]):
         emojiByte = await emoji.read()
@@ -271,7 +271,7 @@ class Info(commands.Cog, CogMixin):
         ),
         usage="(emoji name) (emoji/image url/attachment)",
     )
-    @checks.guildOnly()
+    @commands.guild_only()
     @checks.mod_or_permissions(manage_emojis=True)
     async def emojiAdd(
         self,
@@ -521,7 +521,7 @@ class Info(commands.Cog, CogMixin):
         brief="Get guild's information",
     )
     @commands.cooldown(1, 5, commands.BucketType.user)
-    @checks.guildOnly()
+    @commands.guild_only()
     async def guildinfo(self, ctx):
         guild: discord.Guild = ctx.guild
         createdAt = guild.created_at
@@ -610,7 +610,7 @@ class Info(commands.Cog, CogMixin):
         brief="Show what song a member listening to in Spotify",
     )
     @commands.cooldown(1, 5, commands.BucketType.user)
-    @checks.guildOnly()
+    @commands.guild_only()
     async def spotifyinfo(self, ctx, user: discord.Member = None):
         user = user or ctx.author
 
@@ -670,7 +670,7 @@ class Info(commands.Cog, CogMixin):
         usage="[member / role]",
     )
     @commands.cooldown(1, 5, commands.BucketType.user)
-    @checks.guildOnly()
+    @commands.guild_only()
     async def permissions(
         self, ctx, memberOrRole: Union[discord.Member, discord.Role, str] = None
     ):

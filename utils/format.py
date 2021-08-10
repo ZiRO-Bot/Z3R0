@@ -165,3 +165,7 @@ def separateStringFlags(string: str) -> Tuple[str, str]:
         else:
             flags.append(i)
     return (" ".join(command), " ".join(flags))
+
+
+def formatPerms(perms: list) -> str:
+    return ", ".join([str(perm).title().replace("_", " ") for perm in perms])

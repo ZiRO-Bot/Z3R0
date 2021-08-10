@@ -19,7 +19,7 @@ from core import errors
 from core.embed import ZEmbed
 from core.mixin import CogMixin
 from utils import tseBlocks
-from utils.format import formatMissingArgError
+from utils.format import formatMissingArgError, formatPerms
 from utils.other import doCaselog, reactsToMessage, utcnow
 
 from ._views import Report
@@ -280,9 +280,19 @@ class EventHandler(commands.Cog, CogMixin):
             await asyncio.sleep(round(retryAfter))
             return await bot_msg.delete()
 
+        if isinstance(error, commands.NoPrivateMessage):
+            return await ctx.error(title="This command is not available in DMs")
+
+        if isinstance(error, commands.BotMissingPermissions):
+            return await ctx.error(
+                "I don't have these permissions to proceed: {}".format(
+                    formatPerms(error.missing_permissions)  # type: ignore
+                )
+            )
+
         if isinstance(error, commands.CheckFailure):
             # TODO: Change the message
-            return await ctx.send("You have no permissions!")
+            return await ctx.error(title="Check failed!")
 
         # Give details about the error
         _traceback = "".join(

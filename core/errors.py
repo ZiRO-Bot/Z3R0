@@ -5,11 +5,6 @@ class BotException(Exception):
     pass
 
 
-class NotInGuild(BotException):
-    def __init__(self):
-        super().__init__("This command is not available in DMs!")
-
-
 class CCException(BotException):
     pass
 

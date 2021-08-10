@@ -4,7 +4,7 @@ import discord
 from discord.ext import commands
 
 from core.embed import ZEmbed
-from core.errors import CCommandNotFound, NotInGuild
+from core.errors import CCommandNotFound
 from core.menus import ZMenuPagesView
 from utils import infoQuote
 from utils.format import formatDiscordDT
@@ -75,7 +75,7 @@ class CustomHelp(commands.HelpCommand):
         async def predicate(cmd):
             try:
                 return await cmd.can_run(self.context)
-            except (commands.CommandError, NotInGuild):
+            except (commands.CommandError, commands.NoPrivateMessage):
                 return False
 
         ret = []
