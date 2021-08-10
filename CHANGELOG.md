@@ -1,4 +1,8 @@
-# 3.2.0a (`discord.py v2.0`)
+# 3.2.2
+
+- [**Fixed**] Fixed a lot of issue with v3.2.1
+
+# 3.2.0 (`discord.py v2.0`)
 
 - [**Improved**] Updated `discord.py` (`v1.7.3` -> `v2.0.0`)
 - [**New**] Re-added AniList category
