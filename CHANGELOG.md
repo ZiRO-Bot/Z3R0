@@ -18,6 +18,9 @@
 - [**Changed**] Rename custom commands' `raw` -> `source` (but `raw` stays as
   alias for `source`)
 - [**Fixed**] Fixed command disabler not working properly
+- [**Fixed**] Fixed CheckFailure error handling
+- [**Improved**] The bot now will tell you if you or the bot is missing some
+  permissions
 
 # 3.1.0
 
