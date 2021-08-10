@@ -21,7 +21,7 @@ python-Levenshtein = "^0.12.2"
 pytz = "^2021.1"
 pyparsing = "^2.4.7"
 requests = "^2.26.0"
-tagscriptengine = {git = "https://github.com/ZiRO-Bot/TagScript", branch = "dpy2.0/v2"}
+tagscriptengine = {git = "https://github.com/ZiRO-Bot/TagScript", rev = "e39054db7e163758cbd6e9699229c7daaf06e8d6"}
 uvloop = "^0.15.3"
 typing-extensions = "^3.10.0"
 databases = "^0.4.3"
