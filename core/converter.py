@@ -1,6 +1,7 @@
 import datetime as dt
 import re
-from typing import Optional
+from contextlib import suppress
+from typing import Optional, Union
 
 import discord
 from dateutil.relativedelta import relativedelta
@@ -8,6 +9,7 @@ from discord.ext import commands
 from humanize import naturaldelta
 
 from core.context import Context
+from core.errors import HierarchyError
 from utils.other import utcnow
 
 
@@ -77,3 +79,55 @@ class MemberOrUser(commands.Converter):
                 return await commands.UserConverter().convert(ctx, argument)
             except commands.UserNotFound:
                 return None
+
+
+def checkHierarchy(ctx, user, action: str = None) -> Optional[str]:
+    """Check hierarchy stuff"""
+    errMsg: Optional[str] = None
+
+    if user.id == ctx.bot.user.id:
+        errMsg = "Nice try."
+    elif user == ctx.guild.owner:
+        errMsg = "You can't {} guild owner!".format(action or "do this action to")
+    else:
+        # compare author and bot's top role vs target's top role
+        with suppress(AttributeError):
+            if ctx.me.top_role <= user.top_role:
+                errMsg = (
+                    "{}'s top role is higher or equals "
+                    "to **mine** in the hierarchy!".format(user)
+                )
+
+        with suppress(AttributeError):
+            if (
+                ctx.author != ctx.guild.owner  # guild owner doesn't need this check
+                and ctx.author.top_role <= user.top_role
+            ):
+                errMsg = (
+                    "{}'s top role is higher or equals "
+                    "to **yours** in the hierarchy!".format(user)
+                )
+    return errMsg
+
+
+class Hierarchy(commands.Converter):
+    def __init__(
+        self,
+        converter: commands.Converter = MemberOrUser,
+        *,
+        action: Optional[str] = None
+    ):
+        self.converter: commands.Converter = converter()
+        self.action: str = action or "do that to"
+
+    async def convert(self, ctx, arguments):
+        converted: Union[discord.Member, discord.User] = await self.converter.convert(
+            ctx, arguments
+        )
+
+        errMsg: Optional[str] = checkHierarchy(ctx, converted, self.action)
+        # errMsg will always None unless check fails
+        if errMsg is None:
+            return converted
+
+        raise HierarchyError(errMsg)

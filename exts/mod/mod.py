@@ -11,7 +11,7 @@ import discord
 from discord.ext import commands
 
 from core import checks
-from core.converter import BannedMember, MemberOrUser, TimeAndArgument
+from core.converter import BannedMember, Hierarchy, MemberOrUser, TimeAndArgument
 from core.embed import ZEmbed
 from core.errors import MissingMuteRole
 from core.mixin import CogMixin
@@ -24,14 +24,6 @@ from utils.other import doCaselog, utcnow
 from ._flags import AnnouncementFlags
 
 
-class HierarchyError(Exception):
-    def __init__(self, message: str = None):
-        super().__init__(
-            message
-            or "My top role is lower than the target's top role in the hierarchy!"
-        )
-
-
 class Moderation(commands.Cog, CogMixin):
     """Moderation commands."""
 
@@ -41,41 +33,6 @@ class Moderation(commands.Cog, CogMixin):
         if not ctx.guild:
             return False
         return await checks.isMod(ctx)
-
-    async def checkHierarchy(self, ctx, user, action: str = None):
-        """Check hierarchy stuff"""
-        errMsg = None
-
-        if user.id == ctx.bot.user.id:
-            errMsg = "Nice try."
-        elif user == ctx.guild.owner:
-            errMsg = "You can't {} guild owner!".format(action or "do this action to")
-        else:
-            # compare author and bot's top role vs target's top role
-            with suppress(AttributeError):
-                if ctx.me.top_role <= user.top_role:
-                    errMsg = (
-                        "{}'s top role is higher than mine in the hierarchy!".format(
-                            user
-                        )
-                    )
-
-            with suppress(AttributeError):
-                if (
-                    ctx.author != ctx.guild.owner  # guild owner doesn't need this check
-                    and ctx.author.top_role <= user.top_role
-                ):
-                    errMsg = (
-                        "{}'s top role is higher than yours in the hierarchy!".format(
-                            user
-                        )
-                    )
-
-        # errMsg will always None unless check fails
-        if errMsg is not None:
-            raise HierarchyError(errMsg)
-
-        return True
 
     async def doModeration(
         self, ctx, user, _time: Optional[TimeAndArgument], action: str, **kwargs
@@ -96,10 +53,10 @@ class Moderation(commands.Cog, CogMixin):
                 "Sorry, this command is currently not available. Please try again later"
             )
 
-        try:
-            await self.checkHierarchy(ctx, user, action)
-        except HierarchyError as exc:
-            return await ctx.error(str(exc))
+        # try:
+        # await self.checkHierarchy(ctx, user, action)
+        # except HierarchyError as exc:
+        #     return await ctx.error(str(exc))
 
         time = None
         delta = None
@@ -199,11 +156,12 @@ class Moderation(commands.Cog, CogMixin):
         ),
         invoke_without_command=True,
     )
+    @commands.bot_has_guild_permissions(ban_members=True)
     @checks.mod_or_permissions(ban_members=True)
     async def ban(
         self,
         ctx,
-        user: Union[discord.Member, discord.User],
+        user: Hierarchy(action="ban"),  # type: ignore
         *,
         time: TimeAndArgument = None,
     ):
@@ -226,7 +184,7 @@ class Moderation(commands.Cog, CogMixin):
     async def save(
         self,
         ctx,
-        user: Union[discord.Member, discord.User],
+        user: Hierarchy(action="ban"),  # type: ignore
         *,
         time: TimeAndArgument = None,
     ):
@@ -302,11 +260,12 @@ class Moderation(commands.Cog, CogMixin):
             },
         ),
     )
+    @commands.bot_has_guild_permissions(manage_messages=True)
     @checks.mod_or_permissions(manage_messages=True)
     async def mute(
         self,
         ctx,
-        user: discord.Member,
+        user: Hierarchy(commands.MemberConverter, action="mute"),  # type: ignore
         *,
         time: TimeAndArgument = None,
     ):
@@ -362,6 +321,7 @@ class Moderation(commands.Cog, CogMixin):
             },
         ),
     )
+    @commands.bot_has_guild_permissions(manage_messages=True)
     @checks.mod_or_permissions(manage_messages=True)
     async def unmute(self, ctx, member: MemberOrUser, *, reason: str = "No reason"):
         guildId = ctx.guild.id
@@ -616,11 +576,12 @@ class Moderation(commands.Cog, CogMixin):
             },
         ),
     )
+    @commands.bot_has_guild_permissions(kick_members=True)
     @checks.mod_or_permissions(kick_members=True)
     async def kick(
         self,
         ctx,
-        user: discord.Member,
+        user: Hierarchy(commands.MemberConverter, action="kick"),  # type: ignore
         *,
         reason: str = None,
     ):
@@ -683,6 +644,7 @@ class Moderation(commands.Cog, CogMixin):
             },
         ),
     )
+    @commands.bot_has_guild_permissions(manage_messages=True)
     @checks.mod_or_permissions(manage_messages=True)
     async def clearchat(self, ctx, num):
         try:

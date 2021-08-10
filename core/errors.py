@@ -52,3 +52,11 @@ class MissingMuteRole(BotException):
 class ArgumentError(BotException):
     def __init__(self, message):
         super().__init__(discord.utils.escape_mentions(message))
+
+
+class HierarchyError(BotException):
+    def __init__(self, message: str = None):
+        super().__init__(
+            message
+            or "My top role is lower than the target's top role in the hierarchy!"
+        )
