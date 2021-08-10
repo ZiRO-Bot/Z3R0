@@ -230,8 +230,6 @@ class EventHandler(commands.Cog, CogMixin):
             errors.MissingMuteRole,
             errors.CCommandNoPerm,
             errors.CCommandDisabled,
-            errors.MissingModPrivilege,
-            errors.MissingAdminPrivilege,
         )
 
         if isinstance(error, commands.CommandNotFound) or isinstance(
@@ -271,7 +269,7 @@ class EventHandler(commands.Cog, CogMixin):
             bot_msg = await ctx.error(
                 (
                     "You can use it again in {:.2f} seconds.\n".format(retryAfter)
-                    + "Default cooldown: {0.rate} times per {0.per} seconds, per {1}".format(
+                    + "Default cooldown: {0.rate} times per {0.per} seconds, per {1}.".format(
                         error.cooldown, error.type[0]  # type: ignore
                     )
                 ),
@@ -285,10 +283,29 @@ class EventHandler(commands.Cog, CogMixin):
 
         if isinstance(error, commands.BotMissingPermissions):
             return await ctx.error(
-                "I don't have these permissions to proceed: {}".format(
+                "I don't have {} permission(s) to do this.".format(
                     formatPerms(error.missing_permissions)  # type: ignore
-                )
+                ),
+                title="Missing Permission!",
             )
+
+        if isinstance(error, errors.MissingModPrivilege):
+            missingPerms = error.missing_permissions
+            msg = "You don't have mod role{}to do this.".format(
+                f" or {formatPerms(missingPerms)} permission(s) "
+                if missingPerms
+                else " "
+            )
+            return await ctx.error(msg, title="Missing Permission!")
+
+        if isinstance(error, errors.MissingAdminPrivilege):
+            missingPerms = error.missing_permissions
+            msg = "You don't have admin{}to do this.".format(
+                f" or {formatPerms(missingPerms)} permission(s) "
+                if missingPerms
+                else " "
+            )
+            return await ctx.error(msg, title="Missing Permission!")
 
         if isinstance(error, commands.CheckFailure):
             # TODO: Change the message
