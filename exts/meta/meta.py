@@ -28,7 +28,7 @@ from core.menus import ZMenuPagesView
 from core.mixin import CogMixin
 from utils import dbQuery, sql, tseBlocks
 from utils.cache import CacheListProperty, CacheUniqueViolation
-from utils.format import CMDName, cleanifyPrefix
+from utils.format import CMDName, cleanifyPrefix, formatCmdName
 from utils.other import reactsToMessage, utcnow
 
 from ._custom_command import getCustomCommand, getCustomCommands
@@ -132,26 +132,6 @@ class Meta(commands.Cog, CogMixin):
             await self.db.execute(dbQuery.createCommandsTable)
             # commands_lookup database table
             await self.db.execute(dbQuery.createCommandsLookupTable)
-
-    def formatCmdName(self, command):
-        commands = []
-
-        parent = command.parent
-        while parent is not None:
-            commands.append(parent.name)
-            parent = parent.parent
-        return " ".join(reversed([command.name] + commands))
-
-    async def bot_check(self, ctx):
-        """Global check"""
-        if not ctx.guild:
-            return True
-        disableCmds = await getDisabledCommands(self.bot, ctx.guild.id)
-        cmdName = self.formatCmdName(ctx.command)
-        if cmdName in disableCmds:
-            if not ctx.author.guild_permissions.manage_guild:
-                raise commands.DisabledCommand
-        return True
 
     def processTag(self, ctx, cmd: CustomCommand):
         """Process tags from CC's content with TSE."""
@@ -817,7 +797,7 @@ class Meta(commands.Cog, CogMixin):
                 return await ctx.error(title=notFoundMsg.format(mode, name))
 
             # format command name
-            cmdName = self.formatCmdName(command)
+            cmdName = formatCmdName(command)
 
             if str(command.root_parent or cmdName) in immuneRoot:
                 # check if command root parent is immune
@@ -961,7 +941,7 @@ class Meta(commands.Cog, CogMixin):
                 return await ctx.error(title=notFoundMsg.format(mode, name))
 
             # format command name
-            cmdName = self.formatCmdName(command)
+            cmdName = formatCmdName(command)
 
             await getDisabledCommands(self.bot, ctx.guild.id)
 

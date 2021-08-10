@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import datetime as dt
 import re
 from typing import Tuple, Union
@@ -31,6 +33,9 @@ def formatCmdParams(command):
 
 
 def formatCmd(prefix, command, params=True):
+    if not params:
+        return f"{prefix}{formatCmdName(command)}"
+
     try:
         parent = command.parent
     except AttributeError:
@@ -48,6 +53,21 @@ def formatCmd(prefix, command, params=True):
     return discord.utils.escape_markdown(
         f"{prefix}{names}" + (f" {formatCmdParams(command)}" if params else "")
     )
+
+
+def formatCmdName(command):
+    """Basically minimal version of formatCmd"""
+    try:
+        parent = command.parent
+    except AttributeError:
+        parent = None
+
+    commands = []
+
+    while parent is not None:
+        commands.append(parent.name)
+        parent = parent.parent
+    return " ".join(reversed([command.name] + commands))
 
 
 def formatMissingArgError(ctx, error):

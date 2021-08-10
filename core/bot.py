@@ -25,6 +25,7 @@ from core.errors import (
     NotInGuild,
 )
 from core.objects import Connection
+from exts.meta._utils import getDisabledCommands
 from exts.meta.meta import getCustomCommands
 from exts.timer.timer import Timer, TimerData
 from utils import dbQuery
@@ -35,7 +36,7 @@ from utils.cache import (
     CacheListProperty,
     CacheUniqueViolation,
 )
-from utils.format import cleanifyPrefix, formatCmd
+from utils.format import cleanifyPrefix, formatCmdName
 from utils.other import Blacklist, utcnow
 
 
@@ -169,6 +170,18 @@ class ziBot(commands.Bot):
         )
         self.loop.create_task(self.asyncInit())
         self.loop.create_task(self.startUp())
+
+        @self.check
+        async def botCheck(ctx):
+            """Global check"""
+            if not ctx.guild:
+                return True
+            disableCmds = await getDisabledCommands(self, ctx.guild.id)
+            cmdName = formatCmdName(ctx.command)
+            if cmdName in disableCmds:
+                if not ctx.author.guild_permissions.manage_guild:
+                    raise commands.DisabledCommand
+            return True
 
     async def asyncInit(self) -> None:
         """`__init__` but async"""
@@ -593,7 +606,7 @@ class ziBot(commands.Bot):
     async def process(self, message):
         processed = await self.process_commands(message)
         if processed is not None and not isinstance(processed, str):
-            self.commandUsage[formatCmd("", processed, params=False)] += 1
+            self.commandUsage[formatCmdName(processed)] += 1
 
     async def on_message(self, message) -> None:
         # dont accept commands from bot
