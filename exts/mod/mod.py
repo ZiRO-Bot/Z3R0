@@ -53,11 +53,6 @@ class Moderation(commands.Cog, CogMixin):
                 "Sorry, this command is currently not available. Please try again later"
             )
 
-        # try:
-        # await self.checkHierarchy(ctx, user, action)
-        # except HierarchyError as exc:
-        #     return await ctx.error(str(exc))
-
         time = None
         delta = None
 

@@ -4,19 +4,6 @@ from core.errors import NotInGuild
 from utils.other import utcnow
 
 
-async def isMod(ctx):
-    roleId = await ctx.bot.getGuildConfig(ctx.guild.id, "modRole", "guildRoles")
-    role = ctx.guild.get_role(roleId)
-
-    return role in ctx.author.roles or await check_guild_permissions(
-        ctx, {"manage_guild": True}
-    )
-
-
-async def isModOrPerms(ctx, perms, check=all):
-    return await isMod(ctx) or await check_guild_permissions(ctx, perms, check=check)
-
-
 async def check_permissions(ctx, perms, *, check=all):
     is_owner = await ctx.bot.is_owner(ctx.author)
     if is_owner:
@@ -29,10 +16,10 @@ async def check_permissions(ctx, perms, *, check=all):
 
 
 def has_permissions(*, check=all, **perms):
-    async def pred(ctx):
+    async def predicate(ctx):
         return await check_permissions(ctx, perms, check=check)
 
-    return commands.check(pred)
+    return commands.check(predicate)
 
 
 async def check_guild_permissions(ctx, perms, *, check=all):
@@ -50,10 +37,10 @@ async def check_guild_permissions(ctx, perms, *, check=all):
 
 
 def has_guild_permissions(*, check=all, **perms):
-    async def pred(ctx):
+    async def predicate(ctx):
         return await check_guild_permissions(ctx, perms, check=check)
 
-    return commands.check(pred)
+    return commands.check(predicate)
 
 
 # Is mod, is admin thingy
@@ -76,31 +63,44 @@ def is_botmaster():
 
 
 def is_mod():
-    async def pred(ctx):
-        return await isMod(ctx)
+    async def predicate(ctx):
+        roleId = await ctx.bot.getGuildConfig(ctx.guild.id, "modRole", "guildRoles")
+        role = ctx.guild.get_role(roleId)
 
-    return commands.check(pred)
+        return role in ctx.author.roles or await has_guild_permissions(
+            manage_guild=True
+        ).predicate(ctx)
 
-
-def is_admin():
-    async def pred(ctx):
-        return await check_guild_permissions(ctx, {"administrator": True})
-
-    return commands.check(pred)
+    return commands.check(predicate)
 
 
 def mod_or_permissions(**perms):
     async def predicate(ctx):
-        return await isModOrPerms(ctx, perms, check=any)
+        orig = await is_mod().predicate(ctx)
+        return orig or await has_guild_permissions(**perms).predicate(ctx)
+
+    return commands.check(predicate)
+
+
+async def isMod(ctx):
+    return await is_mod().predicate(ctx)
+
+
+async def isModOrPerms(ctx, perms, check=all):
+    return await mod_or_permissions(**perms).predicate(ctx)
+
+
+def is_admin():
+    async def predicate(ctx):
+        return await has_guild_permissions(administrator=True).predicate(ctx)
 
     return commands.check(predicate)
 
 
 def admin_or_permissions(**perms):
-    perms["administrator"] = True
-
     async def predicate(ctx):
-        return await check_guild_permissions(ctx, perms, check=any)
+        orig = await is_admin().predicate(ctx)
+        return orig or await has_guild_permissions(**perms, check=any).predicate(ctx)
 
     return commands.check(predicate)
 

@@ -232,8 +232,6 @@ class EventHandler(commands.Cog, CogMixin):
             errors.CCommandDisabled,
         )
 
-        defaultTitleError = (errors.HierarchyError,)
-
         print(type(error))
 
         if isinstance(error, commands.CommandNotFound) or isinstance(
@@ -258,8 +256,8 @@ class EventHandler(commands.Cog, CogMixin):
         if isinstance(error, defaultError):
             return await ctx.error(str(error))
 
-        if isinstance(error, defaultTitleError):
-            return await ctx.error(title=str(error))
+        if isinstance(error, errors.HierarchyError):
+            return await ctx.error(str(error), title="You're not allowed to do that!")
 
         if isinstance(error, pytz.UnknownTimeZoneError):
             ctx.command.reset_cooldown(ctx)
