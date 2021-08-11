@@ -17,8 +17,6 @@
 
 ## About
 
-**⚠️ This is development branch, not intended to be used publicly. To host the bot use [production](https://github.com/ZiRO-Bot/Z3R0/tree/overhaul) branch instead**
-
 **`Z3R0`** (formerly **`ziBot`**) is a **free** and **open-source** multi-purpose discord bot, created for fun in the middle of quarantine. Used to be fork of [Steve-Bot](https://github.com/MCBE-Speedrunning/Steve-Bot) by MCBE Speedrunning Moderators.
 
 ### Features
