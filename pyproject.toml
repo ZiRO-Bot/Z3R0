@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "Z3R0"
-version = "3.2.4"
+version = "3.2.5"
 description = "A multi-purpose open source discord bot"
 authors = ["null2264"]
 license = "MPL-2.0"

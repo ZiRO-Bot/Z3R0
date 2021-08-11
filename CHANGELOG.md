@@ -1,3 +1,10 @@
+# 3.2.5
+
+- [**New**] Added ZView (`core/views.py`)
+- [**New**] Added `Context.loading`
+- [**Improved**] `findanime` merged with `anime` and `manga` as `random`
+  subcommand
+
 # 3.2.4
 
 - [**Fixed**] Fixed anti-mute evasion
