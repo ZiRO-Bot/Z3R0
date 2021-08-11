@@ -79,7 +79,8 @@ class ZMenuView(ZView):
         timeout: float = 180.0,
         ownerOnly: bool = True,
     ) -> None:
-        super().__init__(ctx, ownerOnly=ownerOnly, timeout=timeout)
+        super().__init__(ctx.author, timeout=timeout)
+        self.context = ctx
         self._message: Optional[discord.Message] = None
         self.currentPage: int = 0
 
