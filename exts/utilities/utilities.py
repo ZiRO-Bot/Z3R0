@@ -84,31 +84,24 @@ class Utilities(commands.Cog, CogMixin):
     async def execute(self, ctx, *, argument):
         lang, code = parseCodeBlock(argument)
 
-        f = discord.File("./assets/img/piston.png", filename="piston.png")
+        async with ctx.loading():
+            f = discord.File("./assets/img/piston.png", filename="piston.png")
+            executed = await self.piston.run(lang, code)
 
-        msg = await ctx.try_reply(
-            embed=ZEmbed.loading().set_author(
-                name="Piston API", icon_url="attachment://piston.png"
-            ),
-            file=f,
-        )
-
-        executed = await self.piston.run(lang, code)
-
-        e = ZEmbed.default(ctx)
-        e.set_author(
-            name="Piston API - {}-{}".format(executed.language, executed.version),
-            icon_url="attachment://piston.png",
-        )
-
-        if executed.message:
-            e.description = "```diff\n- {}```".format(executed.message)
-        else:
-            e.description = "```ini\n{}\n[status] Return code {}```".format(
-                executed.stderr or executed.stdout, executed.code
+            e = ZEmbed.default(ctx)
+            e.set_author(
+                name="Piston API - {}-{}".format(executed.language, executed.version),
+                icon_url="attachment://piston.png",
             )
 
-        await msg.edit(embed=e)
+            if executed.message:
+                e.description = "```diff\n- {}```".format(executed.message)
+            else:
+                e.description = "```ini\n{}\n[status] Return code {}```".format(
+                    executed.stderr or executed.stdout, executed.code
+                )
+
+            await ctx.try_reply(embed=e, file=f)
 
     @commands.command(
         aliases=("tr", "trans"),
