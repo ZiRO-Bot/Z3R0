@@ -70,6 +70,52 @@ class AniList(commands.Cog, CogMixin):
         menu.add_item(ReadMore(emoji=Emojis.info))
         await menu.start()
 
+    async def anilistRandom(self, ctx, type: str = "ANIME"):
+        query = await self.anilist.queryPost(
+            """
+            query ($type: MediaType) {
+                Page(perPage:1) {
+                    pageInfo {
+                        lastPage
+                    }
+                    media(type: $type) {
+                        id
+                    }
+                }
+            }
+            """,
+            type=type,
+        )
+        lastPage = query["data"]["Page"]["pageInfo"]["lastPage"]
+
+        query = await self.anilist.queryPost(
+            """
+            query ($random: Int, $type: MediaType) {
+                Page(page: $random, perPage: 1) {
+                    pageInfo {
+                        total
+                    }
+                    media(type: $type, isAdult: false, status_not: NOT_YET_RELEASED) {
+                        id,
+                        title { userPreferred },
+                        siteUrl
+                    }
+                }
+            }
+            """,
+            random=randrange(1, lastPage),
+            type=type,
+        )
+        mediaData = query["data"]["Page"]["media"][0]
+
+        id = mediaData["id"]
+
+        e = ZEmbed.default(
+            ctx, title=mediaData["title"]["userPreferred"], url=mediaData["siteUrl"]
+        ).set_image(url=f"https://img.anili.st/media/{id}")
+
+        await ctx.try_reply(embed=e)
+
     @commands.group(
         aliases=("ani",),
         brief="Get anime's information",
@@ -90,10 +136,16 @@ class AniList(commands.Cog, CogMixin):
             }
         ),
     )
+    @commands.cooldown(1, 5, commands.BucketType.user)
     async def animeSearch(self, ctx, *, arguments: AnimeSearchFlags):
         name, parsed = arguments
 
         await self.anilistSearch(ctx, name, parsed, "ANIME")
+
+    @anime.command(name="random", brief="Get random anime")
+    @commands.cooldown(1, 5, commands.BucketType.user)
+    async def animeRandom(self, ctx):
+        await self.anilistRandom(ctx)
 
     @commands.group(brief="Get manga's information")
     async def manga(self, ctx):
@@ -110,49 +162,13 @@ class AniList(commands.Cog, CogMixin):
             }
         ),
     )
+    @commands.cooldown(1, 5, commands.BucketType.user)
     async def mangaSearch(self, ctx, *, arguments: AnimeSearchFlags):
         name, parsed = arguments
 
         await self.anilistSearch(ctx, name, parsed, "MANGA")
 
-    @commands.command(brief="Get random anime")
+    @manga.command(name="random", brief="Get random manga")
     @commands.cooldown(1, 5, commands.BucketType.user)
-    async def findanime(self, ctx):
-        query = await self.anilist.queryPost(
-            """
-            {
-                Page(perPage:1) {
-                    pageInfo {
-                        lastPage
-                    }
-                    media(type: ANIME, format_in:[MOVIE, TV, TV_SHORT]) {
-                        id
-                    }
-                }
-            }
-            """
-        )
-        lastPage = query["data"]["Page"]["pageInfo"]["lastPage"]
-        query = await self.anilist.queryPost(
-            """
-            query ($random: Int) {
-                Page(page: $random, perPage: 1) {
-                    pageInfo {
-                        total
-                    }
-                    media(type: ANIME, isAdult: false, status_not: NOT_YET_RELEASED) {
-                        id,
-                        title { userPreferred },
-                        siteUrl
-                    }
-                }
-            }
-            """,
-            random=randrange(1, lastPage),
-        )
-        mediaData = query["data"]["Page"]["media"][0]
-        id = mediaData["id"]
-        e = ZEmbed.default(
-            ctx, title=mediaData["title"]["userPreferred"], url=mediaData["siteUrl"]
-        ).set_image(url=f"https://img.anili.st/media/{id}")
-        await ctx.try_reply(embed=e)
+    async def mangaRandom(self, ctx):
+        await self.anilistRandom(ctx, type="MANGA")
