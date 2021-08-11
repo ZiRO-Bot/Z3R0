@@ -6,6 +6,7 @@ import discord
 from discord.ext import menus
 
 from core.enums import Emojis
+from core.views import ZView
 
 
 class ZMenu(menus.MenuPages):
@@ -68,7 +69,7 @@ class ZReplyMenu(ZMenu):
 Pages = List[Union[str, dict, discord.Embed]]
 
 
-class ZMenuView(discord.ui.View):
+class ZMenuView(ZView):
     """Base class for View-based menus"""
 
     def __init__(
@@ -78,24 +79,9 @@ class ZMenuView(discord.ui.View):
         timeout: float = 180.0,
         ownerOnly: bool = True,
     ) -> None:
-        super().__init__(timeout=timeout)
-        self.context = ctx
+        super().__init__(ctx, ownerOnly=ownerOnly, timeout=timeout)
         self._message: Optional[discord.Message] = None
         self.currentPage: int = 0
-        self._ownerOnly = ownerOnly
-
-    async def interaction_check(self, interaction: discord.Interaction) -> bool:
-        if not self._ownerOnly:
-            return True
-
-        # Prevent other user other than interaction owner using this interaction
-        owner = self.context.author
-        if interaction.user.id != owner.id:
-            await interaction.response.send_message(
-                f"This interaction belongs to {owner.mention}", ephemeral=True
-            )
-            return False
-        return True
 
     def shouldAddButtons(self):
         return True
