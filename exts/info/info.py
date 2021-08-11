@@ -517,7 +517,7 @@ class Info(commands.Cog, CogMixin):
         await ctx.try_reply(embed=e)
 
     @commands.command(
-        aliases=("gi", "serverinfo", "si"),
+        aliases=("guild", "gi", "server", "serverinfo", "si"),
         brief="Get guild's information",
     )
     @commands.cooldown(1, 5, commands.BucketType.user)

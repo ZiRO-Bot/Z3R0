@@ -1,3 +1,7 @@
+# 3.2.4
+
+- [**Fixed**] Fixed anti-mute evasion
+
 # 3.2.3
 
 - [**Improved**] Merged `anime search` and `manga search` into 1 function

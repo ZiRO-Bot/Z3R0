@@ -482,7 +482,10 @@ class Moderation(commands.Cog, CogMixin):
 
         with suppress(MissingMuteRole):
             # Attempt to remute mute evader
-            await self.doMute(None, member, "Mute evasion")
+            mutedRoleId = await self.bot.getGuildConfig(
+                member.guild.id, "mutedRole", "guildRoles"
+            )
+            await self.doMute(None, member, "Mute evasion", mutedRoleId=mutedRoleId)
 
     # https://github.com/Rapptz/RoboDanny/blob/0992171592f1b92ad74fe2eb5cf2efe1e9a51be8/bot.py#L226-L281
     async def resolveMemberIds(self, guild, member_ids):
