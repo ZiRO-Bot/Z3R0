@@ -263,7 +263,7 @@ python-versions = ">=3.5.3"
 
 [[package]]
 name = "discord.py"
-version = "2.0.0a3453+g58ca9e99"
+version = "2.0.0a3467+g08a4db39"
 description = "A Python wrapper for the Discord API"
 category = "main"
 optional = false
@@ -281,8 +281,8 @@ voice = ["PyNaCl (>=1.3.0,<1.5)"]
 [package.source]
 type = "git"
 url = "https://github.com/Rapptz/discord.py"
-reference = "58ca9e99325ac2678a51cd63afd7ae917f14bc8d"
-resolved_reference = "58ca9e99325ac2678a51cd63afd7ae917f14bc8d"
+reference = "08a4db396118aeda6205ff56c8c8fc565fc338fc"
+resolved_reference = "08a4db396118aeda6205ff56c8c8fc565fc338fc"
 
 [[package]]
 name = "distlib"
@@ -776,7 +776,7 @@ voice = ["PyNaCl"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "47098cf50818afd179b45b8a724f538dc41448cd79a54897f534677549f5287e"
+content-hash = "1a35f5b6a77cfb1fb7fbd0cd9ae3c31b383920829798b53d42b8970a473eef96"
 
 [metadata.files]
 aiohttp = [
