@@ -1,4 +1,5 @@
 import io
+from contextlib import asynccontextmanager
 from typing import Union
 
 import discord
@@ -79,6 +80,22 @@ class Context(commands.Context):
         if success_message is not None:
             e.description = str(success_message)
         return await self.try_reply(embed=e)
+
+    @asynccontextmanager
+    async def loading(self, title: str = None):
+        """
+        async with ctx.loading(title="This param is optional"):
+            await asyncio.sleep(5) # or any long process stuff
+            await ctx.send("Finished")
+        """
+        e = ZEmbed.loading(title=title or "Loading...")
+        msg = None
+        try:
+            msg = await self.try_reply(embed=e)
+            yield msg
+        finally:
+            if msg:
+                await msg.delete()
 
     async def try_invoke(
         self, command: Union[commands.Command, str], *args, **kwargs  # type: ignore

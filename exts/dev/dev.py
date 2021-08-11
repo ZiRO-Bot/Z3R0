@@ -5,6 +5,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 """
 from __future__ import annotations
 
+import asyncio
 import os
 
 from discord.ext import commands
@@ -145,3 +146,9 @@ class Developer(*STANDARD_FEATURES, *OPTIONAL_FEATURES):
     async def testmenu(self, ctx):
         menu = ZMenuPagesView(ctx, ["1", "2"], timeout=5)
         await menu.start()
+
+    @commands.command()
+    async def testloading(self, ctx):
+        async with ctx.loading():
+            await asyncio.sleep(5)
+            await ctx.send(":D")

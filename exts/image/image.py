@@ -36,23 +36,19 @@ class Image(commands.Cog, CogMixin):
         user: discord.User = _user or ctx.author
         userAv = user.avatar.with_format("png").url
 
-        e = ZEmbed.loading()
-        msg = await ctx.try_reply(embed=e)
-
-        async with self.bot.session.get(
-            f"{self.imageManipUrl}/{type}?url={userAv}"
-        ) as req:
-            if str(req.content_type).startswith("image/"):
-                filename = f"{type}.{format}"
-                imgBytes = await req.read()
-                img = discord.File(fp=BytesIO(imgBytes), filename=filename)
-                e = ZEmbed.default(ctx)
-                e.set_image(url=f"attachment://{filename}")
-                await msg.delete()
-                return await ctx.try_reply(embed=e, file=img)
-            else:
-                await msg.delete()
-                return await ctx.error("Unable to retrieve image")
+        async with ctx.loading(title="Processing image..."):
+            async with self.bot.session.get(
+                f"{self.imageManipUrl}/{type}?url={userAv}"
+            ) as req:
+                if str(req.content_type).startswith("image/"):
+                    filename = f"{type}.{format}"
+                    imgBytes = await req.read()
+                    img = discord.File(fp=BytesIO(imgBytes), filename=filename)
+                    e = ZEmbed.default(ctx)
+                    e.set_image(url=f"attachment://{filename}")
+                    return await ctx.try_reply(embed=e, file=img)
+                else:
+                    return await ctx.error("Unable to retrieve image")
 
     @commands.command()
     @commands.cooldown(1, 5, commands.BucketType.user)
