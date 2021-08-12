@@ -46,18 +46,24 @@ async def doModlog(
     channel = await bot.getGuildConfig(guild.id, "modlogCh", "guildChannels")
     channel = bot.get_channel(channel)
 
+    print("^ getting channel ----\n", channel)
+
     if moderator.id == bot.user.id:
+        print("mod action using bot")
         # This usually True when mods use moderation commands
         # Or when bots doing automod stuff
         if reason and channel:
+            print('getting "real identity"')
             # Get the real moderator
             match = REASON_REGEX.match(reason)
             if match:
                 modId = match.group(1)
                 moderator = bot.get_user(modId) or await bot.fetch_user(modId)
                 reason = match.group(2)
+                print('got "real identity"')
 
     else:
+        print("manual moderation action")
         # Since moderation is done manually, caselog will be done here
         await doCaselog(
             bot,
@@ -69,8 +75,11 @@ async def doModlog(
         )
 
     if not channel:
+        print("No channel found, abort")
         # No channel found, don't do modlog
         return
+
+    print("creating embed, info:\n", channel, moderator, reason)
 
     e = ZEmbed.minimal(
         title="Modlog - {}".format(type.title()),
@@ -82,6 +91,8 @@ async def doModlog(
     )
     e.set_footer(text=f"ID: {member.id}")
     await channel.send(embed=e)
+
+    print("sending modlog to", channel)
 
 
 class EventHandler(commands.Cog, CogMixin):
@@ -195,16 +206,20 @@ class EventHandler(commands.Cog, CogMixin):
             entries = await guild.audit_logs(
                 limit=5, action=discord.AuditLogAction.ban
             ).flatten()
+            print("^ entries ----\n", entries)
             entry: discord.AuditLogEntry = discord.utils.find(
                 lambda e: e.target == member, entries
             )
+            print("^ entry ----\n", entry)
         except discord.Forbidden:
             entry = None
 
         if entry is not None:
+            print("doing modlog ----")
             await doModlog(
                 self.bot, guild, entry.target, entry.user, "ban", entry.reason
             )
+            print("^ modlog done ----")
 
     @commands.Cog.listener("on_command_error")
     async def onCommandError(self, ctx, error) -> Optional[discord.Message]:
