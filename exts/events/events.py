@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import asyncio
 import re
+from contextlib import suppress
 from typing import TYPE_CHECKING, Any, Dict, Optional
 
 import discord
@@ -46,24 +47,18 @@ async def doModlog(
     channel = await bot.getGuildConfig(guild.id, "modlogCh", "guildChannels")
     channel = bot.get_channel(channel)
 
-    print("^ getting channel ----\n", channel)
-
     if moderator.id == bot.user.id:
-        print("mod action using bot")
         # This usually True when mods use moderation commands
         # Or when bots doing automod stuff
         if reason and channel:
-            print('getting "real identity"')
             # Get the real moderator
             match = REASON_REGEX.match(reason)
             if match:
                 modId = match.group(1)
                 moderator = bot.get_user(modId) or await bot.fetch_user(modId)
                 reason = match.group(2)
-                print('got "real identity"')
 
     else:
-        print("manual moderation action")
         # Since moderation is done manually, caselog will be done here
         await doCaselog(
             bot,
@@ -75,12 +70,10 @@ async def doModlog(
         )
 
     if not channel:
-        print("No channel found, abort")
         # No channel found, don't do modlog
         return
 
-    print("creating embed, info:\n", channel, moderator, reason)
-
+    # TODO: Include caselog number into modlog
     e = ZEmbed.minimal(
         title="Modlog - {}".format(type.title()),
         description=(
@@ -91,8 +84,6 @@ async def doModlog(
     )
     e.set_footer(text=f"ID: {member.id}")
     await channel.send(embed=e)
-
-    print("sending modlog to", channel)
 
 
 class EventHandler(commands.Cog, CogMixin):
@@ -170,27 +161,22 @@ class EventHandler(commands.Cog, CogMixin):
                 return
 
     @commands.Cog.listener("on_member_remove")
-    async def onMemberRemove(self, member: discord.Member) -> None:
+    async def onMemberRemove(self, user: discord.User) -> None:
         """Farewell message"""
-        # TODO: Add muted_member table to database to prevent mute evasion
-        try:
-            entries = await member.guild.audit_logs(limit=5).flatten()
-            entry: discord.AuditLogEntry = discord.utils.find(
-                lambda e: e.target == member, entries
-            )
-        except discord.Forbidden:
-            entry = None
+        with suppress(discord.Forbidden):
+            # TODO: Add muted_member table to database to prevent mute evasion
+            entry = (await user.guild.audit_logs(limit=1).flatten())[0]
 
-        if entry is not None:
-            # TODO: Filters bot's action
-            if entry.action == discord.AuditLogAction.kick:
-                self.bot.dispatch("member_kick", member, entry)
-                return
+            if entry.target == user:
+                # TODO: Filters bot's action
+                if entry.action == discord.AuditLogAction.kick:
+                    self.bot.dispatch("member_kick", user, entry)
+                    return
 
-            if entry.action == discord.AuditLogAction.ban:
-                return
+                if entry.action == discord.AuditLogAction.ban:
+                    return
 
-        return await self.handleGreeting(member, "farewell")
+        return await self.handleGreeting(user, "farewell")
 
     @commands.Cog.listener("on_member_kick")
     async def onMemberKick(
@@ -201,25 +187,17 @@ class EventHandler(commands.Cog, CogMixin):
         )
 
     @commands.Cog.listener("on_member_ban")
-    async def onMemberBan(self, guild: discord.Guild, member: discord.Member) -> None:
-        try:
-            entries = await guild.audit_logs(
-                limit=5, action=discord.AuditLogAction.ban
-            ).flatten()
-            print("^ entries ----\n", entries)
-            entry: discord.AuditLogEntry = discord.utils.find(
-                lambda e: e.target == member, entries
-            )
-            print("^ entry ----\n", entry)
-        except discord.Forbidden:
-            entry = None
-
-        if entry is not None:
-            print("doing modlog ----")
-            await doModlog(
-                self.bot, guild, entry.target, entry.user, "ban", entry.reason
-            )
-            print("^ modlog done ----")
+    async def onMemberBan(self, guild: discord.Guild, user: discord.User) -> None:
+        with suppress(discord.Forbidden):
+            entry = (
+                await guild.audit_logs(
+                    limit=1, action=discord.AuditLogAction.ban
+                ).flatten()
+            )[0]
+            if entry.target == user:
+                await doModlog(
+                    self.bot, guild, entry.target, entry.user, "ban", entry.reason
+                )
 
     @commands.Cog.listener("on_command_error")
     async def onCommandError(self, ctx, error) -> Optional[discord.Message]:
@@ -523,21 +501,22 @@ class EventHandler(commands.Cog, CogMixin):
     @commands.Cog.listener("on_member_muted")
     async def onMemberMuted(self, member: discord.Member, mutedRole: discord.Object):
         guild = member.guild
-        try:
-            entries = await guild.audit_logs(
-                limit=5, action=discord.AuditLogAction.member_role_update
-            ).flatten()
-            entry: discord.AuditLogEntry = discord.utils.find(
-                lambda e: (e.target == member and e.target._roles.has(mutedRole.id)),
-                entries,
-            )
-        except discord.Forbidden:
-            entry = None
+        with suppress(discord.Forbidden):
+            entry = (
+                await guild.audit_logs(
+                    limit=1, action=discord.AuditLogAction.member_role_update
+                ).flatten()
+            )[0]
 
-        if entry:
-            await doModlog(
-                self.bot, member.guild, entry.target, entry.user, "muted", entry.reason
-            )
+            if entry.target == member and entry.target._roles.has(mutedRole.id):
+                await doModlog(
+                    self.bot,
+                    member.guild,
+                    entry.target,
+                    entry.user,
+                    "muted",
+                    entry.reason,
+                )
 
     @commands.Cog.listener("on_member_unmuted")
     async def onMemberUnmuted(self, member: discord.Member, mutedRole: discord.Role):
