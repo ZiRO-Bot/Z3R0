@@ -164,6 +164,7 @@ class EventHandler(commands.Cog, CogMixin):
     async def onMemberRemove(self, user: discord.User) -> None:
         """Farewell message"""
         with suppress(discord.Forbidden):
+            await asyncio.sleep(5)
             # TODO: Add muted_member table to database to prevent mute evasion
             entry = (await user.guild.audit_logs(limit=1).flatten())[0]
 
@@ -189,6 +190,7 @@ class EventHandler(commands.Cog, CogMixin):
     @commands.Cog.listener("on_member_ban")
     async def onMemberBan(self, guild: discord.Guild, user: discord.User) -> None:
         with suppress(discord.Forbidden):
+            await asyncio.sleep(5)
             entry = (
                 await guild.audit_logs(
                     limit=1, action=discord.AuditLogAction.ban
@@ -502,6 +504,7 @@ class EventHandler(commands.Cog, CogMixin):
     async def onMemberMuted(self, member: discord.Member, mutedRole: discord.Object):
         guild = member.guild
         with suppress(discord.Forbidden):
+            await asyncio.sleep(5)
             entry = (
                 await guild.audit_logs(
                     limit=1, action=discord.AuditLogAction.member_role_update
