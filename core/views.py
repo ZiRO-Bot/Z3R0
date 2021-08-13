@@ -11,7 +11,7 @@ class ZView(View):
         super().__init__(**kwargs)
         self.owner = owner
 
-    async def on_check_failed(self, interaction: Interaction, *args, **kwargs) -> Any:
+    async def on_check_failed(self, interaction: Interaction) -> Any:
         """Just incase i need to replace failed check response"""
         if owner := self.owner:
             await interaction.response.send_message(
