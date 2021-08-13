@@ -1,3 +1,8 @@
+# 3.2.6
+
+- [**Fixed**] Fixed modlog. Added 5 second delay, letting Audit Logs to update
+  before sending modlog
+
 # 3.2.5
 
 - [**New**] Added ZView (`core/views.py`)
