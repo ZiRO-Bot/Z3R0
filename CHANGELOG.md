@@ -1,3 +1,9 @@
+# 3.2.7
+
+- [**Fixed**] Fixed help command not working in DMs
+- [**Changed**] Use HTMLParser to convert HTML to Markdown instead of using
+  RegEx
+
 # 3.2.6
 
 - [**Fixed**] Fixed modlog. Added 5 second delay, letting Audit Logs to update
