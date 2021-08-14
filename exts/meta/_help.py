@@ -193,9 +193,10 @@ class CustomHelp(commands.HelpCommand):
 
         # contains custom commands and built-in commands
         foundList = []
-        with suppress(CCommandNotFound):
-            cc = await getCustomCommand(ctx, command)
-            foundList.append(cc)
+        if ctx.guild:
+            with suppress(CCommandNotFound):
+                cc = await getCustomCommand(ctx, command)
+                foundList.append(cc)
 
         keys = command.split(" ")
         cmd = bot.all_commands.get(keys[0])

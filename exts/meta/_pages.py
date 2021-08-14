@@ -58,8 +58,10 @@ class HelpCogPage(menus.ListPageSource):
         ctx = menu.context
         cog = self.cog
 
-        if not self.disabled:
+        if ctx.guild and not self.disabled:
             self.disabled = await getDisabledCommands(ctx.bot, ctx.guild.id)
+        elif not ctx.guild:
+            self.disabled = []
 
         desc = infoQuote.info(
             "` ᶜ ` = Custom Command\n"
