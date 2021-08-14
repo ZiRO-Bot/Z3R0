@@ -4,42 +4,14 @@ from core.errors import MissingAdminPrivilege, MissingModPrivilege
 from utils.other import utcnow
 
 
-async def check_permissions(ctx, perms, *, check=all):
-    is_owner = await ctx.bot.is_owner(ctx.author)
-    if is_owner:
-        return True
-
-    resolved = ctx.channel.permissions_for(ctx.author)
-    return check(
-        getattr(resolved, name, None) == value for name, value in perms.items()
-    )
-
-
-def has_permissions(*, check=all, **perms):
-    async def predicate(ctx):
-        return await check_permissions(ctx, perms, check=check)
-
-    return commands.check(predicate)
-
-
-async def check_guild_permissions(ctx, perms, *, check=all):
-    is_owner = await ctx.bot.is_owner(ctx.author)
-    if is_owner:
-        return True
-
-    if ctx.guild is None:
-        return False
-
-    resolved = ctx.author.guild_permissions
-    return check(
-        getattr(resolved, name, None) == value for name, value in perms.items()
-    )
-
-
 def has_guild_permissions(**perms):
     async def predicate(ctx):
         orig = commands.has_guild_permissions(**perms).predicate
-        return ctx.author.id in ctx.bot.master or await orig(ctx)
+        try:
+            isMaster = ctx.author.id in ctx.bot.master
+        except AttributeError:
+            isMaster = False
+        return isMaster or await orig(ctx)
 
     return commands.check(predicate)
 
@@ -56,15 +28,19 @@ def is_botmaster():
 
 def is_mod():
     async def predicate(ctx):
-        roleId = await ctx.bot.getGuildConfig(ctx.guild.id, "modRole", "guildRoles")
-        role = ctx.guild.get_role(roleId)
+        try:
+            roleId = await ctx.bot.getGuildConfig(ctx.guild.id, "modRole", "guildRoles")
+            role = ctx.guild.get_role(roleId)
+            isMod = role in ctx.author.roles
+        except AttributeError:
+            isMod = False
 
         try:
             check = await has_guild_permissions(manage_guild=True).predicate(ctx)
         except commands.MissingPermissions:
             raise MissingModPrivilege from None
 
-        return role in ctx.author.roles or check
+        return isMod or check
 
     return commands.check(predicate)
 
