@@ -8,6 +8,7 @@ import operator
 import os
 import uuid
 from decimal import Decimal
+from html.parser import HTMLParser
 from typing import Tuple
 
 import discord
@@ -430,6 +431,45 @@ async def doCaselog(
                 },
             )
         return caseNum
+
+
+TAG_IN_MD = {
+    "a": "",
+    "b": "**",
+    "br": "\n",
+}
+
+TAG_ALIASES = {
+    "bold": "b",
+}
+
+
+class Markdownify(HTMLParser):
+    result = ""
+
+    def feed(self, feed: str) -> str:
+        self.result = ""
+        super().feed(feed)
+        return self.result
+
+    def parse_md(self, tag):
+        tag = TAG_ALIASES.get(tag, tag)
+        return TAG_IN_MD.get(tag, tag)
+
+    def handle_tag(self, tag):
+        self.result += self.parse_md(tag)
+
+    def handle_starttag(self, tag, attrs):
+        self.handle_tag(tag)
+
+    def handle_endtag(self, tag):
+        self.handle_tag(tag)
+
+    def handle_startendtag(self, tag, attrs):
+        self.handle_tag(tag)
+
+    def handle_data(self, data):
+        self.result += data
 
 
 if __name__ == "__main__":

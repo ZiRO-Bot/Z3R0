@@ -1,11 +1,11 @@
 import datetime as dt
-import re
 
 import humanize
 from discord.ext import menus
 
 from core.embed import ZEmbed
 from core.enums import Emojis
+from utils.other import Markdownify
 
 
 STREAM_SITES = (
@@ -21,7 +21,7 @@ STREAM_SITES = (
 )
 
 
-HTML_REGEX = re.compile(r"<(\S+)>(?P<content>.*)</\1>")
+HTML_PARSER = Markdownify()
 
 
 class AnimeSearchPageSource(menus.ListPageSource):
@@ -33,7 +33,9 @@ class AnimeSearchPageSource(menus.ListPageSource):
 
         isAdult = data["isAdult"]
 
-        desc = HTML_REGEX.sub(r"\g<content>", data["description"] or "No description")
+        desc = HTML_PARSER.feed(
+            (data["description"] or "No description").replace("\n", "")
+        )
 
         maxLen = 250
         if len(desc) > maxLen:
@@ -144,4 +146,6 @@ class AnimeSearchPageSource(menus.ListPageSource):
         return e
 
     def sendSynopsis(self, data):
-        return HTML_REGEX.sub(r"\g<content>", data["description"] or "No description.")
+        return HTML_PARSER.feed(
+            (data["description"] or "No description").replace("\n", "")
+        )
