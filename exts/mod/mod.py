@@ -32,7 +32,7 @@ class Moderation(commands.Cog, CogMixin):
     async def cog_check(self, ctx):
         if not ctx.guild:
             return False
-        return await checks.isMod(ctx)
+        return True
 
     async def doModeration(
         self, ctx, user, _time: Optional[TimeAndArgument], action: str, **kwargs
@@ -173,7 +173,11 @@ class Moderation(commands.Cog, CogMixin):
                 "ban save @User#0000 30m bye",
                 "ban save @User#0000 annoying",
                 "ban save @User#0000 1 minutes",
-            )
+            ),
+            perms={
+                "bot": "Ban Members",
+                "user": "Ban Members",
+            },
         ),
     )
     async def save(
@@ -187,8 +191,15 @@ class Moderation(commands.Cog, CogMixin):
 
     @commands.command(
         brief="Unban a member",
-        extras=dict(example=("unban @Someone Wrong person", "unban @Someone")),
+        extras=dict(
+            example=("unban @Someone Wrong person", "unban @Someone"),
+            perms={
+                "bot": "Ban Members",
+                "user": "Ban Members",
+            },
+        ),
     )
+    @checks.mod_or_permissions(ban_members=True)
     async def unban(self, ctx, member: BannedMember, *, reason: str = "No reason"):
         await ctx.guild.unban(member.user, reason=reason)
         e = ZEmbed.success(
@@ -255,7 +266,7 @@ class Moderation(commands.Cog, CogMixin):
             },
         ),
     )
-    @commands.bot_has_guild_permissions(manage_messages=True)
+    @commands.bot_has_guild_permissions(manage_roles=True)
     @checks.mod_or_permissions(manage_messages=True)
     async def mute(
         self,
@@ -606,6 +617,7 @@ class Moderation(commands.Cog, CogMixin):
         ),
         usage="(message) [options]",
     )
+    @checks.mod_or_permissions(manage_messages=True)
     async def announce(self, ctx, *, arguments: AnnouncementFlags):
         message, parsed = arguments
         annCh = parsed.channel

@@ -27,6 +27,7 @@ def is_botmaster():
 
 
 def is_mod():
+    # Moderator is a member that either have manage_guild or mod role
     async def predicate(ctx):
         try:
             roleId = await ctx.bot.getGuildConfig(ctx.guild.id, "modRole", "guildRoles")
@@ -35,12 +36,13 @@ def is_mod():
         except AttributeError:
             isMod = False
 
-        try:
-            check = await has_guild_permissions(manage_guild=True).predicate(ctx)
-        except commands.MissingPermissions:
-            raise MissingModPrivilege from None
+        if not isMod:
+            try:
+                isMod = await has_guild_permissions(manage_guild=True).predicate(ctx)
+            except commands.MissingPermissions:
+                raise MissingModPrivilege from None
 
-        return isMod or check
+        return isMod
 
     return commands.check(predicate)
 
@@ -55,7 +57,9 @@ def mod_or_permissions(**perms):
         try:
             permCheck = await has_guild_permissions(**perms).predicate(ctx)
         except commands.MissingPermissions as err:
-            raise MissingModPrivilege(err.missing_permissions) from None
+            if not orig:
+                raise MissingModPrivilege(err.missing_permissions) from None
+            permCheck = False
 
         return orig or permCheck
 
