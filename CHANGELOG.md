@@ -1,3 +1,9 @@
+# 3.2.8
+
+- [**Fixed**] Moderation commands' checks not working properly
+
+<!-- (TODO: Check if Admin commands' checks also broken) -->
+
 # 3.2.7
 
 - [**Fixed**] Fixed help command not working in DMs

@@ -309,6 +309,7 @@ class Admin(commands.Cog, CogMixin):
             },
         ),
     )
+    @commands.bot_has_guild_permissions(manage_roles=True)
     async def roleCreate(self, ctx, *, arguments):
         name, args = separateStringFlags(arguments)
         parsed = await flags.RoleCreateFlags.convert(ctx, args)
