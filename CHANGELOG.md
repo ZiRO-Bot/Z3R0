@@ -1,6 +1,6 @@
 # 3.2.8
 
-- [**Fixed**] Moderation commands' checks not working properly
+- [**Fixed**] Fixed Moderation commands' checks not working properly
 
 <!-- (TODO: Check if Admin commands' checks also broken) -->
 
