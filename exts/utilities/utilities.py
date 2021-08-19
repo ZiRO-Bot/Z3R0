@@ -241,7 +241,7 @@ class Utilities(commands.Cog, CogMixin):
                     e = ZEmbed.default(
                         ctx,
                         title="Real URL",
-                        description=("**Shorten URL**: {}\n" "**Real URL**: {}").format(
+                        description="**Shorten URL**: {}\n**Real URL**: {}".format(
                             shortenUrl, res.real_url
                         ),
                     )
