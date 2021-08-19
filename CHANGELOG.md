@@ -1,41 +1,43 @@
-# 3.2.8
+# v3.2
+
+## 3.2.8
 
 - [**Fixed**] Fixed Moderation commands' checks not working properly
 
 <!-- (TODO: Check if Admin commands' checks also broken) -->
 
-# 3.2.7
+## 3.2.7
 
 - [**Fixed**] Fixed help command not working in DMs
 - [**Changed**] Use HTMLParser to convert HTML to Markdown instead of using
   RegEx
 
-# 3.2.6
+## 3.2.6
 
 - [**Fixed**] Fixed modlog. Added 5 second delay, letting Audit Logs to update
   before sending modlog
 
-# 3.2.5
+## 3.2.5
 
 - [**New**] Added ZView (`core/views.py`)
 - [**New**] Added `Context.loading`
 - [**Improved**] `findanime` merged with `anime` and `manga` as `random`
   subcommand
 
-# 3.2.4
+## 3.2.4
 
 - [**Fixed**] Fixed anti-mute evasion
 
-# 3.2.3
+## 3.2.3
 
 - [**Improved**] Merged `anime search` and `manga search` into 1 function
 - [**Fixed**] Fixed IndexError when there's no anime/manga found
 
-# 3.2.2
+## 3.2.2
 
 - [**Fixed**] Fixed a lot of issue with v3.2.1
 
-# 3.2.0 (`discord.py v2.0`)
+## 3.2.0 (`discord.py v2.0`)
 
 - [**Improved**] Updated `discord.py` (`v1.7.3` -> `v2.0.0`)
 - [**New**] Re-added AniList category
@@ -59,7 +61,9 @@
 - [**Improved**] The bot now will tell you if you or the bot is missing some
   permissions
 
-# 3.1.0
+# v3.1
+
+## 3.1.0
 
 - [**New**] Re-added someone command (mimicking `@someone` April Fools command
   from discord) but only available on April Fools!
@@ -86,15 +90,17 @@
 - [**Improved**] Added timezone argument to time command (user timezone still
   coming soon)
 
-# 3.0.5
+# v3.0
+
+## 3.0.5
 
 - [**Fixed**] Fix `CCommandNoPerm` not being handled by error handler
 
-# 3.0.4
+## 3.0.4
 
 - [**Fixed**] Fix google search's safe search not working
 
-# 3.0.3
+## 3.0.3
 
 - [**Fixed**] Fixed more issue with Google search throwing error when there's
   unsupported "special" results
@@ -102,12 +108,12 @@
 - [**New**] Added cooldown for Google search to avoid abuse (1 per 10 seconds,
   per user)
 
-# 3.0.2
+## 3.0.2
 
 - [**Changed**] **Behind the scene**: Replace cse with google search web scrape
   (gives better result but have higher chance of breaking)
 
-# 3.0.1 (Hotfix)
+## 3.0.1 (Hotfix)
 
 - [**Fixed**] `1m spam` parsed as `1m s` and `pam` instead of `1m` and `spam`
 - [**Improved**] You can now check required perms to execute a command inside
@@ -115,7 +121,7 @@
 - [**New**] Added `>command mode` and `>command modes` to check custom command
   current mode and all different modes for custom command
 
-# 3.0.0 (Overhaul)
+## 3.0.0 (Overhaul)
 
 - [**Rename**] `cogs/` -> `exts/`
 - [**New**] Command priority [0: Built-in, 1: Custom]
