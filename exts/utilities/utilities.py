@@ -7,6 +7,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 import sys
 from decimal import InvalidOperation, Overflow
 
+import aiohttp
 import discord
 import pyparsing as pyp
 from discord.ext import commands
@@ -227,3 +228,32 @@ class Utilities(commands.Cog, CogMixin):
 
         await msg.delete()
         await ctx.try_reply(embed=e)
+
+    @commands.command(
+        brief="Get shorten url's real url. No more rick roll!",
+        usage="(shorten url)",
+    )
+    @commands.cooldown(1, 10, commands.BucketType.user)
+    async def realurl(self, ctx, shortenUrl: str):
+        async with ctx.loading():
+            try:
+                async with ctx.bot.session.get(shortenUrl) as res:
+                    e = ZEmbed.default(
+                        ctx,
+                        title="Real URL",
+                        description=("**Shorten URL**: {}\n" "**Real URL**: {}").format(
+                            shortenUrl, res.real_url
+                        ),
+                    )
+                    await ctx.try_reply(embed=e)
+            except aiohttp.InvalidURL:
+                return await ctx.error(
+                    "'{}' is not a valid url!".format(shortenUrl), title="Invalid URL"
+                )
+            except aiohttp.ClientConnectorError:
+                return await ctx.error(
+                    "Cannot connect to '{}'. Please try again later!".format(
+                        shortenUrl
+                    ),
+                    title="Failed to connect",
+                )
