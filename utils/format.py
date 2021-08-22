@@ -169,3 +169,21 @@ def separateStringFlags(string: str) -> Tuple[str, str]:
 
 def formatPerms(perms: list) -> str:
     return ", ".join([str(perm).title().replace("_", " ") for perm in perms])
+
+
+def stringWrap(string: str, limit: int, countHidden: bool = False):
+    """
+    stringWrap('Test "long" text', 10) -> 'Test "l...'
+    stringWrap('Test "long" text', 10) -> 'Test "l... [+9 hidden]'
+    """
+
+    length: int = len(string.strip())
+    if length > limit:
+        string = string.strip()[:-limit]
+        if countHidden:
+            newLen = len(string)
+            count = f"... [+{length-newLen} hidden]"
+            string += count
+        else:
+            string += "..."
+    return string
