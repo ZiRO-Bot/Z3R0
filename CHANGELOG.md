@@ -1,5 +1,9 @@
 # v3.2
 
+## 3.2.9
+
+- [**Improved**] Re-added alias `emote` to `emoji` commands
+
 ## 3.2.8
 
 - [**Fixed**] Fixed Moderation commands' checks not working properly

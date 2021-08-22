@@ -50,7 +50,7 @@ class Info(commands.Cog, CogMixin):
         )
 
     @commands.command(
-        aliases=["av", "userpfp", "pfp"], brief="Get member's avatar image"
+        aliases=("av", "userpfp", "pfp"), brief="Get member's avatar image"
     )
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def avatar(self, ctx, _user: MemberOrUser = None):
@@ -82,7 +82,7 @@ class Info(commands.Cog, CogMixin):
         await ctx.try_reply(embed=e)
 
     @commands.command(
-        aliases=["w"],
+        aliases=("w",),
         brief="Get current weather for specific city",
         extras=dict(example=("weather Palembang", "w London")),
     )
@@ -117,7 +117,7 @@ class Info(commands.Cog, CogMixin):
         await ctx.try_reply(embed=e)
 
     @commands.command(
-        aliases=["clr", "color"],
+        aliases=("clr", "color"),
         brief="Get colour information from hex value",
         description=(
             "Get colour information from hex value\n\nCan use either `0x` or "
@@ -153,7 +153,7 @@ class Info(commands.Cog, CogMixin):
         e.add_field(name="RGB", value=", ".join([str(x) for x in RGB]))
         return await ctx.try_reply(file=f, embed=e)
 
-    @commands.command(aliases=["lvl", "rank"], hidden=True, brief="Level")
+    @commands.command(aliases=("lvl", "rank"), hidden=True, brief="Level")
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def level(self, ctx):
         return await ctx.try_reply(
@@ -161,7 +161,7 @@ class Info(commands.Cog, CogMixin):
         )
 
     @commands.group(
-        aliases=["em"],
+        aliases=("em", "emote"),
         brief="Get an emoji's information",
         description=(
             "Get an emoji's information\n\nWill execute `emoji info` by "
@@ -183,7 +183,7 @@ class Info(commands.Cog, CogMixin):
 
     @emoji.command(
         name="info",
-        aliases=["?"],
+        aliases=("?",),
         brief="Get an emoji's information",
         description="Get an emoji's information\n\nSupports Unicode/built-in emojis",
         extras=dict(
@@ -319,7 +319,7 @@ class Info(commands.Cog, CogMixin):
         return await ctx.try_reply(embed=e)
 
     @commands.command(
-        aliases=["jsh"],
+        aliases=("jsh",),
         brief="Get japanese word",
         description="Get japanese word from english/japanese/romaji/text",
         extras=dict(
