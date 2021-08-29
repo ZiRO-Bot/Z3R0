@@ -1,9 +1,20 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+
+if TYPE_CHECKING:
+    from databases import Database
+
+    from core.bot import ziBot
+
+
 class CogMixin:
     """Mixin for Cogs/Exts."""
 
-    def __init__(self, bot):
-        self.bot = bot
+    def __init__(self, bot: ziBot) -> None:
+        self.bot: ziBot = bot
 
     @property
-    def db(self):
+    def db(self) -> Database:
         return self.bot.db
