@@ -9,7 +9,7 @@ import os
 import uuid
 from decimal import Decimal
 from html.parser import HTMLParser
-from typing import Tuple
+from typing import Optional, Tuple
 
 import discord
 from pyparsing import (
@@ -398,7 +398,7 @@ async def doCaselog(
     modId: int,
     targetId: int,
     reason: str,
-):
+) -> Optional[int]:
     caseNums = await bot.db.fetch_one(
         "SELECT IFNULL(MAX(caseId)+1, 1) FROM caseLog WHERE guildId=:guildId",
         values={"guildId": guildId},
@@ -430,7 +430,7 @@ async def doCaselog(
                     "reason": reason,
                 },
             )
-        return caseNum
+        return int(caseNum)
 
 
 TAG_IN_MD = {

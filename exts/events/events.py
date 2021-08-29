@@ -37,30 +37,32 @@ REASON_REGEX = re.compile(r"^\[\S+\#\d+ \(ID: (\d+)\)\]: (.*)")
 async def doModlog(
     bot: ziBot,
     guild: discord.Guild,
-    member: discord.abc.User,
-    moderator: discord.abc.User,
+    member: discord.User,
+    moderator: discord.User,
     type: str,
     reason: str = None,
+    caseNum: Optional[int] = None,
 ) -> None:
     """Basically handle formatting modlog events"""
 
-    channel = await bot.getGuildConfig(guild.id, "modlogCh", "guildChannels")
-    channel = bot.get_channel(channel)
+    channel = bot.get_channel(
+        await bot.getGuildConfig(guild.id, "modlogCh", "guildChannels") or 0
+    )
 
-    if moderator.id == bot.user.id:
+    if moderator.id == bot.user.id:  # type: ignore
         # This usually True when mods use moderation commands
         # Or when bots doing automod stuff
         if reason and channel:
             # Get the real moderator
             match = REASON_REGEX.match(reason)
             if match:
-                modId = match.group(1)
+                modId = int(match.group(1))
                 moderator = bot.get_user(modId) or await bot.fetch_user(modId)
                 reason = match.group(2)
 
     else:
         # Since moderation is done manually, caselog will be done here
-        await doCaselog(
+        caseNum = await doCaselog(
             bot,
             guildId=guild.id,
             type=type,
@@ -73,7 +75,6 @@ async def doModlog(
         # No channel found, don't do modlog
         return
 
-    # TODO: Include caselog number into modlog
     e = ZEmbed.minimal(
         title="Modlog - {}".format(type.title()),
         description=(
@@ -82,8 +83,12 @@ async def doModlog(
             + f"**Moderator**: {moderator.mention}"
         ),
     )
+    # TODO: Make caseNum appears when moderation cmd is used
+    if caseNum is not None:
+        e.description += f"\n**Case**: #{caseNum}"
+
     e.set_footer(text=f"ID: {member.id}")
-    await channel.send(embed=e)
+    await channel.send(embed=e)  # type: ignore
 
 
 class EventHandler(commands.Cog, CogMixin):
@@ -326,7 +331,7 @@ class EventHandler(commands.Cog, CogMixin):
         try:
             # Send embed that when user react with greenTick bot will send it to bot owner or issue channel
             dest = (
-                self.bot.get_channel(self.bot.issueChannel)
+                self.bot.get_partial_messageable(self.bot.issueChannel)
                 or self.bot.get_user(self.bot.owner_id)
                 or (self.bot.get_user(self.bot.master[0]))
             )
@@ -390,23 +395,28 @@ class EventHandler(commands.Cog, CogMixin):
         if before.author.bot:
             return
 
+        if not (guild := before.guild):
+            return
+
         if before.type != discord.MessageType.default:
             return
 
         if before.content == after.content:
             return
 
-        guild = before.guild
-
-        logCh = guild.get_channel(
-            await self.bot.getGuildConfig(guild.id, "purgatoryCh", "guildChannels")
+        logChId = await self.bot.getGuildConfig(
+            guild.id, "purgatoryCh", "guildChannels"
         )
-        if not logCh:
+        if not logChId:
             return
+
+        logCh = self.bot.get_partial_messageable(logChId)
 
         e = ZEmbed(timestamp=utcnow(), title="Edited Message")
 
-        e.set_author(name=before.author, icon_url=before.author.avatar.url)
+        avatar = before.author.display_avatar
+
+        e.set_author(name=before.author, icon_url=avatar.url)
 
         e.add_field(
             name="Before",
@@ -457,20 +467,25 @@ class EventHandler(commands.Cog, CogMixin):
         if message.author.bot:
             return
 
+        if not (guild := message.guild):
+            return
+
         if message.type != discord.MessageType.default:
             return
 
-        guild = message.guild
-
-        logCh = guild.get_channel(
-            await self.bot.getGuildConfig(guild.id, "purgatoryCh", "guildChannels")
+        logChId = await self.bot.getGuildConfig(
+            guild.id, "purgatoryCh", "guildChannels"
         )
-        if not logCh:
+        if not logChId:
             return
+
+        logCh = self.bot.get_partial_messageable(logChId)
 
         e = ZEmbed(timestamp=utcnow(), title="Deleted Message")
 
-        e.set_author(name=message.author, icon_url=message.author.avatar.url)
+        avatar = message.author.display_avatar
+
+        e.set_author(name=message.author, icon_url=avatar.url)
 
         e.description = (
             message.content[:1020] + " ..."
@@ -488,7 +503,7 @@ class EventHandler(commands.Cog, CogMixin):
             return
 
         # TODO: Add user log channel
-        channel = after.guild.get_channel(814009733006360597)
+        channel = self.bot.get_partial_messageable(814009733006360597)
 
         role = after.guild.premium_subscriber_role
         if role not in before.roles and role in after.roles:
@@ -502,7 +517,10 @@ class EventHandler(commands.Cog, CogMixin):
 
     @commands.Cog.listener("on_member_muted")
     async def onMemberMuted(self, member: discord.Member, mutedRole: discord.Object):
-        guild = member.guild
+        if not (guild := member.guild):
+            # impossible to happened, but sure
+            return
+
         with suppress(discord.Forbidden):
             await asyncio.sleep(5)
             entry = (
