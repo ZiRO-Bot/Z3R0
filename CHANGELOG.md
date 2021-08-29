@@ -5,6 +5,7 @@
 - [**New**] Added realurl (get real url of a shorten url)
 - [**Improved**] Added case number to modlog message (for now only work with
   manual moderation action)
+- [**Fixed**] Fix Admin commands' checks not working properly
 
 # v3.2
 
@@ -15,8 +16,6 @@
 ## 3.2.8
 
 - [**Fixed**] Fixed Moderation commands' checks not working properly
-
-<!-- (TODO: Check if Admin commands' checks also broken) -->
 
 ## 3.2.7
 

@@ -30,9 +30,7 @@ class Moderation(commands.Cog, CogMixin):
     icon = "🛠️"
 
     async def cog_check(self, ctx):
-        if not ctx.guild:
-            return False
-        return True
+        return ctx.guild is not None
 
     async def doModeration(
         self, ctx, user, _time: Optional[TimeAndArgument], action: str, **kwargs

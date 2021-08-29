@@ -44,12 +44,7 @@ class Admin(commands.Cog, CogMixin):
         return await bot.setGuildConfig(guildId, roleType, roleId, "guildRoles")
 
     async def cog_check(self, ctx):
-        if not ctx.guild:
-            # Configuration only for Guild
-            return False
-
-        # Check if member can manage_channels or have mod role
-        return await checks.isMod(ctx)
+        return ctx.guild is not None
 
     async def handleGreetingConfig(self, ctx, arguments, type: str):
         """Handle welcome and farewell configuration."""
@@ -435,6 +430,8 @@ class Admin(commands.Cog, CogMixin):
             },
         ),
     )
+    @commands.bot_has_guild_permissions(manage_roles=True)
+    @checks.is_admin()
     async def autorole(self, ctx, name: Union[discord.Role, str]):
         await ctx.try_invoke(
             self.roleCreate if isinstance(name, str) else self.roleSet,
@@ -451,6 +448,7 @@ class Admin(commands.Cog, CogMixin):
             },
         ),
     )
+    @checks.is_mod()
     async def announcement(self, ctx, channel: discord.TextChannel):
         await self.bot.setGuildConfig(
             ctx.guild.id, "announcementCh", channel.id, "guildChannels"
