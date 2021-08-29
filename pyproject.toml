@@ -9,7 +9,7 @@ license = "MPL-2.0"
 aiohttp = "3.7.3"
 python = "^3.8"
 beautifulsoup4 = "^4.9.3"
-"discord.py" = {git = "https://github.com/Rapptz/discord.py", rev = "08a4db396118aeda6205ff56c8c8fc565fc338fc"}
+"discord.py" = {git = "https://github.com/Rapptz/discord.py", rev = "45d498c1b76deaf3b394d17ccf56112fa691d160"}
 discord-ext-menus = "^1.1"
 fuzzywuzzy = "0.18.0"
 humanize = "3.7.0"
