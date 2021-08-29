@@ -1,3 +1,11 @@
+# v3.3
+
+## 3.3.0
+
+- [**New**] Added realurl (get real url of a shorten url)
+- [**Improved**] Added case number to modlog message (for now only work with
+  manual moderation action)
+
 # v3.2
 
 ## 3.2.9
