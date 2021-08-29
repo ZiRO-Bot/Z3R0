@@ -88,7 +88,6 @@ Moved to [CHANGELOG.md](./CHANGELOG.md)
 ## Plans
 
 - Event for ~~member boosting a guild~~ (Just need to implement setup for it)
-- Properly support different SQL scheme (databases have `database_url.scheme` to check scheme type)
 - Tags (stripped version of custom command)
 - Unify categories/exts emoji
 - Channel manager commands
@@ -99,6 +98,7 @@ Moved to [CHANGELOG.md](./CHANGELOG.md)
 
 - i18n using gettext (Learning how gettext works)
 - Slash command (RIP dpy, have to design this myself for now)
+- Properly support different SQL scheme (designing best way to do this)
 
 ### Scrapped Plan
 

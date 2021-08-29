@@ -56,21 +56,22 @@ class Info(commands.Cog, CogMixin):
     async def avatar(self, ctx, _user: MemberOrUser = None):
         user: Union[discord.Member, discord.User] = _user or await authorOrReferenced(
             ctx
-        )
-        user.avatar.with_format("jpg").url
+        )  # type: ignore
+
+        avatar = user.display_avatar
 
         # Links to avatar (with different formats)
         links = (
             "[`JPEG`]({})"
             " | [`PNG`]({})"
             " | [`WEBP`]({})".format(
-                user.avatar.with_format("jpg").url,
-                user.avatar.with_format("png").url,
-                user.avatar.with_format("webp").url,
+                avatar.with_format("jpg").url,
+                avatar.with_format("png").url,
+                avatar.with_format("webp").url,
             )
         )
-        if user.avatar.is_animated():
-            links += " | [`GIF`]({})".format(user.avatar.with_format("gif").url)
+        if avatar.is_animated():
+            links += " | [`GIF`]({})".format(avatar.with_format("gif").url)
 
         # Embed stuff
         e = ZEmbed.default(
@@ -78,7 +79,7 @@ class Info(commands.Cog, CogMixin):
             title="{}'s Avatar".format(user.name),
             description=links,
         )
-        e.set_image(url=user.avatar.with_size(1024).url)
+        e.set_image(url=avatar.with_size(1024).url)
         await ctx.try_reply(embed=e)
 
     @commands.command(
@@ -400,9 +401,10 @@ class Info(commands.Cog, CogMixin):
         brief="Get user's information",
     )
     @commands.cooldown(1, 5, commands.BucketType.user)
-    async def userinfo(self, ctx, *, user: MemberOrUser = None):
-        if not user:
-            user = await authorOrReferenced(ctx)
+    async def userinfo(self, ctx, *, _user: MemberOrUser = None):
+        user: Union[discord.User, discord.Member] = _user or await authorOrReferenced(
+            ctx
+        )  # type: ignore # MemberOrUser or authorOrReferenced will return user/member
 
         def status(x):
             return {
@@ -454,12 +456,15 @@ class Info(commands.Cog, CogMixin):
         isUser = isinstance(user, discord.User)
         joinedAt = None
         if not isUser:
-            joinedAt = user.joined_at.replace(tzinfo=dt.timezone.utc)
+            # already checked by isUser
+            joinedAt = user.joined_at.replace(tzinfo=dt.timezone.utc)  # type: ignore
+
+        avatar = user.display_avatar
 
         e = (
             ZEmbed()
-            .set_author(name=user, icon_url=user.avatar.url)
-            .set_thumbnail(url=user.avatar.url)
+            .set_author(name=user, icon_url=avatar.url)
+            .set_thumbnail(url=avatar.url)
         )
 
         e.add_field(
@@ -488,9 +493,9 @@ class Info(commands.Cog, CogMixin):
                         formatDiscordDT(joinedAt, "F"), formatDiscordDT(joinedAt, "R")
                     )
                     + "**Role count**: ({}/{})\n".format(
-                        len(user.roles), len(user.guild.roles)
+                        len(user.roles), len(user.guild.roles)  # type: ignore
                     )
-                    + "**Top role**: {}".format(user.top_role.mention)
+                    + "**Top role**: {}".format(user.top_role.mention)  # type: ignore
                 )
             ),
             inline=False,
@@ -502,9 +507,9 @@ class Info(commands.Cog, CogMixin):
                 "N/A"
                 if isUser
                 else (
-                    "**Status**: {}\n".format(status(user.status))
+                    "**Status**: {}\n".format(status(user.status))  # type: ignore
                     + "**Activity**: {}".format(
-                        activity(user.activity) if user.activity else "None"
+                        activity(user.activity) if user.activity else "None"  # type: ignore
                     )
                 )
             ),
@@ -694,7 +699,7 @@ class Info(commands.Cog, CogMixin):
             ),
         )
         with suppress(AttributeError):
-            e.set_thumbnail(url=memberOrRole.avatar.url)  # type: ignore
+            e.set_thumbnail(url=memberOrRole.display_avatar.url)  # type: ignore
 
         await ctx.try_reply(embed=e)
 
