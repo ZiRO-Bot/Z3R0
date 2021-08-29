@@ -94,11 +94,11 @@ Moved to [CHANGELOG.md](./CHANGELOG.md)
 - Channel manager commands
 - Reaction Role
 - Starboard
-- Slash command (Waiting for implementation)
 
 ### Pending Plan
 
 - i18n using gettext (Learning how gettext works)
+- Slash command (RIP dpy, have to design this myself for now)
 
 ### Scrapped Plan
 
