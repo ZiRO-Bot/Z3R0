@@ -214,6 +214,7 @@ class Admin(commands.Cog, CogMixin):
             },
         ),
     )
+    @commands.bot_has_guild_permissions(view_audit_log=True, manage_channels=True)
     @checks.mod_or_permissions(manage_channels=True)
     async def modlog(self, ctx, *, arguments):
         await self.handleLogConfig(ctx, arguments, "modlog")
