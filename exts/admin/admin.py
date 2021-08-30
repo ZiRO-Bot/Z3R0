@@ -209,7 +209,7 @@ class Admin(commands.Cog, CogMixin):
                 "disable": "Disable modlog",
             },
             perms={
-                "bot": "Manage Channels",
+                "bot": "Manage Channels and View Audit Log",
                 "user": "Moderator Role or Manage Channels",
             },
         ),
