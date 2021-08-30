@@ -12,6 +12,9 @@ if TYPE_CHECKING:
 class CogMixin:
     """Mixin for Cogs/Exts."""
 
+    icon = "❓"
+    cc = False
+
     def __init__(self, bot: ziBot) -> None:
         self.bot: ziBot = bot
 
