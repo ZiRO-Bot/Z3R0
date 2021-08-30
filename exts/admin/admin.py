@@ -28,11 +28,14 @@ ROLE_TYPES = {
 
 
 class Admin(commands.Cog, CogMixin):
-    """Admin-only commands to configure the bot."""
+    """Collection of commands for admin/mods to configure the bot.
+
+    Some commands may require `Administrator` permission.
+    """
 
     icon = "\u2699"
 
-    def __init__(self, bot):
+    def __init__(self, bot) -> None:
         super().__init__(bot)
 
     @staticmethod
