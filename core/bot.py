@@ -6,6 +6,7 @@ import json
 import logging
 import os
 import re
+import warnings
 from collections import Counter
 from contextlib import suppress
 from typing import Any, Dict, Iterable, List, Optional, Union
@@ -98,7 +99,7 @@ class ziBot(commands.Bot):
 
         # Bot master(s)
         # self.master = (186713080841895936,)
-        self.master: tuple = (
+        self.owner_ids: tuple = (
             tuple()
             if not hasattr(config, "botMasters")
             else tuple([int(master) for master in config.botMasters])
@@ -197,16 +198,17 @@ class ziBot(commands.Bot):
     async def startUp(self) -> None:
         """Will run when the bot ready"""
         await self.wait_until_ready()
-        if not self.master:
+
+        if not self.owner_ids:
             # If self.master not set, warn the hoster
             self.logger.warning(
                 "No master is set, you may not able to use certain commands! (Unless you own the Bot Application)"
             )
 
-        # Add application owner into bot master list
+        # Add application owner into owner_ids list
         owner: discord.User = (await self.application_info()).owner
-        if owner and owner.id not in self.master:
-            self.master += (owner.id,)
+        if owner and owner.id not in self.owner_ids:
+            self.owner_ids += (owner.id,)
 
         # change bot's presence into guild live count
         self.changing_presence.start()
@@ -215,6 +217,11 @@ class ziBot(commands.Bot):
 
         if not hasattr(self, "uptime"):
             self.uptime: datetime.datetime = utcnow()
+
+    @property
+    def master(self):
+        warnings.warn("Bot.master is deprecated, use self.owner_ids instead")
+        return self.owner_ids
 
     async def getGuildConfigs(
         self, guildId: int, filters: Iterable = "*", table: str = "guildConfigs"
@@ -609,7 +616,7 @@ class ziBot(commands.Bot):
             message.author.bot
             or message.author.id in self.blacklist.users
             or (message.guild and message.guild.id in self.blacklist.guilds)
-        ) and message.author.id not in self.master:
+        ) and message.author.id not in self.owner_ids:
             return
 
         # if bot is mentioned without any other message, send prefix list
@@ -636,7 +643,7 @@ class ziBot(commands.Bot):
             message.author.bot
             or message.author.id in self.blacklist.users
             or (message.guild and message.guild.id in self.blacklist.guilds)
-        ) and message.author.id not in self.master:
+        ) and message.author.id not in self.owner_ids:
             return
 
         await self.process(message)
