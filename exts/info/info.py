@@ -14,6 +14,7 @@ from aiohttp import InvalidURL, client_exceptions
 from discord.ext import commands
 
 from core import checks
+from core.context import Context
 from core.converter import MemberOrUser
 from core.embed import ZEmbed
 from core.mixin import CogMixin
@@ -40,7 +41,7 @@ class Info(commands.Cog, CogMixin):
         aliases=("av", "userpfp", "pfp"), brief="Get member's avatar image"
     )
     @commands.cooldown(1, 5, commands.BucketType.user)
-    async def avatar(self, ctx, _user: MemberOrUser = None):
+    async def avatar(self, ctx: Context, _user: MemberOrUser = None):
         user: Union[discord.Member, discord.User] = _user or await authorOrReferenced(
             ctx
         )  # type: ignore
@@ -75,7 +76,7 @@ class Info(commands.Cog, CogMixin):
         extras=dict(example=("weather Palembang", "w London")),
     )
     @commands.cooldown(1, 5, commands.BucketType.user)
-    async def weather(self, ctx, *, city):
+    async def weather(self, ctx: Context, *, city):
         if not self.openweather.apiKey:
             return await ctx.error(
                 "OpenWeather's API Key is not set! Please contact the bot owner to solve this issue."
@@ -114,7 +115,7 @@ class Info(commands.Cog, CogMixin):
         extras=dict(example=("colour ffffff", "clr 0xffffff", "color #ffffff")),
     )
     @commands.cooldown(1, 5, commands.BucketType.user)
-    async def colour(self, ctx, value: str):
+    async def colour(self, ctx: Context, value: str):
         # Pre processing
         value = value.lstrip("#")[:6]
         value = value.ljust(6, "0")
@@ -165,7 +166,9 @@ class Info(commands.Cog, CogMixin):
         invoke_without_command=True,
     )
     @commands.cooldown(1, 5, commands.BucketType.user)
-    async def emoji(self, ctx, emoji: Union[discord.Emoji, discord.PartialEmoji, str]):
+    async def emoji(
+        self, ctx: Context, emoji: Union[discord.Emoji, discord.PartialEmoji, str]
+    ):
         # TODO: Add emoji list
         await ctx.try_invoke(self.emojiInfo, emoji)
 
@@ -183,7 +186,7 @@ class Info(commands.Cog, CogMixin):
         ),
     )
     @commands.cooldown(1, 5, commands.BucketType.user)
-    async def emojiInfo(self, ctx, emoji: Union[discord.PartialEmoji, str]):
+    async def emojiInfo(self, ctx: Context, emoji: Union[discord.PartialEmoji, str]):
         try:
             e = ZEmbed.default(
                 ctx,
@@ -224,7 +227,9 @@ class Info(commands.Cog, CogMixin):
     )
     @commands.guild_only()
     @checks.mod_or_permissions(manage_emojis=True)
-    async def emojiSteal(self, ctx, emoji: Union[discord.Emoji, discord.PartialEmoji]):
+    async def emojiSteal(
+        self, ctx: Context, emoji: Union[discord.Emoji, discord.PartialEmoji]
+    ):
         emojiByte = await emoji.read()
 
         try:
@@ -318,7 +323,7 @@ class Info(commands.Cog, CogMixin):
         ),
     )
     @commands.cooldown(1, 5, commands.BucketType.user)
-    async def jisho(self, ctx, *, words):
+    async def jisho(self, ctx: Context, *, words):
         async with ctx.bot.session.get(
             "https://jisho.org/api/v1/search/words", params={"keyword": words}
         ) as req:
@@ -357,7 +362,7 @@ class Info(commands.Cog, CogMixin):
         brief="Show covid information on certain country",
     )
     @commands.cooldown(1, 5, commands.BucketType.user)
-    async def covid(self, ctx, *, country):
+    async def covid(self, ctx: Context, *, country):
         # TODO: Remove later
         if country.lower() in ("united state of america", "america"):
             country = "US"
@@ -387,7 +392,7 @@ class Info(commands.Cog, CogMixin):
         brief="Get user's information",
     )
     @commands.cooldown(1, 5, commands.BucketType.user)
-    async def userinfo(self, ctx, *, _user: MemberOrUser = None):
+    async def userinfo(self, ctx: Context, *, _user: MemberOrUser = None):
         user: Union[discord.User, discord.Member] = _user or await authorOrReferenced(
             ctx
         )  # type: ignore # MemberOrUser or authorOrReferenced will return user/member
@@ -601,7 +606,7 @@ class Info(commands.Cog, CogMixin):
     )
     @commands.cooldown(1, 5, commands.BucketType.user)
     @commands.guild_only()
-    async def spotifyinfo(self, ctx, user: discord.Member = None):
+    async def spotifyinfo(self, ctx: Context, user: discord.Member = None):
         user = user or ctx.author
 
         spotify: discord.Spotify = discord.utils.find(
@@ -662,7 +667,9 @@ class Info(commands.Cog, CogMixin):
     @commands.cooldown(1, 5, commands.BucketType.user)
     @commands.guild_only()
     async def permissions(
-        self, ctx, memberOrRole: Union[discord.Member, discord.Role, str] = None
+        self,
+        ctx: Context,
+        memberOrRole: Union[discord.Member, discord.User, discord.Role, str] = None,
     ):
         if isinstance(memberOrRole, str) or memberOrRole is None:
             memberOrRole = ctx.author
@@ -693,7 +700,7 @@ class Info(commands.Cog, CogMixin):
         usage="(project name)",
     )
     @commands.cooldown(1, 5, commands.BucketType.user)
-    async def pypi(self, ctx, project: str):
+    async def pypi(self, ctx: Context, project: str):
         async with self.bot.session.get(f"https://pypi.org/pypi/{project}/json") as res:
             try:
                 res = await res.json()
