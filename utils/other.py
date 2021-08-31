@@ -472,6 +472,18 @@ class Markdownify(HTMLParser):
         self.result += data
 
 
+async def authorOrReferenced(ctx):
+    if ref := ctx.replied_reference:
+        # Get referenced message author
+        # if user reply to a message while doing this command
+        return (
+            ref.cached_message.author
+            if ref.cached_message
+            else (await ctx.fetch_message(ref.message_id)).author
+        )
+    return ctx.author
+
+
 if __name__ == "__main__":
     # For testing
     print(encodeMorse("test 123"))

@@ -21,20 +21,7 @@ from utils import pillow
 from utils.api.openweather import CityNotFound, OpenWeatherAPI
 from utils.format import formatDiscordDT, renderBar
 from utils.infoQuote import *  # noqa:  F403
-from utils.other import utcnow
-
-
-# TODO: Move this somewhere in `exts/utils/` folder
-async def authorOrReferenced(ctx):
-    if ref := ctx.replied_reference:
-        # Get referenced message author
-        # if user reply to a message while doing this command
-        return (
-            ref.cached_message.author
-            if ref.cached_message
-            else (await ctx.fetch_message(ref.message_id)).author
-        )
-    return ctx.author
+from utils.other import authorOrReferenced, utcnow
 
 
 class Info(commands.Cog, CogMixin):
@@ -547,11 +534,10 @@ class Info(commands.Cog, CogMixin):
 
             status[str(m.status)][0] += 1
 
-        e = (
-            ZEmbed()
-            .set_author(name=guild, icon_url=guild.icon.url)
-            .set_thumbnail(url=guild.icon.url)
-        )
+        e = ZEmbed()
+
+        if icon := guild.icon:
+            e.set_author(name=guild, icon_url=icon.url).set_thumbnail(url=icon.url)
 
         e.add_field(
             name="General",
@@ -562,7 +548,7 @@ class Info(commands.Cog, CogMixin):
                     formatDiscordDT(createdAt, "F"), formatDiscordDT(createdAt, "R")
                 )
                 + "**Owner**: {0} / {0.mention}\n".format(guild.owner)
-                + "**Owner ID**: `{}`".format(guild.owner.id)
+                + "**Owner ID**: `{}`".format(guild.owner.id)  # type: ignore
             ),
             inline=False,
         )
@@ -619,8 +605,8 @@ class Info(commands.Cog, CogMixin):
         user = user or ctx.author
 
         spotify: discord.Spotify = discord.utils.find(
-            lambda s: isinstance(s, discord.Spotify), user.activities
-        )
+            lambda s: isinstance(s, discord.Spotify), user.activities  # type: ignore
+        )  # discord.Spotify is ActivityTypes
         if not spotify:
             return await ctx.error(
                 "{} is not listening to Spotify!".format(user.mention)
@@ -645,7 +631,7 @@ class Info(commands.Cog, CogMixin):
         # Bar stuff
         barLength = 5 if user.is_on_mobile() else 17
         bar = renderBar(
-            (cur.seconds / dur.seconds) * 100,
+            int(cur.seconds / dur.seconds) * 100,
             fill="─",
             empty="─",
             point="⬤",
