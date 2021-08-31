@@ -29,7 +29,7 @@ class Developer(*STANDARD_FEATURES, *OPTIONAL_FEATURES):
 
     async def cog_check(self, ctx):
         """Only bot master able to use debug cogs."""
-        return self.bot.master and ctx.author.id in self.bot.master
+        return self.bot.owner_ids and ctx.author.id in self.bot.owner_ids
 
     # def notMe():
     #     async def pred(ctx):
@@ -122,6 +122,7 @@ class Developer(*STANDARD_FEATURES, *OPTIONAL_FEATURES):
                 ["{} | `{}`".format(v, k) for k, v in status.items()]
             )
         else:
+            extension = exts[0]
             e.title = "{} | {} {}".format(
                 status[extension],
                 extension,
