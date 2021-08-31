@@ -5,6 +5,7 @@
 - [**New**] Added realurl (get real url of a shorten url)
 - [**Improved**] Added case number to modlog message (for now only work with
   manual moderation action)
+- [**Changed**] Rename `Bot.master` -> `Bot.owner_ids`
 - [**Fixed**] Fix Admin commands' checks not working properly
 - [**Improved**] Manually input Intents, this should slightly improve the
   performance
