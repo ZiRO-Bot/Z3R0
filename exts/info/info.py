@@ -196,9 +196,7 @@ class Info(commands.Cog, CogMixin):
         ),
     )
     @commands.cooldown(1, 5, commands.BucketType.user)
-    async def emojiInfo(
-        self, ctx, emoji: Union[discord.Emoji, discord.PartialEmoji, str]
-    ):
+    async def emojiInfo(self, ctx, emoji: Union[discord.PartialEmoji, str]):
         try:
             e = ZEmbed.default(
                 ctx,
@@ -287,7 +285,7 @@ class Info(commands.Cog, CogMixin):
             except AttributeError:
                 # Probably a url?
                 try:
-                    async with self.bot.session.get(emoji) as req:
+                    async with self.bot.session.get(emoji) as req:  # type: ignore
                         emojiByte = await req.read()
                 except InvalidURL:
                     return await ctx.error(
