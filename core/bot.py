@@ -75,6 +75,19 @@ class ziBot(commands.Bot):
     # ---
 
     def __init__(self) -> None:
+        # custom intents, required since dpy v1.5
+        intents = discord.Intents(
+            # bans are handled with on_member_remove,
+            # so only members intent is needed
+            bans=False,
+            members=True,
+            guilds=True,
+            messages=True,
+            emojis=True,
+            presences=True,
+            reactions=True,
+        )
+
         super().__init__(
             command_prefix=_callablePrefix,
             description=(
@@ -82,9 +95,10 @@ class ziBot(commands.Bot):
                 "created by ZiRO2264, formerly called `ziBot`."
             ),
             case_insensitive=True,
-            intents=discord.Intents.all(),
+            intents=intents,
             heartbeat_timeout=150.0,
         )
+
         # make cogs case insensitive
         self._BotBase__cogs: commands.core._CaseInsensitiveDict = (
             commands.core._CaseInsensitiveDict()

@@ -166,45 +166,55 @@ class EventHandler(commands.Cog, CogMixin):
                 return
 
     @commands.Cog.listener("on_member_remove")
-    async def onMemberRemove(self, user: discord.User) -> None:
+    async def onMemberRemove(self, member: discord.Member) -> None:
         """Farewell message"""
-        with suppress(discord.Forbidden):
-            await asyncio.sleep(5)
-            # TODO: Add muted_member table to database to prevent mute evasion
-            entry = (await user.guild.audit_logs(limit=1).flatten())[0]
+        guild: discord.Guild = member.guild
 
-            if entry.target == user:
+        with suppress(discord.Forbidden):
+            # discord needs a few second to update Audit Logs
+            await asyncio.sleep(2)
+
+            entry = (await guild.audit_logs(limit=1).flatten())[0]
+
+            if entry.target == member:
                 # TODO: Filters bot's action
                 if entry.action == discord.AuditLogAction.kick:
-                    self.bot.dispatch("member_kick", user, entry)
+                    self.bot.dispatch("member_kick", member, entry)
                     return
 
                 if entry.action == discord.AuditLogAction.ban:
+                    # Intents.bans are disabled to make this works
+                    self.bot.dispatch("member_ban", member, entry)
                     return
 
-        return await self.handleGreeting(user, "farewell")
+        # fallback to farewell message
+        return await self.handleGreeting(member, "farewell")
 
     @commands.Cog.listener("on_member_kick")
     async def onMemberKick(
-        self, member: discord.User, entry: discord.AuditLogEntry
+        self, member: discord.Member, entry: discord.AuditLogEntry
     ) -> None:
         await doModlog(
-            self.bot, member.guild, entry.target, entry.user, "kick", entry.reason
+            self.bot,
+            member.guild,
+            entry.target,  # type: ignore
+            entry.user,
+            "kick",
+            entry.reason,
         )
 
     @commands.Cog.listener("on_member_ban")
-    async def onMemberBan(self, guild: discord.Guild, user: discord.User) -> None:
-        with suppress(discord.Forbidden):
-            await asyncio.sleep(5)
-            entry = (
-                await guild.audit_logs(
-                    limit=1, action=discord.AuditLogAction.ban
-                ).flatten()
-            )[0]
-            if entry.target == user:
-                await doModlog(
-                    self.bot, guild, entry.target, entry.user, "ban", entry.reason
-                )
+    async def onMemberBan(
+        self, member: discord.Member, entry: discord.AuditLogEntry
+    ) -> None:
+        await doModlog(
+            self.bot,
+            member.guild,
+            entry.target,  # type: ignore
+            entry.user,
+            "ban",
+            entry.reason,
+        )
 
     @commands.Cog.listener("on_command_error")
     async def onCommandError(self, ctx, error) -> Optional[discord.Message]:
