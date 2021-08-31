@@ -178,15 +178,10 @@ class CustomHelp(commands.HelpCommand):
         if not unique:
             unique = defFilters
 
-        # if not command and len(unique) == 1:
-        # TODO: get command list if no command specified and 1 filters specified
-        # This will merge `>command list`
-        # return None, None, unique
-        # pass
-
         return command, unique
 
     async def send_custom_help(self):
+        # TODO: Improve the output
         ctx = self.context
 
         if not (guild := ctx.guild):
