@@ -97,7 +97,7 @@ Moved to [CHANGELOG.md](./CHANGELOG.md)
 ### Pending Plan
 
 - i18n using gettext (Learning how gettext works)
-- Slash command (RIP dpy, have to design this myself for now)
+- Slash command (Waiting for ed.py's implementation)
 - Properly support different SQL scheme (designing best way to do this)
 
 ### Scrapped Plan

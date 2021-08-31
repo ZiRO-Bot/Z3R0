@@ -41,12 +41,10 @@ class Info(commands.Cog, CogMixin):
         aliases=("av", "userpfp", "pfp"), brief="Get member's avatar image"
     )
     @commands.cooldown(1, 5, commands.BucketType.user)
-    async def avatar(self, ctx: Context, _user: MemberOrUser = None):
-        user: Union[discord.Member, discord.User] = _user or await authorOrReferenced(
-            ctx
-        )  # type: ignore
+    async def avatar(self, ctx: Context, user: MemberOrUser = None):
+        user = user or authorOrReferenced(ctx)  # type: ignore
 
-        avatar = user.display_avatar
+        avatar: discord.Asset = user.display_avatar  # type: ignore
 
         # Links to avatar (with different formats)
         links = (
@@ -64,7 +62,7 @@ class Info(commands.Cog, CogMixin):
         # Embed stuff
         e = ZEmbed.default(
             ctx,
-            title="{}'s Avatar".format(user.name),
+            title="{}'s Avatar".format(user.name),  # type: ignore
             description=links,
         )
         e.set_image(url=avatar.with_size(1024).url)
@@ -233,7 +231,7 @@ class Info(commands.Cog, CogMixin):
         emojiByte = await emoji.read()
 
         try:
-            addedEmoji = await ctx.guild.create_custom_emoji(
+            addedEmoji = await ctx.guild.create_custom_emoji(  # type: ignore
                 name=emoji.name, image=emojiByte
             )
         except discord.Forbidden:
@@ -440,7 +438,7 @@ class Info(commands.Cog, CogMixin):
             }.get(x.type, "") + detail
 
         badges = [badge(x) for x in user.public_flags.all()]
-        if user == ctx.guild.owner:
+        if (guild := ctx.guild) and user == guild.owner:
             badges.append("<:owner:747802537402564758>")
 
         createdAt = user.created_at.replace(tzinfo=dt.timezone.utc)
@@ -607,7 +605,7 @@ class Info(commands.Cog, CogMixin):
     @commands.cooldown(1, 5, commands.BucketType.user)
     @commands.guild_only()
     async def spotifyinfo(self, ctx: Context, user: discord.Member = None):
-        user = user or ctx.author
+        user = user or authorOrReferenced(ctx)  # type: ignore
 
         spotify: discord.Spotify = discord.utils.find(
             lambda s: isinstance(s, discord.Spotify), user.activities  # type: ignore
