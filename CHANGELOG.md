@@ -6,6 +6,11 @@
 - [**Improved**] Added case number to modlog message (for now only work with
   manual moderation action)
 - [**Fixed**] Fix Admin commands' checks not working properly
+- [**Improved**] Manually input Intents, this should slightly improve the
+  performance
+- [**Improved**] Merged `on_member_ban` with `on_member_remove`, so it doesn't
+  request audit logs twice
+- [**Improved**] Decrease modlog delay to 2 seconds delay
 
 # v3.2
 
@@ -25,7 +30,7 @@
 
 ## 3.2.6
 
-- [**Fixed**] Fixed modlog. Added 5 second delay, letting Audit Logs to update
+- [**Fixed**] Fixed modlog. Added 5 seconds delay, letting Audit Logs to update
   before sending modlog
 
 ## 3.2.5
