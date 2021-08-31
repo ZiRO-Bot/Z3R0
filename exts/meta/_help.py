@@ -146,16 +146,16 @@ class CustomHelp(commands.HelpCommand):
         await view.start()
 
     async def prepare_help_command(self, ctx, arguments) -> tuple:
+        # default filters, based on original help cmd
+        defFilters = ("built-in", "custom")
+
         if arguments is None:
-            return None, None
+            return None, defFilters
 
         # separate string from flags
         # String filters: String -> ("String", "filters: String")
         command, parsed = await HelpFlags.convert(ctx, arguments)
         await super().prepare_help_command(ctx, command)
-
-        # default filters, based on original help cmd
-        defFilters = ("built-in", "custom")
 
         filters = []
         for f in parsed.filters:
@@ -186,14 +186,34 @@ class CustomHelp(commands.HelpCommand):
 
         return command, unique
 
+    async def send_custom_help(self):
+        ctx = self.context
+
+        if not (guild := ctx.guild):
+            return
+
+        cmds = await getCustomCommands(ctx.db, guild.id)
+        cmds = sorted(cmds, key=lambda cmd: cmd.uses, reverse=True)
+        e = ZEmbed.default(ctx, title="Custom Commands", description="")
+        if cmds:
+            for k, v in enumerate(cmds):
+                e.description += "**`{}`** {} [`{}` uses]\n".format(
+                    k + 1, v.name, v.uses
+                )
+        else:
+            e.description = "This server doesn't have custom command"
+        await ctx.try_reply(embed=e)
+
     async def command_callback(self, ctx, *, arguments=None):
         command, filters = await self.prepare_help_command(ctx, arguments)
 
         bot = ctx.bot
 
-        if command is None:
-            mapping = self.get_bot_mapping()
-            return await self.send_bot_help(mapping)
+        if not command:
+            if "built-in" in filters:
+                mapping = self.get_bot_mapping()
+                return await self.send_bot_help(mapping)
+            return await self.send_custom_help()
 
         cog = bot.get_cog(command)
         if cog:
@@ -203,20 +223,23 @@ class CustomHelp(commands.HelpCommand):
 
         # contains custom commands and built-in commands
         foundList = []
-        if ctx.guild:
-            with suppress(CCommandNotFound):
-                cc = await getCustomCommand(ctx, command)
-                foundList.append(cc)
 
-        keys = command.split(" ")
-        cmd = bot.all_commands.get(keys[0])
-        if cmd:
-            for key in keys[1:]:
-                with suppress(AttributeError):
-                    found = cmd.all_commands.get(key)
-                    if found:
-                        cmd = found
-            foundList.append(cmd)
+        if "custom" in filters:
+            if ctx.guild:
+                with suppress(CCommandNotFound):
+                    cc = await getCustomCommand(ctx, command)
+                    foundList.append(cc)
+
+        if "built-in" in filters:
+            keys = command.split(" ")
+            cmd = bot.all_commands.get(keys[0])
+            if cmd:
+                for key in keys[1:]:
+                    with suppress(AttributeError):
+                        found = cmd.all_commands.get(key)
+                        if found:
+                            cmd = found
+                foundList.append(cmd)
 
         if not foundList:
             string = await maybeCoro(

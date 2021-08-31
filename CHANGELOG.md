@@ -12,6 +12,7 @@
 - [**Improved**] Merged `on_member_ban` with `on_member_remove`, so it doesn't
   request audit logs twice
 - [**Improved**] Decrease modlog delay to 2 seconds delay
+- [**Improved**] Merged `>help filter: custom` with `>command list`
 
 # v3.2
 

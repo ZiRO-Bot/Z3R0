@@ -1038,18 +1038,10 @@ class Meta(commands.Cog, CogMixin):
 
     @command.command(name="list", aliases=("ls",), brief="Show all custom commands")
     async def cmdList(self, ctx):
-        # TODO: Merge this command with help command
-        cmds = await getCustomCommands(ctx.db, ctx.guild.id)
-        cmds = sorted(cmds, key=lambda cmd: cmd.uses, reverse=True)
-        e = ZEmbed.default(ctx, title="Custom Commands", description="")
-        if cmds:
-            for k, v in enumerate(cmds):
-                e.description += "**`{}`** {} [`{}` uses]\n".format(
-                    k + 1, v.name, v.uses
-                )
-        else:
-            e.description = "This server doesn't have custom command"
-        await ctx.try_reply(embed=e)
+        cmd: CustomHelp = ctx.bot.help_command
+        cmd = cmd.copy()
+        cmd.context = ctx
+        await cmd.command_callback(ctx, arguments="filter: custom")
 
     @command.command(name="mode", brief="Show current custom command mode")
     @commands.cooldown(1, 5, commands.BucketType.user)
