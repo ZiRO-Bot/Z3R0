@@ -1,4 +1,7 @@
+from __future__ import annotations
+
 from contextlib import suppress
+from typing import TYPE_CHECKING
 
 import discord
 from discord.ext import commands
@@ -15,7 +18,14 @@ from ._objects import CustomCommand, Group
 from ._pages import HelpCogPage, HelpCommandPage
 
 
+if TYPE_CHECKING:
+    from core.context import Context
+
+
 class CustomHelp(commands.HelpCommand):
+    if TYPE_CHECKING:
+        context: Context  # stop pyright from yelling at me
+
     async def send_bot_help(self, mapping):
         ctx = self.context
 
@@ -30,7 +40,7 @@ class CustomHelp(commands.HelpCommand):
             )
             + " | ".join("[{}]({})".format(k, v) for k, v in ctx.bot.links.items()),
         )
-        e.set_author(name=ctx.author, icon_url=ctx.author.avatar.url)
+        e.set_author(name=ctx.author, icon_url=ctx.author.display_avatar.url)
         e.set_footer(
             text="Use `{}help [category / command]` for more information".format(
                 ctx.prefix
