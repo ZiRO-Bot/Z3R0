@@ -207,15 +207,16 @@ class Info(commands.Cog, CogMixin):
             )
             e.set_image(url=emoji.url)  # type: ignore
         except AttributeError:
-            # TODO: Doesn't work with :rock:, find a fix
             try:
+                strEm: str = str(emoji)
+                digit = f"{ord(strEm):x}"
                 e = ZEmbed.default(
                     ctx,
                     title=" - ".join(
                         (
-                            emoji,
-                            hex(ord(emoji)).replace("0x", r"\u"),
-                            unicodedata.name(emoji),
+                            strEm,
+                            f"\\u{digit}",
+                            unicodedata.name(strEm, "Name not found"),
                         )
                     ),
                     description="`Type: Unicode`",
