@@ -260,7 +260,7 @@ python-versions = ">=3.5.3"
 
 [[package]]
 name = "discord.py"
-version = "2.0.0a3600+g6f561437"
+version = "2.0.0a3601+g2367d9d7"
 description = "A Python wrapper for the Discord API"
 category = "main"
 optional = false
@@ -277,9 +277,9 @@ voice = ["PyNaCl (>=1.3.0,<1.5)"]
 
 [package.source]
 type = "git"
-url = "https://github.com/iDevision/enhanced-discord.py"
-reference = "2.0"
-resolved_reference = "6f5614373a3c178c82d5145205dbc7427bcdd7d0"
+url = "https://github.com/ZiRO-Bot/enhanced-discord.py"
+reference = "2367d9d7e2d9fec871e34c5b0f3b88f717060974"
+resolved_reference = "2367d9d7e2d9fec871e34c5b0f3b88f717060974"
 
 [[package]]
 name = "distlib"
@@ -668,7 +668,7 @@ pymysql = ["pymysql (<1)", "pymysql"]
 
 [[package]]
 name = "TagScriptEngine"
-version = "2.5.7"
+version = "2.5.10a134+g4b89a36"
 description = ""
 category = "main"
 optional = false
@@ -678,8 +678,8 @@ develop = false
 [package.source]
 type = "git"
 url = "https://github.com/ZiRO-Bot/TagScript"
-reference = "653a9f101f4a35b88db0ea30455d1741aa5dee3d"
-resolved_reference = "653a9f101f4a35b88db0ea30455d1741aa5dee3d"
+reference = "4b89a369bb6e36ec07da75834da67dee0e351051"
+resolved_reference = "4b89a369bb6e36ec07da75834da67dee0e351051"
 
 [[package]]
 name = "toml"
@@ -772,7 +772,7 @@ voice = ["PyNaCl"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "be41777d8eafd52b87029296e7b71fdf3dc442980d92bfafda75a67a6c96e2b3"
+content-hash = "61974c9485ef23b9fd29ed4d7c959a4492c5781ce52b2ba963e638b92b788a0c"
 
 [metadata.files]
 aiohttp = [
