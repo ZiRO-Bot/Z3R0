@@ -62,6 +62,16 @@ def init_bot(loop):
     os.environ["JISHAKU_NO_DM_TRACEBACK"] = "True"
 
     bot = _bot.ziBot()
+
+    @bot.ipc.route()
+    async def get_guild(data):
+        guild = bot.get_guild(
+            data.guild_id
+        )  # get the guild object using parsed guild_id
+
+        return guild.name  # return the member count to the client
+
+    bot.ipc.start()
     bot.uptime = utcnow()
     bot.run()
 

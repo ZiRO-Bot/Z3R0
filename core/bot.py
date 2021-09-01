@@ -14,7 +14,7 @@ from typing import Any, Dict, Iterable, List, Optional, Union
 import aiohttp
 import discord
 from databases import Database, DatabaseURL
-from discord.ext import commands, tasks
+from discord.ext import commands, ipc, tasks
 
 import config
 from core.colour import ZColour
@@ -103,6 +103,8 @@ class ziBot(commands.Bot):
         self._BotBase__cogs: commands.core._CaseInsensitiveDict = (
             commands.core._CaseInsensitiveDict()
         )
+
+        self.ipc = ipc.Server(self, secret_key="helloworld")
 
         # log
         self.logger: logging.Logger = logging.getLogger("discord")
