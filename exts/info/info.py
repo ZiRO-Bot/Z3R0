@@ -42,7 +42,7 @@ class Info(commands.Cog, CogMixin):
     )
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def avatar(self, ctx: Context, user: MemberOrUser = None):
-        user = user or authorOrReferenced(ctx)  # type: ignore
+        user = user or await authorOrReferenced(ctx)  # type: ignore
 
         avatar: discord.Asset = user.display_avatar  # type: ignore
 
@@ -605,7 +605,7 @@ class Info(commands.Cog, CogMixin):
     @commands.cooldown(1, 5, commands.BucketType.user)
     @commands.guild_only()
     async def spotifyinfo(self, ctx: Context, user: discord.Member = None):
-        user = user or authorOrReferenced(ctx)  # type: ignore
+        user = user or await authorOrReferenced(ctx)  # type: ignore
 
         spotify: discord.Spotify = discord.utils.find(
             lambda s: isinstance(s, discord.Spotify), user.activities  # type: ignore
