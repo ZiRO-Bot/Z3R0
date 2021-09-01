@@ -260,7 +260,7 @@ python-versions = ">=3.5.3"
 
 [[package]]
 name = "discord.py"
-version = "2.0.0a3582+g773ad6f5"
+version = "2.0.0a3600+g6f561437"
 description = "A Python wrapper for the Discord API"
 category = "main"
 optional = false
@@ -279,7 +279,7 @@ voice = ["PyNaCl (>=1.3.0,<1.5)"]
 type = "git"
 url = "https://github.com/iDevision/enhanced-discord.py"
 reference = "2.0"
-resolved_reference = "773ad6f5bfa1c877085edd090f6fa0def1cbc704"
+resolved_reference = "6f5614373a3c178c82d5145205dbc7427bcdd7d0"
 
 [[package]]
 name = "distlib"
@@ -772,7 +772,7 @@ voice = ["PyNaCl"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "e7f953c1b15c82571d52893b258bac93281712b0cddf63dacbd882448f5b1010"
+content-hash = "be41777d8eafd52b87029296e7b71fdf3dc442980d92bfafda75a67a6c96e2b3"
 
 [metadata.files]
 aiohttp = [

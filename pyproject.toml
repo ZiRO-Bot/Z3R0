@@ -9,7 +9,7 @@ license = "MPL-2.0"
 aiohttp = "3.7.3"
 python = "^3.8"
 beautifulsoup4 = "^4.9.3"
-"discord.py" = {git = "https://github.com/iDevision/enhanced-discord.py", branch = "2.0", rev = "773ad6f5bfa1c877085edd090f6fa0def1cbc704"}
+"discord.py" = {git = "https://github.com/iDevision/enhanced-discord.py", branch = "2.0", rev = "6f5614373a3c178c82d5145205dbc7427bcdd7d0"}
 discord-ext-menus = "^1.1"
 fuzzywuzzy = "0.18.0"
 humanize = "3.7.0"
