@@ -668,7 +668,7 @@ pymysql = ["pymysql (<1)", "pymysql"]
 
 [[package]]
 name = "TagScriptEngine"
-version = "2.5.10a134+g4b89a36"
+version = "2.5.11a135+g1c3d2b0"
 description = ""
 category = "main"
 optional = false
@@ -678,8 +678,8 @@ develop = false
 [package.source]
 type = "git"
 url = "https://github.com/ZiRO-Bot/TagScript"
-reference = "4b89a369bb6e36ec07da75834da67dee0e351051"
-resolved_reference = "4b89a369bb6e36ec07da75834da67dee0e351051"
+reference = "1c3d2b01c3228b44d26f0707c4809503fb6a2f50"
+resolved_reference = "1c3d2b01c3228b44d26f0707c4809503fb6a2f50"
 
 [[package]]
 name = "toml"
@@ -772,7 +772,7 @@ voice = ["PyNaCl"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "61974c9485ef23b9fd29ed4d7c959a4492c5781ce52b2ba963e638b92b788a0c"
+content-hash = "ce56565a0c9d079a093c9248cdf01dac38ffa2130b1446097bbba737891cf763"
 
 [metadata.files]
 aiohttp = [
