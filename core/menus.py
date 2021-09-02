@@ -1,12 +1,19 @@
+from __future__ import annotations
+
 import asyncio
+from collections import namedtuple
 from contextlib import suppress
-from typing import List, Optional, Union
+from typing import TYPE_CHECKING, Any, Iterable, List, Optional, Union
 
 import discord
 from discord.ext import menus
 
 from core.enums import Emojis
 from core.views import ZView
+
+
+if TYPE_CHECKING:
+    from core.context import Context
 
 
 class ZMenu(menus.MenuPages):
@@ -46,7 +53,7 @@ class ZMenu(menus.MenuPages):
 
 
 class ZReplyMenu(ZMenu):
-    def __init__(self, source, ping=False):
+    def __init__(self, source, ping=False) -> None:
         self.ping = ping or False
         super().__init__(source=source, check_embeds=True)
 
@@ -74,7 +81,7 @@ class ZMenuView(ZView):
 
     def __init__(
         self,
-        ctx,
+        ctx: Context,
         *,
         timeout: float = 180.0,
         ownerOnly: bool = True,
@@ -118,7 +125,7 @@ class ZMenuPagesView(ZMenuView):
 
     def __init__(
         self,
-        ctx,
+        ctx: Context,
         source: Union[menus.PageSource, Pages],
         **kwargs,
     ) -> None:
@@ -176,7 +183,7 @@ class ZMenuPagesView(ZMenuView):
         self.currentPage = pageNumber
         kwargs = await self.getPage(pageNumber)
         self._pageInfo.label = f"Page {pageNumber+1}/{self.getMaxPages()}"
-        await interaction.message.edit(view=self, **kwargs)
+        await interaction.message.edit(view=self, **kwargs)  # type: ignore
 
     async def sendCheckedPage(self, interaction: discord.Interaction, pageNumber):
         maxPages = self.getMaxPages()
@@ -228,8 +235,8 @@ class ZMenuPagesView(ZMenuView):
             message: discord.Message = await self.context.bot.wait_for(
                 "message",
                 timeout=30.0,
-                check=lambda msg: msg.author.id == interaction.user.id
-                and msg.channel.id == interaction.channel.id
+                check=lambda msg: msg.author.id == interaction.user.id  # type: ignore
+                and msg.channel.id == interaction.channel.id  # type: ignore
                 and msg.content.isdigit(),
             )
             with suppress(discord.HTTPException, discord.NotFound):
@@ -259,3 +266,35 @@ class ZMenuPagesView(ZMenuView):
     )
     async def _stop(self, button: discord.ui.Button, interaction: discord.Interaction):
         await self.stop()
+
+
+choice = namedtuple("choice", ("label", "value"))
+
+
+class ZChoices(ZView):
+    """Basically send choices as buttons"""
+
+    def __init__(self, ctx: Context, choices: Iterable[Any]):
+        super().__init__(owner=ctx.author)
+        self.context = ctx
+        self.choices: Iterable[Any] = choices
+        self.value: Any = None
+
+        def makeCallback(choice):
+            async def callback(interaction):
+                await interaction.response.defer()
+                self.value = choice.value
+                self.stop()
+
+            return callback
+
+        for choice in self.choices:
+            button = discord.ui.Button(label=choice.label)
+            button.callback = makeCallback(choice)
+            self.add_item(button)
+
+    async def wait(self):
+        await super().wait()
+
+    async def start(self):
+        await self.wait()
