@@ -952,9 +952,13 @@ class Meta(commands.Cog, CogMixin):
 
         successMsg = "`{}` has been enabled"
         alreadyMsg = "`{}` already enabled!"
-        notFoundMsg = "There is not {} command called `{}`"
 
-        chosen = await self.disableEnableHelper(ctx, name, isMod=isMod, immuneRoot=[])
+        try:
+            chosen = await self.disableEnableHelper(
+                ctx, name, isMod=isMod, immuneRoot=[]
+            )
+        except RuntimeError:
+            return
 
         mode = chosen[1]
 
