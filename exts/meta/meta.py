@@ -8,7 +8,7 @@ from __future__ import annotations
 import difflib
 import re
 import time
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Iterable, Tuple
 
 import discord
 import humanize
@@ -731,6 +731,75 @@ class Meta(commands.Cog, CogMixin):
             )
         )
 
+    @staticmethod
+    async def disableEnableHelper(
+        ctx, name, /, *, isMod: bool, immuneRoot: Iterable[str] = ("help", "command")
+    ) -> Tuple[Any, str]:
+        """Helper for `command disable` and `command enable`
+
+        - Find built-in command, custom command, and category
+        - Give choices to user when there's more than 1 type is found
+          with identical name
+        - Return user's choice (or raise RuntimeError when user
+          doesn't choose anything)
+        """
+        foundList = []  # contains built-in and custom command, also category
+
+        # only mods allowed to disable built-in commands
+        if isMod:
+            # find built-in command
+            cmd = ctx.bot.get_command(str(name))
+            if cmd:
+                cmdName = formatCmdName(cmd)
+
+                if str(cmd.root_parent or cmdName) not in immuneRoot:
+                    # check if command root parent is immune
+                    foundList.append(
+                        choice(f"{cmdName} (Built-in Command)", (cmdName, "command"))
+                    )
+
+            # find category
+            category = ctx.bot.get_cog(str(name))
+            if category:
+                foundList.append(
+                    choice(
+                        f"{category.qualified_name} (Category)", (category, "category")
+                    )
+                )
+
+        # find custom command
+        try:
+            cc = await getCustomCommand(ctx, name)
+        except CCommandNotFound:
+            pass
+        else:
+            foundList.append(choice(f"{cc.name} (Custom Command)", (cc, "custom")))
+
+        if len(foundList) <= 0:
+            # Nothing found, abort
+            return await ctx.error(
+                f"No command/category called '{name}' can be disabled"
+            )
+
+        chosen = None
+
+        if len(foundList) == 1:
+            # default chosen value
+            chosen = foundList[0].value
+        else:
+            # give user choices, since there's more than 1 type is found
+            choices = ZChoices(ctx, foundList)
+            msg = await ctx.send("Which one do you want to disable?", view=choices)
+            await choices.wait()
+            await msg.delete()
+            chosen = choices.value
+
+        if not chosen:
+            # nothing is chosen, abort (only happened when choices triggered)
+            raise RuntimeError("Nothing is chosen")
+
+        return chosen
+
     @command.command(
         brief="Disable a command",
         description=(
@@ -763,51 +832,11 @@ class Meta(commands.Cog, CogMixin):
         alreadyMsg = "`{}` already disabled!"
         immuneRoot = ("help", "command")
 
-        foundList = []
-        if isMod:
-            cmd = self.bot.get_command(str(name))
-            if cmd:
-                cmdName = formatCmdName(cmd)
-
-                if str(cmd.root_parent or cmdName) not in immuneRoot:
-                    # check if command root parent is immune
-                    foundList.append(
-                        choice(f"{cmdName} (Built-in Command)", (cmdName, "command"))
-                    )
-
-            category = self.bot.get_cog(str(name))
-            if category:
-                foundList.append(
-                    choice(
-                        f"{category.qualified_name} (Category)", (category, "category")
-                    )
-                )
-
         try:
-            cc = await getCustomCommand(ctx, name)
-        except CCommandNotFound:
-            pass
-        else:
-            foundList.append(choice(f"{cc.name} (Custom Command)", (cc, "custom")))
-
-        if len(foundList) <= 0:
-            # Nothing found, abort
-            return await ctx.error(
-                f"No command/category called '{name}' can be disabled"
+            chosen = await self.disableEnableHelper(
+                ctx, name, isMod=isMod, immuneRoot=immuneRoot
             )
-
-        chosen = None
-
-        if len(foundList) == 1:
-            chosen = foundList[0].value
-        else:
-            choices = ZChoices(ctx, foundList)
-            msg = await ctx.send("Which one do you want to disable?", view=choices)
-            await choices.wait()
-            await msg.delete()
-            chosen = choices.value
-
-        if not chosen:
+        except RuntimeError:
             return
 
         mode = chosen[1]
@@ -921,66 +950,23 @@ class Meta(commands.Cog, CogMixin):
 
         isMod = await checks.isMod(ctx)
 
-        # default mode
-        mode = "built-in" if isMod else "custom"
-
-        if parsed.built_in and not parsed.custom:
-            mode = "built-in" if not parsed.category else "category"
-        if not parsed.built_in and parsed.custom:
-            mode = "custom"
-
         successMsg = "`{}` has been enabled"
         alreadyMsg = "`{}` already enabled!"
         notFoundMsg = "There is not {} command called `{}`"
 
-        if mode in ("built-in", "category"):
-            # check if executor is a mod for built-in and category mode
-            if not isMod:
-                return await ctx.error(
-                    title="Only mods allowed to enable built-in command"
-                )
+        chosen = await self.disableEnableHelper(ctx, name, isMod=isMod, immuneRoot=[])
 
-        if mode == "built-in":
-            command = self.bot.get_command(name)
-            if not command:
-                # check if command exists
-                return await ctx.error(title=notFoundMsg.format(mode, name))
+        mode = chosen[1]
 
-            # format command name
-            cmdName = formatCmdName(command)
-
-            await getDisabledCommands(self.bot, ctx.guild.id)
-
-            try:
-                self.bot.cache.disabled.remove(ctx.guild.id, cmdName)
-            except ValueError:
-                # check if command already enabled
-                return await ctx.error(title=alreadyMsg.format(cmdName))
-
-            async with ctx.db.transaction():
-                await ctx.db.execute(
-                    """
-                    DELETE FROM disabled
-                    WHERE
-                        guildId=:guildId AND command=:command
-                    """,
-                    values={"guildId": ctx.guild.id, "command": cmdName},
-                )
-
-                return await ctx.success(title=successMsg.format(cmdName))
-
-        elif mode == "category":
-            category = self.bot.get_cog(name)
-            await getDisabledCommands(self.bot, ctx.guild.id)
-            commands = [c.name for c in category.get_commands()]
+        if mode == "category":
+            disabled = await getDisabledCommands(self.bot, ctx.guild.id)
 
             removed = []
-            for c in commands:
-                try:
-                    self.bot.cache.disabled.remove(c)
-                    removed.append(c)
-                except ValueError:
+            for c in chosen[0].get_commands():
+                if c.name not in disabled:
                     continue
+                self.bot.cache.disabled.remove(c)
+                removed.append(c)
 
             if not removed:
                 return await ctx.error(title="No commands succesfully enabled")
@@ -999,12 +985,8 @@ class Meta(commands.Cog, CogMixin):
                     title="`{}` commands has been enabled".format(len(removed))
                 )
 
-        elif mode == "custom":
-            try:
-                command = await getCustomCommand(ctx, name)
-            except CCommandNotFound:
-                return await ctx.error(title=notFoundMsg.format(mode, name))
-
+        if mode == "custom":
+            command = chosen[0]
             perm = await self.ccModeCheck(ctx, command=command)
             if not perm:
                 raise CCommandNoPerm
@@ -1022,6 +1004,27 @@ class Meta(commands.Cog, CogMixin):
                     values={"id": command.id},
                 )
                 return await ctx.success(title=successMsg.format(name))
+
+        if mode == "command":
+            cmdName = chosen[0]
+
+            try:
+                self.bot.cache.disabled.remove(ctx.guild.id, cmdName)
+            except ValueError:
+                # check if command already enabled
+                return await ctx.error(title=alreadyMsg.format(cmdName))
+
+            async with ctx.db.transaction():
+                await ctx.db.execute(
+                    """
+                    DELETE FROM disabled
+                    WHERE
+                        guildId=:guildId AND command=:command
+                    """,
+                    values={"guildId": ctx.guild.id, "command": cmdName},
+                )
+
+                return await ctx.success(title=successMsg.format(cmdName))
 
     @command.command(
         aliases=("?",),
