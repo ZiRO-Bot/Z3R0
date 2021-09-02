@@ -13,6 +13,9 @@
   request audit logs twice
 - [**Improved**] Decrease modlog delay to 2 seconds delay
 - [**Improved**] Merged `>help filter: custom` with `>command list`
+- [**Changed**] `>command disable` and `>command enable` no longer uses flag,
+  replaced with choice buttons when there's more than 1 type is found with
+  identical name
 
 # v3.2
 

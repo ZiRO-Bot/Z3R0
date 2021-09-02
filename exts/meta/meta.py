@@ -917,31 +917,23 @@ class Meta(commands.Cog, CogMixin):
         brief="Enable a command",
         description=(
             "Enable a command.\n\n"
-            "Support both custom and built-in command.\n"
-            "(Will try to enable custom command or built-in if "
-            "you're a moderator by default)"
+            "Support both custom and built-in command.\n\n"
+            "**New in `3.3.0`**: Removed options/flags. You'll get choices "
+            "when you can enable more than 1 type of command (or category)."
         ),
         extras=dict(
             example=(
                 "command enable example",
-                "cmd enable built-in: on weather",
-                "cmd enable built-in: on cat: on info",
-                "cmd enable custom: on test",
+                "cmd enable weather",
+                "cmd enable info",
+                "cmd enable test",
             ),
-            flags={
-                "built-in": "Emable built-in command",
-                "custom": "Enable custom command",
-                (
-                    "category",
-                    "cat",
-                ): "Enable all command in a specific category (Requires `built-in` flag)",
-            },
             perms={
                 "bot": None,
-                "user": "Moderator Role or Manage Guild (Built-in only)",
+                "user": "Depends on custom command mode or (Moderator Role or Manage Guild)",
             },
         ),
-        usage="(name) [options]",
+        usage="(name)",
     )
     async def enable(self, ctx, *, arguments: CmdManagerFlags):
         name, parsed = arguments
