@@ -1,4 +1,4 @@
-from __future__ import division
+from __future__ import annotations, division
 
 import argparse
 import datetime as dt
@@ -482,6 +482,13 @@ async def authorOrReferenced(ctx):
             else (await ctx.fetch_message(ref.message_id)).author
         )
     return ctx.author
+
+
+def isNsfw(channel) -> bool:
+    try:
+        return channel.is_nsfw()
+    except AttributeError:  # Mark DMs as NSFW channel
+        return isinstance(channel, discord.DMChannel)
 
 
 if __name__ == "__main__":
