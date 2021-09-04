@@ -16,6 +16,8 @@
 - [**Changed**] `>command disable` and `>command enable` no longer uses flag,
   replaced with choice buttons when there's more than 1 type is found with
   identical name
+- [**Fixed**] Anilist commands now works in DMs
+- [**Fixed**] `>manga search` actually search for manga not anime
 
 # v3.2
 
