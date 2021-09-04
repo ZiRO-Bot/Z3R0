@@ -91,13 +91,13 @@ Moved to [CHANGELOG.md](./CHANGELOG.md)
 - Tags (stripped version of custom command)
 - Unify categories/exts emoji
 - Channel manager commands
-- Reaction Role
+- Reaction Role (With buttons... button role?)
 - Starboard
 
 ### Pending Plan
 
 - i18n using gettext (Learning how gettext works)
-- Slash command (Waiting for ed.py's implementation)
+- Slash command (Waiting for implementation)
 - Properly support different SQL scheme (designing best way to do this)
 
 ### Scrapped Plan
