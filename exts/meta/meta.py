@@ -8,7 +8,7 @@ from __future__ import annotations
 import difflib
 import re
 import time
-from typing import TYPE_CHECKING, Any, Iterable, Tuple
+from typing import TYPE_CHECKING, Any, Iterable, Optional, Tuple
 
 import discord
 import humanize
@@ -731,8 +731,8 @@ class Meta(commands.Cog, CogMixin):
             )
         )
 
-    @staticmethod
     async def disableEnableHelper(
+        self,
         ctx,
         name,
         /,
@@ -740,7 +740,7 @@ class Meta(commands.Cog, CogMixin):
         action: str,
         isMod: bool,
         immuneRoot: Iterable[str] = ("help", "command"),
-    ) -> Tuple[Any, str]:
+    ) -> Optional[Tuple[Any, str]]:
         """Helper for `command disable` and `command enable`
 
         - Find built-in command, custom command, and category
@@ -802,7 +802,7 @@ class Meta(commands.Cog, CogMixin):
 
         if not chosen:
             # nothing is chosen, abort (only happened when choices triggered)
-            raise RuntimeError("Nothing is chosen")
+            return
 
         return chosen
 
@@ -838,11 +838,11 @@ class Meta(commands.Cog, CogMixin):
         alreadyMsg = "`{}` already disabled!"
         immuneRoot = ("help", "command")
 
-        try:
-            chosen = await self.disableEnableHelper(
-                ctx, name, action="disable", isMod=isMod, immuneRoot=immuneRoot
-            )
-        except RuntimeError:
+        chosen = await self.disableEnableHelper(
+            ctx, name, action="disable", isMod=isMod, immuneRoot=immuneRoot
+        )
+
+        if not chosen or isinstance(chosen, discord.Message):
             return
 
         mode = chosen[1]
@@ -951,11 +951,11 @@ class Meta(commands.Cog, CogMixin):
         successMsg = "`{}` has been enabled"
         alreadyMsg = "`{}` already enabled!"
 
-        try:
-            chosen = await self.disableEnableHelper(
-                ctx, name, action="enable", isMod=isMod, immuneRoot=[]
-            )
-        except RuntimeError:
+        chosen = await self.disableEnableHelper(
+            ctx, name, action="enable", isMod=isMod, immuneRoot=[]
+        )
+
+        if not chosen or isinstance(chosen, discord.Message):
             return
 
         mode = chosen[1]
