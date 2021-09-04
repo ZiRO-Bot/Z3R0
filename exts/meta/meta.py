@@ -733,7 +733,13 @@ class Meta(commands.Cog, CogMixin):
 
     @staticmethod
     async def disableEnableHelper(
-        ctx, name, /, *, isMod: bool, immuneRoot: Iterable[str] = ("help", "command")
+        ctx,
+        name,
+        /,
+        *,
+        action: str,
+        isMod: bool,
+        immuneRoot: Iterable[str] = ("help", "command"),
     ) -> Tuple[Any, str]:
         """Helper for `command disable` and `command enable`
 
@@ -745,7 +751,7 @@ class Meta(commands.Cog, CogMixin):
         """
         foundList = []  # contains built-in and custom command, also category
 
-        # only mods allowed to disable built-in commands
+        # only mods allowed to disable/enable built-in commands
         if isMod:
             # find built-in command
             cmd = ctx.bot.get_command(str(name))
@@ -778,7 +784,7 @@ class Meta(commands.Cog, CogMixin):
         if len(foundList) <= 0:
             # Nothing found, abort
             return await ctx.error(
-                f"No command/category called '{name}' can be disabled"
+                f"No command/category called '{name}' can be {action}d"
             )
 
         chosen = None
@@ -789,7 +795,7 @@ class Meta(commands.Cog, CogMixin):
         else:
             # give user choices, since there's more than 1 type is found
             choices = ZChoices(ctx, foundList)
-            msg = await ctx.send("Which one do you want to disable?", view=choices)
+            msg = await ctx.send(f"Which one do you want to {action}?", view=choices)
             await choices.wait()
             await msg.delete()
             chosen = choices.value
@@ -834,7 +840,7 @@ class Meta(commands.Cog, CogMixin):
 
         try:
             chosen = await self.disableEnableHelper(
-                ctx, name, isMod=isMod, immuneRoot=immuneRoot
+                ctx, name, action="disable", isMod=isMod, immuneRoot=immuneRoot
             )
         except RuntimeError:
             return
@@ -947,7 +953,7 @@ class Meta(commands.Cog, CogMixin):
 
         try:
             chosen = await self.disableEnableHelper(
-                ctx, name, isMod=isMod, immuneRoot=[]
+                ctx, name, action="enable", isMod=isMod, immuneRoot=[]
             )
         except RuntimeError:
             return
