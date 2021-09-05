@@ -234,25 +234,28 @@ class CustomHelp(commands.HelpCommand):
                             cmd = found
                 foundList.append(cmd)
 
-        if not foundList:
-            string = await maybeCoro(
-                self.command_not_found, self.remove_mentions(command)
-            )
-            return await self.send_error_message(string)
-
         choiceList = [choice(f"{command} (Command)", foundList)]
 
         # default to foundList
         selected = foundList
         if cog:
-            choiceList.append(choice(f"{command} (Category)", cog))
-            # both cog and command is found, lets give user a choice
-            choices = ZChoices(ctx, choiceList)
-            msg = await ctx.try_reply("Which one?", view=choices)
+            if foundList:
+                choiceList.append(choice(f"{command} (Category)", cog))
+                # both cog and command is found, lets give user a choice
+                choices = ZChoices(ctx, choiceList)
+                msg = await ctx.try_reply("Which one?", view=choices)
 
-            await choices.wait()
-            await msg.delete()
-            selected = choices.value
+                await choices.wait()
+                await msg.delete()
+                selected = choices.value
+            else:
+                selected = cog
+
+        elif not foundList:
+            string = await maybeCoro(
+                self.command_not_found, self.remove_mentions(command)
+            )
+            return await self.send_error_message(string)
 
         if not selected:
             return
