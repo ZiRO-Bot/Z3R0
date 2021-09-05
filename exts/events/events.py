@@ -35,7 +35,6 @@ REASON_REGEX = re.compile(
 )
 
 
-# TODO: Move this to exts.utils.other
 async def doModlog(
     bot: ziBot,
     guild: discord.Guild,
