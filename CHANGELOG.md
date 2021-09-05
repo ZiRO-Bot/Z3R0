@@ -21,7 +21,9 @@
 - [**Improved**] User now given choices between command and category when their
   names are conflicted
 - [**Improved**] Custom command list now paginated
-- [**Improved**] Added "compact mode" to paginator
+- [**New**] Added "compact mode" to paginator
+- [**Improved**] Failed NSFW check will now properly "yell" at the executor,
+  instead of yelling "Check failed!"
 
 # v3.2
 
