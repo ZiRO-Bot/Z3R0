@@ -240,6 +240,7 @@ class EventHandler(commands.Cog, CogMixin):
             errors.MissingMuteRole,
             errors.CCommandNoPerm,
             errors.CCommandDisabled,
+            errors.NotNSFWChannel,
         )
 
         if isinstance(error, commands.CommandNotFound) or isinstance(

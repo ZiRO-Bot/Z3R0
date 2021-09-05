@@ -80,3 +80,8 @@ class MissingAdminPrivilege(CommandError):
             )
 
         super().__init__(message, *args)
+
+
+class NotNSFWChannel(CommandError):
+    def __init__(self):
+        super().__init__("You're only allowed to use this command in a NSFW channels!")
