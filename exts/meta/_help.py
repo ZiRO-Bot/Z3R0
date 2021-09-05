@@ -242,7 +242,8 @@ class CustomHelp(commands.HelpCommand):
 
         choiceList = [choice(f"{command} (Command)", foundList)]
 
-        selected = None
+        # default to foundList
+        selected = foundList
         if cog:
             choiceList.append(choice(f"{command} (Category)", cog))
             # both cog and command is found, lets give user a choice
