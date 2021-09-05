@@ -81,17 +81,6 @@ class Moderation(commands.Cog, CogMixin):
             # Failed to send DM
             desc += "\n**DM**: Failed to notify user."
 
-        # Do the action
-        try:
-            await (actions[action])(
-                ctx,
-                user,
-                reason="[{} (ID: {})]: {}".format(ctx.author, ctx.author.id, reason),
-                **kwargs,
-            )
-        except discord.Forbidden:
-            return await ctx.try_reply("I don't have permission to ban a user!")
-
         caseNum = await doCaselog(
             self.bot,
             guildId=ctx.guild.id,
@@ -102,6 +91,19 @@ class Moderation(commands.Cog, CogMixin):
         )
         if caseNum:
             desc += "\n**Case**: #{}".format(caseNum)
+
+        # Do the action
+        try:
+            await (actions[action])(
+                ctx,
+                user,
+                reason="[{} (ID: {}) #{}]: {}".format(
+                    ctx.author, ctx.author.id, caseNum, reason
+                ),
+                **kwargs,
+            )
+        except discord.Forbidden:
+            return await ctx.try_reply("I don't have permission to ban a user!")
 
         if time is not None:
             # Temporary ban

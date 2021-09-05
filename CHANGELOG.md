@@ -3,8 +3,7 @@
 ## 3.3.0
 
 - [**New**] Added realurl (get real url of a shorten url)
-- [**Improved**] Added case number to modlog message (for now only work with
-  manual moderation action)
+- [**Improved**] Added case number to modlog message
 - [**Changed**] Rename `Bot.master` -> `Bot.owner_ids`
 - [**Fixed**] Fix Admin commands' checks not working properly
 - [**Improved**] Manually set Intents, this should slightly improve the

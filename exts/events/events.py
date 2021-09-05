@@ -30,7 +30,9 @@ if TYPE_CHECKING:
     from core.bot import ziBot
 
 
-REASON_REGEX = re.compile(r"^\[\S+\#\d+ \(ID: (\d+)\)\]: (.*)")
+REASON_REGEX = re.compile(
+    r"^\[\S+\#\d+ \(ID: (?P<userId>[0-9]+)\) #(?P<caseNum>[0-9]+)\]: (?P<reason>.*)"
+)
 
 
 # TODO: Move this to exts.utils.other
@@ -56,9 +58,10 @@ async def doModlog(
             # Get the real moderator
             match = REASON_REGEX.match(reason)
             if match:
-                modId = int(match.group(1))
+                modId = int(match.group("userId"))
                 moderator = bot.get_user(modId) or await bot.fetch_user(modId)
-                reason = match.group(2)
+                reason = match.group("reason")
+                caseNum = int(match.group("caseNum"))
 
     else:
         # Since moderation is done manually, caselog will be done here
@@ -75,17 +78,18 @@ async def doModlog(
         # No channel found, don't do modlog
         return
 
+    if not caseNum:
+        # placeholder for failed case parsing attempt
+        caseNum = -1
+
     e = ZEmbed.minimal(
-        title="Modlog - {}".format(type.title()),
+        title="{} | #{}".format(type.title(), caseNum),
         description=(
             f"**User**: {member} ({member.mention})\n"
             + (f"**Reason**: {reason}\n" if reason else "")
             + f"**Moderator**: {moderator.mention}"
         ),
     )
-    # TODO: Make caseNum appears when moderation cmd is used
-    if caseNum is not None:
-        e.description += f"\n**Case**: #{caseNum}"
 
     e.set_footer(text=f"ID: {member.id}")
     await channel.send(embed=e)  # type: ignore
@@ -533,7 +537,7 @@ class EventHandler(commands.Cog, CogMixin):
             return
 
         with suppress(discord.Forbidden):
-            await asyncio.sleep(5)
+            await asyncio.sleep(2)
             entry = (
                 await guild.audit_logs(
                     limit=1, action=discord.AuditLogAction.member_role_update
