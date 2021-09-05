@@ -20,6 +20,8 @@
 - [**Fixed**] `>manga search` actually search for manga not anime
 - [**Improved**] User now given choices between command and category when their
   names are conflicted
+- [**Improved**] Custom command list now paginated
+- [**Improved**] Added "compact mode" to paginator
 
 # v3.2
 
