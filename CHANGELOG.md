@@ -7,7 +7,7 @@
   manual moderation action)
 - [**Changed**] Rename `Bot.master` -> `Bot.owner_ids`
 - [**Fixed**] Fix Admin commands' checks not working properly
-- [**Improved**] Manually input Intents, this should slightly improve the
+- [**Improved**] Manually set Intents, this should slightly improve the
   performance
 - [**Improved**] Merged `on_member_ban` with `on_member_remove`, so it doesn't
   request audit logs twice
