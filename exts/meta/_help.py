@@ -26,7 +26,7 @@ class CustomHelp(commands.HelpCommand):
     if TYPE_CHECKING:
         context: Context  # stop pyright from yelling at me
 
-    async def send_bot_help(self, mapping):
+    async def send_bot_help(self, mapping) -> discord.Message:
         ctx = self.context
 
         e = ZEmbed(
@@ -80,7 +80,7 @@ class CustomHelp(commands.HelpCommand):
 
         return await ctx.try_reply(embed=e)
 
-    async def filter_commands(self, _commands):
+    async def filter_commands(self, _commands) -> list:
         async def predicate(cmd):
             try:
                 return await cmd.can_run(self.context)
@@ -97,7 +97,7 @@ class CustomHelp(commands.HelpCommand):
 
         return ret
 
-    async def send_cog_help(self, cog, filters):
+    async def send_cog_help(self, cog, filters) -> None:
         ctx = self.context
 
         filtered = []
@@ -121,15 +121,15 @@ class CustomHelp(commands.HelpCommand):
         view = ZMenuPagesView(ctx, source=HelpCogPage(cog, filtered))
         await view.start()
 
-    async def command_not_found(self, string):
+    async def command_not_found(self, string) -> str:
         return "No command/category called `{}` found.".format(string)
 
-    async def send_error_message(self, error):
+    async def send_error_message(self, error) -> None:
         if isinstance(error, CustomCommand):
             return
         await self.context.error(error)
 
-    async def send_command_help(self, commands_):
+    async def send_command_help(self, commands_) -> None:
         ctx = self.context
 
         filtered = []
@@ -180,7 +180,7 @@ class CustomHelp(commands.HelpCommand):
 
         return command, unique
 
-    async def send_custom_help(self):
+    async def send_custom_help(self) -> None:
         # TODO: Improve the output
         ctx = self.context
 
