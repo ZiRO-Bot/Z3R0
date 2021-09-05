@@ -8,7 +8,7 @@ from discord.ext import commands
 
 from core.embed import ZEmbed
 from core.errors import CCommandNotFound
-from core.menus import ZMenuPagesView
+from core.menus import ZChoices, ZMenuPagesView, choice
 from utils import infoQuote
 from utils.format import formatDiscordDT
 
@@ -211,8 +211,6 @@ class CustomHelp(commands.HelpCommand):
             return await self.send_custom_help()
 
         cog = bot.get_cog(command)
-        if cog:
-            return await self.send_cog_help(cog, filters)
 
         maybeCoro = discord.utils.maybe_coroutine
 
@@ -241,5 +239,24 @@ class CustomHelp(commands.HelpCommand):
                 self.command_not_found, self.remove_mentions(command)
             )
             return await self.send_error_message(string)
+
+        choiceList = [choice(f"{command} (Command)", foundList)]
+
+        selected = None
+        if cog:
+            choiceList.append(choice(f"{command} (Category)", cog))
+            # both cog and command is found, lets give user a choice
+            choices = ZChoices(ctx, choiceList)
+            msg = await ctx.try_reply("Which one?", view=choices)
+
+            await choices.wait()
+            await msg.delete()
+            selected = choices.value
+
+        if not selected:
+            return
+
+        if not isinstance(selected, list):
+            return await self.send_cog_help(cog, filters)
 
         await self.send_command_help(foundList)

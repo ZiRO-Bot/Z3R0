@@ -795,7 +795,9 @@ class Meta(commands.Cog, CogMixin):
         else:
             # give user choices, since there's more than 1 type is found
             choices = ZChoices(ctx, foundList)
-            msg = await ctx.send(f"Which one do you want to {action}?", view=choices)
+            msg = await ctx.try_reply(
+                f"Which one do you want to {action}?", view=choices
+            )
             await choices.wait()
             await msg.delete()
             chosen = choices.value
@@ -1090,7 +1092,7 @@ class Meta(commands.Cog, CogMixin):
     @commands.command(brief="Get link to my source code")
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def source(self, ctx):
-        await ctx.send("My source code: {}".format(self.bot.links["Source Code"]))
+        await ctx.try_reply("My source code: {}".format(self.bot.links["Source Code"]))
 
     @commands.command(aliases=("botinfo", "bi"), brief="Information about me")
     @commands.cooldown(1, 5, commands.BucketType.user)
