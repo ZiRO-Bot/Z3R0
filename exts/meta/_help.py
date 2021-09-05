@@ -15,7 +15,7 @@ from utils.format import formatDiscordDT
 from ._custom_command import getCustomCommand, getCustomCommands
 from ._flags import HelpFlags
 from ._objects import CustomCommand, Group
-from ._pages import HelpCogPage, HelpCommandPage
+from ._pages import CustomCommandsListSource, HelpCogPage, HelpCommandPage
 
 
 if TYPE_CHECKING:
@@ -189,15 +189,13 @@ class CustomHelp(commands.HelpCommand):
 
         cmds = await getCustomCommands(ctx.db, guild.id)
         cmds = sorted(cmds, key=lambda cmd: cmd.uses, reverse=True)
-        e = ZEmbed.default(ctx, title="Custom Commands", description="")
-        if cmds:
-            for k, v in enumerate(cmds):
-                e.description += "**`{}`** {} [`{}` uses]\n".format(
-                    k + 1, v.name, v.uses
-                )
-        else:
-            e.description = "This server doesn't have custom command"
-        await ctx.try_reply(embed=e)
+        view = ZMenuPagesView(
+            ctx,
+            source=CustomCommandsListSource(
+                [(count, command) for count, command in enumerate(cmds)]
+            ),
+        )
+        await view.start()
 
     async def command_callback(self, ctx, *, arguments=None):
         command, filters = await self.prepare_help_command(ctx, arguments)
