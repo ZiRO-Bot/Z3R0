@@ -86,10 +86,15 @@ class ZMenuView(ZView):
         timeout: float = 180.0,
         ownerOnly: bool = True,
     ) -> None:
-        super().__init__(ctx.author, timeout=timeout)
+        owner: Union[discord.User, discord.Member] = ctx.author
+        super().__init__(owner, timeout=timeout)
         self.context = ctx
         self._message: Optional[discord.Message] = None
         self.currentPage: int = 0
+        if isinstance(owner, discord.Member):
+            self.compact = owner.is_on_mobile()
+        else:
+            self.compact = False
 
     def shouldAddButtons(self):
         return True
@@ -131,6 +136,8 @@ class ZMenuPagesView(ZMenuView):
     ) -> None:
         self._source: Union[menus.PageSource, Pages] = source
         super().__init__(ctx, **kwargs)
+        self.pageFmt = ("Page " if not self.compact else "") + "{current}/{last}"
+        self._pageInfo.label = self.pageFmt.format(current="N/A", last="N/A")
 
     def shouldAddButtons(self):
         source = self._source
@@ -168,10 +175,12 @@ class ZMenuPagesView(ZMenuView):
         kwargs = await self.getPage(0)
         if self.shouldAddButtons():
             kwargs["view"] = self
-            self._pageInfo.label = f"Page 1/{self.getMaxPages()}"
+            self._pageInfo.label = self.pageFmt.format(
+                current="1", last=self.getMaxPages()
+            )
             if self.getMaxPages() == 2:
-                self.remove_item(self._first)
-                self.remove_item(self._last)
+                self.remove_item(self._first)  # type: ignore
+                self.remove_item(self._last)  # type: ignore
         return await ctx.try_reply(**kwargs)
 
     async def sendPage(
@@ -182,7 +191,9 @@ class ZMenuPagesView(ZMenuView):
 
         self.currentPage = pageNumber
         kwargs = await self.getPage(pageNumber)
-        self._pageInfo.label = f"Page {pageNumber+1}/{self.getMaxPages()}"
+        self._pageInfo.label = self.pageFmt.format(
+            current=pageNumber + 1, last=self.getMaxPages()
+        )
         await interaction.message.edit(view=self, **kwargs)  # type: ignore
 
     async def sendCheckedPage(self, interaction: discord.Interaction, pageNumber):
