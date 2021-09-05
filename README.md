@@ -93,6 +93,7 @@ Moved to [CHANGELOG.md](./CHANGELOG.md)
 - Channel manager commands
 - Reaction Role (With buttons... button role?)
 - Starboard
+- Command to retrieve case log
 
 ### Pending Plan
 
