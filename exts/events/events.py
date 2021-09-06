@@ -555,4 +555,24 @@ class EventHandler(commands.Cog, CogMixin):
 
     @commands.Cog.listener("on_member_unmuted")
     async def onMemberUnmuted(self, member: discord.Member, mutedRole: discord.Role):
-        return
+        if not (guild := member.guild):
+            # impossible to happened, but sure
+            return
+
+        with suppress(discord.Forbidden):
+            await asyncio.sleep(2)
+            entry = (
+                await guild.audit_logs(
+                    limit=1, action=discord.AuditLogAction.member_role_update
+                ).flatten()
+            )[0]
+
+            if entry.target == member and not entry.target._roles.has(mutedRole.id):
+                await doModlog(
+                    self.bot,
+                    member.guild,
+                    entry.target,
+                    entry.user,
+                    "unmute",
+                    entry.reason,
+                )
