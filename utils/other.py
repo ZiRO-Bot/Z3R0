@@ -418,7 +418,8 @@ async def doCaselog(
                         :type,
                         :modId,
                         :targetId,
-                        :reason
+                        :reason,
+                        :createdAt
                     )
                 """,
                 values={
@@ -428,6 +429,7 @@ async def doCaselog(
                     "modId": modId,
                     "targetId": targetId,
                     "reason": reason,
+                    "createdAt": int(utcnow().timestamp()),
                 },
             )
         return int(caseNum)

@@ -14,6 +14,7 @@ from core import checks
 from core.converter import BannedMember, Hierarchy, MemberOrUser, TimeAndArgument
 from core.embed import ZEmbed
 from core.errors import MissingMuteRole
+from core.menus import ZMenuPagesView
 from core.mixin import CogMixin
 from exts.admin.admin import Admin
 from exts.timer.timer import Timer, TimerData
@@ -22,6 +23,7 @@ from utils.format import formatDateTime
 from utils.other import doCaselog, utcnow
 
 from ._flags import AnnouncementFlags
+from ._pages import CaseListSource
 
 
 class Moderation(commands.Cog, CogMixin):
@@ -693,3 +695,25 @@ class Moderation(commands.Cog, CogMixin):
         e = ZEmbed.default(ctx, title=resp)
 
         await msg.edit(embed=e)
+
+    @commands.command(aliases=("cases",))
+    @checks.mod_or_permissions(manage_messages=True)
+    async def caselogs(self, ctx, moderator: discord.Member = None):
+        moderator = moderator or ctx.author
+        modCases = await self.bot.db.fetch_all(
+            """
+            SELECT caseId, type, targetId, reason, createdAt FROM caseLog
+            WHERE guildId=:guildId AND modId=:modId
+            """,
+            values={
+                "guildId": ctx.guild.id,
+                "modId": moderator.id,
+            },
+        )
+        if not modCases:
+            return await ctx.error(
+                f"{moderator.display_name} doesn't have any cases",
+                title="No cases found",
+            )
+        menu = ZMenuPagesView(ctx, source=CaseListSource(moderator, modCases))
+        await menu.start()

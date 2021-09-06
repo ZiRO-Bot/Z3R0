@@ -26,6 +26,11 @@
 - [**Fixed**] Fixed caselog type `mute` being inconsistent ( [**For
   self-hoster**] sql query to fix your database: `UPDATE OR IGNORE caseLog SET
   type='mute' WHERE type='muted'`)
+- [**New**] Added createdAt column to caselog ( [**For self-hoster**]: sql
+  query to add this column without dropping the table `ALTER TABLE caseLog ADD
+  COLUMN createdAt INTEGER DEFAULT 0`) [**NOTE**]: Old cases' time will return
+  either "Unknown" or `1/1/1970`
+- [**New**] Added `caselogs`/`cases` command to get moderator's cases
 
 # v3.2
 
