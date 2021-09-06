@@ -6,12 +6,11 @@ Web scrapper for google search
 import re
 from contextlib import suppress
 from typing import Any, List, Optional
-from urllib.parse import quote_plus
 
 import aiohttp
 import bs4
 
-from core.decorators import in_executor  # type: ignore
+from core.decorators import in_executor
 
 
 class SearchResult:

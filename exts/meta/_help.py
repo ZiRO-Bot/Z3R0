@@ -1,22 +1,32 @@
+from __future__ import annotations
+
 from contextlib import suppress
+from typing import TYPE_CHECKING
 
 import discord
 from discord.ext import commands
 
 from core.embed import ZEmbed
 from core.errors import CCommandNotFound
-from core.menus import ZMenuPagesView
+from core.menus import ZChoices, ZMenuPagesView, choice
 from utils import infoQuote
 from utils.format import formatDiscordDT
 
 from ._custom_command import getCustomCommand, getCustomCommands
 from ._flags import HelpFlags
 from ._objects import CustomCommand, Group
-from ._pages import HelpCogPage, HelpCommandPage
+from ._pages import CustomCommandsListSource, HelpCogPage, HelpCommandPage
+
+
+if TYPE_CHECKING:
+    from core.context import Context
 
 
 class CustomHelp(commands.HelpCommand):
-    async def send_bot_help(self, mapping):
+    if TYPE_CHECKING:
+        context: Context  # stop pyright from yelling at me
+
+    async def send_bot_help(self, mapping) -> discord.Message:
         ctx = self.context
 
         e = ZEmbed(
@@ -30,7 +40,7 @@ class CustomHelp(commands.HelpCommand):
             )
             + " | ".join("[{}]({})".format(k, v) for k, v in ctx.bot.links.items()),
         )
-        e.set_author(name=ctx.author, icon_url=ctx.author.avatar.url)
+        e.set_author(name=ctx.author, icon_url=ctx.author.display_avatar.url)
         e.set_footer(
             text="Use `{}help [category / command]` for more information".format(
                 ctx.prefix
@@ -59,10 +69,11 @@ class CustomHelp(commands.HelpCommand):
             name="News | Updated at: {}".format(formatDiscordDT(1628576674, "F")),
             value=(
                 "Changelogs:"
-                "\n- Updated `discord.py` to v2.0 (buttons!)"
-                "\n- Improved help command behaviour"
-                "\n- Added AniList category (Anime and Manga commands)"
-                "\n- Fixed some issues"
+                "\n- Fixed bugs and error"
+                "\n- Added choices for conflicted name (for `command disable/enable` and `help` command)"
+                "\n- `manga search` command now actually search for manga instead of anime"
+                "\n- Added `caselogs`/`cases` command to get moderator's cases (mods only)"
+                "\n- Added `realurl` command to get real url of a shorten url"
                 "\n\n[Click here to see the full changelog!]"
                 "(https://github.com/ZiRO-Bot/Z3R0/blob/overhaul/CHANGELOG.md)\n"
             ),
@@ -70,7 +81,7 @@ class CustomHelp(commands.HelpCommand):
 
         return await ctx.try_reply(embed=e)
 
-    async def filter_commands(self, _commands):
+    async def filter_commands(self, _commands) -> list:
         async def predicate(cmd):
             try:
                 return await cmd.can_run(self.context)
@@ -87,7 +98,7 @@ class CustomHelp(commands.HelpCommand):
 
         return ret
 
-    async def send_cog_help(self, cog, filters):
+    async def send_cog_help(self, cog, filters) -> None:
         ctx = self.context
 
         filtered = []
@@ -111,15 +122,15 @@ class CustomHelp(commands.HelpCommand):
         view = ZMenuPagesView(ctx, source=HelpCogPage(cog, filtered))
         await view.start()
 
-    async def command_not_found(self, string):
+    async def command_not_found(self, string) -> str:
         return "No command/category called `{}` found.".format(string)
 
-    async def send_error_message(self, error):
+    async def send_error_message(self, error) -> None:
         if isinstance(error, CustomCommand):
             return
         await self.context.error(error)
 
-    async def send_command_help(self, commands_):
+    async def send_command_help(self, commands_) -> None:
         ctx = self.context
 
         filtered = []
@@ -136,16 +147,16 @@ class CustomHelp(commands.HelpCommand):
         await view.start()
 
     async def prepare_help_command(self, ctx, arguments) -> tuple:
+        # default filters, based on original help cmd
+        defFilters = ("built-in", "custom")
+
         if arguments is None:
-            return None, None
+            return None, defFilters
 
         # separate string from flags
         # String filters: String -> ("String", "filters: String")
         command, parsed = await HelpFlags.convert(ctx, arguments)
         await super().prepare_help_command(ctx, command)
-
-        # default filters, based on original help cmd
-        defFilters = ("built-in", "custom")
 
         filters = []
         for f in parsed.filters:
@@ -168,50 +179,87 @@ class CustomHelp(commands.HelpCommand):
         if not unique:
             unique = defFilters
 
-        # if not command and len(unique) == 1:
-        # TODO: get command list if no command specified and 1 filters specified
-        # This will merge `>command list`
-        # return None, None, unique
-        # pass
-
         return command, unique
+
+    async def send_custom_help(self) -> None:
+        # TODO: Improve the output
+        ctx = self.context
+
+        if not (guild := ctx.guild):
+            return
+
+        cmds = await getCustomCommands(ctx.db, guild.id)
+        cmds = sorted(cmds, key=lambda cmd: cmd.uses, reverse=True)
+        view = ZMenuPagesView(
+            ctx,
+            source=CustomCommandsListSource(
+                [(count, command) for count, command in enumerate(cmds)]
+            ),
+        )
+        await view.start()
 
     async def command_callback(self, ctx, *, arguments=None):
         command, filters = await self.prepare_help_command(ctx, arguments)
 
         bot = ctx.bot
 
-        if command is None:
-            mapping = self.get_bot_mapping()
-            return await self.send_bot_help(mapping)
+        if not command:
+            if "built-in" in filters:
+                mapping = self.get_bot_mapping()
+                return await self.send_bot_help(mapping)
+            return await self.send_custom_help()
 
         cog = bot.get_cog(command)
-        if cog:
-            return await self.send_cog_help(cog, filters)
 
         maybeCoro = discord.utils.maybe_coroutine
 
         # contains custom commands and built-in commands
         foundList = []
-        if ctx.guild:
-            with suppress(CCommandNotFound):
-                cc = await getCustomCommand(ctx, command)
-                foundList.append(cc)
 
-        keys = command.split(" ")
-        cmd = bot.all_commands.get(keys[0])
-        if cmd:
-            for key in keys[1:]:
-                with suppress(AttributeError):
-                    found = cmd.all_commands.get(key)
-                    if found:
-                        cmd = found
-            foundList.append(cmd)
+        if "custom" in filters:
+            if ctx.guild:
+                with suppress(CCommandNotFound):
+                    cc = await getCustomCommand(ctx, command)
+                    foundList.append(cc)
 
-        if not foundList:
+        if "built-in" in filters:
+            keys = command.split(" ")
+            cmd = bot.all_commands.get(keys[0])
+            if cmd:
+                for key in keys[1:]:
+                    with suppress(AttributeError):
+                        found = cmd.all_commands.get(key)
+                        if found:
+                            cmd = found
+                foundList.append(cmd)
+
+        choiceList = [choice(f"{command} (Command)", foundList)]
+
+        # default to foundList
+        selected = foundList
+        if cog:
+            if foundList:
+                choiceList.append(choice(f"{command} (Category)", cog))
+                # both cog and command is found, lets give user a choice
+                choices = ZChoices(ctx, choiceList)
+                msg = await ctx.try_reply("Which one?", view=choices)
+
+                await choices.wait()
+                await msg.delete()
+                selected = choices.value
+            else:
+                selected = cog
+
+        elif not foundList:
             string = await maybeCoro(
                 self.command_not_found, self.remove_mentions(command)
             )
             return await self.send_error_message(string)
+
+        if not selected:
+            return
+
+        if not isinstance(selected, list):
+            return await self.send_cog_help(cog, filters)
 
         await self.send_command_help(foundList)

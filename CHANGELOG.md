@@ -1,3 +1,35 @@
+# v3.3
+
+## 3.3.0
+
+- [**New**] Added realurl (get real url of a shorten url)
+- [**Improved**] Added case number to modlog message
+- [**Changed**] Rename `Bot.master` -> `Bot.owner_ids`
+- [**Fixed**] Fix Admin commands' checks not working properly
+- [**Improved**] Decrease modlog delay to 2 seconds delay
+- [**Improved**] Merged `>help filter: custom` with `>command list`
+- [**Changed**] `>command disable` and `>command enable` no longer uses flag,
+  replaced with choice buttons when there's more than 1 type is found with
+  identical name
+- [**Fixed**] Anilist commands now works in DMs
+- [**Fixed**] `>manga search` actually search for manga not anime
+- [**Improved**] User now given choices between command and category when their
+  names are conflicted
+- [**Improved**] Custom command list now paginated
+- [**New**] Added "compact mode" to paginator
+- [**Improved**] Failed NSFW check will now properly "yell" at the executor,
+  instead of yelling "Check failed!"
+- [**Fixed**] Fixed caselog type `mute` being inconsistent ( [**For
+  self-hoster**] sql query to fix your database: `UPDATE OR IGNORE caseLog SET
+  type='mute' WHERE type='muted'`)
+- [**New**] Added createdAt column to caselog ( [**For self-hoster**]: sql
+  query to add this column without dropping the table `ALTER TABLE caseLog ADD
+  COLUMN createdAt INTEGER DEFAULT 0`) [**NOTE**]: Old cases' time will return
+  either "Unknown" or `1/1/1970`
+- [**New**] Added `caselogs`/`cases` command to get moderator's cases
+- [**Improved**] Modlog now log unmute and unban
+- [**Disabled**] Disable `google` command (blocking the whole bot)
+
 # v3.2
 
 ## 3.2.9
@@ -8,8 +40,6 @@
 
 - [**Fixed**] Fixed Moderation commands' checks not working properly
 
-<!-- (TODO: Check if Admin commands' checks also broken) -->
-
 ## 3.2.7
 
 - [**Fixed**] Fixed help command not working in DMs
@@ -18,7 +48,7 @@
 
 ## 3.2.6
 
-- [**Fixed**] Fixed modlog. Added 5 second delay, letting Audit Logs to update
+- [**Fixed**] Fixed modlog. Added 5 seconds delay, letting Audit Logs to update
   before sending modlog
 
 ## 3.2.5

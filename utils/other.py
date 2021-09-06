@@ -1,4 +1,4 @@
-from __future__ import division
+from __future__ import annotations, division
 
 import argparse
 import datetime as dt
@@ -9,7 +9,7 @@ import os
 import uuid
 from decimal import Decimal
 from html.parser import HTMLParser
-from typing import Tuple
+from typing import Optional, Tuple
 
 import discord
 from pyparsing import (
@@ -398,7 +398,7 @@ async def doCaselog(
     modId: int,
     targetId: int,
     reason: str,
-):
+) -> Optional[int]:
     caseNums = await bot.db.fetch_one(
         "SELECT IFNULL(MAX(caseId)+1, 1) FROM caseLog WHERE guildId=:guildId",
         values={"guildId": guildId},
@@ -418,7 +418,8 @@ async def doCaselog(
                         :type,
                         :modId,
                         :targetId,
-                        :reason
+                        :reason,
+                        :createdAt
                     )
                 """,
                 values={
@@ -428,9 +429,10 @@ async def doCaselog(
                     "modId": modId,
                     "targetId": targetId,
                     "reason": reason,
+                    "createdAt": int(utcnow().timestamp()),
                 },
             )
-        return caseNum
+        return int(caseNum)
 
 
 TAG_IN_MD = {
@@ -470,6 +472,25 @@ class Markdownify(HTMLParser):
 
     def handle_data(self, data):
         self.result += data
+
+
+async def authorOrReferenced(ctx):
+    if ref := ctx.replied_reference:
+        # Get referenced message author
+        # if user reply to a message while doing this command
+        return (
+            ref.cached_message.author
+            if ref.cached_message
+            else (await ctx.fetch_message(ref.message_id)).author
+        )
+    return ctx.author
+
+
+def isNsfw(channel) -> bool:
+    try:
+        return channel.is_nsfw()
+    except AttributeError:  # Mark DMs as NSFW channel
+        return isinstance(channel, discord.DMChannel)
 
 
 if __name__ == "__main__":

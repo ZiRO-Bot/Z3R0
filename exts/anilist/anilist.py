@@ -3,7 +3,10 @@ This Source Code Form is subject to the terms of the Mozilla Public
 License, v. 2.0. If a copy of the MPL was not distributed with this
 file, You can obtain one at http://mozilla.org/MPL/2.0/.
 """
+from __future__ import annotations
+
 from random import randrange
+from typing import Optional
 
 import discord
 from discord.ext import commands
@@ -12,7 +15,7 @@ from core.embed import ZEmbed
 from core.enums import Emojis
 from core.menus import ZMenuPagesView
 from core.mixin import CogMixin
-from utils.api import graphql
+from utils.api.graphql import GraphQL
 
 from ._flags import AnimeSearchFlags
 from ._pages import AnimeSearchPageSource
@@ -20,8 +23,8 @@ from ._query import searchQuery
 
 
 class ReadMore(discord.ui.Button):
-    async def callback(self, interaction: discord.Interaction):
-        view: ZMenuPagesView = self.view
+    async def callback(self, interaction: discord.Interaction) -> None:
+        view: Optional[ZMenuPagesView] = self.view
         page = await view._source.get_page(view.currentPage)  # type: ignore
         synopsis = view._source.sendSynopsis(page)  # type: ignore
         e = ZEmbed(description=synopsis)
@@ -33,13 +36,15 @@ class AniList(commands.Cog, CogMixin):
 
     icon = "<:AniList:872771143797440533>"
 
-    def __init__(self, bot):
+    def __init__(self, bot) -> None:
         super().__init__(bot)
-        self.anilist = graphql.GraphQL(
+        self.anilist: GraphQL = GraphQL(
             "https://graphql.anilist.co", session=self.bot.session
         )
 
-    async def anilistSearch(self, ctx, name: str, parsed, type: str = "ANIME"):
+    async def anilistSearch(
+        self, ctx, name: str, parsed, type: str = "ANIME"
+    ) -> Optional[discord.Message]:
         """Function for 'manga search' and 'anime search' command"""
         type = type.upper().replace(" ", "_")
 
@@ -50,7 +55,7 @@ class AniList(commands.Cog, CogMixin):
             "name": name,
             "page": 1,
             "perPage": 25,
-            "type": "ANIME",
+            "type": type,
         }
         if parsed.format_:
             kwargs["format"] = parsed.format_.strip().upper().replace(" ", "_")
@@ -70,7 +75,7 @@ class AniList(commands.Cog, CogMixin):
         menu.add_item(ReadMore(emoji=Emojis.info))
         await menu.start()
 
-    async def anilistRandom(self, ctx, type: str = "ANIME"):
+    async def anilistRandom(self, ctx, type: str = "ANIME") -> None:
         query = await self.anilist.queryPost(
             """
             query ($type: MediaType) {
@@ -120,7 +125,7 @@ class AniList(commands.Cog, CogMixin):
         aliases=("ani",),
         brief="Get anime's information",
     )
-    async def anime(self, ctx):
+    async def anime(self, ctx) -> None:
         pass
 
     @anime.command(
@@ -137,18 +142,18 @@ class AniList(commands.Cog, CogMixin):
         ),
     )
     @commands.cooldown(1, 5, commands.BucketType.user)
-    async def animeSearch(self, ctx, *, arguments: AnimeSearchFlags):
+    async def animeSearch(self, ctx, *, arguments: AnimeSearchFlags) -> None:
         name, parsed = arguments
 
-        await self.anilistSearch(ctx, name, parsed, "ANIME")
+        await self.anilistSearch(ctx, name, parsed, "ANIME")  # type: ignore
 
     @anime.command(name="random", brief="Get random anime")
     @commands.cooldown(1, 5, commands.BucketType.user)
-    async def animeRandom(self, ctx):
+    async def animeRandom(self, ctx) -> None:
         await self.anilistRandom(ctx)
 
     @commands.group(brief="Get manga's information")
-    async def manga(self, ctx):
+    async def manga(self, ctx) -> None:
         pass
 
     @manga.command(
@@ -163,12 +168,12 @@ class AniList(commands.Cog, CogMixin):
         ),
     )
     @commands.cooldown(1, 5, commands.BucketType.user)
-    async def mangaSearch(self, ctx, *, arguments: AnimeSearchFlags):
+    async def mangaSearch(self, ctx, *, arguments: AnimeSearchFlags) -> None:
         name, parsed = arguments
 
-        await self.anilistSearch(ctx, name, parsed, "MANGA")
+        await self.anilistSearch(ctx, name, parsed, "MANGA")  # type: ignore
 
     @manga.command(name="random", brief="Get random manga")
     @commands.cooldown(1, 5, commands.BucketType.user)
-    async def mangaRandom(self, ctx):
+    async def mangaRandom(self, ctx) -> None:
         await self.anilistRandom(ctx, type="MANGA")

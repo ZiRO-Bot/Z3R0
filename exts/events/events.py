@@ -30,37 +30,41 @@ if TYPE_CHECKING:
     from core.bot import ziBot
 
 
-REASON_REGEX = re.compile(r"^\[\S+\#\d+ \(ID: (\d+)\)\]: (.*)")
+REASON_REGEX = re.compile(
+    r"^\[\S+\#\d+ \(ID: (?P<userId>[0-9]+)\) #(?P<caseNum>[0-9]+)\]: (?P<reason>.*)"
+)
 
 
-# TODO: Move this to exts.utils.other
 async def doModlog(
     bot: ziBot,
     guild: discord.Guild,
-    member: discord.abc.User,
-    moderator: discord.abc.User,
+    member: discord.User,
+    moderator: discord.User,
     type: str,
     reason: str = None,
+    caseNum: Optional[int] = None,
 ) -> None:
     """Basically handle formatting modlog events"""
 
-    channel = await bot.getGuildConfig(guild.id, "modlogCh", "guildChannels")
-    channel = bot.get_channel(channel)
+    channel = bot.get_channel(
+        await bot.getGuildConfig(guild.id, "modlogCh", "guildChannels") or 0
+    )
 
-    if moderator.id == bot.user.id:
+    if moderator.id == bot.user.id:  # type: ignore
         # This usually True when mods use moderation commands
         # Or when bots doing automod stuff
         if reason and channel:
             # Get the real moderator
             match = REASON_REGEX.match(reason)
             if match:
-                modId = match.group(1)
+                modId = int(match.group("userId"))
                 moderator = bot.get_user(modId) or await bot.fetch_user(modId)
-                reason = match.group(2)
+                reason = match.group("reason")
+                caseNum = int(match.group("caseNum"))
 
     else:
         # Since moderation is done manually, caselog will be done here
-        await doCaselog(
+        caseNum = await doCaselog(
             bot,
             guildId=guild.id,
             type=type,
@@ -73,17 +77,21 @@ async def doModlog(
         # No channel found, don't do modlog
         return
 
-    # TODO: Include caselog number into modlog
+    if not caseNum:
+        # placeholder for failed case parsing attempt
+        caseNum = -1
+
     e = ZEmbed.minimal(
-        title="Modlog - {}".format(type.title()),
+        title="{} | #{}".format(type.title(), caseNum),
         description=(
             f"**User**: {member} ({member.mention})\n"
             + (f"**Reason**: {reason}\n" if reason else "")
             + f"**Moderator**: {moderator.mention}"
         ),
     )
+
     e.set_footer(text=f"ID: {member.id}")
-    await channel.send(embed=e)
+    await channel.send(embed=e)  # type: ignore
 
 
 class EventHandler(commands.Cog, CogMixin):
@@ -160,46 +168,79 @@ class EventHandler(commands.Cog, CogMixin):
                 # Something wrong happened
                 return
 
-    @commands.Cog.listener("on_member_remove")
-    async def onMemberRemove(self, user: discord.User) -> None:
-        """Farewell message"""
-        with suppress(discord.Forbidden):
-            await asyncio.sleep(5)
-            # TODO: Add muted_member table to database to prevent mute evasion
-            entry = (await user.guild.audit_logs(limit=1).flatten())[0]
+    async def getAuditLogs(
+        self, guild: discord.Guild, limit=1, delay=2, **kwargs
+    ) -> discord.AuditLogEntry:
+        # discord needs a few second to update Audit Logs
+        await asyncio.sleep(delay)
+        return (await guild.audit_logs(limit=limit, **kwargs).flatten())[0]
 
-            if entry.target == user:
+    @commands.Cog.listener("on_member_remove")
+    async def onMemberRemove(self, member: discord.Member) -> None:
+        """Farewell message"""
+        guild: discord.Guild = member.guild
+
+        with suppress(discord.Forbidden):
+            entry = await self.getAuditLogs(guild)
+
+            if entry.target == member:
+
                 # TODO: Filters bot's action
                 if entry.action == discord.AuditLogAction.kick:
-                    self.bot.dispatch("member_kick", user, entry)
+                    self.bot.dispatch("member_kick", member, entry)
                     return
 
                 if entry.action == discord.AuditLogAction.ban:
+                    # Intents.bans are disabled to make this works
+                    self.bot.dispatch("member_ban", member, entry)
                     return
 
-        return await self.handleGreeting(user, "farewell")
+                if entry.action == discord.AuditLogAction.unban:
+                    # Intents.bans are disabled to make this works
+                    self.bot.dispatch("member_unban", member, entry)
+                    return
+
+        # fallback to farewell message
+        return await self.handleGreeting(member, "farewell")
 
     @commands.Cog.listener("on_member_kick")
     async def onMemberKick(
-        self, member: discord.User, entry: discord.AuditLogEntry
+        self, member: discord.Member, entry: discord.AuditLogEntry
     ) -> None:
         await doModlog(
-            self.bot, member.guild, entry.target, entry.user, "kick", entry.reason
+            self.bot,
+            member.guild,
+            entry.target,  # type: ignore
+            entry.user,
+            "kick",
+            entry.reason,
         )
 
     @commands.Cog.listener("on_member_ban")
     async def onMemberBan(self, guild: discord.Guild, user: discord.User) -> None:
-        with suppress(discord.Forbidden):
-            await asyncio.sleep(5)
-            entry = (
-                await guild.audit_logs(
-                    limit=1, action=discord.AuditLogAction.ban
-                ).flatten()
-            )[0]
-            if entry.target == user:
-                await doModlog(
-                    self.bot, guild, entry.target, entry.user, "ban", entry.reason
-                )
+        entry = await self.getAuditLogs(guild)
+        if entry.target == user:
+            await doModlog(
+                self.bot,
+                guild,
+                entry.target,  # type: ignore
+                entry.user,
+                "ban",
+                entry.reason,
+            )
+
+    @commands.Cog.listener("on_member_unban")
+    async def onMemberUnban(self, guild: discord.Guild, user: discord.User) -> None:
+        entry = await self.getAuditLogs(guild)
+        if entry.target == user:
+            await doModlog(
+                self.bot,
+                guild,
+                entry.target,  # type: ignore
+                entry.user,
+                "unban",
+                entry.reason,
+            )
 
     @commands.Cog.listener("on_command_error")
     async def onCommandError(self, ctx, error) -> Optional[discord.Message]:
@@ -225,6 +266,7 @@ class EventHandler(commands.Cog, CogMixin):
             errors.MissingMuteRole,
             errors.CCommandNoPerm,
             errors.CCommandDisabled,
+            errors.NotNSFWChannel,
         )
 
         if isinstance(error, commands.CommandNotFound) or isinstance(
@@ -326,7 +368,7 @@ class EventHandler(commands.Cog, CogMixin):
         try:
             # Send embed that when user react with greenTick bot will send it to bot owner or issue channel
             dest = (
-                self.bot.get_channel(self.bot.issueChannel)
+                self.bot.get_partial_messageable(self.bot.issueChannel)
                 or self.bot.get_user(self.bot.owner_id)
                 or (self.bot.get_user(self.bot.master[0]))
             )
@@ -390,23 +432,28 @@ class EventHandler(commands.Cog, CogMixin):
         if before.author.bot:
             return
 
+        if not (guild := before.guild):
+            return
+
         if before.type != discord.MessageType.default:
             return
 
         if before.content == after.content:
             return
 
-        guild = before.guild
-
-        logCh = guild.get_channel(
-            await self.bot.getGuildConfig(guild.id, "purgatoryCh", "guildChannels")
+        logChId = await self.bot.getGuildConfig(
+            guild.id, "purgatoryCh", "guildChannels"
         )
-        if not logCh:
+        if not logChId:
             return
+
+        logCh = self.bot.get_partial_messageable(logChId)
 
         e = ZEmbed(timestamp=utcnow(), title="Edited Message")
 
-        e.set_author(name=before.author, icon_url=before.author.avatar.url)
+        avatar = before.author.display_avatar
+
+        e.set_author(name=before.author, icon_url=avatar.url)
 
         e.add_field(
             name="Before",
@@ -457,20 +504,25 @@ class EventHandler(commands.Cog, CogMixin):
         if message.author.bot:
             return
 
+        if not (guild := message.guild):
+            return
+
         if message.type != discord.MessageType.default:
             return
 
-        guild = message.guild
-
-        logCh = guild.get_channel(
-            await self.bot.getGuildConfig(guild.id, "purgatoryCh", "guildChannels")
+        logChId = await self.bot.getGuildConfig(
+            guild.id, "purgatoryCh", "guildChannels"
         )
-        if not logCh:
+        if not logChId:
             return
+
+        logCh = self.bot.get_partial_messageable(logChId)
 
         e = ZEmbed(timestamp=utcnow(), title="Deleted Message")
 
-        e.set_author(name=message.author, icon_url=message.author.avatar.url)
+        avatar = message.author.display_avatar
+
+        e.set_author(name=message.author, icon_url=avatar.url)
 
         e.description = (
             message.content[:1020] + " ..."
@@ -488,7 +540,7 @@ class EventHandler(commands.Cog, CogMixin):
             return
 
         # TODO: Add user log channel
-        channel = after.guild.get_channel(814009733006360597)
+        channel = self.bot.get_partial_messageable(814009733006360597)
 
         role = after.guild.premium_subscriber_role
         if role not in before.roles and role in after.roles:
@@ -502,25 +554,42 @@ class EventHandler(commands.Cog, CogMixin):
 
     @commands.Cog.listener("on_member_muted")
     async def onMemberMuted(self, member: discord.Member, mutedRole: discord.Object):
-        guild = member.guild
-        with suppress(discord.Forbidden):
-            await asyncio.sleep(5)
-            entry = (
-                await guild.audit_logs(
-                    limit=1, action=discord.AuditLogAction.member_role_update
-                ).flatten()
-            )[0]
+        if not (guild := member.guild):
+            # impossible to happened, but sure
+            return
 
-            if entry.target == member and entry.target._roles.has(mutedRole.id):
+        with suppress(discord.Forbidden):
+            entry = await self.getAuditLogs(
+                guild, action=discord.AuditLogAction.member_role_update
+            )
+
+            if entry.target == member and entry.target._roles.has(mutedRole.id):  # type: ignore
                 await doModlog(
                     self.bot,
                     member.guild,
-                    entry.target,
+                    entry.target,  # type: ignore
                     entry.user,
-                    "muted",
+                    "mute",
                     entry.reason,
                 )
 
     @commands.Cog.listener("on_member_unmuted")
     async def onMemberUnmuted(self, member: discord.Member, mutedRole: discord.Role):
-        return
+        if not (guild := member.guild):
+            # impossible to happened, but sure
+            return
+
+        with suppress(discord.Forbidden):
+            entry = await self.getAuditLogs(
+                guild, action=discord.AuditLogAction.member_role_update
+            )
+
+            if entry.target == member and not entry.target._roles.has(mutedRole.id):  # type: ignore
+                await doModlog(
+                    self.bot,
+                    member.guild,
+                    entry.target,  # type: ignore
+                    entry.user,
+                    "unmute",
+                    entry.reason,
+                )

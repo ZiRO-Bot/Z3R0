@@ -14,7 +14,7 @@ from jishaku.features.baseclass import Feature
 
 from core.bot import EXTS_DIR
 from core.embed import ZEmbed
-from core.menus import ZMenuPagesView
+from core.menus import ZChoices, ZMenuPagesView, choice
 
 
 # --- For reload all command status
@@ -29,7 +29,7 @@ class Developer(*STANDARD_FEATURES, *OPTIONAL_FEATURES):
 
     async def cog_check(self, ctx):
         """Only bot master able to use debug cogs."""
-        return self.bot.master and ctx.author.id in self.bot.master
+        return self.bot.owner_ids and ctx.author.id in self.bot.owner_ids
 
     # def notMe():
     #     async def pred(ctx):
@@ -122,6 +122,7 @@ class Developer(*STANDARD_FEATURES, *OPTIONAL_FEATURES):
                 ["{} | `{}`".format(v, k) for k, v in status.items()]
             )
         else:
+            extension = exts[0]
             e.title = "{} | {} {}".format(
                 status[extension],
                 extension,
@@ -152,3 +153,10 @@ class Developer(*STANDARD_FEATURES, *OPTIONAL_FEATURES):
         async with ctx.loading():
             await asyncio.sleep(5)
             await ctx.send(":D")
+
+    @commands.command()
+    async def testchoices(self, ctx):
+        res = ZChoices(ctx, [choice("a", "aa"), choice("b", "bb")])
+        await ctx.send(":)", view=res)
+        await res.wait()
+        await ctx.send(res.value)
