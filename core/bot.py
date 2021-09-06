@@ -76,17 +76,7 @@ class ziBot(commands.Bot):
 
     def __init__(self) -> None:
         # custom intents, required since dpy v1.5
-        intents = discord.Intents(
-            # bans are handled with on_member_remove,
-            # so only members intent is needed
-            bans=False,
-            members=True,
-            guilds=True,
-            messages=True,
-            emojis=True,
-            presences=True,
-            reactions=True,
-        )
+        intents = discord.Intents.all()
 
         super().__init__(
             command_prefix=_callablePrefix,
