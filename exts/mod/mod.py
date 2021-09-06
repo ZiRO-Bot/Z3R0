@@ -40,6 +40,7 @@ class Moderation(commands.Cog, CogMixin):
         """Ban function, self-explanatory"""
         actions = {
             "ban": self.doBan,
+            "unban": self.doUnban,
             "mute": self.doMute,
             "unmute": self.doUnmute,
             "kick": self.doKick,
@@ -76,6 +77,7 @@ class Moderation(commands.Cog, CogMixin):
         if not silent:
             DMMsgs = {
                 "ban": "banned",
+                "unban": "unbanned",
                 "mute": "muted",
                 "unmute": "unmuted",
             }
@@ -128,6 +130,7 @@ class Moderation(commands.Cog, CogMixin):
 
         titles = {
             "ban": "Banned",
+            "unban": "Unbanned",
             "mute": "Muted",
             "unmute": "Unmuted",
         }
@@ -211,11 +214,7 @@ class Moderation(commands.Cog, CogMixin):
     )
     @checks.mod_or_permissions(ban_members=True)
     async def unban(self, ctx, member: BannedMember, *, reason: str = "No reason"):
-        await ctx.guild.unban(member.user, reason=reason)
-        e = ZEmbed.success(
-            title="Unbanned {} for {}".format(member.user, reason),
-        )
-        await ctx.try_reply(embed=e)
+        await self.doModeration(ctx, member.user, None, "unban", reason=reason)
 
     async def doBan(self, ctx, user: discord.User, /, reason: str, **kwargs):
         saveMsg = kwargs.pop("saveMsg", False)
@@ -225,6 +224,9 @@ class Moderation(commands.Cog, CogMixin):
             reason=reason,
             delete_message_days=0 if saveMsg else 1,
         )
+
+    async def doUnban(self, ctx, user: discord.User, /, reason: str, **kwargs):
+        await ctx.guild.unban(user, reason=reason)
 
     @commands.Cog.listener("on_ban_timer_complete")
     async def onBanTimerComplete(self, timer: TimerData):
