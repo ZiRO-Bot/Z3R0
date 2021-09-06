@@ -23,6 +23,9 @@
 - [**New**] Added "compact mode" to paginator
 - [**Improved**] Failed NSFW check will now properly "yell" at the executor,
   instead of yelling "Check failed!"
+- [**Fixed**] Fixed caselog type `mute` being inconsistent ( [**For
+  self-hoster**] sql query to fix your database: `UPDATE OR IGNORE caseLog SET
+  type='mute' WHERE type='muted'`)
 
 # v3.2
 
