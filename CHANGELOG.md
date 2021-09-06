@@ -28,6 +28,7 @@
   either "Unknown" or `1/1/1970`
 - [**New**] Added `caselogs`/`cases` command to get moderator's cases
 - [**Improved**] Modlog now log unmute and unban
+- [**Disabled**] Disable `google` command (blocking the whole bot)
 
 # v3.2
 
