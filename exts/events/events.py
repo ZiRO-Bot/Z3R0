@@ -549,7 +549,7 @@ class EventHandler(commands.Cog, CogMixin):
                     member.guild,
                     entry.target,
                     entry.user,
-                    "muted",
+                    "mute",
                     entry.reason,
                 )
 
