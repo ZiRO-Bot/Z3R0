@@ -27,6 +27,7 @@
   COLUMN createdAt INTEGER DEFAULT 0`) [**NOTE**]: Old cases' time will return
   either "Unknown" or `1/1/1970`
 - [**New**] Added `caselogs`/`cases` command to get moderator's cases
+- [**Improved**] Modlog now log unmute and unban
 
 # v3.2
 
