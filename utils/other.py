@@ -9,7 +9,7 @@ import os
 import uuid
 from decimal import Decimal
 from html.parser import HTMLParser
-from typing import Optional, Tuple
+from typing import Any, Dict, Optional, Tuple
 
 import discord
 from pyparsing import (
@@ -227,13 +227,13 @@ class UserFriendlyBoolean(argparse.Action):
         setattr(namespace, self.dest, boolFromString(values))
 
 
-class Blacklist:
-    __slots__ = ("filename", "guilds", "users")
+class JSON(dict):
+    __slots__ = ("filename", "data")
 
-    def __init__(self, filename: str = "blacklist.json"):
-        self.filename = filename
+    def __init__(self, filename: str, default: Dict[Any, Any] = {}) -> None:
+        self.filename: str = filename
 
-        data = {}
+        data: Dict[Any, Any] = default or {}
 
         try:
             f = open(filename, "r")
@@ -242,38 +242,47 @@ class Blacklist:
             with open(filename, "w+") as f:
                 json.dump(data, f, indent=4)
 
-        self.guilds = data.get("guilds", [])
-        self.users = data.get("users", [])
+        super().__init__(data)
 
     def __repl__(self):
-        return f"<Blacklist: guilds:{self.guilds} users:{self.users}>"
+        return f"<JSON: data={self.items}>"
 
     def dump(self, indent: int = 4, **kwargs):
         temp = "{}-{}.tmp".format(uuid.uuid4(), self.filename)
-        data = {"guilds": self.guilds, "users": self.users}
         with open(temp, "w") as tmp:
-            json.dump(data.copy(), tmp, indent=indent, **kwargs)
+            json.dump(self.copy(), tmp, indent=indent, **kwargs)
 
         os.replace(temp, self.filename)
         return True
 
-    def append(self, key: str, value: int, **kwargs):
-        """Add users/guilds to the blacklist"""
-        _type = getattr(self, key)
-        if value in _type:
-            return
 
-        _type.append(value)
+class Blacklist(JSON):
+    def __init__(self, filename: str = "blacklist.json"):
+        super().__init__(filename)
+
+    @property
+    def guilds(self):
+        return self.get("guilds", [])
+
+    @property
+    def users(self):
+        return self.get("users", [])
+
+    def __repl__(self):
+        return f"<Blacklist: guilds={self.guilds} users={self.users}>"
+
+    def append(self, key: Any, value: Any, **kwargs) -> Any:
+        val: list = self.get(key, [])
+        val.append(value)
+        self.update({key: val})
 
         self.dump(**kwargs)
         return value
 
-    def remove(self, key: str, value: int, **kwargs):
-        _type = getattr(self, key)
-        if value not in _type:
-            return
-
-        _type.remove(value)
+    def remove(self, key: Any, value: Any, **kwargs) -> Any:
+        val: list = self.get(key, [])
+        val.remove(value)
+        self.update({key: val})
 
         self.dump(**kwargs)
         return value
@@ -495,5 +504,9 @@ def isNsfw(channel) -> bool:
 
 if __name__ == "__main__":
     # For testing
-    print(encodeMorse("test 123"))
-    print(decodeMorse("... --- ..."))
+    # print(encodeMorse("test 123"))
+    # print(decodeMorse("... --- ..."))
+    test = JSON("test.json")
+    test["test"] = "hello"
+    print(test)
+    test.dump()
