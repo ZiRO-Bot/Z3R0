@@ -1,5 +1,9 @@
 # v3.3
 
+## 3.3.1
+
+- [**New**] You can now change news using a command instead of hardcoding it
+
 ## 3.3.0
 
 - [**New**] Added realurl (get real url of a shorten url)
