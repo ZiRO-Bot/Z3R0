@@ -126,6 +126,12 @@ class ziBot(commands.Bot):
             ">" if not hasattr(config, "prefix") else str(config.prefix)
         )
 
+        # News, shows up in help command
+        self.news: Dict[str, Any] = {
+            "time": 0,
+            "content": "Nothing to see here...",
+        }
+
         # Caches
         self.cache: Cache = (
             Cache()

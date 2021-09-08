@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from contextlib import suppress
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Dict
 
 import discord
 from discord.ext import commands
@@ -66,18 +66,24 @@ class CustomHelp(commands.HelpCommand):
         )
         # TODO: Make a command to set this without reloading the extension
         e.add_field(
-            name="News | Updated at: {}".format(formatDiscordDT(1628576674, "F")),
-            value=(
-                "Changelogs:"
-                "\n- Fixed bugs and error"
-                "\n- Added choices for conflicted name (for `command disable/enable` and `help` command)"
-                "\n- `manga search` command now actually search for manga instead of anime"
-                "\n- Added `caselogs`/`cases` command to get moderator's cases (mods only)"
-                "\n- Added `realurl` command to get real url of a shorten url"
-                "\n\n[Click here to see the full changelog!]"
-                "(https://github.com/ZiRO-Bot/Z3R0/blob/overhaul/CHANGELOG.md)\n"
+            name="News | Updated at: {}".format(
+                formatDiscordDT(ctx.bot.news.get("time", 0), "F")
             ),
+            value=ctx.bot.news.get("content") or "Nothing to see here...",
         )
+        # e.add_field(
+        #     name="News | Updated at: {}".format(formatDiscordDT(1628576674, "F")),
+        #     value=(
+        #         "Changelogs:"
+        #         "\n- Fixed bugs and error"
+        #         "\n- Added choices for conflicted name (for `command disable/enable` and `help` command)"
+        #         "\n- `manga search` command now actually search for manga instead of anime"
+        #         "\n- Added `caselogs`/`cases` command to get moderator's cases (mods only)"
+        #         "\n- Added `realurl` command to get real url of a shorten url"
+        #         "\n\n[Click here to see the full changelog!]"
+        #         "(https://github.com/ZiRO-Bot/Z3R0/blob/overhaul/CHANGELOG.md)\n"
+        #     ),
+        # )
 
         return await ctx.try_reply(embed=e)
 
