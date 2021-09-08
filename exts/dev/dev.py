@@ -7,8 +7,8 @@ from __future__ import annotations
 
 import asyncio
 import os
+import time
 
-from discord.ext import commands
 from jishaku.cog import OPTIONAL_FEATURES, STANDARD_FEATURES
 from jishaku.features.baseclass import Feature
 
@@ -30,43 +30,6 @@ class Developer(*STANDARD_FEATURES, *OPTIONAL_FEATURES):
     async def cog_check(self, ctx):
         """Only bot master able to use debug cogs."""
         return self.bot.owner_ids and ctx.author.id in self.bot.owner_ids
-
-    # def notMe():
-    #     async def pred(ctx):
-    #         return not (ctx.bot.master and ctx.author.id in ctx.bot.master)
-
-    #     return commands.check(pred)
-
-    # @commands.group(invoke_without_command=True)
-    # async def test(self, ctx, text):
-    #     """Test something."""
-    #     await ctx.send(infoQuote.info("Test") + " {}".format(text))
-
-    # @test.command()
-    # async def join(self, ctx):
-    #     """Simulate user joining a guild."""
-    #     self.bot.dispatch("member_join", ctx.author)
-
-    # @test.command(name="leave")
-    # async def testleave(self, ctx):
-    #     """Simulate user leaving a guild."""
-    #     self.bot.dispatch("member_remove", ctx.author)
-
-    # @test.command()
-    # async def reply(self, ctx):
-    #     """Test reply."""
-    #     await ctx.try_reply("", mention_author=True)
-
-    # @test.command()
-    # async def error(self, ctx):
-    #     """Test error handler."""
-    #     raise RuntimeError("Haha error brrr")
-
-    # @test.command()
-    # @notMe()
-    # async def noperm(self, ctx):
-    #     """Test no permission."""
-    #     await ctx.send("You have perm")
 
     @Feature.Command(
         name="jishaku",
@@ -139,24 +102,28 @@ class Developer(*STANDARD_FEATURES, *OPTIONAL_FEATURES):
         await ctx.send("Restarting...")
         os.system("supervisorctl restart zibot &")
 
-    @commands.command(aliases=["reload"])
-    async def load(self, ctx, *extensions):
-        await self.jsk_load(ctx, *extensions)
-
-    @commands.command()
-    async def testmenu(self, ctx):
+    @Feature.Command(parent="jsk", name="test_menu")
+    async def jsk_test_menu(self, ctx):
         menu = ZMenuPagesView(ctx, ["1", "2"], timeout=5)
         await menu.start()
 
-    @commands.command()
-    async def testloading(self, ctx):
+    @Feature.Command(parent="jsk", name="test_loading")
+    async def jsk_test_loading(self, ctx):
         async with ctx.loading():
             await asyncio.sleep(5)
             await ctx.send(":D")
 
-    @commands.command()
-    async def testchoices(self, ctx):
+    @Feature.Command(parent="jsk", name="test_choices")
+    async def jsk_test_choices(self, ctx):
         res = ZChoices(ctx, [choice("a", "aa"), choice("b", "bb")])
         await ctx.send(":)", view=res)
         await res.wait()
         await ctx.send(res.value)
+
+    @Feature.Command(parent="jsk", name="news")
+    async def jsk_news(self, ctx, *, news):
+        """Set news"""
+        ctx.bot.news["time"] = int(time.time())
+        ctx.bot.news["content"] = news
+        ctx.bot.news.dump()
+        return await ctx.try_reply("News has been changed")

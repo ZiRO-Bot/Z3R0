@@ -230,10 +230,10 @@ class UserFriendlyBoolean(argparse.Action):
 class JSON(dict):
     __slots__ = ("filename", "data")
 
-    def __init__(self, filename: str) -> None:
+    def __init__(self, filename: str, default: Dict[Any, Any] = {}) -> None:
         self.filename: str = filename
 
-        data: Dict[Any, Any] = {}
+        data: Dict[Any, Any] = default or {}
 
         try:
             f = open(filename, "r")

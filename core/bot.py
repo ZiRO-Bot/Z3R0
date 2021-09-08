@@ -33,7 +33,7 @@ from utils.cache import (
     CacheUniqueViolation,
 )
 from utils.format import cleanifyPrefix, formatCmdName
-from utils.other import Blacklist, utcnow
+from utils.other import JSON, Blacklist, utcnow
 
 
 EXTS = []
@@ -127,10 +127,13 @@ class ziBot(commands.Bot):
         )
 
         # News, shows up in help command
-        self.news: Dict[str, Any] = {
-            "time": 0,
-            "content": "Nothing to see here...",
-        }
+        self.news: Dict[str, Any] = JSON(
+            "news.json",
+            {
+                "time": 0,
+                "content": "Nothing to see here...",
+            },
+        )
 
         # Caches
         self.cache: Cache = (
