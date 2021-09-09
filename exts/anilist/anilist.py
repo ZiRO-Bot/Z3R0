@@ -55,7 +55,7 @@ class AniList(commands.Cog, CogMixin):
             "name": name,
             "page": 1,
             "perPage": 25,
-            "type": "ANIME",
+            "type": type,
         }
         if parsed.format_:
             kwargs["format"] = parsed.format_.strip().upper().replace(" ", "_")

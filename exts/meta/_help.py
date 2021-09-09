@@ -1,21 +1,21 @@
 from __future__ import annotations
 
 from contextlib import suppress
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Dict
 
 import discord
 from discord.ext import commands
 
 from core.embed import ZEmbed
 from core.errors import CCommandNotFound
-from core.menus import ZMenuPagesView
+from core.menus import ZChoices, ZMenuPagesView, choice
 from utils import infoQuote
 from utils.format import formatDiscordDT
 
 from ._custom_command import getCustomCommand, getCustomCommands
 from ._flags import HelpFlags
 from ._objects import CustomCommand, Group
-from ._pages import HelpCogPage, HelpCommandPage
+from ._pages import CustomCommandsListSource, HelpCogPage, HelpCommandPage
 
 
 if TYPE_CHECKING:
@@ -26,7 +26,7 @@ class CustomHelp(commands.HelpCommand):
     if TYPE_CHECKING:
         context: Context  # stop pyright from yelling at me
 
-    async def send_bot_help(self, mapping):
+    async def send_bot_help(self, mapping) -> discord.Message:
         ctx = self.context
 
         e = ZEmbed(
@@ -64,23 +64,16 @@ class CustomHelp(commands.HelpCommand):
                 ]
             ),
         )
-        # TODO: Make a command to set this without reloading the extension
         e.add_field(
-            name="News | Updated at: {}".format(formatDiscordDT(1628576674, "F")),
-            value=(
-                "Changelogs:"
-                "\n- Updated `discord.py` to v2.0 (buttons!)"
-                "\n- Improved help command behaviour"
-                "\n- Added AniList category (Anime and Manga commands)"
-                "\n- Fixed some issues"
-                "\n\n[Click here to see the full changelog!]"
-                "(https://github.com/ZiRO-Bot/Z3R0/blob/overhaul/CHANGELOG.md)\n"
+            name="News | Updated at: {}".format(
+                formatDiscordDT(ctx.bot.news.get("time", 0), "F")
             ),
+            value=ctx.bot.news.get("content") or "Nothing to see here...",
         )
 
         return await ctx.try_reply(embed=e)
 
-    async def filter_commands(self, _commands):
+    async def filter_commands(self, _commands) -> list:
         async def predicate(cmd):
             try:
                 return await cmd.can_run(self.context)
@@ -97,7 +90,7 @@ class CustomHelp(commands.HelpCommand):
 
         return ret
 
-    async def send_cog_help(self, cog, filters):
+    async def send_cog_help(self, cog, filters) -> None:
         ctx = self.context
 
         filtered = []
@@ -121,15 +114,15 @@ class CustomHelp(commands.HelpCommand):
         view = ZMenuPagesView(ctx, source=HelpCogPage(cog, filtered))
         await view.start()
 
-    async def command_not_found(self, string):
+    async def command_not_found(self, string) -> str:
         return "No command/category called `{}` found.".format(string)
 
-    async def send_error_message(self, error):
+    async def send_error_message(self, error) -> None:
         if isinstance(error, CustomCommand):
             return
         await self.context.error(error)
 
-    async def send_command_help(self, commands_):
+    async def send_command_help(self, commands_) -> None:
         ctx = self.context
 
         filtered = []
@@ -180,7 +173,7 @@ class CustomHelp(commands.HelpCommand):
 
         return command, unique
 
-    async def send_custom_help(self):
+    async def send_custom_help(self) -> None:
         # TODO: Improve the output
         ctx = self.context
 
@@ -189,15 +182,13 @@ class CustomHelp(commands.HelpCommand):
 
         cmds = await getCustomCommands(ctx.db, guild.id)
         cmds = sorted(cmds, key=lambda cmd: cmd.uses, reverse=True)
-        e = ZEmbed.default(ctx, title="Custom Commands", description="")
-        if cmds:
-            for k, v in enumerate(cmds):
-                e.description += "**`{}`** {} [`{}` uses]\n".format(
-                    k + 1, v.name, v.uses
-                )
-        else:
-            e.description = "This server doesn't have custom command"
-        await ctx.try_reply(embed=e)
+        view = ZMenuPagesView(
+            ctx,
+            source=CustomCommandsListSource(
+                [(count, command) for count, command in enumerate(cmds)]
+            ),
+        )
+        await view.start()
 
     async def command_callback(self, ctx, *, arguments=None):
         command, filters = await self.prepare_help_command(ctx, arguments)
@@ -211,8 +202,6 @@ class CustomHelp(commands.HelpCommand):
             return await self.send_custom_help()
 
         cog = bot.get_cog(command)
-        if cog:
-            return await self.send_cog_help(cog, filters)
 
         maybeCoro = discord.utils.maybe_coroutine
 
@@ -236,10 +225,33 @@ class CustomHelp(commands.HelpCommand):
                             cmd = found
                 foundList.append(cmd)
 
-        if not foundList:
+        choiceList = [choice(f"{command} (Command)", foundList)]
+
+        # default to foundList
+        selected = foundList
+        if cog:
+            if foundList:
+                choiceList.append(choice(f"{command} (Category)", cog))
+                # both cog and command is found, lets give user a choice
+                choices = ZChoices(ctx, choiceList)
+                msg = await ctx.try_reply("Which one?", view=choices)
+
+                await choices.wait()
+                await msg.delete()
+                selected = choices.value
+            else:
+                selected = cog
+
+        elif not foundList:
             string = await maybeCoro(
                 self.command_not_found, self.remove_mentions(command)
             )
             return await self.send_error_message(string)
+
+        if not selected:
+            return
+
+        if not isinstance(selected, list):
+            return await self.send_cog_help(cog, filters)
 
         await self.send_command_help(foundList)

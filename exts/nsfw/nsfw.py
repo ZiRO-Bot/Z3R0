@@ -9,8 +9,10 @@ import discord
 from discord.ext import commands, menus
 
 from core.embed import ZEmbed
+from core.errors import NotNSFWChannel
 from core.menus import ZMenuView
 from core.mixin import CogMixin
+from utils.other import isNsfw
 
 
 NEKO_API = "https://api.nekos.dev/api/v3"
@@ -88,9 +90,8 @@ class NSFW(commands.Cog, CogMixin):
 
     async def cog_check(self, ctx):
         """Only for NSFW channels"""
-        if not ctx.guild:
-            return True
-        return ctx.channel.is_nsfw()
+        if not isNsfw(ctx.channel):
+            raise NotNSFWChannel
 
     @commands.command()
     async def pussy(self, ctx):

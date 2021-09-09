@@ -1,18 +1,38 @@
 # v3.3
 
+## 3.3.1
+
+- [**New**] You can now change news using a command instead of hardcoding it
+
 ## 3.3.0
 
 - [**New**] Added realurl (get real url of a shorten url)
-- [**Improved**] Added case number to modlog message (for now only work with
-  manual moderation action)
+- [**Improved**] Added case number to modlog message
 - [**Changed**] Rename `Bot.master` -> `Bot.owner_ids`
 - [**Fixed**] Fix Admin commands' checks not working properly
-- [**Improved**] Manually input Intents, this should slightly improve the
-  performance
-- [**Improved**] Merged `on_member_ban` with `on_member_remove`, so it doesn't
-  request audit logs twice
 - [**Improved**] Decrease modlog delay to 2 seconds delay
 - [**Improved**] Merged `>help filter: custom` with `>command list`
+- [**Changed**] `>command disable` and `>command enable` no longer uses flag,
+  replaced with choice buttons when there's more than 1 type is found with
+  identical name
+- [**Fixed**] Anilist commands now works in DMs
+- [**Fixed**] `>manga search` actually search for manga not anime
+- [**Improved**] User now given choices between command and category when their
+  names are conflicted
+- [**Improved**] Custom command list now paginated
+- [**New**] Added "compact mode" to paginator
+- [**Improved**] Failed NSFW check will now properly "yell" at the executor,
+  instead of yelling "Check failed!"
+- [**Fixed**] Fixed caselog type `mute` being inconsistent ( [**For
+  self-hoster**] sql query to fix your database: `UPDATE OR IGNORE caseLog SET
+  type='mute' WHERE type='muted'`)
+- [**New**] Added createdAt column to caselog ( [**For self-hoster**]: sql
+  query to add this column without dropping the table `ALTER TABLE caseLog ADD
+  COLUMN createdAt INTEGER DEFAULT 0`) [**NOTE**]: Old cases' time will return
+  either "Unknown" or `1/1/1970`
+- [**New**] Added `caselogs`/`cases` command to get moderator's cases
+- [**Improved**] Modlog now log unmute and unban
+- [**Disabled**] Disable `google` command (blocking the whole bot)
 
 # v3.2
 

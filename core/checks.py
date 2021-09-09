@@ -8,7 +8,7 @@ def has_guild_permissions(**perms):
     async def predicate(ctx):
         orig = commands.has_guild_permissions(**perms).predicate
         try:
-            isMaster = ctx.author.id in ctx.bot.master
+            isMaster = ctx.author.id in ctx.bot.owner_ids
         except AttributeError:
             isMaster = False
         return isMaster or await orig(ctx)
@@ -21,7 +21,7 @@ def has_guild_permissions(**perms):
 
 def is_botmaster():
     def predicate(ctx):
-        return ctx.author.id in ctx.bot.master
+        return ctx.author.id in ctx.bot.owner_ids
 
     return commands.check(predicate)
 

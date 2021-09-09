@@ -14,6 +14,7 @@ from core import checks
 from core.converter import BannedMember, Hierarchy, MemberOrUser, TimeAndArgument
 from core.embed import ZEmbed
 from core.errors import MissingMuteRole
+from core.menus import ZMenuPagesView
 from core.mixin import CogMixin
 from exts.admin.admin import Admin
 from exts.timer.timer import Timer, TimerData
@@ -22,6 +23,7 @@ from utils.format import formatDateTime
 from utils.other import doCaselog, utcnow
 
 from ._flags import AnnouncementFlags
+from ._pages import CaseListSource
 
 
 class Moderation(commands.Cog, CogMixin):
@@ -38,13 +40,15 @@ class Moderation(commands.Cog, CogMixin):
         """Ban function, self-explanatory"""
         actions = {
             "ban": self.doBan,
+            "unban": self.doUnban,
             "mute": self.doMute,
+            "unmute": self.doUnmute,
             "kick": self.doKick,
         }
 
         defaultReason = "No reason."
 
-        timer: Timer = self.bot.get_cog("Timer")
+        timer: Optional[Timer] = self.bot.get_cog("Timer")  # type: ignore
         if not timer:
             # Incase Timer cog not loaded yet.
             return await ctx.error(
@@ -68,29 +72,25 @@ class Moderation(commands.Cog, CogMixin):
             desc += "\n**Duration**: {} ({})".format(delta, formatDateTime(time))
             guildAndTime += " until " + formatDateTime(time)
 
-        DMMsg = {
-            "ban": "You have been banned from {}. Reason: {}",
-            "mute": "You have been muted from {}. Reason: {}",
-            "kick": "You have been kicked from {}. Reason: {}",
-        }
+        silent = kwargs.pop("silent", False)  # Silent = don't DM
 
-        try:
-            await user.send(DMMsg[action].format(guildAndTime, reason))
-            desc += "\n**DM**: User notified with a direct message."
-        except (AttributeError, discord.HTTPException):
-            # Failed to send DM
-            desc += "\n**DM**: Failed to notify user."
+        if not silent:
+            DMMsgs = {
+                "ban": "banned",
+                "unban": "unbanned",
+                "mute": "muted",
+                "unmute": "unmuted",
+            }
+            DMMsg = DMMsgs.get(action, action + "ed")
 
-        # Do the action
-        try:
-            await (actions[action])(
-                ctx,
-                user,
-                reason="[{} (ID: {})]: {}".format(ctx.author, ctx.author.id, reason),
-                **kwargs,
-            )
-        except discord.Forbidden:
-            return await ctx.try_reply("I don't have permission to ban a user!")
+            DMFmt = f"You have been {DMMsg}" + " from {}. reason: {}"
+
+            try:
+                await user.send(DMFmt.format(guildAndTime, reason))
+                desc += "\n**DM**: User notified with a direct message."
+            except (AttributeError, discord.HTTPException):
+                # Failed to send DM
+                desc += "\n**DM**: Failed to notify user."
 
         caseNum = await doCaselog(
             self.bot,
@@ -102,6 +102,19 @@ class Moderation(commands.Cog, CogMixin):
         )
         if caseNum:
             desc += "\n**Case**: #{}".format(caseNum)
+
+        # Do the action
+        try:
+            await (actions[action])(
+                ctx,
+                user,
+                reason="[{} (ID: {}) #{}]: {}".format(
+                    ctx.author, ctx.author.id, caseNum, reason
+                ),
+                **kwargs,
+            )
+        except discord.Forbidden:
+            return await ctx.try_reply("I don't have permission to ban a user!")
 
         if time is not None:
             # Temporary ban
@@ -116,13 +129,15 @@ class Moderation(commands.Cog, CogMixin):
             )
 
         titles = {
-            "ban": "Banned {}",
-            "mute": "Muted {}",
-            "kick": "Kicked {}",
+            "ban": "Banned",
+            "unban": "Unbanned",
+            "mute": "Muted",
+            "unmute": "Unmuted",
         }
+        formattedTitle = f"{titles.get(action, action + 'ed')} {user}"
 
         e = ZEmbed.success(
-            title=titles[action].format(user),
+            title=formattedTitle,
             description=desc,
         )
         await ctx.send(embed=e)
@@ -199,11 +214,7 @@ class Moderation(commands.Cog, CogMixin):
     )
     @checks.mod_or_permissions(ban_members=True)
     async def unban(self, ctx, member: BannedMember, *, reason: str = "No reason"):
-        await ctx.guild.unban(member.user, reason=reason)
-        e = ZEmbed.success(
-            title="Unbanned {} for {}".format(member.user, reason),
-        )
-        await ctx.try_reply(embed=e)
+        await self.doModeration(ctx, member.user, None, "unban", reason=reason)
 
     async def doBan(self, ctx, user: discord.User, /, reason: str, **kwargs):
         saveMsg = kwargs.pop("saveMsg", False)
@@ -213,6 +224,9 @@ class Moderation(commands.Cog, CogMixin):
             reason=reason,
             delete_message_days=0 if saveMsg else 1,
         )
+
+    async def doUnban(self, ctx, user: discord.User, /, reason: str, **kwargs):
+        await ctx.guild.unban(user, reason=reason)
 
     @commands.Cog.listener("on_ban_timer_complete")
     async def onBanTimerComplete(self, timer: TimerData):
@@ -336,17 +350,18 @@ class Moderation(commands.Cog, CogMixin):
         if not member._roles.has(mutedRoleId):
             return await ctx.error(f"{member.mention} is not muted!")
 
-        role = discord.Object(id=mutedRoleId)
+        await self.doModeration(
+            ctx, member, None, action="unmute", reason=reason, mutedRoleId=mutedRoleId
+        )
 
+    async def doUnmute(self, _n, member: discord.Member, /, reason: str, **kwargs):
+        mutedRoleId = kwargs.get("mutedRoleId", 0)
+        role = discord.Object(id=mutedRoleId)
         try:
             await member.remove_roles(role, reason=reason)
         except (discord.HTTPException, AttributeError):
             # Failed to remove role, just remove it manually
             await self.manageMuted(member, False, role)
-        e = ZEmbed.success(
-            title="Unmuted {} for {}".format(member, reason),
-        )
-        await ctx.try_reply(embed=e)
 
     @commands.Cog.listener("on_member_update")
     async def onMemberUpdate(self, before: discord.Member, after: discord.Member):
@@ -691,3 +706,25 @@ class Moderation(commands.Cog, CogMixin):
         e = ZEmbed.default(ctx, title=resp)
 
         await msg.edit(embed=e)
+
+    @commands.command(aliases=("cases",))
+    @checks.mod_or_permissions(manage_messages=True)
+    async def caselogs(self, ctx, moderator: discord.Member = None):
+        moderator = moderator or ctx.author
+        modCases = await self.bot.db.fetch_all(
+            """
+            SELECT caseId, type, targetId, reason, createdAt FROM caseLog
+            WHERE guildId=:guildId AND modId=:modId
+            """,
+            values={
+                "guildId": ctx.guild.id,
+                "modId": moderator.id,
+            },
+        )
+        if not modCases:
+            return await ctx.error(
+                f"{moderator.display_name} doesn't have any cases",
+                title="No cases found",
+            )
+        menu = ZMenuPagesView(ctx, source=CaseListSource(moderator, modCases))
+        await menu.start()

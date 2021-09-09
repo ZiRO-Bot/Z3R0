@@ -187,6 +187,7 @@ createCaseLogTable = """
         modId INTEGER,
         targetId INTEGER,
         reason STRING,
+        createdAt INTEGER DEFAULT 0,
         FOREIGN KEY ("guildId") REFERENCES guilds ("id") ON DELETE CASCADE
     )
 """

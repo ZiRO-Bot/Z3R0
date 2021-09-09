@@ -33,7 +33,7 @@ from utils.cache import (
     CacheUniqueViolation,
 )
 from utils.format import cleanifyPrefix, formatCmdName
-from utils.other import Blacklist, utcnow
+from utils.other import JSON, Blacklist, utcnow
 
 
 EXTS = []
@@ -61,7 +61,7 @@ class ziBot(commands.Bot):
 
     # --- NOTE: Information about the bot
     author: str = getattr(config, "author", "ZiRO2264#9999")
-    version: str = "`3.3.0` - `overhaul`"
+    version: str = "`3.3.1` - `overhaul`"
     links: Dict[str, str] = getattr(
         config,
         "links",
@@ -76,17 +76,7 @@ class ziBot(commands.Bot):
 
     def __init__(self) -> None:
         # custom intents, required since dpy v1.5
-        intents = discord.Intents(
-            # bans are handled with on_member_remove,
-            # so only members intent is needed
-            bans=False,
-            members=True,
-            guilds=True,
-            messages=True,
-            emojis=True,
-            presences=True,
-            reactions=True,
-        )
+        intents = discord.Intents.all()
 
         super().__init__(
             command_prefix=_callablePrefix,
@@ -136,6 +126,15 @@ class ziBot(commands.Bot):
         # bot's default prefix
         self.defPrefix: str = (
             ">" if not hasattr(config, "prefix") else str(config.prefix)
+        )
+
+        # News, shows up in help command
+        self.news: Dict[str, Any] = JSON(
+            "news.json",
+            {
+                "time": 0,
+                "content": "Nothing to see here...",
+            },
         )
 
         # Caches

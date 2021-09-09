@@ -165,69 +165,69 @@ class Utilities(commands.Cog, CogMixin):
         except ValueError:
             await ctx.error("Invalid morse code!")
 
-    @commands.command(
-        aliases=("g",),
-        brief="Searches Google",
-        description=(
-            "Searches Google\n"
-            'Support "special" results, currently supports: Complementary '
-            "Results, Currency Converter"
-        ),
-    )
-    @commands.cooldown(1, 10, commands.BucketType.user)
-    async def google(self, ctx, *, query: str):
-        msg = await ctx.try_reply(embed=ZEmbed.loading(title="Searching..."))
-        results = await self.googlesearch.search(query)
+    # @commands.command(
+    #     aliases=("g",),
+    #     brief="Searches Google",
+    #     description=(
+    #         "Searches Google\n"
+    #         'Support "special" results, currently supports: Complementary '
+    #         "Results, Currency Converter"
+    #     ),
+    # )
+    # @commands.cooldown(1, 10, commands.BucketType.user)
+    # async def google(self, ctx, *, query: str):
+    #     msg = await ctx.try_reply(embed=ZEmbed.loading(title="Searching..."))
+    #     results = await self.googlesearch.search(query)
 
-        if results is None:
-            await msg.delete()
-            return await ctx.error(
-                "Your search - {} - did not match any documents.".format(query),
-                title="Not found!",
-            )
+    #     if results is None:
+    #         await msg.delete()
+    #         return await ctx.error(
+    #             "Your search - {} - did not match any documents.".format(query),
+    #             title="Not found!",
+    #         )
 
-        e = ZEmbed.default(ctx)
-        e.set_author(name="Search result for '{}'".format(query))
+    #     e = ZEmbed.default(ctx)
+    #     e.set_author(name="Search result for '{}'".format(query))
 
-        e.set_footer(text=results["stats"])
+    #     e.set_footer(text=results["stats"])
 
-        complementary = results["complementary"]
-        special = results["special"]
-        limit = 3
+    #     complementary = results["complementary"]
+    #     special = results["special"]
+    #     limit = 3
 
-        if complementary is not None:
-            limit -= 1
-            e.add_field(
-                name=f"{complementary.title or 'Unknown'}",
-                value=(
-                    f"`{complementary.subtitle or 'Unknown'}`\n"
-                    if complementary.subtitle
-                    else ""
-                )
-                + (
-                    complementary.description + "\n"
-                    if complementary.description
-                    else ""
-                )
-                + "\n".join([f"**{i}**`{j}`" for i, j in complementary.info]),
-            )
+    #     if complementary is not None:
+    #         limit -= 1
+    #         e.add_field(
+    #             name=f"{complementary.title or 'Unknown'}",
+    #             value=(
+    #                 f"`{complementary.subtitle or 'Unknown'}`\n"
+    #                 if complementary.subtitle
+    #                 else ""
+    #             )
+    #             + (
+    #                 complementary.description + "\n"
+    #                 if complementary.description
+    #                 else ""
+    #             )
+    #             + "\n".join([f"**{i}**`{j}`" for i, j in complementary.info]),
+    #         )
 
-        if special:
-            limit -= 1
-            e.add_field(
-                name=str(special.type).title(),
-                value="\n".join(special.content),
-            )
+    #     if special:
+    #         limit -= 1
+    #         e.add_field(
+    #             name=str(special.type).title(),
+    #             value="\n".join(special.content),
+    #         )
 
-        for res in results["web"][:limit]:
-            try:
-                content = res.contents[0]
-            except IndexError:
-                content = ""
-            e.add_field(name=res.title, value=f"{res.link}\n{content}", inline=False)
+    #     for res in results["web"][:limit]:
+    #         try:
+    #             content = res.contents[0]
+    #         except IndexError:
+    #             content = ""
+    #         e.add_field(name=res.title, value=f"{res.link}\n{content}", inline=False)
 
-        await msg.delete()
-        await ctx.try_reply(embed=e)
+    #     await msg.delete()
+    #     await ctx.try_reply(embed=e)
 
     @commands.command(
         brief="Get shorten url's real url. No more rick roll!",

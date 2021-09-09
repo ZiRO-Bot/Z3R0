@@ -5,7 +5,7 @@ from discord.ext import menus
 
 from core.embed import ZEmbed
 from core.enums import Emojis
-from utils.other import Markdownify
+from utils.other import Markdownify, isNsfw
 
 
 STREAM_SITES = (
@@ -70,7 +70,7 @@ class AnimeSearchPageSource(menus.ListPageSource):
             icon_url="https://gblobscdn.gitbook.com/spaces%2F-LHizcWWtVphqU90YAXO%2Favatar.png",
         )
 
-        chNsfw = ctx.channel.is_nsfw()
+        chNsfw = isNsfw(ctx.channel)
         cover = data["coverImage"]["large"]
         banner = data["bannerImage"]
         if not isAdult or (isAdult and chNsfw):

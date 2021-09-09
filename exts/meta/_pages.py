@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Any, List, Optional, Tuple
 
 from discord.ext import commands, menus
 
@@ -178,4 +178,26 @@ class HelpCommandPage(menus.ListPageSource):
                 name="Subcommands",
                 value="\n".join([f"> `{formatCmd(prefix, cmd)}`" for cmd in subcmds]),
             )
+        return e
+
+
+class CustomCommandsListSource(menus.ListPageSource):
+    def __init__(self, list_: List[Tuple[int, CustomCommand]]) -> None:
+        super().__init__(list_, per_page=6)
+
+    def format_page(
+        self, menu: ZMenuView, list_: List[Tuple[int, CustomCommand]]
+    ) -> ZEmbed:
+        ctx = menu.context
+        e = ZEmbed(
+            title=f"Custom Commands in {ctx.guild}",
+            fields=[
+                (
+                    f"**`{count+1}`** {command} (**`{command.uses}`** uses)",
+                    command.description or "No description",
+                )
+                for count, command in list_
+            ],
+            field_inline=False,
+        )
         return e
