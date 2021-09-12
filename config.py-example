@@ -15,10 +15,10 @@ botMasters = ["0000000000000000", "0000000000000001"]
 # for other SQL!
 #
 # URL Examples:
-# - sqlite:///database.db
+# - sqlite:///data/database.db
 # - postgresql://localhost/example?ssl=true
 # - mysql://localhost/example?min_size=5&max_size=20
-sql = "sqlite:///database.db"
+sql = "sqlite:///data/database.db"
 
 # Not needed, but if you want error to be reported to a guild channel you can
 # set it here
