@@ -389,7 +389,10 @@ class EventHandler(commands.Cog, CogMixin):
 
             view = Report(ctx.author, timeout=60.0)
 
-            msg = await ctx.send(embed=e, view=view)
+            try:
+                msg = await ctx.send(embed=e, view=view)
+            except discord.Forbidden:
+                return
 
             await view.wait()
 

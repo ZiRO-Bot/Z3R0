@@ -61,7 +61,7 @@ class ziBot(commands.Bot):
 
     # --- NOTE: Information about the bot
     author: str = getattr(config, "author", "ZiRO2264#9999")
-    version: str = "`3.3.1` - `overhaul`"
+    version: str = "`3.3.2` - `overhaul`"
     links: Dict[str, str] = getattr(
         config,
         "links",
@@ -109,9 +109,7 @@ class ziBot(commands.Bot):
             else tuple([int(master) for master in config.botMasters])
         )
 
-        self.issueChannel: Optional[int] = (
-            None if not hasattr(config, "issueChannel") else int(config.issueChannel)
-        )
+        self.issueChannel: Optional[int] = getattr(config, "issueChannel", None)
 
         self.blacklist: Blacklist = Blacklist("blacklist.json")
 
