@@ -73,6 +73,11 @@ class HelpCogPage(menus.ListPageSource):
             title=f"{getattr(cog, 'icon', '❓')} | Category: {cog.qualified_name}",
             description=desc,
         )
+
+        if not _commands:
+            e.description += "\nNo usable commands."
+            return e
+
         for cmd in _commands:
             name = cmd.name
             if isinstance(cmd, CustomCommand):
