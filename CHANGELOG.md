@@ -1,5 +1,10 @@
 # v3.3
 
+## 3.3.3
+
+- [**Improved**] Added description to `>caselogs` command
+- [**Improved**] Help command now tell user when they have no usable commands
+
 ## 3.3.2
 
 - [**Fixed**] Fixed `AttributeError`
