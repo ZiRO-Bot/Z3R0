@@ -1,5 +1,9 @@
 # v3.3
 
+## 3.3.5
+
+- [**Fixed**] Fixed `List is empty!` error not being handled
+
 ## 3.3.4
 
 - [**Fixed**] Fixed NSFW check always returns False

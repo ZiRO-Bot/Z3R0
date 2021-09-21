@@ -1014,8 +1014,8 @@ class Meta(commands.Cog, CogMixin):
 
             try:
                 self.bot.cache.disabled.remove(ctx.guild.id, cmdName)
-            except ValueError:
-                # check if command already enabled
+            except (ValueError, IndexError):
+                # command already enabled
                 return await ctx.error(title=alreadyMsg.format(cmdName))
 
             async with ctx.db.transaction():
