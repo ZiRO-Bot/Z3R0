@@ -1,5 +1,12 @@
 # v3.3
 
+## 3.3.4
+
+- [**Fixed**] Fixed NSFW check always returns False
+- [**Fixed**] Fixed `AttributeError` when user try to ban `@everyone`
+- [**Improved**] IsAprilFool now raised DefaultError instead of `Check failed`
+- [**Improved**] IsRafael now raise SilentError instead of `Check failed`
+
 ## 3.3.3
 
 - [**Improved**] Added description to `>caselogs` command
