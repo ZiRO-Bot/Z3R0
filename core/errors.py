@@ -85,3 +85,13 @@ class MissingAdminPrivilege(CommandError):
 class NotNSFWChannel(CommandError):
     def __init__(self):
         super().__init__("You're only allowed to use this command in a NSFW channels!")
+
+
+class DefaultError(CommandError):
+    def __init__(self, message: str) -> None:
+        super().__init__(message)
+
+
+class SilentError(CommandError):
+    def __init__(self, message: str = "idk") -> None:
+        super().__init__(message)

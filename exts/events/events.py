@@ -261,6 +261,7 @@ class EventHandler(commands.Cog, CogMixin):
         # Errors that should be sent no matter what
         # These errors should have `message` already defined
         defaultError = (
+            errors.DefaultError,
             errors.CCommandAlreadyExists,
             commands.BadArgument,
             errors.MissingMuteRole,
@@ -269,9 +270,13 @@ class EventHandler(commands.Cog, CogMixin):
             errors.NotNSFWChannel,
         )
 
-        if isinstance(error, commands.CommandNotFound) or isinstance(
-            error, commands.DisabledCommand
-        ):
+        silentError = (
+            errors.SilentError,
+            commands.CommandNotFound,
+            commands.DisabledCommand,
+        )
+
+        if isinstance(error, silentError):
             return
 
         if isinstance(error, commands.BadUnionArgument):
