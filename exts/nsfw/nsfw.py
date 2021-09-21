@@ -92,6 +92,7 @@ class NSFW(commands.Cog, CogMixin):
         """Only for NSFW channels"""
         if not isNsfw(ctx.channel):
             raise NotNSFWChannel
+        return True
 
     @commands.command()
     async def pussy(self, ctx):

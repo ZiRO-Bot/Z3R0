@@ -117,7 +117,7 @@ class Hierarchy(commands.Converter):
         *,
         action: Optional[str] = None
     ):
-        self.converter: commands.Converter = converter()
+        self.converter: commands.Converter = converter()  # type: ignore
         self.action: str = action or "do that to"
 
     async def convert(self, ctx, arguments):
@@ -125,7 +125,11 @@ class Hierarchy(commands.Converter):
             ctx, arguments
         )
 
-        errMsg: Optional[str] = checkHierarchy(ctx, converted, self.action)
+        try:
+            errMsg: Optional[str] = checkHierarchy(ctx, converted, self.action)
+        except AttributeError:
+            errMsg = "Invalid User/Member"
+
         # errMsg will always None unless check fails
         if errMsg is None:
             return converted
