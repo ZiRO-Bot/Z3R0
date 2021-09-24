@@ -3,13 +3,15 @@ This Source Code Form is subject to the terms of the Mozilla Public
 License, v. 2.0. If a copy of the MPL was not distributed with this
 file, You can obtain one at http://mozilla.org/MPL/2.0/.
 """
+from __future__ import annotations
 
 import aiohttp
 import discord
 from discord.ext import commands, menus
 
+from core.context import Context
 from core.embed import ZEmbed
-from core.errors import NotNSFWChannel
+from core.errors import DefaultError, NotNSFWChannel
 from core.menus import ZMenuView
 from core.mixin import CogMixin
 from utils.other import isNsfw
@@ -44,7 +46,7 @@ class NekoMenu(ZMenuView):
         try:
             if self._message:
                 for item in self.children:
-                    item.disabled = True
+                    item.disabled = True  # type: ignore
                 await self._message.edit(view=self)
             super().finalize(timedOut)
         except discord.HTTPException:
@@ -61,7 +63,8 @@ class NekoMenu(ZMenuView):
         self, button: discord.ui.Button, interaction: discord.Interaction
     ):
         e = await self.getNeko(interaction)
-        await interaction.message.edit(embed=e)
+        if interaction.message:
+            return await interaction.message.edit(embed=e)
 
 
 class NekoPageSource(menus.PageSource):
@@ -74,13 +77,23 @@ class NekoPageSource(menus.PageSource):
         return not self.onlyOne
 
     async def getNeko(self):
-        async with self.session.get(NEKO_API + self.endpoint) as req:
-            img = await req.json()
-            return (
-                ZEmbed()
-                .set_image(url=img["data"]["response"]["url"].replace(" ", "%20"))
-                .set_footer(text="Powered by nekos.life")
-            )
+        for a in range(5):
+            try:
+                async with self.session.get(NEKO_API + self.endpoint) as req:
+                    img = await req.json()
+                    return (
+                        ZEmbed()
+                        .set_image(
+                            url=img["data"]["response"]["url"].replace(" ", "%20")
+                        )
+                        .set_footer(text="Powered by nekos.life")
+                    )
+            except KeyError:
+                continue
+        raise DefaultError("Can't find any image, please try again later.")
+
+
+DEFAULT_NEKO = "all_tags_ero"
 
 
 class NSFW(commands.Cog, CogMixin):
@@ -88,43 +101,60 @@ class NSFW(commands.Cog, CogMixin):
 
     icon = "😳"
 
+    def __init__(self, bot) -> None:
+        super().__init__(bot)
+
     async def cog_check(self, ctx):
         """Only for NSFW channels"""
         if not isNsfw(ctx.channel):
             raise NotNSFWChannel
         return True
 
-    @commands.command()
-    async def pussy(self, ctx):
-        menus = NekoMenu(
-            ctx, NekoPageSource(self.bot.session, "/images/nsfw/img/pussy_lewd")
-        )
-        await menus.start()
+    @commands.command(
+        aliases=(
+            "pussy",
+            "pantyhose",
+            "tits",
+            "boobs",
+            "yuri",
+            "cosplay",
+            "futanari",
+            "futa",
+            "trap",
+            "femdom",
+            "anus",
+        ),
+        brief="Get hentai images from nekos.life",
+        description=(
+            "Get hentai images from nekos.life\n\n"
+            "TIPS: Use different alias to get images from different hentai "
+            "category"
+        ),
+    )
+    async def hentai(self, ctx: Context):
+        aliases = {"boobs": "tits", "futa": "futanari"}
+        endpoints = {
+            "any": DEFAULT_NEKO,
+            "pussy": "pussy_lewd",
+            "pantyhose": "pantyhose_lewd",
+            "tits": "tits_lewd",
+            "yuri": "yuri_lewd",
+            "cosplay": "cosplay_lewd",
+            "futanari": "futanari_lewd",
+            "trap": "trap_lewd",
+            "femdom": "femdom_lewd",
+            "anus": "anus_lewd",
+        }
 
-    @commands.command()
-    async def pantyhose(self, ctx):
-        menus = NekoMenu(
-            ctx, NekoPageSource(self.bot.session, "/images/nsfw/img/pantyhose_lewd")
-        )
-        await menus.start()
+        invokedWith = ctx.invoked_with or "any"
 
-    @commands.command(aliases=("boobs",))
-    async def tits(self, ctx):
-        menus = NekoMenu(
-            ctx, NekoPageSource(self.bot.session, "/images/nsfw/img/tits_lewd")
-        )
-        await menus.start()
+        value = aliases.get(invokedWith, invokedWith)
 
-    @commands.command()
-    async def yuri(self, ctx):
         menus = NekoMenu(
-            ctx, NekoPageSource(self.bot.session, "/images/nsfw/img/yuri_lewd")
-        )
-        await menus.start()
-
-    @commands.command()
-    async def cosplay(self, ctx):
-        menus = NekoMenu(
-            ctx, NekoPageSource(self.bot.session, "/images/nsfw/img/cosplay_lewd")
+            ctx,
+            NekoPageSource(
+                self.bot.session,
+                "/images/nsfw/img/" + endpoints.get(value, DEFAULT_NEKO),
+            ),
         )
         await menus.start()
