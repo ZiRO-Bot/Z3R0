@@ -1,3 +1,5 @@
+from typing import Any
+
 import discord
 from discord.ext.commands.errors import CommandError
 
@@ -9,27 +11,27 @@ class CCException(CommandError):
 
 
 class CCommandNotFound(CCException):
-    def __init__(self, name: str = "Unknown"):
+    def __init__(self, name: Any = "Unknown"):
         super().__init__("Command '{}' not Found!".format(name))
 
 
 class CCommandAlreadyExists(CCException):
-    def __init__(self, name: str = "Unknown"):
+    def __init__(self, name: Any = "Unknown"):
         super().__init__("A command/alias called `{}` already exists!".format(name))
 
 
 class CCommandNotInGuild(CCException):
-    def __init__(self, name: str = "Unknown"):
+    def __init__(self, name: Any = "Unknown"):
         super().__init__("Custom command only available in guilds")
 
 
 class CCommandNoPerm(CCException):
-    def __init__(self, name: str = "Unknown"):
+    def __init__(self, name: Any = "Unknown"):
         super().__init__("You have no permissions to use this command")
 
 
 class CCommandDisabled(CCException):
-    def __init__(self, name: str = "Unknown"):
+    def __init__(self, name: Any = "Unknown"):
         super().__init__("This command is disabled")
 
 

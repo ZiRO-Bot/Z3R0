@@ -8,7 +8,7 @@ from __future__ import annotations
 import difflib
 import re
 import time
-from typing import TYPE_CHECKING, Any, Iterable, Optional, Tuple
+from typing import TYPE_CHECKING, Any, Iterable, Optional, Tuple, Union
 
 import discord
 import humanize
@@ -31,7 +31,7 @@ from utils.cache import CacheListProperty, CacheUniqueViolation
 from utils.format import CMDName, cleanifyPrefix, formatCmdName
 from utils.other import reactsToMessage, utcnow
 
-from ._custom_command import getCustomCommand, getCustomCommands
+from ._custom_command import getCustomCommand
 from ._flags import CmdManagerFlags
 from ._help import CustomHelp
 from ._objects import CustomCommand
@@ -260,7 +260,7 @@ class Meta(commands.Cog, CogMixin):
     async def _source(self, ctx, name: CMDName):
         return await self.execCustomCommand(ctx, name, raw=True)
 
-    async def addCmd(self, ctx, name: str, content: str, **kwargs):
+    async def addCmd(self, ctx, name: Union[str, CMDName], content: str, **kwargs):
         """Add cmd to database"""
         async with ctx.db.transaction():
             lastInsert = await ctx.db.execute(
@@ -285,7 +285,7 @@ class Meta(commands.Cog, CogMixin):
             return lastInsert, lastLastInsert
         return (None,) * 2
 
-    async def isCmdExist(self, ctx, name: str):
+    async def isCmdExist(self, ctx, name: Union[str, CMDName]):
         """Check if command already exists"""
         rows = await ctx.db.fetch_all(
             """
@@ -864,7 +864,7 @@ class Meta(commands.Cog, CogMixin):
             if not added:
                 return await ctx.error(title="No commands succesfully disabled")
 
-            self.bot.cache.disabled.extend(ctx.guild.id, added)
+            self.bot.cache.disabled.extend(ctx.guild.id, added)  # type: ignore
 
             async with ctx.db.transaction():
                 # TODO: Should also disable custom commands
@@ -906,7 +906,7 @@ class Meta(commands.Cog, CogMixin):
             await getDisabledCommands(self.bot, ctx.guild.id)
 
             try:
-                self.bot.cache.disabled.append(ctx.guild.id, cmdName)
+                self.bot.cache.disabled.append(ctx.guild.id, cmdName)  # type: ignore
             except CacheUniqueViolation:
                 # check if command already disabled
                 return await ctx.error(title=alreadyMsg.format(cmdName))
@@ -969,7 +969,7 @@ class Meta(commands.Cog, CogMixin):
             for c in chosen[0].get_commands():
                 if c.name not in disabled:
                     continue
-                self.bot.cache.disabled.remove(c)
+                self.bot.cache.disabled.remove(c)  # type: ignore
                 removed.append(c)
 
             if not removed:
@@ -1013,7 +1013,7 @@ class Meta(commands.Cog, CogMixin):
             cmdName = chosen[0]
 
             try:
-                self.bot.cache.disabled.remove(ctx.guild.id, cmdName)
+                self.bot.cache.disabled.remove(ctx.guild.id, cmdName)  # type: ignore
             except (ValueError, IndexError):
                 # command already enabled
                 return await ctx.error(title=alreadyMsg.format(cmdName))
@@ -1250,9 +1250,10 @@ class Meta(commands.Cog, CogMixin):
 
     @commands.command(brief="Get bot's invite link")
     async def invite(self, ctx):
-        clientId = self.bot.user.id
+        botUser: discord.ClientUser = self.bot.user  # type: ignore
+        clientId = botUser.id
         e = ZEmbed(
-            title=f"Want to invite {self.bot.user.name}?",
+            title=f"Want to invite {botUser.name}?",
             description="[Invite with administrator permission]("
             + discord.utils.oauth_url(
                 clientId,
