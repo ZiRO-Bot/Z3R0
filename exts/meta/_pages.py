@@ -12,7 +12,7 @@ from ._utils import getDisabledCommands
 
 
 class PrefixesPageSource(menus.ListPageSource):
-    def __init__(self, ctx, prefixes):
+    def __init__(self, ctx, prefixes) -> None:
         self.prefixes = prefixes
         self.ctx = ctx
 
@@ -58,7 +58,7 @@ class HelpCogPage(menus.ListPageSource):
         ctx = menu.context
         cog = self.cog
 
-        if ctx.guild and not self.disabled:
+        if ctx.guild and self.disabled is None:
             self.disabled = await getDisabledCommands(ctx.bot, ctx.guild.id)
         elif not ctx.guild:
             self.disabled = []
@@ -98,7 +98,7 @@ class HelpCogPage(menus.ListPageSource):
 
 
 class HelpCommandPage(menus.ListPageSource):
-    def __init__(self, commands):
+    def __init__(self, commands) -> None:
         super().__init__(commands, per_page=1)
 
     async def format_page(self, menu: ZMenuView, command):

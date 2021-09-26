@@ -32,7 +32,13 @@ def formatCmdParams(command):
     return " ".join(result)
 
 
-def formatCmd(prefix, command, params=True):
+def formatCmd(
+    prefix,
+    command,
+    params: bool = True,
+    parentParams: bool = False,
+    escape: bool = False,
+):
     if not params:
         return f"{prefix}{formatCmdName(command)}"
 
@@ -43,16 +49,18 @@ def formatCmd(prefix, command, params=True):
 
     entries = []
     while parent is not None:
-        if (not parent.signature or parent.invoke_without_command) and not params:
+        if (not parent.signature or parent.invoke_without_command) and not parentParams:
             entries.append(parent.name)
         else:
             entries.append((parent.name + " " + formatCmdParams(parent)).strip())
         parent = parent.parent
     names = " ".join(reversed([command.name] + entries))
 
-    return discord.utils.escape_markdown(
-        f"{prefix}{names}" + (f" {formatCmdParams(command)}" if params else "")
-    )
+    result = f"{prefix}{names}" + (f" {formatCmdParams(command)}" if params else "")
+    if escape:
+        result = discord.utils.escape_markdown(result)
+
+    return result
 
 
 def formatCmdName(command):
