@@ -92,7 +92,7 @@ class HelpCogPage(menus.ListPageSource):
 
             e.add_field(
                 name=name,
-                value="> " + (cmd.brief or "No description"),
+                value="> " + (cmd.short_doc or "No description"),
             )
         return e
 
@@ -115,7 +115,11 @@ class HelpCommandPage(menus.ListPageSource):
             description="**Aliases**: `{}`\n".format(
                 ", ".join(command.aliases) if command.aliases else "No alias"
             )
-            + (command.description or command.brief or "No description"),
+            + (
+                getattr(command, "help", command.description)
+                or command.short_doc
+                or "No description"
+            ),
         )
 
         if isinstance(command, CustomCommand):

@@ -18,6 +18,7 @@ class CustomCommand:
         "name",
         "invokedName",
         "brief",
+        "short_doc",
         "description",
         "help",
         "category",
@@ -44,6 +45,7 @@ class CustomCommand:
 
         # TODO: Add "brief"
         self.brief = None
+        self.short_doc = self.brief
         self.description = kwargs.pop("description", None)
         self.help = self.description
         self.content = kwargs.pop("content", "NULL")
