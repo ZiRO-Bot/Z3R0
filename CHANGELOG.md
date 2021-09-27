@@ -1,5 +1,10 @@
 # v3.3
 
+## 3.3.6
+
+- [**Fixed**] Fix command names being escaped when its not supposed to be escaped
+- [**Improved**] More typehinting
+
 ## 3.3.5
 
 - [**Fixed**] Fixed `List is empty!` error not being handled
