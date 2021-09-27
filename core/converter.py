@@ -9,7 +9,7 @@ from discord.ext import commands
 from humanize import naturaldelta
 
 from core.context import Context
-from core.errors import HierarchyError
+from core.errors import DefaultError, HierarchyError
 from utils.other import utcnow
 
 
@@ -40,8 +40,11 @@ class TimeAndArgument(commands.Converter):
             if kwargs:
                 self.arg = argument[match.end() :].strip()
                 now = utcnow()
-                self.when = now + relativedelta(**kwargs)
-                self.delta = naturaldelta(self.when, when=now)
+                try:
+                    self.when = now + relativedelta(**kwargs)
+                    self.delta = naturaldelta(self.when, when=now)
+                except (ValueError, OverflowError):
+                    raise DefaultError("Invalid time provided")
                 return self
             # prevent NaN (empty) time like 'min' makes arg empty
             self.arg = argument

@@ -4,6 +4,7 @@
 
 - [**Fixed**] Fix command names being escaped when its not supposed to be escaped
 - [**Improved**] More typehinting
+- [**Fixed**] Handle invalid time (something like `10000 years`)
 
 ## 3.3.5
 
