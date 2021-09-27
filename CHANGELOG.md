@@ -1,5 +1,9 @@
 # v3.3
 
+## 3.3.7
+
+- [**New**] Re-added channel mention to purgatory
+
 ## 3.3.6
 
 - [**Fixed**] Fix command names being escaped when its not supposed to be escaped
