@@ -62,6 +62,16 @@ def init_bot(loop):
     os.environ["JISHAKU_NO_DM_TRACEBACK"] = "True"
 
     bot = _bot.ziBot()
+
+    @bot.ipc.route()
+    async def get_bot_stats(data):
+        return {
+            "users": len(bot.users),
+            "guilds": len(bot.guilds),
+            "commands": sum(bot.commandUsage.values()),
+        }
+
+    bot.ipc.start()
     bot.uptime = utcnow()
     bot.run()
 
