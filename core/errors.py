@@ -1,3 +1,5 @@
+from typing import Any
+
 import discord
 from discord.ext.commands.errors import CommandError
 
@@ -9,27 +11,27 @@ class CCException(CommandError):
 
 
 class CCommandNotFound(CCException):
-    def __init__(self, name: str = "Unknown"):
+    def __init__(self, name: Any = "Unknown"):
         super().__init__("Command '{}' not Found!".format(name))
 
 
 class CCommandAlreadyExists(CCException):
-    def __init__(self, name: str = "Unknown"):
+    def __init__(self, name: Any = "Unknown"):
         super().__init__("A command/alias called `{}` already exists!".format(name))
 
 
 class CCommandNotInGuild(CCException):
-    def __init__(self, name: str = "Unknown"):
+    def __init__(self, name: Any = "Unknown"):
         super().__init__("Custom command only available in guilds")
 
 
 class CCommandNoPerm(CCException):
-    def __init__(self, name: str = "Unknown"):
+    def __init__(self, name: Any = "Unknown"):
         super().__init__("You have no permissions to use this command")
 
 
 class CCommandDisabled(CCException):
-    def __init__(self, name: str = "Unknown"):
+    def __init__(self, name: Any = "Unknown"):
         super().__init__("This command is disabled")
 
 
@@ -85,3 +87,13 @@ class MissingAdminPrivilege(CommandError):
 class NotNSFWChannel(CommandError):
     def __init__(self):
         super().__init__("You're only allowed to use this command in a NSFW channels!")
+
+
+class DefaultError(CommandError):
+    def __init__(self, message: str) -> None:
+        super().__init__(message)
+
+
+class SilentError(CommandError):
+    def __init__(self, message: str = "idk") -> None:
+        super().__init__(message)

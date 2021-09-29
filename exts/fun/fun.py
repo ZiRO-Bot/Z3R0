@@ -30,7 +30,7 @@ class Fun(commands.Cog, CogMixin):
         super().__init__(bot)
         self.reddit = reddit.Reddit(self.bot.session)
 
-    @commands.command(brief="Get random meme from reddit")
+    @commands.command(brief="Get random meme from reddit", enabled=False)
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def meme(self, ctx):
         # TODO: Add more meme subreddits
@@ -349,11 +349,6 @@ class Fun(commands.Cog, CogMixin):
 
     @commands.command(
         aliases=("piglin",),
-        brief="Barter with Minecraft's Piglin",
-        description=(
-            "Barter with Minecraft's Piglin.\n"
-            "**Note**: The loot table is based on JE 1.16.1, before nerf"
-        ),
         usage="[amount of gold]",
         extras=dict(
             example=("barter 64", "piglin", "barter 262"),
@@ -361,6 +356,9 @@ class Fun(commands.Cog, CogMixin):
     )
     @commands.cooldown(5, 25, type=commands.BucketType.user)
     async def barter(self, ctx, gold: int = 64):
+        """Barter with Minecraft's Piglin
+        **Note**: The loot table is based on JE 1.16.1, before nerf
+        """
         # limit gold amount up to 2240 (Minecraft inventory limit)
         if gold > 2240:
             gold = 2240

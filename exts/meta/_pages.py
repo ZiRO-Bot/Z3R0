@@ -12,7 +12,7 @@ from ._utils import getDisabledCommands
 
 
 class PrefixesPageSource(menus.ListPageSource):
-    def __init__(self, ctx, prefixes):
+    def __init__(self, ctx, prefixes) -> None:
         self.prefixes = prefixes
         self.ctx = ctx
 
@@ -58,7 +58,7 @@ class HelpCogPage(menus.ListPageSource):
         ctx = menu.context
         cog = self.cog
 
-        if ctx.guild and not self.disabled:
+        if ctx.guild and self.disabled is None:
             self.disabled = await getDisabledCommands(ctx.bot, ctx.guild.id)
         elif not ctx.guild:
             self.disabled = []
@@ -73,6 +73,11 @@ class HelpCogPage(menus.ListPageSource):
             title=f"{getattr(cog, 'icon', '❓')} | Category: {cog.qualified_name}",
             description=desc,
         )
+
+        if not _commands:
+            e.description += "\nNo usable commands."
+            return e
+
         for cmd in _commands:
             name = cmd.name
             if isinstance(cmd, CustomCommand):
@@ -87,13 +92,13 @@ class HelpCogPage(menus.ListPageSource):
 
             e.add_field(
                 name=name,
-                value="> " + (cmd.brief or "No description"),
+                value="> " + (cmd.short_doc or "No description"),
             )
         return e
 
 
 class HelpCommandPage(menus.ListPageSource):
-    def __init__(self, commands):
+    def __init__(self, commands) -> None:
         super().__init__(commands, per_page=1)
 
     async def format_page(self, menu: ZMenuView, command):
@@ -110,7 +115,11 @@ class HelpCommandPage(menus.ListPageSource):
             description="**Aliases**: `{}`\n".format(
                 ", ".join(command.aliases) if command.aliases else "No alias"
             )
-            + (command.description or command.brief or "No description"),
+            + (
+                getattr(command, "help", command.description)
+                or command.short_doc
+                or "No description"
+            ),
         )
 
         if isinstance(command, CustomCommand):

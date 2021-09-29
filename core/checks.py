@@ -1,6 +1,11 @@
 from discord.ext import commands
 
-from core.errors import MissingAdminPrivilege, MissingModPrivilege
+from core.errors import (
+    DefaultError,
+    MissingAdminPrivilege,
+    MissingModPrivilege,
+    SilentError,
+)
 from utils.other import utcnow
 
 
@@ -103,7 +108,9 @@ def admin_or_permissions(**perms):
 
 def isRafael():
     def predicate(ctx):
-        return ctx.author.id == 518154918276628490
+        if not (ctx.author.id == 518154918276628490):
+            raise SilentError("Only Rafael can use this command")
+        return True
 
     return commands.check(predicate)
 
@@ -111,6 +118,8 @@ def isRafael():
 def isAprilFool():
     def predicate(ctx):
         today = utcnow()
-        return today.day == 1 and today.month == 5
+        if not (today.day == 1 and today.month == 5):
+            raise DefaultError("Not April Fools yet!")
+        return True
 
     return commands.check(predicate)

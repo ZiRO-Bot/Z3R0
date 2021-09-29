@@ -21,8 +21,8 @@ from core.colour import ZColour
 from core.context import Context
 from core.errors import CCommandDisabled, CCommandNotFound, CCommandNotInGuild
 from core.objects import Connection
+from exts.meta._custom_command import getCustomCommands
 from exts.meta._utils import getDisabledCommands
-from exts.meta.meta import getCustomCommands
 from exts.timer.timer import Timer, TimerData
 from utils import dbQuery
 from utils.cache import (
@@ -61,7 +61,7 @@ class ziBot(commands.Bot):
 
     # --- NOTE: Information about the bot
     author: str = getattr(config, "author", "ZiRO2264#9999")
-    version: str = "`3.3.1` - `overhaul`"
+    version: str = "`3.3.7` - `overhaul`"
     links: Dict[str, str] = getattr(
         config,
         "links",
@@ -111,9 +111,7 @@ class ziBot(commands.Bot):
             else tuple([int(master) for master in config.botMasters])
         )
 
-        self.issueChannel: Optional[int] = (
-            None if not hasattr(config, "issueChannel") else int(config.issueChannel)
-        )
+        self.issueChannel: Optional[int] = getattr(config, "issueChannel", None)
 
         self.blacklist: Blacklist = Blacklist("blacklist.json")
 

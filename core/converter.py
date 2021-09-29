@@ -9,7 +9,7 @@ from discord.ext import commands
 from humanize import naturaldelta
 
 from core.context import Context
-from core.errors import HierarchyError
+from core.errors import DefaultError, HierarchyError
 from utils.other import utcnow
 
 
@@ -40,8 +40,11 @@ class TimeAndArgument(commands.Converter):
             if kwargs:
                 self.arg = argument[match.end() :].strip()
                 now = utcnow()
-                self.when = now + relativedelta(**kwargs)
-                self.delta = naturaldelta(self.when, when=now)
+                try:
+                    self.when = now + relativedelta(**kwargs)
+                    self.delta = naturaldelta(self.when, when=now)
+                except (ValueError, OverflowError):
+                    raise DefaultError("Invalid time provided")
                 return self
             # prevent NaN (empty) time like 'min' makes arg empty
             self.arg = argument
@@ -117,7 +120,7 @@ class Hierarchy(commands.Converter):
         *,
         action: Optional[str] = None
     ):
-        self.converter: commands.Converter = converter()
+        self.converter: commands.Converter = converter()  # type: ignore
         self.action: str = action or "do that to"
 
     async def convert(self, ctx, arguments):
@@ -125,7 +128,11 @@ class Hierarchy(commands.Converter):
             ctx, arguments
         )
 
-        errMsg: Optional[str] = checkHierarchy(ctx, converted, self.action)
+        try:
+            errMsg: Optional[str] = checkHierarchy(ctx, converted, self.action)
+        except AttributeError:
+            errMsg = "Invalid User/Member"
+
         # errMsg will always None unless check fails
         if errMsg is None:
             return converted

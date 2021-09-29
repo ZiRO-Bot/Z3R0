@@ -707,7 +707,7 @@ class Moderation(commands.Cog, CogMixin):
 
         await msg.edit(embed=e)
 
-    @commands.command(aliases=("cases",))
+    @commands.command(aliases=("cases",), description="Get moderator's cases")
     @checks.mod_or_permissions(manage_messages=True)
     async def caselogs(self, ctx, moderator: discord.Member = None):
         moderator = moderator or ctx.author

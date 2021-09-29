@@ -1,5 +1,36 @@
 # v3.3
 
+## 3.3.7
+
+- [**New**] Re-added channel mention to purgatory
+
+## 3.3.6
+
+- [**Fixed**] Fix command names being escaped when its not supposed to be escaped
+- [**Improved**] More typehinting
+- [**Fixed**] Handle invalid time (something like `10000 years`)
+
+## 3.3.5
+
+- [**Fixed**] Fixed `List is empty!` error not being handled
+
+## 3.3.4
+
+- [**Fixed**] Fixed NSFW check always returns False
+- [**Fixed**] Fixed `AttributeError` when user try to ban `@everyone`
+- [**Improved**] IsAprilFool now raised DefaultError instead of `Check failed`
+- [**Improved**] IsRafael now raise SilentError instead of `Check failed`
+
+## 3.3.3
+
+- [**Improved**] Added description to `>caselogs` command
+- [**Improved**] Help command now tell user when they have no usable commands
+
+## 3.3.2
+
+- [**Fixed**] Fixed `AttributeError`
+- [**Fixed**] Fixed `discord.Forbidden` in Error Handler
+
 ## 3.3.1
 
 - [**New**] You can now change news using a command instead of hardcoding it

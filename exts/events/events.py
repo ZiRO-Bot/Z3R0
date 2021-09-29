@@ -261,6 +261,7 @@ class EventHandler(commands.Cog, CogMixin):
         # Errors that should be sent no matter what
         # These errors should have `message` already defined
         defaultError = (
+            errors.DefaultError,
             errors.CCommandAlreadyExists,
             commands.BadArgument,
             errors.MissingMuteRole,
@@ -269,9 +270,13 @@ class EventHandler(commands.Cog, CogMixin):
             errors.NotNSFWChannel,
         )
 
-        if isinstance(error, commands.CommandNotFound) or isinstance(
-            error, commands.DisabledCommand
-        ):
+        silentError = (
+            errors.SilentError,
+            commands.CommandNotFound,
+            commands.DisabledCommand,
+        )
+
+        if isinstance(error, silentError):
             return
 
         if isinstance(error, commands.BadUnionArgument):
@@ -389,7 +394,10 @@ class EventHandler(commands.Cog, CogMixin):
 
             view = Report(ctx.author, timeout=60.0)
 
-            msg = await ctx.send(embed=e, view=view)
+            try:
+                msg = await ctx.send(embed=e, view=view)
+            except discord.Forbidden:
+                return
 
             await view.wait()
 
@@ -470,9 +478,10 @@ class EventHandler(commands.Cog, CogMixin):
 
         if before.embeds:
             data = before.embeds[0]
-            if data.type == "image" and not self.is_url_spoiler(
-                before.content, data.url
-            ):
+            if data.type == "image":
+                # and not self.is_url_spoiler(
+                #     before.content, data.url
+                # ):
                 e.set_image(url=data.url)
 
         if before.attachments:
@@ -495,7 +504,7 @@ class EventHandler(commands.Cog, CogMixin):
                     inline=False,
                 )
 
-        return await logCh.send(embed=e)
+        return await logCh.send(content=before.channel.mention, embed=e)  # type: ignore
 
     @commands.Cog.listener("on_message_delete")
     async def onMessageDelete(
@@ -530,7 +539,9 @@ class EventHandler(commands.Cog, CogMixin):
             else message.content
         )
 
-        return await logCh.send(embed=e)
+        return await logCh.send(
+            content=message.channel.mention, embed=e  # type: ignore
+        )
 
     @commands.Cog.listener("on_member_update")
     async def onMemberUpdate(
