@@ -64,12 +64,16 @@ def init_bot(loop):
     bot = _bot.ziBot()
 
     @bot.ipc.route()
-    async def get_bot_stats(data):
+    async def getBotStats(data):
         return {
             "users": len(bot.users),
             "guilds": len(bot.guilds),
             "commands": sum(bot.commandUsage.values()),
         }
+
+    @bot.ipc.route()
+    async def getBotGuilds(data):
+        return [guild.name for guild in bot.guilds]
 
     bot.ipc.start()
     bot.uptime = utcnow()
