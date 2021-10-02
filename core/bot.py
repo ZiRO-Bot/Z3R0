@@ -94,7 +94,7 @@ class ziBot(commands.Bot):
             commands.core._CaseInsensitiveDict()
         )
 
-        self.ipc = ipc.Server(self, secret_key="helloworld")
+        self.ipc = ipc.Server(self, secret_key="helloworld", host="0.0.0.0")
 
         # log
         self.logger: logging.Logger = logging.getLogger("discord")
