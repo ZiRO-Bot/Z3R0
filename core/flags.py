@@ -24,15 +24,15 @@ class StringAndFlags(commands.FlagConverter):
 
 
 class GreetingFlags(commands.FlagConverter, case_insensitive=True):
-    channel: Optional[discord.TextChannel] = commands.flag(aliases=("ch",))
-    raw: bool = commands.flag(aliases=("r",), default=False)
-    disable: bool = commands.flag(aliases=("d",), default=False)
-    messages: List[str] = commands.flag(name="message", aliases=("msg",), default=[])
+    channel: Optional[discord.TextChannel]
+    raw: bool = False
+    disable: bool = False
+    messages: List[str] = commands.flag(name="message", aliases=("msg",), default=[])  # type: ignore
 
 
 class LogConfigFlags(commands.FlagConverter, case_insensitive=True):
-    disable: bool = commands.flag(aliases=("d",), default=False)
-    channel: Optional[discord.TextChannel] = commands.flag(aliases=("ch",))
+    disable: bool = False
+    channel: Optional[discord.TextChannel]
 
 
 class RoleCreateFlags(commands.FlagConverter, case_insensitive=True):

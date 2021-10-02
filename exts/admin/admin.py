@@ -112,7 +112,7 @@ class Admin(commands.Cog, CogMixin):
                 "welcome disable: true",
             ),
             flags={
-                ("channel", "ch"): "Set welcome channel",
+                "channel": "Set welcome channel",
                 "raw": (
                     "Send welcome's raw message (Useful for editing"
                     ", will prevent you from setting welcome message/channel)"
@@ -143,7 +143,7 @@ class Admin(commands.Cog, CogMixin):
                 "farewell disable: true",
             ),
             flags={
-                ("channel", "ch"): "Set farewell channel",
+                "channel": "Set farewell channel",
                 "raw": (
                     "Send farewell's raw message (Useful for editing"
                     ", will prevent you from setting farewell message/channel)"
@@ -208,7 +208,7 @@ class Admin(commands.Cog, CogMixin):
         extras=dict(
             example=("modlog #modlog", "modlog ch: modlog", "ml disable: on"),
             flags={
-                ("channel", "ch"): "Set modlog channel",
+                "channel": "Set modlog channel",
                 "disable": "Disable modlog",
             },
             perms={
@@ -234,7 +234,7 @@ class Admin(commands.Cog, CogMixin):
                 "userlog disable: on",
             ),
             flags={
-                ("channel", "ch"): "Set purgatory channel",
+                "channel": "Set purgatory channel",
                 "disable": "Disable purgatory",
             },
             perms={
