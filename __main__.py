@@ -75,6 +75,16 @@ def init_bot(loop):
     async def getBotGuilds(data):
         return [guild.name for guild in bot.guilds]
 
+    @bot.ipc.route()
+    async def getGuildStats(data):
+        guild = bot.get_guild(int(data.guild_id))
+        if not guild:
+            return None
+        return {
+            "members": guild.member_count,
+            "bots": sum([1 for member in guild.members if member.bot]),
+        }
+
     bot.ipc.start()
     bot.uptime = utcnow()
     bot.run()
