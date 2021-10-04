@@ -78,7 +78,7 @@ class Fun(commands.Cog, CogMixin):
     )
     @commands.cooldown(5, 25, commands.BucketType.user)
     async def findseed(self, ctx, *, arguments: FindseedFlags):
-        availableMode = ("visual", "classic", "pipega")
+        availableMode = ("visual", "classic", "pipega", "halloween")
         aliasesMode = {"pepiga": "pipega"}
 
         argMode = aliasesMode.get(arguments.mode, arguments.mode)
@@ -99,6 +99,10 @@ class Fun(commands.Cog, CogMixin):
                 "{eye}": "<:pipega:866175257982140456>",
                 "{lava}": "<:empty:754550188269633556>",
                 "{end_portal}": "<:empty:754550188269633556>",
+            },
+            halloween={
+                "{frame}": "<:pumpkinUnlit:894570332227268638>",
+                "{eye}": "<:pumpkinLit:894570365148352592>",
             },
         )
 
