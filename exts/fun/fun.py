@@ -73,7 +73,12 @@ class Fun(commands.Cog, CogMixin):
         usage="[options]",
         extras=dict(
             example=("findseed", "findseed mode: classic", "fs mode: pipega"),
-            flags={"mode": "Change display mode (modes: visual, classic, pipega)"},
+            flags={
+                "mode": (
+                    "Change display mode (modes: visual, classic, pipega "
+                    "or pepiga, halloween)"
+                )
+            },
         ),
     )
     @commands.cooldown(5, 25, commands.BucketType.user)
