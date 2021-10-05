@@ -149,7 +149,7 @@ class Fun(commands.Cog, CogMixin):
         end_portal = selEmojis.get("{end_portal}", defaultEmojis["{end_portal}"])
         air = selEmojis.get("{air}", defaultEmojis["{air}"])
 
-        portalFrame = ""
+        portalFrame = "\u200b"
         for row in range(5):
             for col in range(5):
                 if ((col == 0 or col == 4) and (row != 0 and row != 4)) or (
