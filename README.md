@@ -1,5 +1,5 @@
 # ziBot
-**REPO HAS BEEN MOVED TO https://github.com/null2264/ziBot**
+**DISCLAIMER: This branch contain ziBot's legacy code, to host the bot please use [overhaul](https://github.com/ZiRO-Bot/Z3R0/tree/overhaul) branch instead**
 
 **Python 3.8.x or higher is required!**
 
