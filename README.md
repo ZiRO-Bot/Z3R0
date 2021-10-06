@@ -4,7 +4,7 @@
 
 **Python 3.8.x or higher is required!** 
 
-**NOTE: Currently working on [overhaul](https://github.com/ZiRO-Bot/ziBot/tree/overhaul). There will be no future update for this branch besides of few bug/issue fixes.**
+**DISCLAIMER: This branch will not recieve any more update, please use [overhaul](https://github.com/ZiRO-Bot/ziBot/tree/overhaul) branch instead.**
 
 A multi-purpose customizable open-source discord bot.
 
