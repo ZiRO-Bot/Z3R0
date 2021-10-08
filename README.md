@@ -64,11 +64,8 @@ More feature coming soon!
   # mysql
   poetry install --no-dev -E mysql
 
-  # sqlite
-  poetry install --no-dev -E sqlite
-
-  # postgresql (Using aiopg instead of ayncpg)
-  poetry install --no-dev -E "postgresql+aiopg"
+  # mysql (Using asyncmy instead of aiomysql)
+  poetry install --no-dev -E "mysql+asyncmy"
   ```
 - Copy and paste (or rename) [`config.py-example`](./config.py-example) to `config.py`
 - Edit all the necessary config value (`token`, `botMasters`, and `sql`)
@@ -87,6 +84,8 @@ Moved to [CHANGELOG.md](./CHANGELOG.md)
 
 ## Plans
 
+- Setup a migrator from non-ORM db to ORM db
+- Setup `Aerich` migration
 - Event for ~~member boosting a guild~~ (Just need to implement setup for it)
 - Tags (stripped version of custom command)
 - Unify categories/exts emoji

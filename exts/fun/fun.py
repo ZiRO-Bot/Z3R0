@@ -73,12 +73,17 @@ class Fun(commands.Cog, CogMixin):
         usage="[options]",
         extras=dict(
             example=("findseed", "findseed mode: classic", "fs mode: pipega"),
-            flags={"mode": "Change display mode (modes: visual, classic, pipega)"},
+            flags={
+                "mode": (
+                    "Change display mode (modes: visual, classic, pipega "
+                    "or pepiga, halloween)"
+                )
+            },
         ),
     )
     @commands.cooldown(5, 25, commands.BucketType.user)
     async def findseed(self, ctx, *, arguments: FindseedFlags):
-        availableMode = ("visual", "classic", "pipega")
+        availableMode = ("visual", "classic", "pipega", "halloween")
         aliasesMode = {"pepiga": "pipega"}
 
         argMode = aliasesMode.get(arguments.mode, arguments.mode)
@@ -99,6 +104,10 @@ class Fun(commands.Cog, CogMixin):
                 "{eye}": "<:pipega:866175257982140456>",
                 "{lava}": "<:empty:754550188269633556>",
                 "{end_portal}": "<:empty:754550188269633556>",
+            },
+            halloween={
+                "{frame}": "<:pumpkinUnlit:894570332227268638>",
+                "{eye}": "<:pumpkinLit:894570365148352592>",
             },
         )
 
@@ -140,7 +149,7 @@ class Fun(commands.Cog, CogMixin):
         end_portal = selEmojis.get("{end_portal}", defaultEmojis["{end_portal}"])
         air = selEmojis.get("{air}", defaultEmojis["{air}"])
 
-        portalFrame = ""
+        portalFrame = "\u200b"
         for row in range(5):
             for col in range(5):
                 if ((col == 0 or col == 4) and (row != 0 and row != 4)) or (

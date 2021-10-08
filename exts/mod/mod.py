@@ -10,17 +10,16 @@ from typing import Optional, Union
 import discord
 from discord.ext import commands
 
-from core import checks
+from core import checks, db
 from core.converter import BannedMember, Hierarchy, MemberOrUser, TimeAndArgument
 from core.embed import ZEmbed
 from core.errors import MissingMuteRole
 from core.menus import ZMenuPagesView
 from core.mixin import CogMixin
-from exts.admin.admin import Admin
 from exts.timer.timer import Timer, TimerData
 from utils.cache import CacheUniqueViolation
 from utils.format import formatDateTime
-from utils.other import doCaselog, utcnow
+from utils.other import doCaselog, getGuildRole, setGuildRole, utcnow
 
 from ._flags import AnnouncementFlags
 from ._pages import CaseListSource
@@ -287,9 +286,7 @@ class Moderation(commands.Cog, CogMixin):
         *,
         time: TimeAndArgument = None,
     ):
-        mutedRoleId = await self.bot.getGuildConfig(
-            ctx.guild.id, "mutedRole", "guildRoles"
-        )
+        mutedRoleId = await getGuildRole(ctx.bot, ctx.guild.id, "mutedRole")
         if not mutedRoleId:
             raise MissingMuteRole(ctx.clean_prefix) from None
 
@@ -343,7 +340,7 @@ class Moderation(commands.Cog, CogMixin):
     @checks.mod_or_permissions(manage_messages=True)
     async def unmute(self, ctx, member: MemberOrUser, *, reason: str = "No reason"):
         guildId = ctx.guild.id
-        mutedRoleId = await Admin.getGuildRole(self.bot, guildId, "mutedRole")
+        mutedRoleId = await getGuildRole(self.bot, guildId, "mutedRole")
         if not mutedRoleId:
             raise MissingMuteRole(ctx.clean_prefix) from None
 
@@ -370,7 +367,7 @@ class Moderation(commands.Cog, CogMixin):
             return
 
         guildId = after.guild.id
-        mutedRoleId = await Admin.getGuildRole(self.bot, guildId, "mutedRole")
+        mutedRoleId = await getGuildRole(self.bot, guildId, "mutedRole")
         if not mutedRoleId:
             return
 
@@ -384,11 +381,11 @@ class Moderation(commands.Cog, CogMixin):
 
     @commands.Cog.listener("on_guild_role_delete")
     async def onMutedRoleDeleted(self, role):
-        mutedRoleId = await Admin.getGuildRole(self.bot, role.guild.id, "mutedRole")
+        mutedRoleId = await getGuildRole(self.bot, role.guild.id, "mutedRole")
         if not mutedRoleId or mutedRoleId != role.id:
             return
 
-        await Admin.setGuildRole(self.bot, role.guild.id, "mutedRole", None)
+        await setGuildRole(self.bot, role.guild.id, "mutedRole", None)
 
     @commands.Cog.listener("on_mute_timer_complete")
     async def onMuteTimerComplete(self, timer: TimerData):
@@ -415,7 +412,7 @@ class Moderation(commands.Cog, CogMixin):
         moderator = modTemplate.format(moderator, modId)
 
         member = guild.get_member(userId)
-        mutedRoleId = await Admin.getGuildRole(self.bot, guild.id, "mutedRole")
+        mutedRoleId = await getGuildRole(self.bot, guild.id, "mutedRole")
         if not mutedRoleId:
             return await self.manageMuted(member, False, None)
 
@@ -435,14 +432,12 @@ class Moderation(commands.Cog, CogMixin):
     async def getMutedMembers(self, guildId: int):
         # Getting muted members from db/cache
         # Will cache db results automatically
-        if (mutedMembers := self.bot.cache.guildMutes.get(guildId)) is None:
-            dbMutes = await self.bot.db.fetch_all(
-                "SELECT * FROM guildMutes WHERE guildId=:id", values={"id": guildId}
-            )
+        if (mutedMembers := self.bot.cache.guildMutes.get(guildId)) is None:  # type: ignore
+            dbMutes = await db.GuildMutes.filter(guild_id=guildId)
 
             try:
-                mutedMembers = [m for _n, m in dbMutes]
-                self.bot.cache.guildMutes.extend(guildId, mutedMembers)
+                mutedMembers = [m.mutedId for m in dbMutes]
+                self.bot.cache.guildMutes.extend(guildId, mutedMembers)  # type: ignore
             except ValueError:
                 mutedMembers = []
         return mutedMembers
@@ -462,35 +457,25 @@ class Moderation(commands.Cog, CogMixin):
         if mode is False:
             # Remove member from mutedMembers list
             try:
-                self.bot.cache.guildMutes.remove(guildId, memberId)
+                self.bot.cache.guildMutes.remove(guildId, memberId)  # type: ignore
             except IndexError:
                 # It's not in the list so we'll just return
                 return
 
-            async with self.db.transaction():
-                await self.db.execute(
-                    """
-                        DELETE FROM guildMutes
-                        WHERE
-                            guildId=:guildId AND mutedId=:memberId
-                    """,
-                    values={"guildId": guildId, "memberId": memberId},
-                )
+            await db.GuildMutes.filter(guild_id=guildId, mutedId=memberId).delete()
+
             self.bot.dispatch("member_unmuted", member, mutedRole)
 
         elif mode is True:
             # Add member to mutedMembers list
             try:
-                self.bot.cache.guildMutes.add(guildId, memberId)
+                self.bot.cache.guildMutes.add(guildId, memberId)  # type: ignore
             except CacheUniqueViolation:
                 # Already in the list
                 return
 
-            async with self.db.transaction():
-                await self.db.execute(
-                    "INSERT INTO guildMutes VALUES (:guildId, :memberId)",
-                    values={"guildId": guildId, "memberId": memberId},
-                )
+            await db.GuildMutes.create(guild_id=guildId, mutedId=memberId)
+
             self.bot.dispatch("member_muted", member, mutedRole)
 
     @commands.Cog.listener("on_member_join")
@@ -506,9 +491,7 @@ class Moderation(commands.Cog, CogMixin):
 
         with suppress(MissingMuteRole):
             # Attempt to remute mute evader
-            mutedRoleId = await self.bot.getGuildConfig(
-                member.guild.id, "mutedRole", "guildRoles"
-            )
+            mutedRoleId = await getGuildRole(self.bot, member.guild.id, "mutedRole")
             await self.doMute(None, member, "Mute evasion", mutedRoleId=mutedRoleId)
 
     # https://github.com/Rapptz/RoboDanny/blob/0992171592f1b92ad74fe2eb5cf2efe1e9a51be8/bot.py#L226-L281
@@ -636,7 +619,7 @@ class Moderation(commands.Cog, CogMixin):
         annCh = parsed.channel
         if not annCh:
             annCh = await self.bot.getGuildConfig(
-                ctx.guild.id, "announcementCh", "guildChannels"
+                ctx.guild.id, "announcementCh", "GuildChannels"
             )
             annCh = ctx.guild.get_channel(annCh)
             if not annCh:
@@ -711,20 +694,12 @@ class Moderation(commands.Cog, CogMixin):
     @checks.mod_or_permissions(manage_messages=True)
     async def caselogs(self, ctx, moderator: discord.Member = None):
         moderator = moderator or ctx.author
-        modCases = await self.bot.db.fetch_all(
-            """
-            SELECT caseId, type, targetId, reason, createdAt FROM caseLog
-            WHERE guildId=:guildId AND modId=:modId
-            """,
-            values={
-                "guildId": ctx.guild.id,
-                "modId": moderator.id,
-            },
-        )
+        modCases = await db.CaseLog.filter(guild_id=ctx.guild.id, modId=moderator.id)
         if not modCases:
             return await ctx.error(
                 f"{moderator.display_name} doesn't have any cases",
                 title="No cases found",
             )
+
         menu = ZMenuPagesView(ctx, source=CaseListSource(moderator, modCases))
         await menu.start()

@@ -15,7 +15,7 @@ import humanize
 import TagScriptEngine as tse
 from discord.ext import commands
 
-from core import checks
+from core import checks, db
 from core.embed import ZEmbed
 from core.errors import (
     CCommandAlreadyExists,
@@ -26,7 +26,7 @@ from core.errors import (
 )
 from core.menus import ZChoices, ZMenuPagesView, choice
 from core.mixin import CogMixin
-from utils import dbQuery, sql, tseBlocks
+from utils import tseBlocks
 from utils.cache import CacheListProperty, CacheUniqueViolation
 from utils.format import CMDName, cleanifyPrefix, formatCmdName
 from utils.other import reactsToMessage, utcnow
@@ -127,11 +127,7 @@ class Meta(commands.Cog, CogMixin):
         self.bot.loop.create_task(self.asyncInit())
 
     async def asyncInit(self):
-        async with self.db.transaction():
-            # commands database table
-            await self.db.execute(dbQuery.createCommandsTable)
-            # commands_lookup database table
-            await self.db.execute(dbQuery.createCommandsLookupTable)
+        pass
 
     def processTag(self, ctx, cmd: CustomCommand):
         """Process tags from CC's content with TSE."""
@@ -152,7 +148,7 @@ class Meta(commands.Cog, CogMixin):
             "channel": channel,
             "unix": tse.IntAdapter(int(utcnow().timestamp())),
             "prefix": ctx.prefix,
-            "uses": tse.IntAdapter(cmd.uses),
+            "uses": tse.IntAdapter(cmd.uses + 1),
         }
         if ctx.guild:
             guild = tse.GuildAdapter(ctx.guild)
@@ -172,37 +168,37 @@ class Meta(commands.Cog, CogMixin):
         if not cmd.enabled:
             raise CCommandDisabled
 
-        async with ctx.db.transaction():
-            # Increment uses
-            await ctx.db.execute(dbQuery.incrCommandUsage, values={"id": cmd.id})
-            result = self.processTag(ctx, cmd)
-            embed = result.actions.get("embed")
+        # Increment uses
+        await db.Commands.filter(id=cmd.id).update(uses=cmd.uses + 1)
 
-            dest = result.actions.get("target")
-            action = ctx.send
-            kwargs = {"reference": ctx.replied_reference}
-            if dest:
-                if dest == "reply":
-                    action = ctx.try_reply
-                    kwargs["reference"] = ctx.replied_reference or ctx.message
-                if dest == "dm":
-                    action = ctx.author.send
-                    kwargs = {}
+        result = self.processTag(ctx, cmd)
+        embed = result.actions.get("embed")
 
-            msg = await action(
-                result.body or ("\u200b" if not embed else ""),
-                embed=embed,
-                allowed_mentions=discord.AllowedMentions(
-                    everyone=False, users=False, roles=False
-                ),
-                **kwargs,
-            )
-            react = result.actions.get("react")
-            reactu = result.actions.get("reactu")
-            if reactu:
-                self.bot.loop.create_task(reactsToMessage(ctx.message, reactu))
-            if react:
-                self.bot.loop.create_task(reactsToMessage(msg, react))
+        dest = result.actions.get("target")
+        action = ctx.send
+        kwargs = {"reference": ctx.replied_reference}
+        if dest:
+            if dest == "reply":
+                action = ctx.try_reply
+                kwargs["reference"] = ctx.replied_reference or ctx.message
+            if dest == "dm":
+                action = ctx.author.send
+                kwargs = {}
+
+        msg = await action(
+            result.body or ("\u200b" if not embed else ""),
+            embed=embed,
+            allowed_mentions=discord.AllowedMentions(
+                everyone=False, users=False, roles=False
+            ),
+            **kwargs,
+        )
+        react = result.actions.get("react")
+        reactu = result.actions.get("reactu")
+        if reactu:
+            self.bot.loop.create_task(reactsToMessage(ctx.message, reactu))
+        if react:
+            self.bot.loop.create_task(reactsToMessage(msg, react))
 
     async def ccModeCheck(
         self, ctx, _type: str = "manage", command: CustomCommand = None
@@ -262,42 +258,24 @@ class Meta(commands.Cog, CogMixin):
 
     async def addCmd(self, ctx, name: Union[str, CMDName], content: str, **kwargs):
         """Add cmd to database"""
-        async with ctx.db.transaction():
-            lastInsert = await ctx.db.execute(
-                dbQuery.insertToCommands,
-                values={
-                    "name": name,
-                    "content": content,
-                    "ownerId": ctx.author.id,
-                    "createdAt": utcnow().timestamp(),
-                    "type": kwargs.get("type", "text"),
-                    "url": kwargs.get("url", None),
-                },
-            )
-            lastLastInsert = await ctx.db.execute(
-                dbQuery.insertToCommandsLookup,
-                values={
-                    "cmdId": lastInsert,
-                    "name": name,
-                    "guildId": ctx.guild.id,
-                },
-            )
-            return lastInsert, lastLastInsert
+        cmd = await db.Commands.create(
+            name=name,
+            content=content,
+            ownerId=ctx.author.id,
+            createdAt=utcnow(),
+            type=kwargs.get("type", "text"),
+            url=kwargs.get("url"),
+        )
+        lookup = await db.CommandsLookup.create(
+            cmd_id=cmd.id, name=name, guild_id=ctx.guild.id
+        )
+        if cmd and lookup:
+            return cmd.id, lookup.name
         return (None,) * 2
 
     async def isCmdExist(self, ctx, name: Union[str, CMDName]):
         """Check if command already exists"""
-        rows = await ctx.db.fetch_all(
-            """
-                SELECT *
-                FROM commands
-                INNER JOIN commands_lookup ON
-                    commands.id = commands_lookup.cmdId
-                WHERE
-                    commands_lookup.name = :name AND commands_lookup.guildId = :guildId
-            """,
-            values={"name": name, "guildId": ctx.guild.id},
-        )
+        rows = await db.CommandsLookup.filter(name=name, guild__id=ctx.guild.id).first()
         if rows:
             raise CCommandAlreadyExists(name)
 
@@ -404,25 +382,19 @@ class Meta(commands.Cog, CogMixin):
         if link == command.url:
             return await ctx.try_reply("Nothing changed.")
 
-        async with ctx.db.transaction():
-            await ctx.db.execute(
-                dbQuery.updateCommandUrl,
-                values={"url": link, "id": command.id},
-            )
-            return await ctx.success(
-                "\nYou can do `{}command update {}` to update the content".format(
-                    ctx.clean_prefix, name
-                ),
-                title="`{}` url has been set to <{}>".format(name, url),
-            )
+        await db.Commands.filter(id=command.id).update(url=link)
+
+        return await ctx.success(
+            "\nYou can do `{}command update {}` to update the content".format(
+                ctx.clean_prefix, name
+            ),
+            title="`{}` url has been set to <{}>".format(name, url),
+        )
 
     async def updateCommandContent(self, ctx, command: CustomCommand, content):
         """Update command's content"""
-        async with ctx.db.transaction():
-            await ctx.db.execute(
-                dbQuery.updateCommandContent,
-                values={"content": content, "id": command.id},
-            )
+        update = await db.Commands.filter(id=command.id).update(content=content)
+        if update:
             return True
         return False
 
@@ -535,19 +507,14 @@ class Meta(commands.Cog, CogMixin):
         if alias in command.aliases:
             return await ctx.error("Alias `{}` already exists!".format(alias))
 
-        async with ctx.db.transaction():
-            lastInsert = await ctx.db.execute(
-                dbQuery.insertToCommandsLookup,
-                values={
-                    "cmdId": command.id,
-                    "name": alias,
-                    "guildId": ctx.guild.id,
-                },
+        insert = await db.CommandsLookup.create(
+            cmd_id=command.id, name=alias, guild_id=ctx.guild.id
+        )
+
+        if insert:
+            return await ctx.success(
+                title="Alias `{}` for `{}` has been created".format(alias, command)
             )
-            if lastInsert:
-                return await ctx.success(
-                    title="Alias `{}` for `{}` has been created".format(alias, command)
-                )
 
     @command.command(
         name="edit",
@@ -654,11 +621,9 @@ class Meta(commands.Cog, CogMixin):
                 title="{} already in {}!".format(command, category)
             )
 
-        async with ctx.db.transaction():
-            query = sql.commands.update(sql.commands.c.id == command.id).values(
-                category=category
-            )
-            await ctx.db.execute(query)
+        update = await db.Commands.filter(id=command.id).update(category=category)
+
+        if update:
             return await ctx.success(
                 title="{}'s category has been set to {}!".format(command, category)
             )
@@ -714,17 +679,11 @@ class Meta(commands.Cog, CogMixin):
 
         isAlias = name in command.aliases
         if isAlias:
-            async with ctx.db.transaction():
-                await ctx.db.execute(
-                    dbQuery.deleteCommandAlias,
-                    values={"name": name, "guildId": ctx.guild.id},
-                )
+            await db.CommandsLookup.filter(name=name, guild_id=ctx.guild.id).delete()
         else:
-            # Aliases will be deleted automatically
-            # NOTE TO DEVS: You must have `ON DELETE CASCADE`
-            #   also `foreign_keys` enabled if you're using sqlite3
-            async with ctx.db.transaction():
-                await ctx.db.execute(dbQuery.deleteCommand, values={"id": command.id})
+            # NOTE: Aliases will be deleted automatically
+            await db.Commands.filter(id=command.id).delete()
+
         return await ctx.success(
             title="{} `{}` has been removed".format(
                 "Alias" if isAlias else "Command", name
@@ -866,18 +825,13 @@ class Meta(commands.Cog, CogMixin):
 
             self.bot.cache.disabled.extend(ctx.guild.id, added)  # type: ignore
 
-            async with ctx.db.transaction():
-                # TODO: Should also disable custom commands
-                await ctx.db.execute_many(
-                    """
-                    INSERT INTO disabled VALUES (:guildId, :command)
-                    """,
-                    values=[{"guildId": ctx.guild.id, "command": cmd} for cmd in added],
-                )
+            await db.Disabled.bulk_create(
+                [db.Disabled(guild_id=ctx.guild.id, command=str(cmd)) for cmd in added]
+            )
 
-                return await ctx.success(
-                    title="`{}` commands has been disabled".format(len(added))
-                )
+            return await ctx.success(
+                title="`{}` commands has been disabled".format(len(added))
+            )
 
         if mode == "custom":
             command = chosen[0]
@@ -888,16 +842,8 @@ class Meta(commands.Cog, CogMixin):
             if not command.enabled:
                 return await ctx.error(title=alreadyMsg.format(name))
 
-            async with ctx.db.transaction():
-                await ctx.db.execute(
-                    """
-                        UPDATE commands
-                        SET enabled=0
-                        WHERE id=:id
-                    """,
-                    values={"id": command.id},
-                )
-                return await ctx.success(title=successMsg.format(name))
+            await db.Commands.filter(id=command.id).update(enabled=False)
+            return await ctx.success(title=successMsg.format(name))
 
         if mode == "command":
             cmdName = chosen[0]
@@ -911,15 +857,8 @@ class Meta(commands.Cog, CogMixin):
                 # check if command already disabled
                 return await ctx.error(title=alreadyMsg.format(cmdName))
 
-            async with ctx.db.transaction():
-                await ctx.db.execute(
-                    """
-                    INSERT INTO disabled VALUES (:guildId, :command)
-                    """,
-                    values={"guildId": ctx.guild.id, "command": cmdName},
-                )
-
-                return await ctx.success(title=successMsg.format(cmdName))
+            await db.Disabled.create(guild_id=ctx.guild.id, command=cmdName)
+            return await ctx.success(title=successMsg.format(cmdName))
 
     @command.command(
         brief="Enable a command",
@@ -969,25 +908,19 @@ class Meta(commands.Cog, CogMixin):
             for c in chosen[0].get_commands():
                 if c.name not in disabled:
                     continue
-                self.bot.cache.disabled.remove(c)  # type: ignore
-                removed.append(c)
+                self.bot.cache.disabled.remove(ctx.guild.id, c.name)  # type: ignore
+                removed.append(c.name)
 
             if not removed:
                 return await ctx.error(title="No commands succesfully enabled")
 
-            async with ctx.db.transaction():
-                await ctx.db.execute_many(
-                    """
-                    DELETE FROM disabled WHERE guildId=:guildId AND command=:command
-                    """,
-                    values=[
-                        {"guildId": ctx.guild.id, "command": cmd} for cmd in removed
-                    ],
-                )
+            filtered = db.Disabled.filter(guild_id=ctx.guild.id)
+            for cmd in removed:
+                await filtered.filter(command=cmd).delete()
 
-                return await ctx.success(
-                    title="`{}` commands has been enabled".format(len(removed))
-                )
+            return await ctx.success(
+                title="`{}` commands has been enabled".format(len(removed))
+            )
 
         if mode == "custom":
             command = chosen[0]
@@ -998,16 +931,8 @@ class Meta(commands.Cog, CogMixin):
             if command.enabled:
                 return await ctx.error(title=alreadyMsg.format(name))
 
-            async with ctx.db.transaction():
-                await ctx.db.execute(
-                    """
-                        UPDATE commands
-                        SET enabled=1
-                        WHERE id=:id
-                    """,
-                    values={"id": command.id},
-                )
-                return await ctx.success(title=successMsg.format(name))
+            await db.Commands.filter(id=command.id).update(enabled=True)
+            return await ctx.success(title=successMsg.format(name))
 
         if mode == "command":
             cmdName = chosen[0]
@@ -1018,17 +943,9 @@ class Meta(commands.Cog, CogMixin):
                 # command already enabled
                 return await ctx.error(title=alreadyMsg.format(cmdName))
 
-            async with ctx.db.transaction():
-                await ctx.db.execute(
-                    """
-                    DELETE FROM disabled
-                    WHERE
-                        guildId=:guildId AND command=:command
-                    """,
-                    values={"guildId": ctx.guild.id, "command": cmdName},
-                )
+            await db.Disabled.filter(guild_id=ctx.guild.id, command=cmdName).delete()
 
-                return await ctx.success(title=successMsg.format(cmdName))
+            return await ctx.success(title=successMsg.format(cmdName))
 
     @command.command(
         aliases=("?",),

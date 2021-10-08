@@ -1,6 +1,6 @@
-# Very important!
-# Needed to run the bot. Obtained from https://discord.com/developers/applications
-token = "YOUR BOT TOKEN GOES HERE"
+# [ REQUIRED! ]
+# Obtained from https://discord.com/developers/applications
+token = "YOUR_BOT_TOKEN_GOES_HERE"
 
 # To change default prefix, can be done in source code # but for easier
 # access you can change it here
@@ -10,26 +10,37 @@ prefix = ">"
 # you're the bot application's owner)
 botMasters = ["0000000000000000", "0000000000000001"]
 
-# Database URL (using https://github.com/encode/databases/ and SQLAlchemy Core)
-# NOTE: Query is created for sqlite, be sure to edit `exts/utils/dbQuery.py`
-# for other SQL!
-#
-# URL Examples:
-# - sqlite:///data/database.db
-# - postgresql://localhost/example?ssl=true
-# - mysql://localhost/example?min_size=5&max_size=20
-sql = "sqlite:///data/database.db"
-
-# Not needed, but if you want error to be reported to a guild channel you can
+# Optional, but if you want error to be reported to a guild channel you can
 # set it here
 issueChannel = "0000000000000000"
 
-# OpenWeather's API Key, required for weather command
+# Optional, OpenWeather's API Key, required if you want weather command to work
 openweather = "0000000000000000000000000000000"
-
-# Google CSE's API Key, required for search command
-google = "putthekeyhere"
 
 # Optional settings for your bot information
 author = "YourName#1234"
 links = {"Source Code": "https://github.com/username/yourbot"}
+
+# [ REQUIRED! ]
+# Database URL
+# (visit `https://tortoise.github.io/databases.html#db-url` to learn more)
+#
+# Tested: SQLite
+#
+# URL Examples:
+# sql = sqlite:///data/database.db
+# sql = postgres://localhost/example?ssl=true
+# sql = mysql://localhost/example?min_size=5&max_size=20
+sql = "DB_TYPE://PATH_OR_CREDENTIALS/DB_NAME?PARAM1=value&PARAM2=value"
+
+# - DONT TOUCH UNLESS YOU KNOW WHAT YOU'RE DOING! ---
+TORTOISE_ORM = {
+    "connections": {"default": sql},
+    "apps": {
+        "models": {
+            "models": ["core.db", "aerich.models"],
+            "default_connection": "default",
+        },
+    },
+}
+# - DONT TOUCH UNLESS YOU KNOW WHAT YOU'RE DOING! ---

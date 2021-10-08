@@ -47,7 +47,7 @@ async def doModlog(
     """Basically handle formatting modlog events"""
 
     channel = bot.get_channel(
-        await bot.getGuildConfig(guild.id, "modlogCh", "guildChannels") or 0
+        await bot.getGuildConfig(guild.id, "modlogCh", "GuildChannels") or 0
     )
 
     if moderator.id == bot.user.id:  # type: ignore
@@ -124,9 +124,9 @@ class EventHandler(commands.Cog, CogMixin):
 
     async def handleGreeting(self, member: discord.Member, type: str) -> None:
         channel = await self.bot.getGuildConfig(
-            member.guild.id, f"{type}Ch", "guildChannels"
+            member.guild.id, f"{type}Ch", "GuildChannels"
         )
-        channel = self.bot.get_channel(channel)
+        channel = self.bot.get_channel(channel or 0)
         if not channel:
             return
 
@@ -143,9 +143,11 @@ class EventHandler(commands.Cog, CogMixin):
             .replace("@here", "@\u200bhere")
         )
         try:
-            msg = await channel.send(content, embed=embed)
+            msg = await channel.send(content, embed=embed)  # type: ignore
         except discord.HTTPException:
-            msg = await channel.send(content)
+            msg = await channel.send(content)  # type: ignore
+        except AttributeError:
+            return
 
         if msg:
             if react := result.actions.get("react"):
@@ -156,7 +158,7 @@ class EventHandler(commands.Cog, CogMixin):
         """Welcome message"""
         await self.handleGreeting(member, "welcome")
         autoRole = await self.bot.getGuildConfig(
-            member.guild.id, "autoRole", "guildRoles"
+            member.guild.id, "autoRole", "GuildRoles"
         )
         if autoRole:
             try:
@@ -450,7 +452,7 @@ class EventHandler(commands.Cog, CogMixin):
             return
 
         logChId = await self.bot.getGuildConfig(
-            guild.id, "purgatoryCh", "guildChannels"
+            guild.id, "purgatoryCh", "GuildChannels"
         )
         if not logChId:
             return
@@ -520,7 +522,7 @@ class EventHandler(commands.Cog, CogMixin):
             return
 
         logChId = await self.bot.getGuildConfig(
-            guild.id, "purgatoryCh", "guildChannels"
+            guild.id, "purgatoryCh", "GuildChannels"
         )
         if not logChId:
             return

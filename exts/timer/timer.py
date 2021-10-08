@@ -7,7 +7,6 @@ from __future__ import annotations
 
 import asyncio
 import datetime as dt
-import json
 from contextlib import suppress
 from typing import TYPE_CHECKING, Optional
 
@@ -15,12 +14,13 @@ import discord
 import pytz
 from discord.ext import commands
 
+from core import db
 from core.converter import TimeAndArgument
-from core.embed import ZEmbed
 from core.mixin import CogMixin
-from utils import dbQuery
 from utils.format import formatDateTime, formatDiscordDT
 from utils.other import utcnow
+
+from ._views import LinkView
 
 
 if TYPE_CHECKING:
@@ -39,25 +39,32 @@ class TimerData:
         "owner",
     )
 
-    def __init__(self, data):
-        self.id = data[0]
-        self.event = data[1]
+    def __init__(self, data: dict):
+        self.id = data["id"]
+        self.event = data["event"]
         self.args: list = []
         self.kwargs: dict = {}
         try:
-            self.extra = json.loads(data[2])
+            self.extra = data["extra"]
             self.args = self.extra.pop("args", [])
             self.kwargs = self.extra.pop("kwargs", {})
         except TypeError:
-            self.extra = data[2]
-        self.expires = dt.datetime.fromtimestamp(data[3], dt.timezone.utc)
-        self.createdAt = dt.datetime.fromtimestamp(data[4], dt.timezone.utc)
-        self.owner = data[5]
+            self.extra = data["extra"]
+        self.expires = data["expires"]
+        self.createdAt = data["created"]
+        self.owner = data["owner"]
 
     @classmethod
     def temporary(cls, expires, created, event, owner, args, kwargs):
         return cls(
-            [None, event, {"args": args, "kwargs": kwargs}, expires, created, owner]
+            {
+                "id": None,
+                "event": event,
+                "extra": {"args": args, "kwargs": kwargs},
+                "expires": expires,
+                "created": created,
+                "owner": owner,
+            }
         )
 
 
@@ -75,8 +82,6 @@ class Timer(commands.Cog, CogMixin):
         self.bot.loop.create_task(self.asyncInit())
 
     async def asyncInit(self) -> None:
-        async with self.bot.db.transaction():
-            await self.bot.db.execute(dbQuery.createTimerTable)
         self.task = self.bot.loop.create_task(self.dispatchTimers())
 
     def cog_unload(self) -> None:
@@ -89,17 +94,12 @@ class Timer(commands.Cog, CogMixin):
         self.task = self.bot.loop.create_task(self.dispatchTimers())
 
     async def getActiveTimer(self, days: int = 7) -> Optional[TimerData]:
-        data = await self.bot.db.fetch_one(
-            """
-                SELECT * FROM timer
-                WHERE
-                    expires < :interval
-                ORDER BY
-                    expires ASC
-            """,
-            values={"interval": (utcnow() + dt.timedelta(days=days)).timestamp()},
+        data = (
+            await db.Timer.filter(expires__lt=utcnow() + dt.timedelta(days=days))
+            .order_by("expires")
+            .values()
         )
-        return TimerData(data) if data else None
+        return TimerData(data[0]) if data else None
 
     async def waitForActiveTimer(self, days: int = 7) -> Optional[TimerData]:
         timer: Optional[TimerData] = await self.getActiveTimer(days=days)
@@ -114,10 +114,7 @@ class Timer(commands.Cog, CogMixin):
 
     async def callTimer(self, timer: TimerData) -> None:
         # delete the timer
-        async with self.bot.db.transaction():
-            await self.bot.db.execute(
-                "DELETE FROM timer WHERE timer.id=:id", values={"id": timer.id}
-            )
+        await db.Timer.filter(id=timer.id).delete()
 
         # dispatch the event
         eventName = f"{timer.event}_timer_complete"
@@ -145,8 +142,8 @@ class Timer(commands.Cog, CogMixin):
         now = kwargs.pop("created", utcnow())
         owner = kwargs.pop("owner", None)
 
-        whenTs = when.timestamp()
-        nowTs = now.timestamp()
+        whenTs = when
+        nowTs = now
 
         timer: TimerData = TimerData.temporary(
             event=event,
@@ -158,19 +155,15 @@ class Timer(commands.Cog, CogMixin):
         )
         delta = (when - now).total_seconds()
 
-        query = """
-            INSERT INTO timer (event, extra, expires, created, owner)
-            VALUES (:event, :extra, :expires, :created, :owner)
-        """
         values = {
             "event": event,
-            "extra": json.dumps({"args": args, "kwargs": kwargs}),
+            "extra": {"args": args, "kwargs": kwargs},
             "expires": whenTs,
             "created": nowTs,
             "owner": owner,
         }
-        async with self.db.transaction():
-            timer.id = await self.db.execute(query, values=values)
+        _dbTimer = await db.Timer.create(**values)
+        timer.id = _dbTimer.id
 
         if delta <= (86400 * 40):  # 40 days
             self.haveData.set()
@@ -249,17 +242,11 @@ class Timer(commands.Cog, CogMixin):
         messageId = timer.kwargs.get("messageId")
         msgUrl = f"https://discord.com/channels/{guildId}/{channelId}/{messageId}"
 
-        e = ZEmbed(
-            description="[<:upArrow:862301023749406760> Jump to Source]({})".format(
-                msgUrl
-            ),
-        )
-
-        await channel.send(
+        await channel.send(  # type: ignore
             "<@{}>, {}: {}".format(
                 authorId,
                 formatDiscordDT(timer.createdAt, "R"),
                 discord.utils.escape_mentions(message),
             ),
-            embed=e,
+            view=LinkView(links=[("Jump to Source", msgUrl)]),
         )

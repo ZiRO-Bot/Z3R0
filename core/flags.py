@@ -23,6 +23,7 @@ class StringAndFlags(commands.FlagConverter):
         return string, await super().convert(ctx, arguments)
 
 
+# TODO: Ditch flags for greetings, it breaks TagScript handler
 class GreetingFlags(commands.FlagConverter, case_insensitive=True):
     channel: Optional[discord.TextChannel]
     raw: bool = False

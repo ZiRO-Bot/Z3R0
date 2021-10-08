@@ -1,62 +1,41 @@
-import sqlalchemy as sa
-
+from core import db
 from core.errors import CCommandNotFound
-from utils import dbQuery, sql
 
 from ._objects import CustomCommand
 
 
-async def getCustomCommand(ctx, command):
+async def getCustomCommand(ctx, command):  # type: ignore
     """Get custom command from database."""
-    db = ctx.db
-    try:
-        # Build query using SQLAlchemy
-        saQuery = (
-            sa.select([sql.commandsLookup.c.cmdId, sql.commandsLookup.c.name])
-            .where(sql.commandsLookup.c.name == command)
-            .where(sql.commandsLookup.c.guildId == ctx.guild.id)
-        )
-        _id, name = await db.fetch_one(saQuery)
-    except TypeError:
+    lookup = await db.CommandsLookup.filter(name=command, guild_id=ctx.guild.id).first()
+    if not lookup:
         # No command found
         raise CCommandNotFound(command)
 
-    # Build query using SQLAlchemy
-    saQuery = (
-        sa.select(
-            [
-                sql.commands.c.content,
-                sql.commands.c.name,
-                sql.commandsLookup.c.name,
-                sql.commands.c.description,
-                sql.commands.c.category,
-                sql.commands.c.uses,
-                sql.commands.c.url,
-                sql.commands.c.ownerId,
-                sql.commands.c.enabled,
-            ]
-        )
-        .select_from(sql.commands.join(sql.commandsLookup))
-        .where(sql.commands.c.id == _id)
-    )
-    result = await db.fetch_all(saQuery)
-    firstRes = result[0]
+    _id = lookup.cmd_id  # type: ignore
+    name = lookup.name
+
+    results = await db.CommandsLookup.filter(cmd_id=_id).prefetch_related("cmd")
+    if not results:
+        raise CCommandNotFound(command)
+
+    command: db.Commands = results[0].cmd  # type: ignore
+
     return CustomCommand(
         id=_id,
-        content=firstRes[0],
-        name=firstRes[1],
+        content=command.content,
+        name=command.name,
         invokedName=name,
-        description=firstRes[3],
-        category=firstRes[4],
-        aliases=[row[2] for row in result if row[2] != row[1]],
-        uses=firstRes[5] + 1,
-        url=firstRes[6],
-        owner=firstRes[7],
-        enabled=firstRes[8],
+        description=command.description,
+        category=command.category,
+        aliases=[alias.name for alias in results if alias.name != command.name],
+        uses=command.uses,
+        url=command.url,
+        owner=command.ownerId,
+        enabled=command.enabled,
     )
 
 
-async def getCustomCommands(db, guildId, category: str = None):
+async def getCustomCommands(guildId, category: str = None):
     """Get all custom commands from guild id."""
 
     # cmd = {
@@ -70,34 +49,38 @@ async def getCustomCommands(db, guildId, category: str = None):
 
     cmds = {}
 
-    query = dbQuery.getCommands
-    values = {"guildId": guildId}
+    query = db.CommandsLookup.filter(guild_id=guildId)
     if category:
-        query += " AND commands.category = :category"
-        values["category"] = category.lower()
-    rows = await db.fetch_all(query, values=values)
+        query = query.filter(cmd__category=category.lower())
+
+    lookupRes = await query.prefetch_related("cmd")
+
+    if not lookupRes:
+        return []
+
+    cmd: db.Commands = lookupRes[0].cmd  # type: ignore
 
     # Create temporary dict
-    for row in rows:
-        isAlias = row[1] != row[2]
+    for lookup in lookupRes:
+        isAlias = lookup.name != cmd.name
 
-        if row[0] not in cmds:
-            cmds[row[0]] = {}
+        if cmd.id not in cmds:
+            cmds[cmd.id] = {}
 
         if not isAlias:
             # If its not an alias
-            cmds[row[0]] = {
-                "name": row[2],  # "real" name
-                "description": row[3],
-                "category": row[4],
-                "owner": row[5],
-                "enabled": row[6],
-                "uses": row[7],
+            cmds[cmd.id] = {
+                "name": cmd.name,  # "real" name
+                "description": cmd.description,
+                "category": cmd.category,
+                "owner": cmd.ownerId,
+                "enabled": cmd.enabled,
+                "uses": cmd.uses,
             }
         else:
             try:
-                cmds[row[0]]["aliases"] += [row[1]]
+                cmds[cmd.id]["aliases"] += [lookup.name]
             except KeyError:
-                cmds[row[0]]["aliases"] = [row[1]]
+                cmds[cmd.id]["aliases"] = [lookup.name]
 
     return [CustomCommand(id=k, **v) for k, v in cmds.items()]

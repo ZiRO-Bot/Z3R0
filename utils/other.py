@@ -1,6 +1,5 @@
 from __future__ import annotations, division
 
-import argparse
 import datetime as dt
 import json
 import math
@@ -24,6 +23,9 @@ from pyparsing import (
     alphas,
     delimitedList,
 )
+from tortoise.functions import Max
+
+from core import db
 
 
 PHI = (1 + math.sqrt(5)) / 2
@@ -55,7 +57,7 @@ class NumericStringParser(object):
         term    :: factor [ multop factor ]*
         expr    :: term [ addop term ]*
         """
-        point = Literal(".")
+        # point = Literal(".")
 
         e = CaselessKeyword("E")
         pi = CaselessKeyword("PI")
@@ -184,49 +186,6 @@ async def reactsToMessage(message: discord.Message, reactions: list = []):
             continue
 
 
-# TODO: Deprecated, remove soon.
-class UserFriendlyBoolean(argparse.Action):
-    def __init__(
-        self,
-        option_strings,
-        dest,
-        nargs=None,
-        const=None,
-        default=False,
-        type=None,
-        choices=None,
-        required=False,
-        help=None,
-        metavar=None,
-    ):
-
-        if nargs == 0:
-            raise ValueError(
-                "nargs for store actions must be != 0; if you "
-                "have nothing to store, actions such as store "
-                "true or store const may be more appropriate"
-            )
-
-        if const is not None and nargs != OPTIONAL:
-            raise ValueError("nargs must be %r to supply const" % OPTIONAL)
-
-        super(UserFriendlyBoolean, self).__init__(
-            option_strings=option_strings,
-            dest=dest,
-            nargs=nargs,
-            const=const,
-            default=default,
-            type=type,
-            choices=choices,
-            required=required,
-            help=help,
-            metavar=metavar,
-        )
-
-    def __call__(self, parser, namespace, values, option_string=None):
-        setattr(namespace, self.dest, boolFromString(values))
-
-
 class JSON(dict):
     __slots__ = ("filename", "data")
 
@@ -296,13 +255,13 @@ def utcnow():
 def parseCodeBlock(string: str) -> Tuple[str, str]:
     # Removes ```py\n```
     if string.startswith("```") and string.endswith("```"):
-        string = string[3:-3].split("\n")
-        if string[0].endswith(" "):
+        LString = string[3:-3].split("\n")
+        if LString[0].endswith(" "):
             lang = "py"
-            code = string
+            code = LString
         else:
-            lang = string[0]
-            code = string[1:]
+            lang = LString[0]
+            code = LString[1:]
         return lang, "\n".join(code)
 
     # Removes `foo`
@@ -315,6 +274,7 @@ def boolFromString(string: str) -> bool:
         return True
     elif lowered in ("no", "n", "false", "f", "0", "disable", "off"):
         return False
+    raise ValueError("Invalid Input")
 
 
 MORSE_CODE_DICT = {
@@ -388,7 +348,7 @@ def decodeMorse(msg):
             i = 0
             temp += code
         else:
-            i += 1
+            i += 1  # type: ignore
             if i == 2:
                 decoded += " "
             else:
@@ -408,39 +368,23 @@ async def doCaselog(
     targetId: int,
     reason: str,
 ) -> Optional[int]:
-    caseNums = await bot.db.fetch_one(
-        "SELECT IFNULL(MAX(caseId)+1, 1) FROM caseLog WHERE guildId=:guildId",
-        values={"guildId": guildId},
+    q = (
+        await db.CaseLog.filter(guild_id=guildId)
+        .annotate(caseNum=Max("caseId"))
+        .first()
     )
-    caseNum = None
-    if caseNums:
-        caseNum = caseNums[0]
+    caseNum = (q.caseNum or 0) + 1  # type: ignore
 
     if caseNum:
-        async with bot.db.transaction():
-            await bot.db.execute(
-                """
-                    INSERT INTO caseLog
-                    VALUES (
-                        :caseId,
-                        :guildId,
-                        :type,
-                        :modId,
-                        :targetId,
-                        :reason,
-                        :createdAt
-                    )
-                """,
-                values={
-                    "caseId": caseNum,
-                    "guildId": guildId,
-                    "type": type,
-                    "modId": modId,
-                    "targetId": targetId,
-                    "reason": reason,
-                    "createdAt": int(utcnow().timestamp()),
-                },
-            )
+        await db.CaseLog.create(
+            caseId=caseNum,
+            guild_id=guildId,
+            type=type,
+            modId=modId,
+            targetId=targetId,
+            reason=reason,
+            createdAt=utcnow(),
+        )
         return int(caseNum)
 
 
@@ -500,6 +444,14 @@ def isNsfw(channel) -> bool:
         return channel.is_nsfw()
     except AttributeError:  # Mark DMs as NSFW channel
         return isinstance(channel, discord.DMChannel)
+
+
+async def getGuildRole(bot, guildId: int, roleType: str):
+    return await bot.getGuildConfig(guildId, roleType, "GuildRoles")
+
+
+async def setGuildRole(bot, guildId: int, roleType: str, roleId: Optional[int]):
+    return await bot.setGuildConfig(guildId, roleType, roleId, "GuildRoles")
 
 
 if __name__ == "__main__":
