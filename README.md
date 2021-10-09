@@ -97,7 +97,6 @@ Moved to [CHANGELOG.md](./CHANGELOG.md)
 
 - i18n using gettext (Learning how gettext works)
 - Slash command (Waiting for implementation)
-- Properly support different SQL scheme (designing best way to do this)
 
 ### Scrapped Plan
 
