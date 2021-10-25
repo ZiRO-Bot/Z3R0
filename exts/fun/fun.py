@@ -354,7 +354,7 @@ class Fun(commands.Cog, CogMixin):
     )
     @commands.cooldown(1, 5, type=commands.BucketType.user)
     async def clap(self, ctx, *text):
-        return await ctx.try_reply(" 👏 ".join(text))
+        return await ctx.try_reply(" 👏 ".join(text) or " 👏 ")
 
     @commands.command(
         aliases=("piglin",),

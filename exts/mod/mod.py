@@ -418,16 +418,16 @@ class Moderation(commands.Cog, CogMixin):
 
         role = discord.Object(id=mutedRoleId)
 
-        with suppress(
-            discord.NotFound, discord.HTTPException
-        ):  # ignore NotFound incase mute role got removed
+        try:
             await member.remove_roles(
                 role,
                 reason="Automatically unmuted from timer on {} by {}".format(
                     formatDateTime(timer.createdAt), moderator
                 ),
             )
-        await self.manageMuted(member, False, role)
+        except (discord.NotFound, discord.HTTPException):
+            # incase mute role got removed
+            await self.manageMuted(member, False, role)
 
     async def getMutedMembers(self, guildId: int):
         # Getting muted members from db/cache
@@ -443,7 +443,10 @@ class Moderation(commands.Cog, CogMixin):
         return mutedMembers
 
     async def manageMuted(
-        self, member: discord.Member, mode: bool, mutedRole: discord.Role
+        self,
+        member: discord.Member,
+        mode: bool,
+        mutedRole: Union[discord.Role, discord.Object],
     ):
         """Manage muted members, for anti mute evasion
 

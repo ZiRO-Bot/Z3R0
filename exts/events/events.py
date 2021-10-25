@@ -8,7 +8,7 @@ from __future__ import annotations
 import asyncio
 import re
 from contextlib import suppress
-from typing import TYPE_CHECKING, Any, Dict, Optional
+from typing import TYPE_CHECKING, Any, Dict, Optional, Union
 
 import discord
 import prettify_exceptions
@@ -171,8 +171,11 @@ class EventHandler(commands.Cog, CogMixin):
                 return
 
     async def getAuditLogs(
-        self, guild: discord.Guild, limit=1, delay=2, **kwargs
+        self, target: Union[discord.Guild, discord.Member], limit=1, delay=2, **kwargs
     ) -> discord.AuditLogEntry:
+        guild: discord.Guild = (
+            target.guild if isinstance(target, discord.Member) else target
+        )
         # discord needs a few second to update Audit Logs
         await asyncio.sleep(delay)
         return (await guild.audit_logs(limit=limit, **kwargs).flatten())[0]
