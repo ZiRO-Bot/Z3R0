@@ -1,5 +1,8 @@
 # v3.4
 
+## 3.4.2
+- [**Fixed**] Fixed `getAuditLogs`
+
 ## 3.4.1 (HotFix)
 - [**Fixed**] Added missing file to git repo (`timer/_views.py`)
 - [**Fixed**] Fixed "not in the list" error when it's not supposed to do that
