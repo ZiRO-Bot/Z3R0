@@ -77,12 +77,12 @@ async def doModlog(
         # No channel found, don't do modlog
         return
 
-    if not caseNum:
-        # placeholder for failed case parsing attempt
-        caseNum = -1
+    title = type.title()
+    if caseNum:
+        title += " | #{}".format(caseNum)
 
     e = ZEmbed.minimal(
-        title="{} | #{}".format(type.title(), caseNum),
+        title=title,
         description=(
             f"**User**: {member} ({member.mention})\n"
             + (f"**Reason**: {reason}\n" if reason else "")
