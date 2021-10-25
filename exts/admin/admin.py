@@ -13,6 +13,7 @@ from core import checks, flags
 from core.embed import ZEmbed
 from core.mixin import CogMixin
 from utils.format import separateStringFlags
+from utils.other import setGuildRole
 
 
 # Also includes aliases
@@ -37,14 +38,6 @@ class Admin(commands.Cog, CogMixin):
 
     def __init__(self, bot) -> None:
         super().__init__(bot)
-
-    @staticmethod
-    async def getGuildRole(bot, guildId: int, roleType: str):
-        return await bot.getGuildConfig(guildId, roleType, "guildRoles")
-
-    @staticmethod
-    async def setGuildRole(bot, guildId: int, roleType: str, roleId: Optional[int]):
-        return await bot.setGuildConfig(guildId, roleType, roleId, "guildRoles")
 
     async def cog_check(self, ctx):
         return ctx.guild is not None
@@ -78,14 +71,14 @@ class Admin(commands.Cog, CogMixin):
 
         if disable is True:
             await self.bot.setGuildConfig(
-                ctx.guild.id, f"{type}Ch", None, "guildChannels"
+                ctx.guild.id, f"{type}Ch", None, "GuildChannels"
             )
             e.add_field(name="Status", value="`Disabled`")
             return await ctx.try_reply(embed=e)
 
         if raw is True:
             message = await self.bot.getGuildConfig(ctx.guild.id, f"{type}Msg")
-            return await ctx.try_reply(discord.utils.escape_markdown(message))
+            return await ctx.try_reply(discord.utils.escape_markdown(str(message)))
 
         if changeMsg and message:
             await self.bot.setGuildConfig(ctx.guild.id, f"{type}Msg", message)
@@ -93,7 +86,7 @@ class Admin(commands.Cog, CogMixin):
 
         if channel is not None:
             await self.bot.setGuildConfig(
-                ctx.guild.id, f"{type}Ch", channel.id, "guildChannels"
+                ctx.guild.id, f"{type}Ch", channel.id, "GuildChannels"
             )
             e.add_field(name="Channel", value=channel.mention)
 
@@ -193,7 +186,7 @@ class Admin(commands.Cog, CogMixin):
 
         if channelId is not MISSING:
             await self.bot.setGuildConfig(
-                ctx.guild.id, f"{type}Ch", channelId, "guildChannels"
+                ctx.guild.id, f"{type}Ch", channelId, "GuildChannels"
             )
         else:
             e.description = "Nothing changed."
@@ -331,9 +324,7 @@ class Admin(commands.Cog, CogMixin):
                 return
 
             if type != "regular":
-                await self.setGuildRole(
-                    self.bot, ctx.guild.id, ROLE_TYPES[type], role.id
-                )
+                await setGuildRole(self.bot, ctx.guild.id, ROLE_TYPES[type], role.id)
 
                 if any([type == "mute", type == "muted"]):
                     await self.updateMutedRoles(ctx.guild, role, ctx.author)
@@ -387,9 +378,7 @@ class Admin(commands.Cog, CogMixin):
             )
 
             if type != "regular":
-                await self.setGuildRole(
-                    self.bot, ctx.guild.id, ROLE_TYPES[type], role.id
-                )
+                await setGuildRole(self.bot, ctx.guild.id, ROLE_TYPES[type], role.id)
 
                 if any([type == "mute", type == "muted"]):
                     await self.updateMutedRoles(ctx.guild, role, ctx.author)
@@ -455,7 +444,7 @@ class Admin(commands.Cog, CogMixin):
     @checks.is_mod()
     async def announcement(self, ctx, channel: discord.TextChannel):
         await self.bot.setGuildConfig(
-            ctx.guild.id, "announcementCh", channel.id, "guildChannels"
+            ctx.guild.id, "announcementCh", channel.id, "GuildChannels"
         )
         return await ctx.success(
             f"**Channel**: {channel.mention}",

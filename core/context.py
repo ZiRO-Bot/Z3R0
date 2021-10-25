@@ -16,9 +16,9 @@ class Context(commands.Context):
     def session(self):
         return self.bot.session
 
-    @property
-    def db(self):
-        return self.bot.db
+    # @property
+    # def db(self):
+    #     return self.bot.db
 
     @property
     def cache(self):

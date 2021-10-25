@@ -1,3 +1,10 @@
+# v3.4
+
+## 3.4.0 (Database Overhaul)
+
+- [**Improved**] Z3R0 now supports hosting using PostgreSQL or MySQL database
+  via Tortoise, **migration required!**
+
 # v3.3
 
 ## 3.3.7

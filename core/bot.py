@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import copy
 import datetime
-import json
 import logging
 import os
 import re
@@ -13,18 +12,17 @@ from typing import Any, Dict, Iterable, List, Optional, Union
 
 import aiohttp
 import discord
-from databases import Database, DatabaseURL
 from discord.ext import commands, tasks
+from tortoise import Tortoise
+from tortoise.models import Model
 
 import config
+from core import db
 from core.colour import ZColour
 from core.context import Context
 from core.errors import CCommandDisabled, CCommandNotFound, CCommandNotInGuild
-from core.objects import Connection
-from exts.meta._custom_command import getCustomCommands
 from exts.meta._utils import getDisabledCommands
 from exts.timer.timer import Timer, TimerData
-from utils import dbQuery
 from utils.cache import (
     Cache,
     CacheDictProperty,
@@ -61,7 +59,7 @@ class ziBot(commands.Bot):
 
     # --- NOTE: Information about the bot
     author: str = getattr(config, "author", "ZiRO2264#9999")
-    version: str = "`3.3.7` - `overhaul`"
+    version: str = "`3.4.0` - `overhaul`"
     links: Dict[str, str] = getattr(
         config,
         "links",
@@ -109,7 +107,7 @@ class ziBot(commands.Bot):
             else tuple([int(master) for master in config.botMasters])
         )
 
-        self.issueChannel: Optional[int] = getattr(config, "issueChannel", None)
+        self.issueChannel: int = getattr(config, "issueChannel", 0)
 
         self.blacklist: Blacklist = Blacklist("blacklist.json")
 
@@ -161,16 +159,6 @@ class ziBot(commands.Bot):
             )
         )
 
-        # database
-        dbUrl = DatabaseURL(config.sql)
-        dbKwargs = {}
-        if dbUrl.scheme == "sqlite":
-            # Custom factory for sqlite
-            # This thing here since sqlite3 doesn't do foreign_keys=ON by
-            # default
-            dbKwargs = {"factory": Connection}
-        self.db: Database = Database(dbUrl, **dbKwargs)
-
         # async init
         self.session: aiohttp.ClientSession = aiohttp.ClientSession(
             headers={"User-Agent": "Discord/Z3RO (ziBot/3.0 by ZiRO2264)"}
@@ -192,19 +180,17 @@ class ziBot(commands.Bot):
 
     async def asyncInit(self) -> None:
         """`__init__` but async"""
-        # self.db = await aiosqlite.connect("data/database.db")
-        await self.db.connect()
+        await Tortoise.init(
+            config=config.TORTOISE_ORM,
+            # db_url=config.sql,
+            # modules={"models": ["core.db"]},
+            use_tz=True,  # d.py now tz-aware
+        )
+        await Tortoise.generate_schemas(safe=True)
 
-        async with self.db.transaction():
-            # Creating all the necessary tables
-            await self.db.execute(dbQuery.createGuildsTable)
-            await self.db.execute(dbQuery.createGuildConfigsTable)
-            await self.db.execute(dbQuery.createGuildChannelsTable)
-            await self.db.execute(dbQuery.createGuildRolesTable)
-            await self.db.execute(dbQuery.createPrefixesTable)
-            await self.db.execute(dbQuery.createDisabledTable)
-            await self.db.execute(dbQuery.createGuildMutesTable)
-            await self.db.execute(dbQuery.createCaseLogTable)
+    # @property
+    # def db(self) -> BaseDBAsyncClient:  # noqa: F811 - Unrelated
+    #     return Tortoise.get_connection("default")
 
     async def startUp(self) -> None:
         """Will run when the bot ready"""
@@ -235,35 +221,49 @@ class ziBot(commands.Bot):
         return self.owner_ids
 
     async def getGuildConfigs(
-        self, guildId: int, filters: Iterable = "*", table: str = "guildConfigs"
+        self,
+        guildId: int,
+        filters: Iterable = "*",
+        table: Union[str, Model] = "GuildConfigs",  # type: ignore
     ) -> Dict[str, Any]:
+        if isinstance(table, str):
+            table: Optional[Model] = getattr(db, table, None)  # type: ignore
+
+        if table is None:
+            raise RuntimeError("Huh?")
+
         # TODO: filters is deprecated, delete it later
         # Get guild configs and maybe cache it
-        cached: CacheDictProperty = getattr(self.cache, table)
+        cached: CacheDictProperty = getattr(self.cache, table._meta.db_table)
         if cached.get(guildId) is None:
             # Executed when guild configs is not in the cache
-            row = await self.db.fetch_one(
-                f"SELECT * FROM {table} WHERE guildId=:id",
-                values={"id": guildId},
-            )
-            if row is not None:
-                row = dict(row)
-                row.pop("guildId", None)
+            config = await table.filter(guild_id=guildId).values()
+
+            if config:
+                row = config[0]
+                for i in ("id", "guild_id"):
+                    row.pop(i, None)
                 cached.set(guildId, row)
             else:
                 cached.set(guildId, {})
         return cached.get(guildId, {})
 
     async def getGuildConfig(
-        self, guildId: int, configType: str, table: str = "guildConfigs"
+        self, guildId: int, configType: str, table: Union[str, Model] = "GuildConfigs"
     ) -> Optional[Any]:
         # Get guild's specific config
         configs: dict = await self.getGuildConfigs(guildId, table=table)
         return configs.get(configType)
 
     async def setGuildConfig(
-        self, guildId: int, configType: str, configValue, table: str = "guildConfigs"
+        self, guildId: int, configType: str, configValue, table: Union[str, Model] = "GuildConfigs"  # type: ignore
     ) -> Optional[Any]:
+        if isinstance(table, str):
+            table: Model = getattr(db, table, None)  # type: ignore
+
+        if not table:
+            raise RuntimeError("Wtf?")
+
         # Set/edit guild's specific config
         if (
             config := await self.getGuildConfig(guildId, configType, table)
@@ -272,46 +272,28 @@ class ziBot(commands.Bot):
             # No need to overwrite database value
             return config
 
-        async with self.db.transaction():
-            await self.db.execute(
-                f"""
-                    INSERT INTO {table}
-                        (guildId, {configType})
-                    VALUES (
-                        :guildId,
-                        :{configType}
-                    ) ON CONFLICT (guildId) DO
-                    UPDATE SET
-                        {configType}=:{configType}Up
-                    WHERE
-                        guildId=:guildIdUp
-                """,
-                # Doubled cuz sqlite3 uses ? (probably also affecting MySQL
-                # since they use something similar, "%s").
-                # while psql use $1, $2, ... which can make this code so much
-                # cleaner
-                values={
-                    configType: configValue,
-                    configType + "Up": configValue,
-                    "guildId": guildId,
-                    "guildIdUp": guildId,
-                },
-            )
-            # Overwrite current configs
-            cached: CacheDictProperty = getattr(self.cache, table)
-            newData = {configType: configValue}
-            cached.set(guildId, newData)
+        kwargs = {
+            "guild_id": guildId,
+            configType: configValue,
+        }
+
+        await table.create(**kwargs)
+        # await table.update_or_create(**kwargs)
+
+        # Overwrite current configs
+        cached: CacheDictProperty = getattr(self.cache, table._meta.db_table)
+        newData = {configType: configValue}
+        cached.set(guildId, newData)
+
         return cached.get(guildId, {}).get(configType, None)
 
     async def getGuildPrefix(self, guildId: int) -> List[str]:
         if self.cache.prefixes.get(guildId) is None:  # type: ignore
             # Only executed when there's no cache for guild's prefix
-            dbPrefixes = await self.db.fetch_all(
-                "SELECT * FROM prefixes WHERE guildId=:id", values={"id": guildId}
-            )
+            dbPrefixes = await db.Prefixes.filter(guild_id=guildId)
 
             try:
-                self.cache.prefixes.extend(guildId, [p for _, p in dbPrefixes])  # type: ignore
+                self.cache.prefixes.extend(guildId, [p.prefix for p in dbPrefixes])  # type: ignore
             except ValueError:
                 return []
 
@@ -335,11 +317,7 @@ class ziBot(commands.Bot):
                 )
             )
 
-        async with self.db.transaction():
-            await self.db.execute(
-                "INSERT INTO prefixes VALUES (:guildId, :prefix)",
-                values={"guildId": guildId, "prefix": prefix},
-            )
+        await db.Prefixes.create(prefix=prefix, guild_id=guildId)
 
         return prefix
 
@@ -354,15 +332,10 @@ class ziBot(commands.Bot):
                 "Prefix `{}` is not exists".format(cleanifyPrefix(self, prefix))
             )
 
-        async with self.db.transaction():
-            await self.db.execute(
-                """
-                    DELETE FROM prefixes
-                    WHERE
-                        guildId=:guildId AND prefix=:prefix
-                """,
-                values={"guildId": guildId, "prefix": prefix},
-            )
+        [
+            await i.delete()
+            for i in await db.Prefixes.filter(prefix=prefix, guild_id=guildId)
+        ]
 
         return prefix
 
@@ -393,75 +366,62 @@ class ziBot(commands.Bot):
 
     async def manageGuildDeletion(self) -> None:
         """Manages guild deletion from database on boot"""
-        async with self.db.transaction():
-            timer: Timer = self.get_cog("Timer")
+        timer: Optional[Timer] = self.get_cog("Timer")  # type: ignore
 
-            dbGuilds = await self.db.fetch_all("SELECT id FROM guilds")
-            dbGuilds = [i[0] for i in dbGuilds]
-            guildIds = [i.id for i in self.guilds]
+        dbGuilds = await db.Guilds.all()
+        dbGuilds = [i.id for i in dbGuilds]
+        guildIds = [i.id for i in self.guilds]
 
-            # Insert new guilds
-            guildToAdd = [{"id": i} for i in guildIds if i not in dbGuilds]
-            await self.db.execute_many(
-                dbQuery.insertToGuilds,
-                values=guildToAdd,
-            )
+        # Insert new guilds
+        await db.Guilds.bulk_create(
+            [db.Guilds(id=i) for i in guildIds if i not in dbGuilds]
+        )
 
-            # Delete deletion timer for guild where bot is in
-            scheduledGuilds = await self.db.fetch_all(
-                """
-                    SELECT owner
-                    FROM timer
-                    WHERE event = "guild_del"
-                """
-            )
-            scheduledGuilds = [i[0] for i in scheduledGuilds]
-            canceledScheduleGuilds = [i for i in scheduledGuilds if i in guildIds]
-            await self.db.execute_many(
-                "DELETE FROM timer WHERE owner=:guildId",
-                values=[{"guildId": i} for i in canceledScheduleGuilds],
-            )
+        scheduledGuilds = await db.Timer.filter(event="guild_del")
+        cancelledScheduleGuilds = [
+            await i.delete() for i in scheduledGuilds if i.owner in guildIds
+        ]
+        scheduledGuildIds = [i.id for i in scheduledGuilds]
 
-            # Schedule delete guild where the bot no longer in
-            now = utcnow()
-            when = now + datetime.timedelta(days=self.guildDelDays)
-            await self.db.execute_many(
-                """
-                    INSERT INTO timer (event, extra, expires, created, owner)
-                    VALUES ('guild_del', :extra, :expires, :created, :owner)
-                """,
-                values=[
-                    {
-                        "extra": json.dumps({"args": [], "kwargs": {}}),
-                        "expires": when.timestamp(),
-                        "created": now.timestamp(),
-                        "owner": i,
-                    }
-                    for i in dbGuilds
-                    if i not in guildIds and i not in scheduledGuilds
-                ],
-            )
+        # Schedule delete guild where the bot no longer in
+        now = utcnow()
+        when = now + datetime.timedelta(days=self.guildDelDays)
 
-            # Restart timer task
-            if timer._currentTimer and (
-                timer._currentTimer.owner in canceledScheduleGuilds
-                or when < timer._currentTimer.expires
-            ):
-                timer.restartTimer()
-            elif not timer._currentTimer:
-                timer.restartTimer()
+        await db.Timer.bulk_create(
+            [
+                db.Timer(
+                    id=i,
+                    event="guild_del",
+                    extra={"args": [], "kwargs": {}},
+                    expires=when,
+                    created=now,
+                    owner=i,
+                )
+                for i in dbGuilds
+                if i not in guildIds and i not in scheduledGuildIds
+            ]
+        )
+
+        if not timer:
+            return
+
+        # Restart timer task
+        if timer._currentTimer and (
+            timer._currentTimer.owner in cancelledScheduleGuilds
+            or when < timer._currentTimer.expires
+        ):
+            timer.restartTimer()
+        elif not timer._currentTimer:
+            timer.restartTimer()
 
     async def on_guild_join(self, guild: discord.Guild) -> None:
         """Executed when bot joins a guild"""
         await self.wait_until_ready()
 
-        async with self.db.transaction():
-            return await self.db.execute(
-                dbQuery.insertToGuilds, values={"id": guild.id}
-            )
+        await db.Guilds.create(id=guild.id)
 
-            # Cancel deletion
-            await self.cancelDeletion(guild)
+        # Cancel deletion
+        await self.cancelDeletion(guild)
 
     async def on_guild_remove(self, guild: discord.Guild) -> None:
         """Executed when bot leaves a guild"""
@@ -471,26 +431,20 @@ class ziBot(commands.Bot):
 
     async def scheduleDeletion(self, guildId: int, days: int = 30) -> None:
         """Schedule guild deletion from `guilds` table"""
-        timer: Timer = self.get_cog("Timer")
+        timer: Timer = self.get_cog("Timer")  # type: ignore
         now = utcnow()
         when = now + datetime.timedelta(days=days)
         await timer.createTimer(when, "guild_del", created=now, owner=guildId)
 
     async def cancelDeletion(self, guild: discord.Guild) -> None:
         """Cancel guild deletion"""
-        timer: Timer = self.get_cog("Timer")
+        timer: Timer = self.get_cog("Timer")  # type: ignore
+
         # Remove the deletion timer and restart timer task
-        async with self.db.transaction():
-            await self.db.execute(
-                """
-                    DELETE FROM timer
-                    WHERE
-                        owner=:id AND event='guild_del'
-                """,
-                values={"id": guild.id},
-            )
-            if timer._currentTimer and timer._currentTimer.owner == guild.id:
-                timer.restartTimer()
+        await db.Timer.filter(owner=guild.id, event="guild_del").delete()
+
+        if timer._currentTimer and timer._currentTimer.owner == guild.id:
+            timer.restartTimer()
 
     async def on_guild_del_timer_complete(self, timer: TimerData) -> None:
         """Executed when guild deletion timer completed"""
@@ -502,25 +456,16 @@ class ziBot(commands.Bot):
             # The bot rejoin, about the function
             return
 
-        async with self.db.transaction():
-            # Delete all guild's custom command
-            commands = await getCustomCommands(self.db, guildId)
-            await self.db.execute_many(
-                "DELETE FROM commands WHERE id=:id",
-                values=[{"id": i.id} for i in commands],
-            )
+        # Delete all guild's custom command
+        await db.Commands.filter(guild_id=guildId).delete()
+        await db.Guilds.filter(id=guildId).delete()
 
-            # Delete guild from guilds table
-            await self.db.execute(
-                "DELETE FROM guilds WHERE id=:id", values={"id": guildId}
-            )
-
-            # clear guild's cache
-            for dataType in self.cache.property:
-                try:
-                    getattr(self.cache, dataType).clear(guildId)
-                except KeyError:
-                    pass
+        # clear guild's cache
+        for dataType in self.cache.property:
+            try:
+                getattr(self.cache, dataType).clear(guildId)
+            except KeyError:
+                pass
 
     async def process_commands(
         self, message: discord.Message
@@ -573,25 +518,16 @@ class ziBot(commands.Bot):
         executeCC = self.get_command("command run")
 
         # Handling command invoke with priority
-        if canRun:
-            if priority >= 1:
-                with suppress(CCommandNotFound, CCommandNotInGuild, CCommandDisabled):
-                    await executeCC(*args)
-                    self.customCommandUsage += 1
-                    return ""
-            # Since priority is 0 and it can run the built-in command,
-            # no need to try getting custom command
-            # Also executed when custom command failed to run
-            await self.invoke(ctx)
-            return ctx.command
-        else:
+        if (not canRun or priority >= 1) and executeCC:
             with suppress(CCommandNotFound, CCommandNotInGuild, CCommandDisabled):
-                # Can't run built-in command, straight to trying custom command
-                await executeCC(*args)
+                await executeCC(*args)  # type: ignore
                 self.customCommandUsage += 1
                 return ""
-            await self.invoke(ctx)
-            return ctx.command
+        # Since priority is 0 and it can run the built-in command,
+        # no need to try getting custom command
+        # Also executed when custom command failed to run
+        await self.invoke(ctx)
+        return ctx.command
 
     async def formattedPrefixes(self, guildId: int) -> str:
         _prefixes = await self.getGuildPrefix(guildId)
@@ -606,15 +542,11 @@ class ziBot(commands.Bot):
         prefixes = ", ".join(prefixes)
 
         result = "My default prefixes are `{}` or {}".format(
-            self.defPrefix, self.user.mention
+            self.defPrefix, self.user.mention  # type: ignore
         )
         if prefixes:
             result += "\n\nCustom prefixes: {}".format(prefixes)
         return result
-        # return "My prefixes are: {} or {}".format(
-        #     prefixes,
-        #     self.user.mention if not codeblock else ("@" + self.user.display_name),
-        # )
 
     async def process(self, message):
         processed = await self.process_commands(message)
@@ -630,8 +562,10 @@ class ziBot(commands.Bot):
         ) and message.author.id not in self.owner_ids:
             return
 
+        me: discord.ClientUser = self.user  # type: ignore
+
         # if bot is mentioned without any other message, send prefix list
-        pattern = f"<@(!?){self.user.id}>"
+        pattern = f"<@(!?){me.id}>"
         if re.fullmatch(pattern, message.content):
             e = discord.Embed(
                 description=await self.formattedPrefixes(message.guild.id),
@@ -639,7 +573,7 @@ class ziBot(commands.Bot):
             )
             e.set_footer(
                 text="Use `@{} help` to learn how to use the bot".format(
-                    self.user.display_name
+                    me.display_name
                 )
             )
             await message.reply(embed=e)
@@ -663,8 +597,7 @@ class ziBot(commands.Bot):
         """Properly close/turn off bot"""
         await super().close()
         # Close database
-        # await self.db.close()
-        await self.db.disconnect()
+        await Tortoise.close_connections()
         # Close aiohttp session
         await self.session.close()
 

@@ -105,9 +105,7 @@ class CustomHelp(commands.HelpCommand):
 
             if f == "custom":
                 if ctx.guild:
-                    ccs = await getCustomCommands(
-                        ctx.db, ctx.guild.id, cog.qualified_name
-                    )
+                    ccs = await getCustomCommands(ctx.guild.id, cog.qualified_name)
                     for cmd in ccs:
                         filtered.append(cmd)
 
@@ -180,7 +178,7 @@ class CustomHelp(commands.HelpCommand):
         if not (guild := ctx.guild):
             return
 
-        cmds = await getCustomCommands(ctx.db, guild.id)
+        cmds = await getCustomCommands(guild.id)
         cmds = sorted(cmds, key=lambda cmd: cmd.uses, reverse=True)
         view = ZMenuPagesView(
             ctx,

@@ -6,7 +6,7 @@ from core.errors import (
     MissingModPrivilege,
     SilentError,
 )
-from utils.other import utcnow
+from utils.other import getGuildRole, utcnow
 
 
 def has_guild_permissions(**perms):
@@ -35,7 +35,7 @@ def is_mod():
     # Moderator is a member that either have manage_guild or mod role
     async def predicate(ctx):
         try:
-            roleId = await ctx.bot.getGuildConfig(ctx.guild.id, "modRole", "guildRoles")
+            roleId = await getGuildRole(ctx.bot, ctx.guild.id, "modRole")
             role = ctx.guild.get_role(roleId)
             isMod = role in ctx.author.roles
         except AttributeError:

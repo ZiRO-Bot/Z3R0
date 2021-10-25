@@ -5,6 +5,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 """
 
 from io import BytesIO
+from typing import Optional, Union
 
 import discord
 from discord.ext import commands
@@ -29,12 +30,12 @@ class Image(commands.Cog, CogMixin):
     async def doImageFilter(
         self,
         ctx,
-        _user: discord.User,
+        _user: Optional[Union[MemberOrUser, discord.User]],
         type: str,
         format: str = "png",
     ) -> discord.Message:
-        user: discord.User = _user or ctx.author
-        userAv = user.avatar.with_format("png").url
+        user: discord.User = _user or ctx.author  # type: ignore
+        userAv = user.display_avatar.with_format("png").url
 
         async with ctx.loading(title="Processing image..."):
             async with self.bot.session.get(

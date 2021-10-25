@@ -1,181 +1,172 @@
-"""
-Simple migrator tool
-
-Migrate from 2.0 database scheme to 3.0 database scheme
-Coded for SQLite -> SQLite migration
-
-WARNING: This script coded to be run once,
-running it multiple time may broke something
-"""
+# Raw SQL -> ORM
 
 import asyncio
+import datetime as dt
+import sqlite3
 
-from databases import Database
+from tortoise import Tortoise
 
-from utils import dbQuery
-
-
-OLD_DB = Database("sqlite:///data/database2_0.db")
-NEW_DB = Database("sqlite:///data/database3_0.db")
-DEF_PREFIX = ">"
+import config
+from core import db
 
 
-async def prepareNewDB():
-    await NEW_DB.connect()
-    async with NEW_DB.transaction():
-        # core/bot.py
-        await NEW_DB.execute(dbQuery.createGuildsTable)
-        await NEW_DB.execute(dbQuery.createGuildConfigsTable)
-        await NEW_DB.execute(dbQuery.createGuildChannelsTable)
-        await NEW_DB.execute(dbQuery.createGuildRolesTable)
-        await NEW_DB.execute(dbQuery.createPrefixesTable)
-        await NEW_DB.execute(dbQuery.createDisabledTable)
-        # exts/timer.py
-        await NEW_DB.execute(dbQuery.createTimerTable)
-        # exts/meta.py
-        await NEW_DB.execute(dbQuery.createCommandsTable)
-        await NEW_DB.execute(dbQuery.createCommandsLookupTable)
-
-
-async def migrateGuildData():
-    """Migrate guild id, prefixes and channels"""
-    data = await OLD_DB.fetch_all("SELECT * FROM servers")
-
-    guilds = []
-    prefixes = []
-    channels = []
-    for i in data:
-        guildId = i[0]
-        i = i[1:]
-        guilds.append({"id": int(guildId)})
-
-        if i[0] is not None:
-            pre = str(i[0]).split(",")
-            for p in pre:
-                if p == DEF_PREFIX:
-                    continue
-                prefixes.append({"guildId": int(guildId), "prefix": str(p)})
-
-        i = i[2:]
-        channels.append(
-            {
-                "guildId": int(guildId),
-                "welcomeCh": i[0],
-                "farewellCh": i[0],
-                "purgatoryCh": i[2],
-                "announcementCh": i[4],
-            }
-        )
-
-    async with NEW_DB.transaction():
-        await NEW_DB.execute_many(dbQuery.insertToGuilds, values=guilds)
-        await NEW_DB.execute_many(
-            "INSERT INTO prefixes VALUES (:guildId, :prefix)", values=prefixes
-        )
-        await NEW_DB.execute_many(
-            """
-            INSERT OR IGNORE INTO guildChannels
-            VALUES (
-                :guildId,
-                :welcomeCh,
-                :farewellCh,
-                NULL,
-                :purgatoryCh,
-                :announcementCh
-            )
-        """,
-            values=channels,
-        )
-
-
-async def migrateGuildConfigs():
-    """Migrate disabled command and welcome/farewell msg"""
-    data = await OLD_DB.fetch_all("SELECT * FROM settings")
-
-    disabled = []
-    configs = []
-    for i in data:
-        guildId = i[0]
-        i = i[2:]
-
-        dis = (i[0] or "").split(",")
-        mod = (i[-1] or "").split(",")
-        pre = dis + mod
-        for cmd in pre:
-            if str(cmd).startswith("command") or str(cmd) == "":
-                continue
-            disabled.append({"guildId": guildId, "command": str(cmd)})
-        i = i[1:]
-
-        configs.append({"guildId": guildId, "welcomeMsg": i[0], "farewellMsg": i[1]})
-
-    async with NEW_DB.transaction():
-        await NEW_DB.execute_many(
-            "INSERT INTO disabled VALUES (:guildId, :command)", values=disabled
-        )
-        await NEW_DB.execute_many(
-            "INSERT OR IGNORE INTO guildConfigs VALUES (:guildId, 0, 0, :welcomeMsg, :farewellMsg)",
-            values=configs,
-        )
-
-
-async def migrateGuildRoles():
-    """Migrate guild's special roles"""
-    data = await OLD_DB.fetch_all("SELECT * FROM roles")
-
-    async with NEW_DB.transaction():
-        await NEW_DB.execute_many(
-            "INSERT OR IGNORE INTO guildRoles VALUES (:guildId, NULL, :mutedRole, :autoRole)",
-            values=[
-                {
-                    "guildId": i[0],
-                    "mutedRole": i[2],
-                    "autoRole": i[1],
-                }
-                for i in data
-            ],
-        )
-
-
-async def migrateGuildCustomCommands():
-    """Migrate custom commands"""
-    data = await OLD_DB.fetch_all("SELECT * FROM tags")
-
-    # guildId = i[0]
-    # i[1:]
-    # lookups.append({"guildId": guildId})
-    async with NEW_DB.transaction():
-        for i in data:
-            addedId = await NEW_DB.execute(
-                """
-                    INSERT INTO commands (name, content, ownerId, createdAt, type, uses)
-                    VALUES (:name, :content, :ownerId, :createdAt, :type, :uses)
-                """,
-                values={
-                    "name": i[1],
-                    "content": i[2],
-                    "ownerId": i[-1],
-                    "createdAt": i[3],
-                    "type": "text",
-                    "uses": i[5],
-                },
-            )
-            await NEW_DB.execute(
-                """
-                    INSERT INTO commands_lookup (cmdId, name, guildId)
-                    VALUES (:cmdId, :name, :guildId)
-                """,
-                values={"cmdId": addedId, "name": i[1], "guildId": i[0]},
-            )
+OLD = sqlite3.connect("./data/database3_0.db", isolation_level=None)
+OLD.execute("pragma journal_mode=wal")
+OLD.execute("pragma foreign_keys=ON")
+OLD.row_factory = sqlite3.Row
 
 
 async def main():
-    await OLD_DB.connect()
-    await prepareNewDB()
-    await migrateGuildData()
-    await migrateGuildConfigs()
-    await migrateGuildRoles()
-    await migrateGuildCustomCommands()
+    # Init Tortoise
+    await Tortoise.init(
+        config=config.TORTOISE_ORM,
+        use_tz=True,  # d.py now tz-aware
+    )
+    await Tortoise.generate_schemas(safe=True)
+
+    # Guild list
+    guilds = []
+    for guild in OLD.execute("SELECT * FROM guilds"):
+        guilds.append(db.Guilds(id=guild["id"]))
+    # Try to insert guild list into new database
+    try:
+        await db.Guilds.bulk_create(guilds)
+    except Exception:
+        # Assume its already migrated
+        print("Already migrated")
+        await Tortoise.close_connections()
+        return
+
+    # Commands + Command Lookups
+    for command in OLD.execute("SELECT * FROM commands"):
+        await db.Commands.create(
+            id=command["id"],
+            type=command["type"],
+            name=command["name"],
+            category=command["category"],
+            description=command["description"],
+            content=command["content"],
+            url=command["url"],
+            uses=command["uses"],
+            ownerId=command["ownerId"],
+            createdAt=dt.datetime.fromtimestamp(
+                command["createdAt"], tz=dt.timezone.utc
+            ),
+            visibility=command["visibility"],
+            enabled=command["enabled"],
+        )
+
+    for lookup in OLD.execute("SELECT * FROM commands_lookup"):
+        try:
+            await db.CommandsLookup.create(
+                cmd_id=lookup["cmdId"],
+                name=lookup["name"],
+                guild_id=lookup["guildId"],
+            )
+        except Exception:
+            await db.Commands.filter(id=lookup["cmdId"]).delete()
+
+    prefixes = []
+    for prefix in OLD.execute("SELECT * FROM prefixes"):
+        prefixes.append(
+            db.Prefixes(prefix=prefix["prefix"], guild_id=prefix["guildId"])
+        )
+    await db.Prefixes.bulk_create(prefixes)
+
+    timers = []
+    for timer in OLD.execute("SELECT * FROM timer"):
+        timers.append(
+            db.Timer(
+                id=timer["id"],
+                event=timer["event"],
+                extra=timer["extra"],
+                expires=dt.datetime.fromtimestamp(timer["expires"], tz=dt.timezone.utc),
+                created=dt.datetime.fromtimestamp(timer["created"], tz=dt.timezone.utc),
+                owner=timer["owner"],
+            )
+        )
+    await db.Timer.bulk_create(timers)
+
+    caseLogs = []
+    for log in OLD.execute("SELECT * FROM caseLog"):
+        caseLogs.append(
+            db.CaseLog(
+                caseId=log["caseId"],
+                type=log["type"],
+                modId=log["modId"],
+                targetId=log["targetId"],
+                reason=log["reason"],
+                createdAt=dt.datetime.fromtimestamp(
+                    log["createdAt"], tz=dt.timezone.utc
+                ),
+                guild_id=log["guildId"],
+            )
+        )
+    await db.CaseLog.bulk_create(caseLogs)
+
+    disabledCmds = []
+    for cmd in OLD.execute("SELECT * FROM disabled"):
+        disabledCmds.append(
+            db.Disabled(
+                command=cmd["command"],
+                guild_id=cmd["guildId"],
+            )
+        )
+    await db.Disabled.bulk_create(disabledCmds)
+
+    channels = []
+    for channel in OLD.execute("SELECT * FROM guildChannels"):
+        channels.append(
+            db.GuildChannels(
+                guild_id=channel["guildId"],
+                welcomeCh=channel["welcomeCh"],
+                farewellCh=channel["farewellCh"],
+                modlogCh=channel["modlogCh"],
+                purgatoryCh=channel["purgatoryCh"],
+                announcementCh=channel["announcementCh"],
+            )
+        )
+    await db.GuildChannels.bulk_create(channels)
+
+    configs = []
+    for c in OLD.execute("SELECT * FROM guildConfigs"):
+        configs.append(
+            db.GuildConfigs(
+                ccMode=c["ccMode"],
+                tagMode=c["tagMode"],
+                welcomeMsg=c["welcomeMsg"],
+                farewellMsg=c["farewellMsg"],
+                guild_id=c["guildId"],
+            )
+        )
+    await db.GuildConfigs.bulk_create(configs)
+
+    mutes = []
+    for mute in OLD.execute("SELECT * FROM guildMutes"):
+        mutes.append(
+            db.GuildMutes(
+                mutedId=mute["mutedId"],
+                guild_id=mute["guildId"],
+            )
+        )
+    await db.GuildMutes.bulk_create(mutes)
+
+    roles = []
+    for role in OLD.execute("SELECT * FROM guildRoles"):
+        roles.append(
+            db.GuildRoles(
+                modRole=role["modRole"],
+                mutedRole=role["mutedRole"],
+                autoRole=role["autoRole"],
+                guild_id=role["guildId"],
+            )
+        )
+    await db.GuildRoles.bulk_create(roles)
+
+    # Migration complete
+    print("DONE")
+    await Tortoise.close_connections()
+    return
 
 
 if __name__ == "__main__":
