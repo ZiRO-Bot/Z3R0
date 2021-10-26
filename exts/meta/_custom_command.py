@@ -38,7 +38,7 @@ async def getCustomCommand(ctx, command):  # type: ignore
 async def getCustomCommands(guildId, category: str = None):
     """Get all custom commands from guild id."""
 
-    # cmd = {
+    # cmds = {
     #     "command_id": {
     #         "name": "command",
     #         "description": null,
@@ -58,10 +58,10 @@ async def getCustomCommands(guildId, category: str = None):
     if not lookupRes:
         return []
 
-    cmd: db.Commands = lookupRes[0].cmd  # type: ignore
-
     # Create temporary dict
     for lookup in lookupRes:
+        cmd: db.Commands = lookup.cmd  # type: ignore
+
         isAlias = lookup.name != cmd.name
 
         if cmd.id not in cmds:

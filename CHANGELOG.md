@@ -1,5 +1,8 @@
 # v3.4
 
+## 3.4.3
+- [**Fixed**] Fixed command list always show 1 command
+
 ## 3.4.2
 - [**Fixed**] Fixed `getAuditLogs`
 
