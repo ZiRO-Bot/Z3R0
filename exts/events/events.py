@@ -322,8 +322,10 @@ class EventHandler(commands.Cog, CogMixin):
                 ),
                 title="Command is on a cooldown!",
             )
-            await asyncio.sleep(round(retryAfter))
-            return await bot_msg.delete()
+            with suppress(discord.NotFound):
+                # Probably already deleted
+                await asyncio.sleep(round(retryAfter))
+                return await bot_msg.delete()
 
         if isinstance(error, commands.NoPrivateMessage):
             return await ctx.error(title="This command is not available in DMs")
