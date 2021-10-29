@@ -8,7 +8,7 @@ from __future__ import annotations
 import difflib
 import re
 import time
-from typing import TYPE_CHECKING, Any, Iterable, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Any, Iterable, List, Optional, Tuple, Union
 
 import discord
 import humanize
@@ -26,9 +26,10 @@ from core.errors import (
 )
 from core.menus import ZChoices, ZMenuPagesView, choice
 from core.mixin import CogMixin
+from exts.timer._views import LinkView
 from utils import tseBlocks
 from utils.cache import CacheListProperty, CacheUniqueViolation
-from utils.format import CMDName, cleanifyPrefix, formatCmdName
+from utils.format import CMDName, cleanifyPrefix, formatCmdName, formatDiscordDT
 from utils.other import reactsToMessage, utcnow
 
 from ._custom_command import getCustomCommand
@@ -125,6 +126,11 @@ class Meta(commands.Cog, CogMixin):
         self.engine = tse.Interpreter(blocks)
 
         self.bot.loop.create_task(self.asyncInit())
+
+        # hardcoded for now
+        self.highlights = {
+            807260318270619748: {"ziro": [186713080841895936, 740089661703192709]}
+        }
 
     async def asyncInit(self):
         pass
@@ -1184,3 +1190,61 @@ class Meta(commands.Cog, CogMixin):
             + ")",
         )
         await ctx.try_reply(embed=e)
+
+    @commands.group(aliases=("hl",))
+    async def highlight(self, ctx):
+        """Group root for highlights"""
+        pass
+
+    @highlight.command()
+    async def add(self, ctx, *, text: str):
+        # TODO: Actually add the text to highlights db
+        await ctx.try_reply(text)
+
+    @commands.Cog.listener("on_message")
+    async def onHighlight(self, message: discord.Message):
+        guild = message.guild
+        if message.author.bot or not message.content or not guild:
+            return
+
+        if not (guildHighlight := self.highlights.get(guild.id)):
+            return
+
+        for hl, owners in guildHighlight.items():
+            if hl not in message.content:
+                continue
+
+            # Getting context
+            msgs: List[discord.Message] = [message]
+            async for history in message.channel.history(
+                limit=4, before=message.created_at
+            ):
+                msgs.append(history)
+
+            context = []
+            for msg in msgs:
+                tmp = f"[{formatDiscordDT(msg.created_at, 'T')}] {msg.author}: {msg.clean_content or '_Only contains embed_'}"
+                if msg == message:
+                    tmp = f"** {tmp} **"
+                context.append(tmp)
+            context.reverse()
+
+            view = LinkView(links=[("Jump to Source", message.jump_url)])
+            e = ZEmbed(
+                title=f"Keyword: `{hl}`",
+                description="\n".join(context),
+            )
+
+            for owner in owners:
+                # Prevent "self-highlight"
+                if owner == message.author.id:
+                    continue
+
+                user = self.bot.get_user(owner) or await self.bot.fetch_user(owner)
+                if user:
+                    await user.send(
+                        "In {0.channel.mention} ({0.guild})".format(message),
+                        embed=e,
+                        view=view,
+                    )
+            return
