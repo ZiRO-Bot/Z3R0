@@ -1,5 +1,10 @@
 # v3.4
 
+## 3.4.4
+- [**New**] Added highlight, when a highlight word/phrase is found, the bot
+  will send you a private message with the message that triggered it along with
+  contexts. (Heavily inspired by `Highlight` by Danny/Rapptz)
+
 ## 3.4.3
 - [**Fixed**] Fixed command list always show 1 command
 
