@@ -1,5 +1,8 @@
 # v3.4
 
+## 3.4.4b
+- [**Fixed**] Fixed custom command deletion when guild deletion event dispatched
+
 ## 3.4.3
 - [**Fixed**] Fixed command list always show 1 command
 
