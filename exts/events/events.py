@@ -223,29 +223,31 @@ class EventHandler(commands.Cog, CogMixin):
 
     @commands.Cog.listener("on_member_ban")
     async def onMemberBan(self, guild: discord.Guild, user: discord.User) -> None:
-        entry = await self.getAuditLogs(guild)
-        if entry.target == user:
-            await doModlog(
-                self.bot,
-                guild,
-                entry.target,  # type: ignore
-                entry.user,
-                "ban",
-                entry.reason,
-            )
+        with suppress(discord.Forbidden):
+            entry = await self.getAuditLogs(guild)
+            if entry.target == user:
+                await doModlog(
+                    self.bot,
+                    guild,
+                    entry.target,  # type: ignore
+                    entry.user,
+                    "ban",
+                    entry.reason,
+                )
 
     @commands.Cog.listener("on_member_unban")
     async def onMemberUnban(self, guild: discord.Guild, user: discord.User) -> None:
-        entry = await self.getAuditLogs(guild)
-        if entry.target == user:
-            await doModlog(
-                self.bot,
-                guild,
-                entry.target,  # type: ignore
-                entry.user,
-                "unban",
-                entry.reason,
-            )
+        with suppress(discord.Forbidden):
+            entry = await self.getAuditLogs(guild)
+            if entry.target == user:
+                await doModlog(
+                    self.bot,
+                    guild,
+                    entry.target,  # type: ignore
+                    entry.user,
+                    "unban",
+                    entry.reason,
+                )
 
     @commands.Cog.listener("on_command_error")
     async def onCommandError(self, ctx, error) -> Optional[discord.Message]:
