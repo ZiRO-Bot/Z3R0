@@ -21,6 +21,7 @@ from core import db
 from core.colour import ZColour
 from core.context import Context
 from core.errors import CCommandDisabled, CCommandNotFound, CCommandNotInGuild
+from exts.meta._custom_command import getCustomCommands
 from exts.meta._utils import getDisabledCommands
 from exts.timer.timer import Timer, TimerData
 from utils.cache import (
@@ -458,7 +459,8 @@ class ziBot(commands.Bot):
             return
 
         # Delete all guild's custom command
-        await db.Commands.filter(guild_id=guildId).delete()
+        commands = await getCustomCommands(guildId)
+        [await db.Commands.filter(id=i.id).delete() for i in commands]
         await db.Guilds.filter(id=guildId).delete()
 
         # clear guild's cache
