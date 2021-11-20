@@ -476,13 +476,13 @@ class EventHandler(commands.Cog, CogMixin):
             name="Before",
             value=before.content[:1020] + " ..."
             if len(before.content) > 1024
-            else before.content,
+            else (before.content or "Nothing to see here..."),
         )
         e.add_field(
             name="After",
             value=after.content[:1020] + " ..."
             if len(after.content) > 1024
-            else after.content,
+            else (after.content or "Nothing to see here..."),
         )
 
         if before.embeds:
@@ -545,7 +545,7 @@ class EventHandler(commands.Cog, CogMixin):
         e.description = (
             message.content[:1020] + " ..."
             if len(message.content) > 1024
-            else message.content
+            else (message.content or "Nothing to see here...")
         )
 
         return await logCh.send(
