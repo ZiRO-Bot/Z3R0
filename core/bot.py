@@ -208,7 +208,7 @@ class ziBot(commands.Bot):
             self.owner_ids += (owner.id,)
 
         # change bot's presence into guild live count
-        self.changing_presence.start()
+        self.changingPresence.start()
 
         await self.manageGuildDeletion()
 
@@ -340,7 +340,8 @@ class ziBot(commands.Bot):
         return prefix
 
     @tasks.loop(seconds=15)
-    async def changing_presence(self) -> None:
+    async def changingPresence(self) -> None:
+        """A loop that change bot's status every 15 seconds."""
         activities: tuple = (
             discord.Activity(
                 name=f"over {len(self.guilds)} servers",
