@@ -1,6 +1,6 @@
 # v3.4
 
-## 3.4.4b
+## 3.4.4
 - [**Fixed**] Fixed custom command deletion when guild deletion event dispatched
 - [**Fixed**] Suppressed discord.Forbidden when bot can't access AuditLog
 - [**Fixed**] Fixed `Invalid Form Body` when trying to send empty message content to purgatory
