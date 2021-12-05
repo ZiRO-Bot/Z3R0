@@ -114,8 +114,8 @@ class Fun(commands.Cog, CogMixin):
         eyes = ["{eye}" if randint(1, 10) == 1 else "{frame}" for i in range(12)]
         eyeCount = sum([1 for i in eyes if i == "{eye}"])
 
-        # rig stuff
-        rig = {518154918276628490: 12}
+        # people with rigged amount of eyes
+        rig = {518154918276628490: 12, 575014590371463178: 12}
         if ctx.author.id in rig:
             rig = rig[ctx.author.id]
             eyeCount = rig
