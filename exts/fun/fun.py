@@ -115,7 +115,11 @@ class Fun(commands.Cog, CogMixin):
         eyeCount = sum([1 for i in eyes if i == "{eye}"])
 
         # people with rigged amount of eyes
-        rig = {518154918276628490: 12, 575014590371463178: 12}
+        rig = {
+            518154918276628490: 12,
+            575014590371463178: 12,
+            755667043117695036: 12,
+        }
         if ctx.author.id in rig:
             rig = rig[ctx.author.id]
             eyeCount = rig
