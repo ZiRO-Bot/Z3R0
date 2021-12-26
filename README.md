@@ -84,8 +84,6 @@ Moved to [CHANGELOG.md](./CHANGELOG.md)
 
 ## Plans
 
-- Setup a migrator from non-ORM db to ORM db
-- Setup `Aerich` migration
 - Event for ~~member boosting a guild~~ (Just need to implement setup for it)
 - Tags (stripped version of custom command)
 - Unify categories/exts emoji
@@ -97,6 +95,7 @@ Moved to [CHANGELOG.md](./CHANGELOG.md)
 
 - i18n using gettext (Learning how gettext works)
 - Slash command (Waiting for implementation)
+- Replace mute with the new timeout feature from Discord (Currently undocumented if this is possible)
 
 ### Scrapped Plan
 
