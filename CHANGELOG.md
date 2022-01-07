@@ -4,6 +4,7 @@
 - [**Fixed**] Fixed `AttributeError` trying to unmute a member that already left the server
 - [**Fixed**] Fixed `IndexError` trying to get a AuditLog when AuditLogs is empty
 - [**Removed**] Removed `ClientOSError` from log
+- [**Removed**] Removed prettify.py/pretty, too buggy
 
 ## 3.4.4
 - [**Fixed**] Fixed custom command deletion when guild deletion event dispatched

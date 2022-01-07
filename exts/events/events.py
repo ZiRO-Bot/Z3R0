@@ -11,7 +11,6 @@ from contextlib import suppress
 from typing import TYPE_CHECKING, Any, Dict, Optional, Union
 
 import discord
-import pretty
 import pytz
 import TagScriptEngine as tse
 from aiohttp.client_exceptions import ClientOSError
@@ -21,7 +20,7 @@ from core import errors
 from core.embed import ZEmbed
 from core.mixin import CogMixin
 from utils import tseBlocks
-from utils.format import formatMissingArgError, formatPerms
+from utils.format import formatMissingArgError, formatPerms, formatTraceback
 from utils.other import doCaselog, reactsToMessage, utcnow
 
 from ._views import Report
@@ -369,18 +368,8 @@ class EventHandler(commands.Cog, CogMixin):
             return await ctx.error(title="Check failed!")
 
         # Give details about the error
-        _traceback = "".join(
-            pretty.traceback.PrettyTracebackFormatter().format_exception(
-                type(error), error, error.__traceback__  # type: ignore
-            )
-        )
+        _traceback = formatTraceback("", error)
         self.bot.logger.error("Something went wrong! error: {}".format(_traceback))
-        # --- Without prettify
-        # print(
-        #     "Ignoring exception in command {}:".format(ctx.command), file=sys.stderr
-        # )
-        # print(_traceback, file=sys.stderr)
-        # ---
 
         desc = "The command was unsuccessful because of this reason:\n```\n{}\n```\n".format(
             error
