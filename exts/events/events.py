@@ -11,7 +11,7 @@ from contextlib import suppress
 from typing import TYPE_CHECKING, Any, Dict, Optional, Union
 
 import discord
-import prettify_exceptions
+import pretty
 import pytz
 import TagScriptEngine as tse
 from aiohttp.client_exceptions import ClientOSError
@@ -370,7 +370,7 @@ class EventHandler(commands.Cog, CogMixin):
 
         # Give details about the error
         _traceback = "".join(
-            prettify_exceptions.DefaultFormatter().format_exception(
+            pretty.traceback.PrettyTracebackFormatter().format_exception(
                 type(error), error, error.__traceback__  # type: ignore
             )
         )
