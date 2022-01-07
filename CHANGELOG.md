@@ -1,9 +1,20 @@
 # v3.4
 
-## 3.4.4
+## 3.4.6
 - [**New**] Added highlight, when a highlight word/phrase is found, the bot
   will send you a private message with the message that triggered it along with
   contexts. (Heavily inspired by `Highlight` by Danny/Rapptz)
+
+## 3.4.5
+- [**Fixed**] Fixed `AttributeError` trying to unmute a member that already left the server
+- [**Fixed**] Fixed `IndexError` trying to get a AuditLog when AuditLogs is empty
+- [**Removed**] Removed `ClientOSError` from log
+- [**Removed**] Removed prettify.py/pretty, too buggy
+
+## 3.4.4
+- [**Fixed**] Fixed custom command deletion when guild deletion event dispatched
+- [**Fixed**] Suppressed discord.Forbidden when bot can't access AuditLog
+- [**Fixed**] Fixed `Invalid Form Body` when trying to send empty message content to purgatory
 
 ## 3.4.3
 - [**Fixed**] Fixed command list always show 1 command

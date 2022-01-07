@@ -21,6 +21,7 @@ from core import db
 from core.colour import ZColour
 from core.context import Context
 from core.errors import CCommandDisabled, CCommandNotFound, CCommandNotInGuild
+from exts.meta._custom_command import getCustomCommands
 from exts.meta._utils import getDisabledCommands
 from exts.timer.timer import Timer, TimerData
 from utils.cache import (
@@ -59,7 +60,7 @@ class ziBot(commands.Bot):
 
     # --- NOTE: Information about the bot
     author: str = getattr(config, "author", "ZiRO2264#9999")
-    version: str = "`3.4.4` - `overhaul`"
+    version: str = "`3.4.6` - `overhaul`"
     links: Dict[str, str] = getattr(
         config,
         "links",
@@ -208,7 +209,7 @@ class ziBot(commands.Bot):
             self.owner_ids += (owner.id,)
 
         # change bot's presence into guild live count
-        self.changing_presence.start()
+        self.changingPresence.start()
 
         await self.manageGuildDeletion()
 
@@ -340,7 +341,8 @@ class ziBot(commands.Bot):
         return prefix
 
     @tasks.loop(seconds=15)
-    async def changing_presence(self) -> None:
+    async def changingPresence(self) -> None:
+        """A loop that change bot's status every 15 seconds."""
         activities: tuple = (
             discord.Activity(
                 name=f"over {len(self.guilds)} servers",
@@ -457,7 +459,8 @@ class ziBot(commands.Bot):
             return
 
         # Delete all guild's custom command
-        await db.Commands.filter(guild_id=guildId).delete()
+        commands = await getCustomCommands(guildId)
+        [await db.Commands.filter(id=i.id).delete() for i in commands]
         await db.Guilds.filter(id=guildId).delete()
 
         # clear guild's cache

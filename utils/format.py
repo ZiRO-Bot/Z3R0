@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import datetime as dt
 import re
+import sys
+import traceback
 from typing import Tuple, Union
 
 import discord
@@ -195,3 +197,15 @@ def stringWrap(string: str, limit: int, countHidden: bool = False):
         else:
             string += "..."
     return string
+
+
+def formatTraceback(text: str, error: Exception, *, _print: bool = False) -> str:
+    # https://github.com/InterStella0/stella_bot/blob/896c94e847829575d4699c0dd9d9b925d01c4b44/utils/useful.py#L132~L140
+    if _print:
+        traceback.print_exception(
+            type(error), error, error.__traceback__, file=sys.stderr
+        )
+    etype = type(error)
+    trace = error.__traceback__
+    lines = traceback.format_exception(etype, error, trace)
+    return "".join(lines)

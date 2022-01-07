@@ -3,9 +3,9 @@ Please try to follow these guidelines when contributing/making pull requests to 
 - To contribute, fork the repo, edit the fork, and create a pull requests.
 - Naming guidelines:
   * Classes: `CamelCase`
-  * Functions: `lowerCamelCase`
+  * Functions: `snake_case` or `lowerCamelCase` (Always use `lowerCamelCase` if possible)
   * Variables **inside** a function/class: `lowerCamelCase`
   * Variables **outside** a function/class: `UPPERCASE`
-- All database query should be stored in `exts/utils/dbQuery.py` unless the query guaranteed to work in SQLite3, PostgreSQL, and MySQL.
+- New functions should include informative docstring/comments.
 - Use `str.format()` instead of f-string unless there's no words in it (For i18n, maybe in the future)
 - Format your code with [`black`](https://github.com/psf/black) before creating a pull request.

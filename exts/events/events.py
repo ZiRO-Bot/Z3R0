@@ -11,16 +11,16 @@ from contextlib import suppress
 from typing import TYPE_CHECKING, Any, Dict, Optional, Union
 
 import discord
-import prettify_exceptions
 import pytz
 import TagScriptEngine as tse
+from aiohttp.client_exceptions import ClientOSError
 from discord.ext import commands
 
 from core import errors
 from core.embed import ZEmbed
 from core.mixin import CogMixin
 from utils import tseBlocks
-from utils.format import formatMissingArgError, formatPerms
+from utils.format import formatMissingArgError, formatPerms, formatTraceback
 from utils.other import doCaselog, reactsToMessage, utcnow
 
 from ._views import Report
@@ -185,7 +185,7 @@ class EventHandler(commands.Cog, CogMixin):
         """Farewell message"""
         guild: discord.Guild = member.guild
 
-        with suppress(discord.Forbidden):
+        with suppress(discord.Forbidden, IndexError):
             entry = await self.getAuditLogs(guild)
 
             if entry.target == member:
@@ -223,29 +223,31 @@ class EventHandler(commands.Cog, CogMixin):
 
     @commands.Cog.listener("on_member_ban")
     async def onMemberBan(self, guild: discord.Guild, user: discord.User) -> None:
-        entry = await self.getAuditLogs(guild)
-        if entry.target == user:
-            await doModlog(
-                self.bot,
-                guild,
-                entry.target,  # type: ignore
-                entry.user,
-                "ban",
-                entry.reason,
-            )
+        with suppress(discord.Forbidden, IndexError):
+            entry = await self.getAuditLogs(guild)
+            if entry.target == user:
+                await doModlog(
+                    self.bot,
+                    guild,
+                    entry.target,  # type: ignore
+                    entry.user,
+                    "ban",
+                    entry.reason,
+                )
 
     @commands.Cog.listener("on_member_unban")
     async def onMemberUnban(self, guild: discord.Guild, user: discord.User) -> None:
-        entry = await self.getAuditLogs(guild)
-        if entry.target == user:
-            await doModlog(
-                self.bot,
-                guild,
-                entry.target,  # type: ignore
-                entry.user,
-                "unban",
-                entry.reason,
-            )
+        with suppress(discord.Forbidden, IndexError):
+            entry = await self.getAuditLogs(guild)
+            if entry.target == user:
+                await doModlog(
+                    self.bot,
+                    guild,
+                    entry.target,  # type: ignore
+                    entry.user,
+                    "unban",
+                    entry.reason,
+                )
 
     @commands.Cog.listener("on_command_error")
     async def onCommandError(self, ctx, error) -> Optional[discord.Message]:
@@ -280,6 +282,11 @@ class EventHandler(commands.Cog, CogMixin):
             commands.CommandNotFound,
             commands.DisabledCommand,
         )
+
+        if isinstance(error, ClientOSError):
+            # Lost connection
+            self.bot.logger.error("Connection reset by peer")
+            return
 
         if isinstance(error, silentError):
             return
@@ -322,8 +329,10 @@ class EventHandler(commands.Cog, CogMixin):
                 ),
                 title="Command is on a cooldown!",
             )
-            await asyncio.sleep(round(retryAfter))
-            return await bot_msg.delete()
+            with suppress(discord.NotFound):
+                # Probably already deleted
+                await asyncio.sleep(round(retryAfter))
+                return await bot_msg.delete()
 
         if isinstance(error, commands.NoPrivateMessage):
             return await ctx.error(title="This command is not available in DMs")
@@ -359,18 +368,8 @@ class EventHandler(commands.Cog, CogMixin):
             return await ctx.error(title="Check failed!")
 
         # Give details about the error
-        _traceback = "".join(
-            prettify_exceptions.DefaultFormatter().format_exception(
-                type(error), error, error.__traceback__  # type: ignore
-            )
-        )
+        _traceback = formatTraceback("", error)
         self.bot.logger.error("Something went wrong! error: {}".format(_traceback))
-        # --- Without prettify
-        # print(
-        #     "Ignoring exception in command {}:".format(ctx.command), file=sys.stderr
-        # )
-        # print(_traceback, file=sys.stderr)
-        # ---
 
         desc = "The command was unsuccessful because of this reason:\n```\n{}\n```\n".format(
             error
@@ -472,13 +471,13 @@ class EventHandler(commands.Cog, CogMixin):
             name="Before",
             value=before.content[:1020] + " ..."
             if len(before.content) > 1024
-            else before.content,
+            else (before.content or "Nothing to see here..."),
         )
         e.add_field(
             name="After",
             value=after.content[:1020] + " ..."
             if len(after.content) > 1024
-            else after.content,
+            else (after.content or "Nothing to see here..."),
         )
 
         if before.embeds:
@@ -541,7 +540,7 @@ class EventHandler(commands.Cog, CogMixin):
         e.description = (
             message.content[:1020] + " ..."
             if len(message.content) > 1024
-            else message.content
+            else (message.content or "Nothing to see here...")
         )
 
         return await logCh.send(
@@ -574,7 +573,7 @@ class EventHandler(commands.Cog, CogMixin):
             # impossible to happened, but sure
             return
 
-        with suppress(discord.Forbidden):
+        with suppress(discord.Forbidden, IndexError):
             entry = await self.getAuditLogs(
                 guild, action=discord.AuditLogAction.member_role_update
             )
@@ -595,7 +594,7 @@ class EventHandler(commands.Cog, CogMixin):
             # impossible to happened, but sure
             return
 
-        with suppress(discord.Forbidden):
+        with suppress(discord.Forbidden, IndexError):
             entry = await self.getAuditLogs(
                 guild, action=discord.AuditLogAction.member_role_update
             )
