@@ -14,6 +14,7 @@ import discord
 import prettify_exceptions
 import pytz
 import TagScriptEngine as tse
+from aiohttp.client_exceptions import ClientOSError
 from discord.ext import commands
 
 from core import errors
@@ -185,7 +186,7 @@ class EventHandler(commands.Cog, CogMixin):
         """Farewell message"""
         guild: discord.Guild = member.guild
 
-        with suppress(discord.Forbidden):
+        with suppress(discord.Forbidden, IndexError):
             entry = await self.getAuditLogs(guild)
 
             if entry.target == member:
@@ -223,7 +224,7 @@ class EventHandler(commands.Cog, CogMixin):
 
     @commands.Cog.listener("on_member_ban")
     async def onMemberBan(self, guild: discord.Guild, user: discord.User) -> None:
-        with suppress(discord.Forbidden):
+        with suppress(discord.Forbidden, IndexError):
             entry = await self.getAuditLogs(guild)
             if entry.target == user:
                 await doModlog(
@@ -237,7 +238,7 @@ class EventHandler(commands.Cog, CogMixin):
 
     @commands.Cog.listener("on_member_unban")
     async def onMemberUnban(self, guild: discord.Guild, user: discord.User) -> None:
-        with suppress(discord.Forbidden):
+        with suppress(discord.Forbidden, IndexError):
             entry = await self.getAuditLogs(guild)
             if entry.target == user:
                 await doModlog(
@@ -282,6 +283,11 @@ class EventHandler(commands.Cog, CogMixin):
             commands.CommandNotFound,
             commands.DisabledCommand,
         )
+
+        if isinstance(error, ClientOSError):
+            # Lost connection
+            self.bot.logger.error("Connection reset by peer")
+            return
 
         if isinstance(error, silentError):
             return
@@ -578,7 +584,7 @@ class EventHandler(commands.Cog, CogMixin):
             # impossible to happened, but sure
             return
 
-        with suppress(discord.Forbidden):
+        with suppress(discord.Forbidden, IndexError):
             entry = await self.getAuditLogs(
                 guild, action=discord.AuditLogAction.member_role_update
             )
@@ -599,7 +605,7 @@ class EventHandler(commands.Cog, CogMixin):
             # impossible to happened, but sure
             return
 
-        with suppress(discord.Forbidden):
+        with suppress(discord.Forbidden, IndexError):
             entry = await self.getAuditLogs(
                 guild, action=discord.AuditLogAction.member_role_update
             )

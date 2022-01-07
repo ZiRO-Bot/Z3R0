@@ -425,8 +425,8 @@ class Moderation(commands.Cog, CogMixin):
                     formatDateTime(timer.createdAt), moderator
                 ),
             )
-        except (discord.NotFound, discord.HTTPException):
-            # incase mute role got removed
+        except (discord.NotFound, discord.HTTPException, AttributeError):
+            # incase mute role got removed or member left the server
             await self.manageMuted(member, False, role)
 
     async def getMutedMembers(self, guildId: int):

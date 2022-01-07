@@ -1,5 +1,10 @@
 # v3.4
 
+## 3.4.5
+- [**Fixed**] Fixed `AttributeError` trying to unmute a member that already left the server
+- [**Fixed**] Fixed `IndexError` trying to get a AuditLog when AuditLogs is empty
+- [**Removed**] Removed `ClientOSError` from log
+
 ## 3.4.4
 - [**Fixed**] Fixed custom command deletion when guild deletion event dispatched
 - [**Fixed**] Suppressed discord.Forbidden when bot can't access AuditLog
