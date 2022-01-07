@@ -503,24 +503,6 @@ toml = "*"
 virtualenv = ">=20.0.8"
 
 [[package]]
-name = "pretty"
-version = "2.0.0a190+g0d7c4fb"
-description = "A Python module for prettier (and far more useful) stack traces."
-category = "main"
-optional = false
-python-versions = ">=3.6.0"
-develop = false
-
-[package.extras]
-docs = ["sphinx", "sphinxcontrib-trio", "sphinx-rtd-theme"]
-
-[package.source]
-type = "git"
-url = "https://github.com/ShineyDev/prettify.py"
-reference = "0d7c4fbabb4262f49d73ad9ca258703a16c0910b"
-resolved_reference = "0d7c4fbabb4262f49d73ad9ca258703a16c0910b"
-
-[[package]]
 name = "pycodestyle"
 version = "2.8.0"
 description = "Python style guide checker"
@@ -808,7 +790,7 @@ voice = ["PyNaCl"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "47fb7023f98a1d1d532fe3e3a3c8850d30843f583dc0bce7ed68e41d6097daf2"
+content-hash = "7939a015af799ad2eea62ecc247d81a2fa3231c6183ef28d973ef2d4bfd991ed"
 
 [metadata.files]
 aerich = [
@@ -1221,7 +1203,6 @@ pre-commit = [
     {file = "pre_commit-2.16.0-py2.py3-none-any.whl", hash = "sha256:758d1dc9b62c2ed8881585c254976d66eae0889919ab9b859064fc2fe3c7743e"},
     {file = "pre_commit-2.16.0.tar.gz", hash = "sha256:fe9897cac830aa7164dbd02a4e7b90cae49630451ce88464bca73db486ba9f65"},
 ]
-pretty = []
 pycodestyle = [
     {file = "pycodestyle-2.8.0-py2.py3-none-any.whl", hash = "sha256:720f8b39dde8b293825e7ff02c475f3077124006db4f440dcbc9a20b76548a20"},
     {file = "pycodestyle-2.8.0.tar.gz", hash = "sha256:eddd5847ef438ea1c7870ca7eb78a9d47ce0cdb4851a5523949f2601d0cbbe7f"},
