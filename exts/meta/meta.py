@@ -1194,11 +1194,19 @@ class Meta(commands.Cog, CogMixin):
 
     @commands.group(aliases=("hl",))
     async def highlight(self, ctx):
-        """Group root for highlights"""
+        """Manage your highlight words
+
+        When a highlight word/phrase is found, the bot will send you a private
+        message with the message that triggered it along with contexts."""
         pass
 
     @highlight.command()
     async def add(self, ctx, *, text: str):
+        """Add a new highlight word/phrase
+
+        Note, highlight words/phrases are not case-sensitive!"""
+        text = text.lower()
+
         # TODO: Actually add the text to highlights db
         await ctx.try_reply(text)
 
@@ -1214,7 +1222,7 @@ class Meta(commands.Cog, CogMixin):
             return
 
         for hl, owners in guildHighlight.items():
-            if hl not in message.content:
+            if hl not in message.content.lower():
                 continue
 
             # Getting context
