@@ -90,12 +90,12 @@ Moved to [CHANGELOG.md](./CHANGELOG.md)
 - Channel manager commands
 - Reaction Role (With buttons... button role?)
 - Starboard
+- Replace mute with the new timeout feature from Discord
 
 ### Pending Plan
 
 - i18n using gettext (Learning how gettext works)
 - Slash command (Waiting for implementation)
-- Replace mute with the new timeout feature from Discord (Currently undocumented if this is possible)
 
 ### Scrapped Plan
 
