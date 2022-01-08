@@ -1224,7 +1224,7 @@ class Meta(commands.Cog, CogMixin):
 
             context = []
             for msg in msgs:
-                tmp = f"[{formatDiscordDT(msg.created_at, 'T')}] {msg.author}: {msg.clean_content or '_Only contains embed_'}"
+                tmp = f"[{formatDiscordDT(msg.created_at, 'T')}] {msg.author}: {msg.clean_content or '_Only contains embed(s)_'}"
                 if msg == message:
                     tmp = f"** {tmp} **"
                 context.append(tmp)
