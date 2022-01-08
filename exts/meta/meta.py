@@ -5,6 +5,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 """
 from __future__ import annotations
 
+import datetime as dt
 import difflib
 import re
 import time
@@ -1203,10 +1204,11 @@ class Meta(commands.Cog, CogMixin):
 
     @commands.Cog.listener("on_message")
     async def onHighlight(self, message: discord.Message):
-        # TODO: Check if member haven't send a message for an hour before highlighting them
         guild = message.guild
         if message.author.bot or not message.content or not guild:
             return
+
+        channel = message.channel
 
         if not (guildHighlight := self.highlights.get(guild.id)):
             return
@@ -1217,9 +1219,7 @@ class Meta(commands.Cog, CogMixin):
 
             # Getting context
             msgs: List[discord.Message] = [message]
-            async for history in message.channel.history(
-                limit=4, before=message.created_at
-            ):
+            async for history in channel.history(limit=4, before=message.created_at):
                 msgs.append(history)
 
             context = []
@@ -1241,6 +1241,12 @@ class Meta(commands.Cog, CogMixin):
                 if owner == message.author.id:
                     continue
 
+                # Check if member sent a message 30 minutes prior
+                if await channel.history(
+                    after=utcnow() - dt.timedelta(minutes=30.0)
+                ).get(author__id=owner):
+                    continue
+
                 user = guild.get_member(owner) or await guild.fetch_member(owner)
                 if user:
                     await user.send(
@@ -1248,4 +1254,3 @@ class Meta(commands.Cog, CogMixin):
                         embed=e,
                         view=view,
                     )
-            return
