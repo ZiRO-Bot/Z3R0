@@ -123,3 +123,12 @@ def isAprilFool():
         return True
 
     return commands.check(predicate)
+
+
+def exlusive(*guildIds) -> bool:
+    def predicate(ctx) -> bool:
+        if ctx.guild.id not in guildIds:
+            raise SilentError("Exclusive command")
+        return True
+
+    return commands.check(predicate)
