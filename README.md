@@ -57,16 +57,18 @@ More feature coming soon!
    ```
 
 - After poetry successfully installed, execute this command to install all required dependencies,
-  ```zsh
-  # postgresql
-  poetry install --no-dev -E postgresql
 
-  # mysql
-  poetry install --no-dev -E mysql
+   ```zsh
+   # postgresql
+   poetry install --no-dev -E postgresql
 
-  # mysql (Using asyncmy instead of aiomysql)
-  poetry install --no-dev -E "mysql+asyncmy"
-  ```
+   # mysql
+   poetry install --no-dev -E mysql
+
+   # mysql (Using asyncmy instead of aiomysql)
+   poetry install --no-dev -E "mysql+asyncmy"
+   ```
+
 - Copy and paste (or rename) [`config.py-example`](./config.py-example) to `config.py`
 - Edit all the necessary config value (`token`, `botMasters`, and `sql`)
 - Run the bot by executing this command, `poetry run python .`
@@ -90,6 +92,7 @@ Moved to [CHANGELOG.md](./CHANGELOG.md)
 - Channel manager commands
 - Reaction Role (With buttons... button role?)
 - Starboard
+- Docker thingy for easier way to host the bot
 
 ### Pending Plan
 
