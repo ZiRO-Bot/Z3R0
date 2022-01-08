@@ -344,9 +344,11 @@ class Fun(commands.Cog, CogMixin):
         except (IndexError, ValueError):
             diceNum = 1
 
+        # Cap dice number up to 5 to prevent bot from freezing
         diceNum = 5 if diceNum > 5 else diceNum
         results = [
-            str(randint(0, selSize)) + ("%" if selSize == 100 else "")
+            str(randint(0 if selSize == 100 else 1, selSize))
+            + ("%" if selSize == 100 else "")
             for i in range(diceNum)
         ]
         return await ctx.try_reply("You rolled {}".format(", ".join(results)))

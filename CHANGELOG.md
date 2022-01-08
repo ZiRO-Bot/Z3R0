@@ -1,5 +1,8 @@
 # v3.4
 
+## 3.4.6
+- [**Fixed**] Getting 0 no longer possible on normal dice roll
+
 ## 3.4.5
 - [**Fixed**] Fixed `AttributeError` trying to unmute a member that already left the server
 - [**Fixed**] Fixed `IndexError` trying to get a AuditLog when AuditLogs is empty
