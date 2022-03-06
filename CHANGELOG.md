@@ -1,3 +1,8 @@
+# v3.5
+
+## 3.5.0
+- [**Improved**] Changed project structure (all source file now located in `src/`)
+
 # v3.4
 
 ## 3.4.6
