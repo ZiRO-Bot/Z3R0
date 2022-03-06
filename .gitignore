@@ -5,9 +5,10 @@ zibot.egg-info/
 
 .env
 exts/youtube.py
-config.json
-config.py
+blacklist.json
+config.*
+news.json
 
-discord.log
+*.log
 
-database.db
+*.db
