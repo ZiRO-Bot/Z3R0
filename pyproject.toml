@@ -7,9 +7,9 @@ license = "MPL-2.0"
 
 [tool.poetry.dependencies]
 aiohttp = "3.7.3"
-python = "^3.8"
+python = "^3.9"
 beautifulsoup4 = "^4.9.3"
-"discord.py" = {git = "https://github.com/iDevision/enhanced-discord.py", rev = "65640ddfc78d2df0c1f901817538cb6de9cce025"}
+"discord.py" = {git = "https://github.com/Rapptz/discord.py", rev = "b20ab5ae5d56a87539c8399acd53f96c927331e9"}
 discord-ext-menus = "^1.1"
 fuzzywuzzy = "0.18.0"
 humanize = "3.7.0"
