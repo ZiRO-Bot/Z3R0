@@ -42,7 +42,7 @@ More feature coming soon!
 
 ### Self-Hosting
 
-> **NOTE**: Python 3.8+ is required to host this bot!
+> **NOTE**: Python 3.9+ is required to host this bot!
 
 - Download this repository by executing `git clone https://github.com/ZiRO-Bot/Z3R0.git`
   or click "Code" -> "Download ZIP"
