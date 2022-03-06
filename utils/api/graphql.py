@@ -39,9 +39,7 @@ class GraphQL:
     async def query(self, query, /, method: str = "POST", **kwargs):
         await self.generateSession()
 
-        async with getattr(self.session, method.lower())(
-            self.baseUrl, json={"query": query, "variables": kwargs}
-        ) as req:
+        async with getattr(self.session, method.lower())(self.baseUrl, json={"query": query, "variables": kwargs}) as req:
             return await req.json()
 
     async def queryPost(self, query, /, **kwargs):

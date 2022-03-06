@@ -94,11 +94,7 @@ class Timer(commands.Cog, CogMixin):
         self.task = self.bot.loop.create_task(self.dispatchTimers())
 
     async def getActiveTimer(self, days: int = 7) -> Optional[TimerData]:
-        data = (
-            await db.Timer.filter(expires__lt=utcnow() + dt.timedelta(days=days))
-            .order_by("expires")
-            .values()
-        )
+        data = await db.Timer.filter(expires__lt=utcnow() + dt.timedelta(days=days)).order_by("expires").values()
         return TimerData(data[0]) if data else None
 
     async def waitForActiveTimer(self, days: int = 7) -> Optional[TimerData]:
@@ -230,15 +226,11 @@ class Timer(commands.Cog, CogMixin):
         authorId = timer.owner
 
         try:
-            channel = self.bot.get_channel(channelId) or (
-                await self.bot.fetch_channel(channelId)
-            )
+            channel = self.bot.get_channel(channelId) or (await self.bot.fetch_channel(channelId))
         except discord.HTTPException:
             return
 
-        guildId = (
-            channel.guild.id if isinstance(channel, discord.TextChannel) else "@me"
-        )
+        guildId = channel.guild.id if isinstance(channel, discord.TextChannel) else "@me"
         messageId = timer.kwargs.get("messageId")
         msgUrl = f"https://discord.com/channels/{guildId}/{channelId}/{messageId}"
 

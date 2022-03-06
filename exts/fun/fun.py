@@ -56,8 +56,7 @@ class Fun(commands.Cog, CogMixin):
         )
         e.set_author(
             name="Reddit",
-            icon_url="https://www.redditstatic.com/desktop2x/"
-            + "img/favicon/android-icon-192x192.png",
+            icon_url="https://www.redditstatic.com/desktop2x/" + "img/favicon/android-icon-192x192.png",
         )
         e.add_field(name="Score", value=submission.score)
         e.add_field(name="Comments", value=submission.commentCount)
@@ -73,12 +72,7 @@ class Fun(commands.Cog, CogMixin):
         usage="[options]",
         extras=dict(
             example=("findseed", "findseed mode: classic", "fs mode: pipega"),
-            flags={
-                "mode": (
-                    "Change display mode (modes: visual, classic, pipega "
-                    "or pepiga, halloween)"
-                )
-            },
+            flags={"mode": ("Change display mode (modes: visual, classic, pipega " "or pepiga, halloween)")},
         ),
     )
     @commands.cooldown(5, 25, commands.BucketType.user)
@@ -178,9 +172,7 @@ class Fun(commands.Cog, CogMixin):
     @commands.command(
         brief="Ping random member",
         description=(
-            "Ping random member\n"
-            'Also known as "Discord\'s mistake"\n'
-            "**Note**: Only available on April Fools (UTC)!"
+            "Ping random member\n" 'Also known as "Discord\'s mistake"\n' "**Note**: Only available on April Fools (UTC)!"
         ),
     )
     @checks.isAprilFool()
@@ -233,9 +225,7 @@ class Fun(commands.Cog, CogMixin):
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def dadjokes(self, ctx):
         headers = {"accept": "application/json"}
-        async with self.bot.session.get(
-            "https://icanhazdadjoke.com/", headers=headers
-        ) as req:
+        async with self.bot.session.get("https://icanhazdadjoke.com/", headers=headers) as req:
             dadjoke = (await req.json())["joke"]
         e = ZEmbed.default(ctx, title=dadjoke, color=discord.Colour(0xFEDE58))
         e.set_author(
@@ -263,27 +253,21 @@ class Fun(commands.Cog, CogMixin):
         elif botChoice == rps[0]:
 
             def f(x):  # type: ignore
-                return {"paper": "Paper wins!", "scissors": "Rock wins!"}.get(
-                    x, "Rock wins!"
-                )
+                return {"paper": "Paper wins!", "scissors": "Rock wins!"}.get(x, "Rock wins!")
 
             result = f(choice_)
 
         elif botChoice == rps[1]:
 
             def f(x):  # type: ignore
-                return {"rock": "Paper wins!", "scissors": "Scissors wins!"}.get(
-                    x, "Paper wins!"
-                )
+                return {"rock": "Paper wins!", "scissors": "Scissors wins!"}.get(x, "Paper wins!")
 
             result = f(choice_)
 
         elif botChoice == rps[2]:
 
             def f(x):
-                return {"paper": "Scissors wins!", "rock": "Rock wins!"}.get(
-                    x, "Scissors wins!"
-                )
+                return {"paper": "Scissors wins!", "rock": "Rock wins!"}.get(x, "Scissors wins!")
 
             result = f(choice_)
 
@@ -294,8 +278,7 @@ class Fun(commands.Cog, CogMixin):
             result = "Noob wins!"
 
         await ctx.try_reply(
-            f"You chose ***{choice_.capitalize()}***."
-            + f" I chose ***{botChoice.capitalize()}***.\n{result}"
+            f"You chose ***{choice_.capitalize()}***." + f" I chose ***{botChoice.capitalize()}***.\n{result}"
         )
 
     @commands.command(aliases=("find-waifu",))
@@ -347,9 +330,7 @@ class Fun(commands.Cog, CogMixin):
         # Cap dice number up to 5 to prevent bot from freezing
         diceNum = 5 if diceNum > 5 else diceNum
         results = [
-            str(randint(0 if selSize == 100 else 1, selSize))
-            + ("%" if selSize == 100 else "")
-            for i in range(diceNum)
+            str(randint(0 if selSize == 100 else 1, selSize)) + ("%" if selSize == 100 else "") for i in range(diceNum)
         ]
         return await ctx.try_reply("You rolled {}".format(", ".join(results)))
 
@@ -413,9 +394,7 @@ class Fun(commands.Cog, CogMixin):
         e = ZEmbed(
             ctx,
             title="Bartering with {} gold{}".format(gold, "s" if gold > 1 else ""),
-            description="You got:\n\n{}".format(
-                "\n".join(["{} → {}".format(emoji(v[0]), v[1]) for v in items.values()])
-            ),
+            description="You got:\n\n{}".format("\n".join(["{} → {}".format(emoji(v[0]), v[1]) for v in items.values()])),
             colour=discord.Colour.gold(),
         )
         await ctx.try_reply(embed=e)

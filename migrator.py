@@ -49,9 +49,7 @@ async def main():
             url=command["url"],
             uses=command["uses"],
             ownerId=command["ownerId"],
-            createdAt=dt.datetime.fromtimestamp(
-                command["createdAt"], tz=dt.timezone.utc
-            ),
+            createdAt=dt.datetime.fromtimestamp(command["createdAt"], tz=dt.timezone.utc),
             visibility=command["visibility"],
             enabled=command["enabled"],
         )
@@ -68,9 +66,7 @@ async def main():
 
     prefixes = []
     for prefix in OLD.execute("SELECT * FROM prefixes"):
-        prefixes.append(
-            db.Prefixes(prefix=prefix["prefix"], guild_id=prefix["guildId"])
-        )
+        prefixes.append(db.Prefixes(prefix=prefix["prefix"], guild_id=prefix["guildId"]))
     await db.Prefixes.bulk_create(prefixes)
 
     timers = []
@@ -96,9 +92,7 @@ async def main():
                 modId=log["modId"],
                 targetId=log["targetId"],
                 reason=log["reason"],
-                createdAt=dt.datetime.fromtimestamp(
-                    log["createdAt"], tz=dt.timezone.utc
-                ),
+                createdAt=dt.datetime.fromtimestamp(log["createdAt"], tz=dt.timezone.utc),
                 guild_id=log["guildId"],
             )
         )

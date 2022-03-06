@@ -38,13 +38,9 @@ class AniList(commands.Cog, CogMixin):
 
     def __init__(self, bot) -> None:
         super().__init__(bot)
-        self.anilist: GraphQL = GraphQL(
-            "https://graphql.anilist.co", session=self.bot.session
-        )
+        self.anilist: GraphQL = GraphQL("https://graphql.anilist.co", session=self.bot.session)
 
-    async def anilistSearch(
-        self, ctx, name: str, parsed, type: str = "ANIME"
-    ) -> Optional[discord.Message]:
+    async def anilistSearch(self, ctx, name: str, parsed, type: str = "ANIME") -> Optional[discord.Message]:
         """Function for 'manga search' and 'anime search' command"""
         type = type.upper().replace(" ", "_")
 
@@ -115,9 +111,9 @@ class AniList(commands.Cog, CogMixin):
 
         id = mediaData["id"]
 
-        e = ZEmbed.default(
-            ctx, title=mediaData["title"]["userPreferred"], url=mediaData["siteUrl"]
-        ).set_image(url=f"https://img.anili.st/media/{id}")
+        e = ZEmbed.default(ctx, title=mediaData["title"]["userPreferred"], url=mediaData["siteUrl"]).set_image(
+            url=f"https://img.anili.st/media/{id}"
+        )
 
         await ctx.try_reply(embed=e)
 
@@ -135,9 +131,7 @@ class AniList(commands.Cog, CogMixin):
         usage="(name) [options]",
         extras=dict(
             flags={
-                "format": (
-                    "Anime's format (TV, TV SHORT, OVA, ONA, MOVIE, " "SPECIAL, MUSIC)"
-                ),
+                "format": ("Anime's format (TV, TV SHORT, OVA, ONA, MOVIE, " "SPECIAL, MUSIC)"),
             }
         ),
     )

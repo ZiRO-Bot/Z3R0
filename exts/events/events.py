@@ -30,9 +30,7 @@ if TYPE_CHECKING:
     from core.bot import ziBot
 
 
-REASON_REGEX = re.compile(
-    r"^\[\S+\#\d+ \(ID: (?P<userId>[0-9]+)\) #(?P<caseNum>[0-9]+)\]: (?P<reason>.*)"
-)
+REASON_REGEX = re.compile(r"^\[\S+\#\d+ \(ID: (?P<userId>[0-9]+)\) #(?P<caseNum>[0-9]+)\]: (?P<reason>.*)")
 
 
 async def doModlog(
@@ -46,9 +44,7 @@ async def doModlog(
 ) -> None:
     """Basically handle formatting modlog events"""
 
-    channel = bot.get_channel(
-        await bot.getGuildConfig(guild.id, "modlogCh", "GuildChannels") or 0
-    )
+    channel = bot.get_channel(await bot.getGuildConfig(guild.id, "modlogCh", "GuildChannels") or 0)
 
     if moderator.id == bot.user.id:  # type: ignore
         # This usually True when mods use moderation commands
@@ -123,9 +119,7 @@ class EventHandler(commands.Cog, CogMixin):
         }
 
     async def handleGreeting(self, member: discord.Member, type: str) -> None:
-        channel = await self.bot.getGuildConfig(
-            member.guild.id, f"{type}Ch", "GuildChannels"
-        )
+        channel = await self.bot.getGuildConfig(member.guild.id, f"{type}Ch", "GuildChannels")
         channel = self.bot.get_channel(channel or 0)
         if not channel:
             return
@@ -157,9 +151,7 @@ class EventHandler(commands.Cog, CogMixin):
     async def onMemberJoin(self, member: discord.Member) -> None:
         """Welcome message"""
         await self.handleGreeting(member, "welcome")
-        autoRole = await self.bot.getGuildConfig(
-            member.guild.id, "autoRole", "GuildRoles"
-        )
+        autoRole = await self.bot.getGuildConfig(member.guild.id, "autoRole", "GuildRoles")
         if autoRole:
             try:
                 await member.add_roles(
@@ -173,9 +165,7 @@ class EventHandler(commands.Cog, CogMixin):
     async def getAuditLogs(
         self, target: Union[discord.Guild, discord.Member], limit=1, delay=2, **kwargs
     ) -> discord.AuditLogEntry:
-        guild: discord.Guild = (
-            target.guild if isinstance(target, discord.Member) else target
-        )
+        guild: discord.Guild = target.guild if isinstance(target, discord.Member) else target
         # discord needs a few second to update Audit Logs
         await asyncio.sleep(delay)
         return (await guild.audit_logs(limit=limit, **kwargs).flatten())[0]
@@ -209,9 +199,7 @@ class EventHandler(commands.Cog, CogMixin):
         return await self.handleGreeting(member, "farewell")
 
     @commands.Cog.listener("on_member_kick")
-    async def onMemberKick(
-        self, member: discord.Member, entry: discord.AuditLogEntry
-    ) -> None:
+    async def onMemberKick(self, member: discord.Member, entry: discord.AuditLogEntry) -> None:
         await doModlog(
             self.bot,
             member.guild,
@@ -292,16 +280,10 @@ class EventHandler(commands.Cog, CogMixin):
             return
 
         if isinstance(error, commands.BadUnionArgument):
-            if (
-                ctx.command.root_parent
-                and ctx.command.root_parent.name == "emoji"
-                and ctx.command.name == "steal"
-            ):
+            if ctx.command.root_parent and ctx.command.root_parent.name == "emoji" and ctx.command.name == "steal":
                 return await ctx.error("Unicode is not supported!")
 
-        if isinstance(error, commands.MissingRequiredArgument) or isinstance(
-            error, errors.ArgumentError
-        ):
+        if isinstance(error, commands.MissingRequiredArgument) or isinstance(error, errors.ArgumentError):
             e = formatMissingArgError(ctx, error)
             return await ctx.try_reply(embed=e)
 
@@ -339,27 +321,21 @@ class EventHandler(commands.Cog, CogMixin):
 
         if isinstance(error, commands.BotMissingPermissions):
             return await ctx.error(
-                "I don't have {} permission(s) to do this.".format(
-                    formatPerms(error.missing_permissions)  # type: ignore
-                ),
+                "I don't have {} permission(s) to do this.".format(formatPerms(error.missing_permissions)),  # type: ignore
                 title="Missing Permission!",
             )
 
         if isinstance(error, errors.MissingModPrivilege):
             missingPerms = error.missing_permissions
             msg = "You don't have mod role{}to do this.".format(
-                f" or {formatPerms(missingPerms)} permission(s) "
-                if missingPerms
-                else " "
+                f" or {formatPerms(missingPerms)} permission(s) " if missingPerms else " "
             )
             return await ctx.error(msg, title="Missing Permission!")
 
         if isinstance(error, errors.MissingAdminPrivilege):
             missingPerms = error.missing_permissions
             msg = "You don't have admin{}to do this.".format(
-                f" or {formatPerms(missingPerms)} permission(s) "
-                if missingPerms
-                else " "
+                f" or {formatPerms(missingPerms)} permission(s) " if missingPerms else " "
             )
             return await ctx.error(msg, title="Missing Permission!")
 
@@ -371,9 +347,7 @@ class EventHandler(commands.Cog, CogMixin):
         _traceback = formatTraceback("", error)
         self.bot.logger.error("Something went wrong! error: {}".format(_traceback))
 
-        desc = "The command was unsuccessful because of this reason:\n```\n{}\n```\n".format(
-            error
-        )
+        desc = "The command was unsuccessful because of this reason:\n```\n{}\n```\n".format(error)
         try:
             # Send embed that when user react with greenTick bot will send it to bot owner or issue channel
             dest = (
@@ -384,11 +358,7 @@ class EventHandler(commands.Cog, CogMixin):
             destName = dest if isinstance(dest, discord.User) else "the support server"
 
             # Embed things
-            desc += (
-                "Click 'Report Error' button to report the error to {}".format(destName)
-                if destName
-                else ""
-            )
+            desc += "Click 'Report Error' button to report the error to {}".format(destName) if destName else ""
             e = ZEmbed.error(
                 title="ERROR: Something went wrong!",
                 description=desc,
@@ -406,9 +376,7 @@ class EventHandler(commands.Cog, CogMixin):
             await view.wait()
 
             if not view.value:
-                e.set_footer(
-                    text="You were too late to answer.", icon_url=ctx.author.avatar.url
-                )
+                e.set_footer(text="You were too late to answer.", icon_url=ctx.author.avatar.url)
                 view.report.disabled = True
                 await msg.edit(embed=e, view=view)
             else:
@@ -438,9 +406,7 @@ class EventHandler(commands.Cog, CogMixin):
         return
 
     @commands.Cog.listener("on_message_edit")
-    async def onMessageEdit(
-        self, before: discord.Message, after: discord.Message
-    ) -> Optional[discord.Message]:
+    async def onMessageEdit(self, before: discord.Message, after: discord.Message) -> Optional[discord.Message]:
         if before.author.bot:
             return
 
@@ -453,9 +419,7 @@ class EventHandler(commands.Cog, CogMixin):
         if before.content == after.content:
             return
 
-        logChId = await self.bot.getGuildConfig(
-            guild.id, "purgatoryCh", "GuildChannels"
-        )
+        logChId = await self.bot.getGuildConfig(guild.id, "purgatoryCh", "GuildChannels")
         if not logChId:
             return
 
@@ -491,9 +455,7 @@ class EventHandler(commands.Cog, CogMixin):
         if before.attachments:
             _file = before.attachments[0]
             spoiler = _file.is_spoiler()
-            if not spoiler and _file.url.lower().endswith(
-                ("png", "jpeg", "jpg", "gif", "webp")
-            ):
+            if not spoiler and _file.url.lower().endswith(("png", "jpeg", "jpg", "gif", "webp")):
                 e.set_image(url=_file.url)
             elif spoiler:
                 e.add_field(
@@ -511,9 +473,7 @@ class EventHandler(commands.Cog, CogMixin):
         return await logCh.send(content=before.channel.mention, embed=e)  # type: ignore
 
     @commands.Cog.listener("on_message_delete")
-    async def onMessageDelete(
-        self, message: discord.Message
-    ) -> Optional[discord.Message]:
+    async def onMessageDelete(self, message: discord.Message) -> Optional[discord.Message]:
         if message.author.bot:
             return
 
@@ -523,9 +483,7 @@ class EventHandler(commands.Cog, CogMixin):
         if message.type != discord.MessageType.default:
             return
 
-        logChId = await self.bot.getGuildConfig(
-            guild.id, "purgatoryCh", "GuildChannels"
-        )
+        logChId = await self.bot.getGuildConfig(guild.id, "purgatoryCh", "GuildChannels")
         if not logChId:
             return
 
@@ -538,19 +496,13 @@ class EventHandler(commands.Cog, CogMixin):
         e.set_author(name=message.author, icon_url=avatar.url)
 
         e.description = (
-            message.content[:1020] + " ..."
-            if len(message.content) > 1024
-            else (message.content or "Nothing to see here...")
+            message.content[:1020] + " ..." if len(message.content) > 1024 else (message.content or "Nothing to see here...")
         )
 
-        return await logCh.send(
-            content=message.channel.mention, embed=e  # type: ignore
-        )
+        return await logCh.send(content=message.channel.mention, embed=e)  # type: ignore
 
     @commands.Cog.listener("on_member_update")
-    async def onMemberUpdate(
-        self, before: discord.Member, after: discord.Member
-    ) -> None:
+    async def onMemberUpdate(self, before: discord.Member, after: discord.Member) -> None:
         if after.guild.id != 807260318270619748:
             return
 
@@ -560,9 +512,7 @@ class EventHandler(commands.Cog, CogMixin):
         role = after.guild.premium_subscriber_role
         if role not in before.roles and role in after.roles:
             e = ZEmbed(
-                description="<:booster:865087663609610241> {} has just boosted the server!".format(
-                    after.mention
-                ),
+                description="<:booster:865087663609610241> {} has just boosted the server!".format(after.mention),
                 color=self.bot.color,
             )
             await channel.send(embed=e)
@@ -574,9 +524,7 @@ class EventHandler(commands.Cog, CogMixin):
             return
 
         with suppress(discord.Forbidden, IndexError):
-            entry = await self.getAuditLogs(
-                guild, action=discord.AuditLogAction.member_role_update
-            )
+            entry = await self.getAuditLogs(guild, action=discord.AuditLogAction.member_role_update)
 
             if entry.target == member and entry.target._roles.has(mutedRole.id):  # type: ignore
                 await doModlog(
@@ -595,9 +543,7 @@ class EventHandler(commands.Cog, CogMixin):
             return
 
         with suppress(discord.Forbidden, IndexError):
-            entry = await self.getAuditLogs(
-                guild, action=discord.AuditLogAction.member_role_update
-            )
+            entry = await self.getAuditLogs(guild, action=discord.AuditLogAction.member_role_update)
 
             if entry.target == member and not entry.target._roles.has(mutedRole.id):  # type: ignore
                 await doModlog(
@@ -623,6 +569,4 @@ class EventHandler(commands.Cog, CogMixin):
         if not result:
             return
 
-        return await message.channel.send(
-            message.content.replace(f";{match[0]};", str(result))
-        )
+        return await message.channel.send(message.content.replace(f";{match[0]};", str(result)))

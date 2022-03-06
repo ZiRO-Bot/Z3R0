@@ -23,9 +23,7 @@ class SearchResult:
         return f"<{self.__class__.__name__} link={self.link} title={self.title} contents={self.contents}>"
 
     def __eq__(self, other: Any) -> bool:
-        return isinstance(other, SearchResult) and (
-            self.title == other.title and self.contents == other.contents
-        )
+        return isinstance(other, SearchResult) and (self.title == other.title and self.contents == other.contents)
 
 
 class SpecialResult:
@@ -36,9 +34,7 @@ class SpecialResult:
 
 
 class ComplementaryResult:
-    def __init__(
-        self, title: str, subtitle: str, description: Optional[str], info: List[tuple]
-    ) -> None:
+    def __init__(self, title: str, subtitle: str, description: Optional[str], info: List[tuple]) -> None:
         self.title: str = title
         self.subtitle: str = subtitle
         self.description: Optional[str] = description
@@ -51,9 +47,7 @@ class ComplementaryResult:
 class Google:
     def __init__(self, session: Optional[aiohttp.ClientSession] = None) -> None:
         self.session: Optional[aiohttp.ClientSession] = session
-        self._fmt: str = (
-            "https://www.google.com/search?q={query}&safe={safe}&num={num}&hl={hl}"
-        )
+        self._fmt: str = "https://www.google.com/search?q={query}&safe={safe}&num={num}&hl={hl}"
 
     async def generateSession(self) -> None:
         self.session = aiohttp.ClientSession()
@@ -87,9 +81,7 @@ class Google:
                     type = result.find("h2").text  # type: ignore
 
                     if type == "Currency converter":
-                        contents = result.find(  # type: ignore
-                            "div", id=re.compile("knowledge-currency")
-                        ).contents
+                        contents = result.find("div", id=re.compile("knowledge-currency")).contents  # type: ignore
                         formattedContent = []
 
                         # Currency stuff
@@ -144,9 +136,7 @@ class Google:
 
             # A complementary result always have title and subtitle
             if subtitle and title:
-                complementaryRes = ComplementaryResult(
-                    title, subtitle, desc, formattedInfo
-                )
+                complementaryRes = ComplementaryResult(title, subtitle, desc, formattedInfo)
             else:
                 complementaryRes = None
 
@@ -171,9 +161,7 @@ class Google:
             await self.generateSession()
 
         async with self.session.get(  # type: ignore
-            self._fmt.format(
-                query=query, safe=safe, num=numberOfResult, hl=languageCode
-            ),
+            self._fmt.format(query=query, safe=safe, num=numberOfResult, hl=languageCode),
             headers={
                 "User-Agent": (
                     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "

@@ -74,14 +74,10 @@ class Piglin:
         for loot in LOOT_TABLE:
             weights.append(loot[0])
             items.append(loot[1])
-        self.items = [
-            BarterItem(random.choices(items, weights=weights)[0]) for i in range(gold)
-        ]
+        self.items = [BarterItem(random.choices(items, weights=weights)[0]) for i in range(gold)]
 
     def __str__(self):
-        return ", ".join(
-            ["{}: {}".format(str(item), item.quantity) for item in self.items]
-        )
+        return ", ".join(["{}: {}".format(str(item), item.quantity) for item in self.items])
 
 
 class BarterItem:

@@ -21,17 +21,13 @@ class PrefixesPageSource(menus.ListPageSource):
     async def format_page(self, menu: ZMenuView, _prefixes: list):
         ctx = self.ctx
 
-        e = ZEmbed(
-            title="{} Prefixes".format(ctx.guild), description="**Custom Prefixes**:\n"
-        )
+        e = ZEmbed(title="{} Prefixes".format(ctx.guild), description="**Custom Prefixes**:\n")
 
         if menu.currentPage == 0:
             _prefixes.pop(0)
             _prefixes.pop(0)
-            e.description = (
-                "**Default Prefixes**: `{}` or `{} `\n\n**Custom Prefixes**:\n".format(
-                    ctx.bot.defPrefix, cleanifyPrefix(ctx.bot, ctx.me.mention)
-                )
+            e.description = "**Default Prefixes**: `{}` or `{} `\n\n**Custom Prefixes**:\n".format(
+                ctx.bot.defPrefix, cleanifyPrefix(ctx.bot, ctx.me.mention)
             )
 
         prefixes = []
@@ -64,9 +60,7 @@ class HelpCogPage(menus.ListPageSource):
             self.disabled = []
 
         desc = infoQuote.info(
-            "` ᶜ ` = Custom Command\n"
-            "` ᵍ ` = Group (have subcommand(s))\n"
-            "~~` C `~~ = Disabled",
+            "` ᶜ ` = Custom Command\n" "` ᵍ ` = Group (have subcommand(s))\n" "~~` C `~~ = Disabled",
         )
 
         e = ZEmbed(
@@ -112,25 +106,15 @@ class HelpCommandPage(menus.ListPageSource):
 
         e = ZEmbed(
             title=formatCmd(prefix, command),
-            description="**Aliases**: `{}`\n".format(
-                ", ".join(command.aliases) if command.aliases else "No alias"
-            )
-            + (
-                getattr(command, "help", command.description)
-                or command.short_doc
-                or "No description"
-            ),
+            description="**Aliases**: `{}`\n".format(", ".join(command.aliases) if command.aliases else "No alias")
+            + (getattr(command, "help", command.description) or command.short_doc or "No description"),
         )
 
         if isinstance(command, CustomCommand):
             e.title = e.title.strip() + "ᶜ"
             e.add_field(
                 name="Info/Stats",
-                value=(
-                    "**Owner**: <@{0.owner}>\n"
-                    "**Uses**: `{0.uses}`\n"
-                    "**Enabled**: `{0.enabled}`".format(command)
-                ),
+                value=("**Owner**: <@{0.owner}>\n" "**Uses**: `{0.uses}`\n" "**Enabled**: `{0.enabled}`".format(command)),
             )
             e.set_footer(
                 text=(
@@ -146,11 +130,7 @@ class HelpCommandPage(menus.ListPageSource):
             if optionDict:
                 optionStr = []
                 for key, value in optionDict.items():
-                    name = (
-                        " | ".join([f"`{i}`" for i in key])
-                        if isinstance(key, tuple)
-                        else f"`{key}`"
-                    )
+                    name = " | ".join([f"`{i}`" for i in key]) if isinstance(key, tuple) else f"`{key}`"
                     optionStr.append(f"> {name}: {value}")
                 e.add_field(name="Options", value="\n".join(optionStr), inline=False)
 
@@ -177,8 +157,7 @@ class HelpCommandPage(menus.ListPageSource):
                 e.add_field(
                     name="Cooldown",
                     value=(
-                        "> {0._cooldown.rate} command per "
-                        "{0._cooldown.per} seconds, per {0.type[0]}".format(cooldown)
+                        "> {0._cooldown.rate} command per " "{0._cooldown.per} seconds, per {0.type[0]}".format(cooldown)
                     ),
                 )
 
@@ -194,9 +173,7 @@ class CustomCommandsListSource(menus.ListPageSource):
     def __init__(self, list_: List[Tuple[int, CustomCommand]]) -> None:
         super().__init__(list_, per_page=6)
 
-    def format_page(
-        self, menu: ZMenuView, list_: List[Tuple[int, CustomCommand]]
-    ) -> ZEmbed:
+    def format_page(self, menu: ZMenuView, list_: List[Tuple[int, CustomCommand]]) -> ZEmbed:
         ctx = menu.context
         e = ZEmbed(
             title=f"Custom Commands in {ctx.guild}",

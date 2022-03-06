@@ -33,9 +33,7 @@ class Moderation(commands.Cog, CogMixin):
     async def cog_check(self, ctx):
         return ctx.guild is not None
 
-    async def doModeration(
-        self, ctx, user, _time: Optional[TimeAndArgument], action: str, **kwargs
-    ):
+    async def doModeration(self, ctx, user, _time: Optional[TimeAndArgument], action: str, **kwargs):
         """Ban function, self-explanatory"""
         actions = {
             "ban": self.doBan,
@@ -50,9 +48,7 @@ class Moderation(commands.Cog, CogMixin):
         timer: Optional[Timer] = self.bot.get_cog("Timer")  # type: ignore
         if not timer:
             # Incase Timer cog not loaded yet.
-            return await ctx.error(
-                "Sorry, this command is currently not available. Please try again later"
-            )
+            return await ctx.error("Sorry, this command is currently not available. Please try again later")
 
         time = None
         delta = None
@@ -107,9 +103,7 @@ class Moderation(commands.Cog, CogMixin):
             await (actions[action])(
                 ctx,
                 user,
-                reason="[{} (ID: {}) #{}]: {}".format(
-                    ctx.author, ctx.author.id, caseNum, reason
-                ),
+                reason="[{} (ID: {}) #{}]: {}".format(ctx.author, ctx.author.id, caseNum, reason),
                 **kwargs,
             )
         except discord.Forbidden:
@@ -177,9 +171,7 @@ class Moderation(commands.Cog, CogMixin):
     @ban.command(
         usage="(user) [limit] [reason]",
         brief="Ban a user, with time limit without deleting their message",
-        description=(
-            "Ban a user, with optional time limit without deleting their message"
-        ),
+        description=("Ban a user, with optional time limit without deleting their message"),
         extras=dict(
             example=(
                 "ban save @User#0000 30m bye",
@@ -254,9 +246,7 @@ class Moderation(commands.Cog, CogMixin):
         try:
             await guild.unban(
                 discord.Object(id=userId),
-                reason="Automatically unban from timer on {} by {}".format(
-                    formatDateTime(timer.createdAt), moderator
-                ),
+                reason="Automatically unban from timer on {} by {}".format(formatDateTime(timer.createdAt), moderator),
             )
         except discord.NotFound:
             # unbanned manually
@@ -293,9 +283,7 @@ class Moderation(commands.Cog, CogMixin):
         if user._roles.has(mutedRoleId):
             return await ctx.error(f"{user.mention} is already muted!")
 
-        await self.doModeration(
-            ctx, user, time, "mute", prefix=ctx.clean_prefix, mutedRoleId=mutedRoleId
-        )
+        await self.doModeration(ctx, user, time, "mute", prefix=ctx.clean_prefix, mutedRoleId=mutedRoleId)
 
     async def doMute(self, _n, member: discord.Member, /, reason: str, **kwargs):
         mutedRoleId = kwargs.get("mutedRoleId", 0)
@@ -347,9 +335,7 @@ class Moderation(commands.Cog, CogMixin):
         if not member._roles.has(mutedRoleId):
             return await ctx.error(f"{member.mention} is not muted!")
 
-        await self.doModeration(
-            ctx, member, None, action="unmute", reason=reason, mutedRoleId=mutedRoleId
-        )
+        await self.doModeration(ctx, member, None, action="unmute", reason=reason, mutedRoleId=mutedRoleId)
 
     async def doUnmute(self, _n, member: discord.Member, /, reason: str, **kwargs):
         mutedRoleId = kwargs.get("mutedRoleId", 0)
@@ -421,9 +407,7 @@ class Moderation(commands.Cog, CogMixin):
         try:
             await member.remove_roles(
                 role,
-                reason="Automatically unmuted from timer on {} by {}".format(
-                    formatDateTime(timer.createdAt), moderator
-                ),
+                reason="Automatically unmuted from timer on {} by {}".format(formatDateTime(timer.createdAt), moderator),
             )
         except (discord.NotFound, discord.HTTPException, AttributeError):
             # incase mute role got removed or member left the server
@@ -536,25 +520,19 @@ class Moderation(commands.Cog, CogMixin):
                 else:
                     yield member
             else:
-                members = await guild.query_members(
-                    limit=1, user_ids=needs_resolution, cache=True
-                )
+                members = await guild.query_members(limit=1, user_ids=needs_resolution, cache=True)
                 if members:
                     yield members[0]
         elif total_need_resolution <= 100:
             # Only a single resolution call needed here
-            resolved = await guild.query_members(
-                limit=100, user_ids=needs_resolution, cache=True
-            )
+            resolved = await guild.query_members(limit=100, user_ids=needs_resolution, cache=True)
             for member in resolved:
                 yield member
         else:
             # We need to chunk these in bits of 100...
             for index in range(0, total_need_resolution, 100):
                 to_resolve = needs_resolution[index : index + 100]
-                members = await guild.query_members(
-                    limit=100, user_ids=to_resolve, cache=True
-                )
+                members = await guild.query_members(limit=100, user_ids=to_resolve, cache=True)
                 for member in members:
                     yield member
 
@@ -607,10 +585,10 @@ class Moderation(commands.Cog, CogMixin):
                 "announce Exclusive announcement for @role target: @role ch: #test",
             ),
             flags={
-                ("channel", "ch",): (
-                    "Announcement destination (use Announcement channel "
-                    "by default set by `announcement @role` command)"
-                ),
+                (
+                    "channel",
+                    "ch",
+                ): ("Announcement destination (use Announcement channel " "by default set by `announcement @role` command)"),
                 "target": "Ping target (everyone, here, or @role)",
             },
         ),
@@ -621,9 +599,7 @@ class Moderation(commands.Cog, CogMixin):
         message, parsed = arguments
         annCh = parsed.channel
         if not annCh:
-            annCh = await self.bot.getGuildConfig(
-                ctx.guild.id, "announcementCh", "GuildChannels"
-            )
+            annCh = await self.bot.getGuildConfig(ctx.guild.id, "announcementCh", "GuildChannels")
             annCh = ctx.guild.get_channel(annCh)
             if not annCh:
                 return await ctx.error("No announcement channel found!")
@@ -636,9 +612,7 @@ class Moderation(commands.Cog, CogMixin):
 
         await self.doAnnouncement(ctx, message, target, annCh)
 
-    async def doAnnouncement(
-        self, ctx, announcement, target, dest: discord.TextChannel
-    ):
+    async def doAnnouncement(self, ctx, announcement, target, dest: discord.TextChannel):
         content = str(getattr(target, "mention", target))
         content += f"\n{announcement}"
         await dest.send(content)
@@ -685,9 +659,7 @@ class Moderation(commands.Cog, CogMixin):
         if msg_num == 0:
             resp = "Deleted `0 message` 😔 "
         else:
-            resp = "Deleted `{} message{}` ✨ ".format(
-                msg_num, "" if msg_num < 2 else "s"
-            )
+            resp = "Deleted `{} message{}` ✨ ".format(msg_num, "" if msg_num < 2 else "s")
 
         e = ZEmbed.default(ctx, title=resp)
 

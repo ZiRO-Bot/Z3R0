@@ -53,15 +53,11 @@ class NekoMenu(ZMenuView):
             pass
 
     @discord.ui.button(emoji="\N{BLACK SQUARE FOR STOP}")
-    async def stopNeko(
-        self, button: discord.ui.Button, interaction: discord.Interaction
-    ):
+    async def stopNeko(self, button: discord.ui.Button, interaction: discord.Interaction):
         await self.stop()
 
     @discord.ui.button(emoji="\N{BLACK RIGHT-POINTING TRIANGLE}")
-    async def getNewNeko(
-        self, button: discord.ui.Button, interaction: discord.Interaction
-    ):
+    async def getNewNeko(self, button: discord.ui.Button, interaction: discord.Interaction):
         e = await self.getNeko(interaction)
         if interaction.message:
             return await interaction.message.edit(embed=e)
@@ -83,9 +79,7 @@ class NekoPageSource(menus.PageSource):
                     img = await req.json()
                     return (
                         ZEmbed()
-                        .set_image(
-                            url=img["data"]["response"]["url"].replace(" ", "%20")
-                        )
+                        .set_image(url=img["data"]["response"]["url"].replace(" ", "%20"))
                         .set_footer(text="Powered by nekos.life")
                     )
             except KeyError:

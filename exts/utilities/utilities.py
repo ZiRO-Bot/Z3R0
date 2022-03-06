@@ -107,9 +107,7 @@ class Utilities(commands.Cog, CogMixin):
     @commands.command(
         aliases=("tr", "trans"),
         brief="Translate a text",
-        extras=dict(
-            example=("translate fr->en Bonjour", "trans id Hola", "tr en<-ja こんにちは")
-        ),
+        extras=dict(example=("translate fr->en Bonjour", "trans id Hola", "tr en<-ja こんにちは")),
     )
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def translate(self, ctx, language, *, text):
@@ -130,15 +128,9 @@ class Utilities(commands.Cog, CogMixin):
             return await ctx.error("Translation failed. Please try again later...")
 
         e = ZEmbed.default(ctx)
-        e.set_author(
-            name="Google Translate", icon_url="https://translate.google.com/favicon.ico"
-        )
-        e.add_field(
-            name="Source [{}]".format(translated.source), value=translated.origin
-        )
-        e.add_field(
-            name="Translated [{}]".format(translated.dest), value=str(translated)
-        )
+        e.set_author(name="Google Translate", icon_url="https://translate.google.com/favicon.ico")
+        e.add_field(name="Source [{}]".format(translated.source), value=translated.origin)
+        e.add_field(name="Translated [{}]".format(translated.dest), value=str(translated))
         return await ctx.try_reply(embed=e)
 
     @commands.command(
@@ -149,9 +141,7 @@ class Utilities(commands.Cog, CogMixin):
         try:
             await ctx.try_reply(f"`{encodeMorse(text)}`")
         except KeyError:
-            await ctx.error(
-                "Symbols/accented letters is not supported (yet?)", title="Invalid text"
-            )
+            await ctx.error("Symbols/accented letters is not supported (yet?)", title="Invalid text")
 
     @commands.command(
         aliases=("demorse",),
@@ -241,19 +231,13 @@ class Utilities(commands.Cog, CogMixin):
                     e = ZEmbed.default(
                         ctx,
                         title="Real URL",
-                        description="**Shorten URL**: {}\n**Real URL**: {}".format(
-                            shortenUrl, res.real_url
-                        ),
+                        description="**Shorten URL**: {}\n**Real URL**: {}".format(shortenUrl, res.real_url),
                     )
                     await ctx.try_reply(embed=e)
             except aiohttp.InvalidURL:
-                return await ctx.error(
-                    "'{}' is not a valid url!".format(shortenUrl), title="Invalid URL"
-                )
+                return await ctx.error("'{}' is not a valid url!".format(shortenUrl), title="Invalid URL")
             except aiohttp.ClientConnectorError:
                 return await ctx.error(
-                    "Cannot connect to '{}'. Please try again later!".format(
-                        shortenUrl
-                    ),
+                    "Cannot connect to '{}'. Please try again later!".format(shortenUrl),
                     title="Failed to connect",
                 )

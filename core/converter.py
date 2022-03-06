@@ -61,9 +61,7 @@ class BannedMember(commands.Converter):
             try:
                 return await ctx.guild.fetch_ban(discord.Object(id=member_id))
             except discord.NotFound:
-                raise commands.BadArgument(
-                    "This member has not been banned before."
-                ) from None
+                raise commands.BadArgument("This member has not been banned before.") from None
 
         ban_list = await ctx.guild.bans()
         entity = discord.utils.find(lambda u: str(u.user) == argument, ban_list)
@@ -96,37 +94,21 @@ def checkHierarchy(ctx, user, action: str = None) -> Optional[str]:
         # compare author and bot's top role vs target's top role
         with suppress(AttributeError):
             if ctx.me.top_role <= user.top_role:
-                errMsg = (
-                    "{}'s top role is higher or equals "
-                    "to **mine** in the hierarchy!".format(user)
-                )
+                errMsg = "{}'s top role is higher or equals " "to **mine** in the hierarchy!".format(user)
 
         with suppress(AttributeError):
-            if (
-                ctx.author != ctx.guild.owner  # guild owner doesn't need this check
-                and ctx.author.top_role <= user.top_role
-            ):
-                errMsg = (
-                    "{}'s top role is higher or equals "
-                    "to **yours** in the hierarchy!".format(user)
-                )
+            if ctx.author != ctx.guild.owner and ctx.author.top_role <= user.top_role:  # guild owner doesn't need this check
+                errMsg = "{}'s top role is higher or equals " "to **yours** in the hierarchy!".format(user)
     return errMsg
 
 
 class Hierarchy(commands.Converter):
-    def __init__(
-        self,
-        converter: commands.Converter = MemberOrUser,
-        *,
-        action: Optional[str] = None
-    ):
+    def __init__(self, converter: commands.Converter = MemberOrUser, *, action: Optional[str] = None):
         self.converter: commands.Converter = converter()  # type: ignore
         self.action: str = action or "do that to"
 
     async def convert(self, ctx, arguments):
-        converted: Union[discord.Member, discord.User] = await self.converter.convert(
-            ctx, arguments
-        )
+        converted: Union[discord.Member, discord.User] = await self.converter.convert(ctx, arguments)
 
         try:
             errMsg: Optional[str] = checkHierarchy(ctx, converted, self.action)

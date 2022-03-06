@@ -175,25 +175,19 @@ class ZMenuPagesView(ZMenuView):
         kwargs = await self.getPage(0)
         if self.shouldAddButtons():
             kwargs["view"] = self
-            self._pageInfo.label = self.pageFmt.format(
-                current="1", last=self.getMaxPages()
-            )
+            self._pageInfo.label = self.pageFmt.format(current="1", last=self.getMaxPages())
             if self.getMaxPages() == 2:
                 self.remove_item(self._first)  # type: ignore
                 self.remove_item(self._last)  # type: ignore
         return await ctx.try_reply(**kwargs)
 
-    async def sendPage(
-        self, interaction: discord.Interaction, pageNumber, doDefer: bool = True
-    ):
+    async def sendPage(self, interaction: discord.Interaction, pageNumber, doDefer: bool = True):
         if doDefer:
             await interaction.response.defer()
 
         self.currentPage = pageNumber
         kwargs = await self.getPage(pageNumber)
-        self._pageInfo.label = self.pageFmt.format(
-            current=pageNumber + 1, last=self.getMaxPages()
-        )
+        self._pageInfo.label = self.pageFmt.format(current=pageNumber + 1, last=self.getMaxPages())
         await interaction.message.edit(view=self, **kwargs)  # type: ignore
 
     async def sendCheckedPage(self, interaction: discord.Interaction, pageNumber):
@@ -229,15 +223,11 @@ class ZMenuPagesView(ZMenuView):
         label="Page NaN/NaN",
         style=discord.ButtonStyle.blurple,
     )
-    async def _pageInfo(
-        self, button: discord.ui.Button, interaction: discord.Interaction
-    ):
+    async def _pageInfo(self, button: discord.ui.Button, interaction: discord.Interaction):
         await interaction.response.send_message(
             content=(
                 "{}, which page would you like to jump to? "
-                "(within `1` to `{}`)".format(
-                    self.context.author.mention, self.getMaxPages()
-                )
+                "(within `1` to `{}`)".format(self.context.author.mention, self.getMaxPages())
             ),
             ephemeral=True,
         )
@@ -259,9 +249,7 @@ class ZMenuPagesView(ZMenuView):
     @discord.ui.button(
         emoji=Emojis.next,
     )
-    async def _forward(
-        self, button: discord.ui.Button, interaction: discord.Interaction
-    ):
+    async def _forward(self, button: discord.ui.Button, interaction: discord.Interaction):
         await self.sendCheckedPage(interaction, self.currentPage + 1)
 
     @discord.ui.button(

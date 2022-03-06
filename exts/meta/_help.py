@@ -41,11 +41,7 @@ class CustomHelp(commands.HelpCommand):
             + " | ".join("[{}]({})".format(k, v) for k, v in ctx.bot.links.items()),
         )
         e.set_author(name=ctx.author, icon_url=ctx.author.display_avatar.url)
-        e.set_footer(
-            text="Use `{}help [category / command]` for more information".format(
-                ctx.prefix
-            )
-        )
+        e.set_footer(text="Use `{}help [category / command]` for more information".format(ctx.prefix))
 
         # unsorted = mapping.pop(None)
         mapping.pop(None)
@@ -56,18 +52,14 @@ class CustomHelp(commands.HelpCommand):
             name="Categories",
             value="\n".join(
                 [
-                    "`⦘` {} **{}**".format(
-                        getattr(cog, "icon", "❓"), cog.qualified_name
-                    )
+                    "`⦘` {} **{}**".format(getattr(cog, "icon", "❓"), cog.qualified_name)
                     for cog in sortedCog
                     if cog.qualified_name not in ignored
                 ]
             ),
         )
         e.add_field(
-            name="News | Updated at: {}".format(
-                formatDiscordDT(ctx.bot.news.get("time", 0), "F")
-            ),
+            name="News | Updated at: {}".format(formatDiscordDT(ctx.bot.news.get("time", 0), "F")),
             value=ctx.bot.news.get("content") or "Nothing to see here...",
         )
 
@@ -182,9 +174,7 @@ class CustomHelp(commands.HelpCommand):
         cmds = sorted(cmds, key=lambda cmd: cmd.uses, reverse=True)
         view = ZMenuPagesView(
             ctx,
-            source=CustomCommandsListSource(
-                [(count, command) for count, command in enumerate(cmds)]
-            ),
+            source=CustomCommandsListSource([(count, command) for count, command in enumerate(cmds)]),
         )
         await view.start()
 
@@ -241,9 +231,7 @@ class CustomHelp(commands.HelpCommand):
                 selected = cog
 
         elif not foundList:
-            string = await maybeCoro(
-                self.command_not_found, self.remove_mentions(command)
-            )
+            string = await maybeCoro(self.command_not_found, self.remove_mentions(command))
             return await self.send_error_message(string)
 
         if not selected:

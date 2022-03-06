@@ -40,9 +40,7 @@ class ReactBlockBase(Block):
     def process(self, ctx: Context):
         if not ctx.verb.payload:
             return None
-        ctx.response.actions[self.type] = [
-            emoji.strip() for emoji in ctx.verb.payload.split(" ") if emoji
-        ]
+        ctx.response.actions[self.type] = [emoji.strip() for emoji in ctx.verb.payload.split(" ") if emoji]
         return ""
 
 

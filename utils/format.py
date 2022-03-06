@@ -86,11 +86,7 @@ def formatMissingArgError(ctx, error):
         title="ERROR: Missing required arguments!",
         description="Usage: `{}`".format(formatCmd("", command)),
     )
-    e.set_footer(
-        text="`{}help {}` for more information.".format(
-            ctx.clean_prefix, formatCmd("", command, params=False)
-        )
-    )
+    e.set_footer(text="`{}help {}` for more information.".format(ctx.clean_prefix, formatCmd("", command, params=False)))
     return e
 
 
@@ -150,9 +146,7 @@ def renderBar(
     # handles gaps
     gapFill = " " * gap if gap else ""
 
-    return gapFill.join(
-        [fill] * (fillLength - len(point)) + [point] + [empty] * emptyLength
-    )
+    return gapFill.join([fill] * (fillLength - len(point)) + [point] + [empty] * emptyLength)
 
 
 FLAG_REGEX = re.compile(r"(\S+):")
@@ -202,9 +196,7 @@ def stringWrap(string: str, limit: int, countHidden: bool = False):
 def formatTraceback(text: str, error: Exception, *, _print: bool = False) -> str:
     # https://github.com/InterStella0/stella_bot/blob/896c94e847829575d4699c0dd9d9b925d01c4b44/utils/useful.py#L132~L140
     if _print:
-        traceback.print_exception(
-            type(error), error, error.__traceback__, file=sys.stderr
-        )
+        traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
     etype = type(error)
     trace = error.__traceback__
     lines = traceback.format_exception(etype, error, trace)

@@ -87,17 +87,10 @@ class NumericStringParser(object):
             num_args = len(t[0])
             t.insert(0, (fn, num_args))
 
-        fn_call = (ident + lpar - Group(expr_list) + rpar).setParseAction(
-            insert_fn_argcount_tuple
-        )
+        fn_call = (ident + lpar - Group(expr_list) + rpar).setParseAction(insert_fn_argcount_tuple)
         atom = (
             addop[...]
-            + (
-                (fn_call | pi | phi | e | tau | fnumber | ident).setParseAction(
-                    self.pushFirst
-                )
-                | Group(lpar + expr + rpar)
-            )
+            + ((fn_call | pi | phi | e | tau | fnumber | ident).setParseAction(self.pushFirst) | Group(lpar + expr + rpar))
         ).setParseAction(self.pushUMinus)
 
         # by defining exponentiation as "atom [ ^ factor ]..." instead of
@@ -340,9 +333,7 @@ def decodeMorse(msg):
     temp = ""
     decoded = ""
     for code in msg:
-        if code not in [".", "-", "/", " "] and code.upper() in list(
-            MORSE_CODE_DICT.keys()
-        ):
+        if code not in [".", "-", "/", " "] and code.upper() in list(MORSE_CODE_DICT.keys()):
             return None
         if code != " ":
             i = 0
@@ -352,9 +343,7 @@ def decodeMorse(msg):
             if i == 2:
                 decoded += " "
             else:
-                decoded += list(MORSE_CODE_DICT.keys())[
-                    list(MORSE_CODE_DICT.values()).index(temp)
-                ]
+                decoded += list(MORSE_CODE_DICT.keys())[list(MORSE_CODE_DICT.values()).index(temp)]
                 temp = ""
     return decoded
 
@@ -368,11 +357,7 @@ async def doCaselog(
     targetId: int,
     reason: str,
 ) -> Optional[int]:
-    q = (
-        await db.CaseLog.filter(guild_id=guildId)
-        .annotate(caseNum=Max("caseId"))
-        .first()
-    )
+    q = await db.CaseLog.filter(guild_id=guildId).annotate(caseNum=Max("caseId")).first()
     caseNum = (q.caseNum or 0) + 1  # type: ignore
 
     if caseNum:
@@ -431,11 +416,7 @@ async def authorOrReferenced(ctx):
     if ref := ctx.replied_reference:
         # Get referenced message author
         # if user reply to a message while doing this command
-        return (
-            ref.cached_message.author
-            if ref.cached_message
-            else (await ctx.fetch_message(ref.message_id)).author
-        )
+        return ref.cached_message.author if ref.cached_message else (await ctx.fetch_message(ref.message_id)).author
     return ctx.author
 
 

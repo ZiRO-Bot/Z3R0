@@ -33,13 +33,9 @@ class Info(commands.Cog, CogMixin):
 
     def __init__(self, bot):
         super().__init__(bot)
-        self.openweather = OpenWeatherAPI(
-            key=getattr(self.bot.config, "openweather", None), session=self.bot.session
-        )
+        self.openweather = OpenWeatherAPI(key=getattr(self.bot.config, "openweather", None), session=self.bot.session)
 
-    @commands.command(
-        aliases=("av", "userpfp", "pfp"), brief="Get member's avatar image"
-    )
+    @commands.command(aliases=("av", "userpfp", "pfp"), brief="Get member's avatar image")
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def avatar(self, ctx: Context, user: MemberOrUser = None):
         user = user or await authorOrReferenced(ctx)  # type: ignore
@@ -76,9 +72,7 @@ class Info(commands.Cog, CogMixin):
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def weather(self, ctx: Context, *, city):
         if not self.openweather.apiKey:
-            return await ctx.error(
-                "OpenWeather's API Key is not set! Please contact the bot owner to solve this issue."
-            )
+            return await ctx.error("OpenWeather's API Key is not set! Please contact the bot owner to solve this issue.")
 
         try:
             weatherData = await self.openweather.get_from_city(city)
@@ -88,9 +82,7 @@ class Info(commands.Cog, CogMixin):
         e = ZEmbed(
             ctx,
             title="{}, {}".format(weatherData.city, weatherData.country),
-            description="Feels like {}°C, {}".format(
-                weatherData.tempFeels.celcius, weatherData.weatherDetail
-            ),
+            description="Feels like {}°C, {}".format(weatherData.tempFeels.celcius, weatherData.weatherDetail),
             colour=discord.Colour(0xEA6D4A),
         )
         e.set_author(
@@ -107,8 +99,7 @@ class Info(commands.Cog, CogMixin):
         aliases=("clr", "color"),
         brief="Get colour information from hex value",
         description=(
-            "Get colour information from hex value\n\nCan use either `0x` or "
-            "`#` prefix (`0xFFFFFF` or `#FFFFFF`)"
+            "Get colour information from hex value\n\nCan use either `0x` or " "`#` prefix (`0xFFFFFF` or `#FFFFFF`)"
         ),
         extras=dict(example=("colour ffffff", "clr 0xffffff", "color #ffffff")),
     )
@@ -143,16 +134,13 @@ class Info(commands.Cog, CogMixin):
     @commands.command(aliases=("lvl", "rank"), hidden=True, brief="Level")
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def level(self, ctx):
-        return await ctx.try_reply(
-            "https://tenor.com/view/stop-it-get-some-help-gif-7929301"
-        )
+        return await ctx.try_reply("https://tenor.com/view/stop-it-get-some-help-gif-7929301")
 
     @commands.group(
         aliases=("em", "emote"),
         brief="Get an emoji's information",
         description=(
-            "Get an emoji's information\n\nWill execute `emoji info` by "
-            "default when there's no any subcommands used"
+            "Get an emoji's information\n\nWill execute `emoji info` by " "default when there's no any subcommands used"
         ),
         extras=dict(
             example=(
@@ -164,9 +152,7 @@ class Info(commands.Cog, CogMixin):
         invoke_without_command=True,
     )
     @commands.cooldown(1, 5, commands.BucketType.user)
-    async def emoji(
-        self, ctx: Context, emoji: Union[discord.Emoji, discord.PartialEmoji, str]
-    ):
+    async def emoji(self, ctx: Context, emoji: Union[discord.Emoji, discord.PartialEmoji, str]):
         # TODO: Add emoji list
         await ctx.try_invoke(self.emojiInfo, emoji)
 
@@ -225,23 +211,17 @@ class Info(commands.Cog, CogMixin):
     )
     @commands.guild_only()
     @checks.mod_or_permissions(manage_emojis=True)
-    async def emojiSteal(
-        self, ctx: Context, emoji: Union[discord.Emoji, discord.PartialEmoji]
-    ):
+    async def emojiSteal(self, ctx: Context, emoji: Union[discord.Emoji, discord.PartialEmoji]):
         emojiByte = await emoji.read()
 
         try:
-            addedEmoji = await ctx.guild.create_custom_emoji(  # type: ignore
-                name=emoji.name, image=emojiByte
-            )
+            addedEmoji = await ctx.guild.create_custom_emoji(name=emoji.name, image=emojiByte)  # type: ignore
         except discord.Forbidden:
             return await ctx.error("I don't have permission to `Manage Emojis`!")
 
         e = ZEmbed.default(
             ctx,
-            title="{} `:{}:` has been added to the guild".format(
-                addedEmoji, addedEmoji.name
-            ),
+            title="{} `:{}:` has been added to the guild".format(addedEmoji, addedEmoji.name),
         )
         return await ctx.try_reply(embed=e)
 
@@ -302,9 +282,7 @@ class Info(commands.Cog, CogMixin):
 
         e = ZEmbed.default(
             ctx,
-            title="{} `:{}:` has been added to the guild".format(
-                addedEmoji, addedEmoji.name
-            ),
+            title="{} `:{}:` has been added to the guild".format(addedEmoji, addedEmoji.name),
         )
         return await ctx.try_reply(embed=e)
 
@@ -322,21 +300,15 @@ class Info(commands.Cog, CogMixin):
     )
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def jisho(self, ctx: Context, *, words):
-        async with ctx.bot.session.get(
-            "https://jisho.org/api/v1/search/words", params={"keyword": words}
-        ) as req:
+        async with ctx.bot.session.get("https://jisho.org/api/v1/search/words", params={"keyword": words}) as req:
             result = await req.json()
 
             try:
                 result = result["data"][0]
             except BaseException:
-                return await ctx.error(
-                    "Sorry, couldn't find any words matching `{}`".format(words)
-                )
+                return await ctx.error("Sorry, couldn't find any words matching `{}`".format(words))
 
-            e = ZEmbed.default(
-                ctx, title=f"{result['slug']}「 {result['japanese'][0]['reading']} 」"
-            )
+            e = ZEmbed.default(ctx, title=f"{result['slug']}「 {result['japanese'][0]['reading']} 」")
             e.set_author(
                 name="jisho.org",
                 icon_url="https://assets.jisho.org/assets/touch-icon-017b99ca4bfd11363a97f66cc4c00b1667613a05e38d08d858aa5e2a35dce055.png",
@@ -349,9 +321,7 @@ class Info(commands.Cog, CogMixin):
 
                 e.add_field(
                     name=name,
-                    value="; ".join(
-                        f"`{sense}`" for sense in sense["english_definitions"]
-                    ),
+                    value="; ".join(f"`{sense}`" for sense in sense["english_definitions"]),
                     inline=False,
                 )
             await ctx.try_reply(embed=e)
@@ -367,14 +337,10 @@ class Info(commands.Cog, CogMixin):
         if country.lower() in ("uk",):
             country = "United Kingdom"
 
-        async with self.bot.session.get(
-            "https://covid-api.mmediagroup.fr/v1/cases?country={}".format(country)
-        ) as req:
+        async with self.bot.session.get("https://covid-api.mmediagroup.fr/v1/cases?country={}".format(country)) as req:
             data = list((await req.json()).values())[0]
             try:
-                e = ZEmbed.default(
-                    ctx, title="{}'s COVID Report".format(data["country"])
-                )
+                e = ZEmbed.default(ctx, title="{}'s COVID Report".format(data["country"]))
             except KeyError:
                 return await ctx.error(
                     "**Note**: Country name is case-sensitive",
@@ -450,11 +416,7 @@ class Info(commands.Cog, CogMixin):
 
         avatar = user.display_avatar
 
-        e = (
-            ZEmbed()
-            .set_author(name=user, icon_url=avatar.url)
-            .set_thumbnail(url=avatar.url)
-        )
+        e = ZEmbed().set_author(name=user, icon_url=avatar.url).set_thumbnail(url=avatar.url)
 
         e.add_field(
             name="General",
@@ -478,12 +440,8 @@ class Info(commands.Cog, CogMixin):
                 "N/A"
                 if isUser or not joinedAt
                 else (
-                    "**Joined at**: {} ({})\n".format(
-                        formatDiscordDT(joinedAt, "F"), formatDiscordDT(joinedAt, "R")
-                    )
-                    + "**Role count**: ({}/{})\n".format(
-                        len(user.roles), len(user.guild.roles)  # type: ignore
-                    )
+                    "**Joined at**: {} ({})\n".format(formatDiscordDT(joinedAt, "F"), formatDiscordDT(joinedAt, "R"))
+                    + "**Role count**: ({}/{})\n".format(len(user.roles), len(user.guild.roles))  # type: ignore
                     + "**Top role**: {}".format(user.top_role.mention)  # type: ignore
                 )
             ),
@@ -497,9 +455,7 @@ class Info(commands.Cog, CogMixin):
                 if isUser
                 else (
                     "**Status**: {}\n".format(status(user.status))  # type: ignore
-                    + "**Activity**: {}".format(
-                        activity(user.activity) if user.activity else "None"  # type: ignore
-                    )
+                    + "**Activity**: {}".format(activity(user.activity) if user.activity else "None")  # type: ignore
                 )
             ),
             inline=False,
@@ -547,9 +503,7 @@ class Info(commands.Cog, CogMixin):
             value=(
                 "**Name**: {}\n".format(guild.name)
                 + "**ID**: `{}`\n".format(guild.id)
-                + "**Created At**: {} ({})\n".format(
-                    formatDiscordDT(createdAt, "F"), formatDiscordDT(createdAt, "R")
-                )
+                + "**Created At**: {} ({})\n".format(formatDiscordDT(createdAt, "F"), formatDiscordDT(createdAt, "R"))
                 + "**Owner**: {0} / {0.mention}\n".format(guild.owner)
                 + "**Owner ID**: `{}`".format(guild.owner.id)  # type: ignore
             ),
@@ -562,23 +516,13 @@ class Info(commands.Cog, CogMixin):
                 "**Categories**: {}\n".format(len(guild.categories))
                 + "**Channels**: {}\n{}\n".format(
                     len(guild.channels),
-                    "<:text_channel:747744994101690408> {} ".format(
-                        len(guild.text_channels)
-                    )
-                    + "<:voice_channel:747745006697185333> {} ".format(
-                        len(guild.voice_channels)
-                    )
-                    + "<:stagechannel:867970076475813908> {} ".format(
-                        len(guild.stage_channels)
-                    ),
+                    "<:text_channel:747744994101690408> {} ".format(len(guild.text_channels))
+                    + "<:voice_channel:747745006697185333> {} ".format(len(guild.voice_channels))
+                    + "<:stagechannel:867970076475813908> {} ".format(len(guild.stage_channels)),
                 )
-                + "**Member Count**: {} ({} humans | {} bots)\n".format(
-                    bots + humans, humans, bots
-                )
+                + "**Member Count**: {} ({} humans | {} bots)\n".format(bots + humans, humans, bots)
                 + " ".join([f"{emoji}{count}" for count, emoji in status.values()])
-                + "\n**Boosts**: {} (Lv. {})\n".format(
-                    guild.premium_subscription_count, guild.premium_tier
-                )
+                + "\n**Boosts**: {} (Lv. {})\n".format(guild.premium_subscription_count, guild.premium_tier)
                 + "**Role Count**: {}".format(len(guild.roles))
             ),
             inline=False,
@@ -588,9 +532,7 @@ class Info(commands.Cog, CogMixin):
             name="Settings",
             value=(
                 "**Verification Level**: `{}`\n".format(guild.verification_level)
-                + "**Two-Factor Auth**: {}\n".format(
-                    "On" if guild.mfa_level == 1 else "Off"
-                )
+                + "**Two-Factor Auth**: {}\n".format("On" if guild.mfa_level == 1 else "Off")
                 + "**Voice Region**: `{}`".format(guild.region)
             ),
             inline=False,
@@ -611,9 +553,7 @@ class Info(commands.Cog, CogMixin):
             lambda s: isinstance(s, discord.Spotify), user.activities  # type: ignore
         )  # discord.Spotify is ActivityTypes
         if not spotify:
-            return await ctx.error(
-                "{} is not listening to Spotify!".format(user.mention)
-            )
+            return await ctx.error("{} is not listening to Spotify!".format(user.mention))
 
         e = (
             ZEmbed(
@@ -648,10 +588,7 @@ class Info(commands.Cog, CogMixin):
         e.add_field(
             name="Duration",
             value=(
-                f"{cur.seconds//60:02}:{cur.seconds%60:02}"
-                + f" {bar} "
-                + f"{dur.seconds//60:02}:"
-                + f"{dur.seconds%60:02}"
+                f"{cur.seconds//60:02}:{cur.seconds%60:02}" + f" {bar} " + f"{dur.seconds//60:02}:" + f"{dur.seconds%60:02}"
             ),
             inline=False,
         )
@@ -680,13 +617,7 @@ class Info(commands.Cog, CogMixin):
         e = ZEmbed.default(
             ctx,
             title="{}'s Permissions".format(memberOrRole.name),  # type: ignore
-            description=", ".join(
-                [
-                    "`{}`".format(str(i[0]).replace("_", " ").title())
-                    for i in permissions
-                    if i[1] is True
-                ]
-            ),
+            description=", ".join(["`{}`".format(str(i[0]).replace("_", " ").title()) for i in permissions if i[1] is True]),
         )
         with suppress(AttributeError):
             e.set_thumbnail(url=memberOrRole.display_avatar.url)  # type: ignore
@@ -708,9 +639,7 @@ class Info(commands.Cog, CogMixin):
                     description="We looked everywhere but couldn't find that project",
                     colour=discord.Colour(0x0073B7),
                 )
-                e.set_thumbnail(
-                    url="https://cdn-images-1.medium.com/max/1200/1%2A2FrV8q6rPdz6w2ShV6y7bw.png"
-                )
+                e.set_thumbnail(url="https://cdn-images-1.medium.com/max/1200/1%2A2FrV8q6rPdz6w2ShV6y7bw.png")
                 return await ctx.try_reply(embed=e)
 
             info = res["info"]
@@ -718,9 +647,7 @@ class Info(commands.Cog, CogMixin):
                 title=f"{info['name']} · PyPI",
                 description=info["summary"],
                 colour=discord.Colour(0x0073B7),
-            ).set_thumbnail(
-                url="https://cdn-images-1.medium.com/max/1200/1%2A2FrV8q6rPdz6w2ShV6y7bw.png"
-            )
+            ).set_thumbnail(url="https://cdn-images-1.medium.com/max/1200/1%2A2FrV8q6rPdz6w2ShV6y7bw.png")
             e.add_field(
                 name="Author Info",
                 value=(

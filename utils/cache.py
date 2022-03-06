@@ -8,12 +8,8 @@ from typing import Any, Dict, Iterable, List, Optional, Tuple
 class ExpiringDict(dict):
     """Subclassed dict for expiring cache"""
 
-    def __init__(
-        self, items: Optional[Dict] = None, maxAgeSeconds: Optional[int] = None
-    ) -> None:
-        self.maxAgeSeconds: int = (
-            maxAgeSeconds or 3600
-        )  # (Default: 3600 seconds (1 hour))
+    def __init__(self, items: Optional[Dict] = None, maxAgeSeconds: Optional[int] = None) -> None:
+        self.maxAgeSeconds: int = maxAgeSeconds or 3600  # (Default: 3600 seconds (1 hour))
         curTime: float = time.monotonic()
 
         items = items or {}
@@ -21,9 +17,7 @@ class ExpiringDict(dict):
 
     def verifyCache(self) -> None:
         curTime: float = time.monotonic()
-        toRemove: list = [
-            k for (k, (v, t)) in self.items() if curTime > (t + self.maxAgeSeconds)
-        ]
+        toRemove: list = [k for (k, (v, t)) in self.items() if curTime > (t + self.maxAgeSeconds)]
         for k in toRemove:
             del self[k]
 
@@ -257,9 +251,7 @@ class Cache:
         name: str = str(_name)
 
         if not issubclass(cls, CacheProperty) or isinstance(cls, CacheProperty):
-            raise RuntimeError(
-                "cls has to be CacheProperty or subclass of CacheProperty"
-            )
+            raise RuntimeError("cls has to be CacheProperty or subclass of CacheProperty")
 
         self._property.append(name)
         setattr(self, name, cls(**kwargs))

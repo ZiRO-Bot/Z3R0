@@ -43,9 +43,7 @@ if TYPE_CHECKING:
     from core.bot import ziBot
 
 
-GIST_REGEX = re.compile(
-    r"http(?:s)?:\/\/gist\.github(?:usercontent)?\.com\/.*\/(\S*)(?:\/)?"
-)
+GIST_REGEX = re.compile(r"http(?:s)?:\/\/gist\.github(?:usercontent)?\.com\/.*\/(\S*)(?:\/)?")
 PASTEBIN_REGEX = re.compile(r"http(?:s)?:\/\/pastebin.com\/(?:raw\/)?(\S*)")
 
 
@@ -134,11 +132,7 @@ class Meta(commands.Cog, CogMixin):
         author = tse.MemberAdapter(ctx.author)
         content = cmd.content
         # TODO: Make target uses custom command arguments instead
-        target = (
-            tse.MemberAdapter(ctx.message.mentions[0])
-            if ctx.message.mentions
-            else author
-        )
+        target = tse.MemberAdapter(ctx.message.mentions[0]) if ctx.message.mentions else author
         channel = tse.ChannelAdapter(ctx.channel)
         seed = {
             "author": author,
@@ -188,9 +182,7 @@ class Meta(commands.Cog, CogMixin):
         msg = await action(
             result.body or ("\u200b" if not embed else ""),
             embed=embed,
-            allowed_mentions=discord.AllowedMentions(
-                everyone=False, users=False, roles=False
-            ),
+            allowed_mentions=discord.AllowedMentions(everyone=False, users=False, roles=False),
             **kwargs,
         )
         react = result.actions.get("react")
@@ -200,9 +192,7 @@ class Meta(commands.Cog, CogMixin):
         if react:
             self.bot.loop.create_task(reactsToMessage(msg, react))
 
-    async def ccModeCheck(
-        self, ctx, _type: str = "manage", command: CustomCommand = None
-    ):
+    async def ccModeCheck(self, ctx, _type: str = "manage", command: CustomCommand = None):
         """Check for custom command's modes."""
         # 0: Only mods,
         # 1: Partial (Can add but only able to manage their own command),
@@ -234,10 +224,7 @@ class Meta(commands.Cog, CogMixin):
     @commands.group(
         aliases=("cmd", "tag", "script"),
         brief="Manage commands",
-        description=(
-            "Manage commands\n\n**NOTE**: Custom Commands only available for "
-            "guilds/servers!"
-        ),
+        description=("Manage commands\n\n**NOTE**: Custom Commands only available for " "guilds/servers!"),
     )
     @commands.guild_only()
     async def command(self, ctx):
@@ -266,9 +253,7 @@ class Meta(commands.Cog, CogMixin):
             type=kwargs.get("type", "text"),
             url=kwargs.get("url"),
         )
-        lookup = await db.CommandsLookup.create(
-            cmd_id=cmd.id, name=name, guild_id=ctx.guild.id
-        )
+        lookup = await db.CommandsLookup.create(cmd_id=cmd.id, name=name, guild_id=ctx.guild.id)
         if cmd and lookup:
             return cmd.id, lookup.name
         return (None,) * 2
@@ -310,8 +295,7 @@ class Meta(commands.Cog, CogMixin):
         extras=dict(
             example=(
                 "command import pastebin-cmd https://pastebin.com/ZxvGqEAs",
-                "command ++ gist "
-                "https://gist.github.com/null2264/87c89d2b5e2453529e29c2cae3b57729",
+                "command ++ gist " "https://gist.github.com/null2264/87c89d2b5e2453529e29c2cae3b57729",
             ),
             perms={
                 "user": "Depends on custom command mode",
@@ -385,9 +369,7 @@ class Meta(commands.Cog, CogMixin):
         await db.Commands.filter(id=command.id).update(url=link)
 
         return await ctx.success(
-            "\nYou can do `{}command update {}` to update the content".format(
-                ctx.clean_prefix, name
-            ),
+            "\nYou can do `{}command update {}` to update the content".format(ctx.clean_prefix, name),
             title="`{}` url has been set to <{}>".format(name, url),
         )
 
@@ -447,10 +429,7 @@ class Meta(commands.Cog, CogMixin):
         update = await self.updateCommandContent(ctx, command, content)
         if update:
             return await ctx.success(
-                (
-                    "`[+]` {} Additions\n".format(addition)
-                    + "`[-]` {} Deletions".format(deletion)
-                ),
+                ("`[+]` {} Additions\n".format(addition) + "`[-]` {} Deletions".format(deletion)),
                 title="Command `{}` has been update\n".format(name),
             )
 
@@ -507,21 +486,15 @@ class Meta(commands.Cog, CogMixin):
         if alias in command.aliases:
             return await ctx.error("Alias `{}` already exists!".format(alias))
 
-        insert = await db.CommandsLookup.create(
-            cmd_id=command.id, name=alias, guild_id=ctx.guild.id
-        )
+        insert = await db.CommandsLookup.create(cmd_id=command.id, name=alias, guild_id=ctx.guild.id)
 
         if insert:
-            return await ctx.success(
-                title="Alias `{}` for `{}` has been created".format(alias, command)
-            )
+            return await ctx.success(title="Alias `{}` for `{}` has been created".format(alias, command))
 
     @command.command(
         name="edit",
         brief="Edit custom command's content",
-        description=(
-            "Edit custom command's content.\n\n" "Alias for `command set content`"
-        ),
+        description=("Edit custom command's content.\n\n" "Alias for `command set content`"),
         extras=dict(
             perms={
                 "user": "Depends on custom command mode",
@@ -569,9 +542,7 @@ class Meta(commands.Cog, CogMixin):
 
         update = await self.updateCommandContent(ctx, command, content)
         if update:
-            return await ctx.success(
-                title="Command `{}` has been edited\n".format(name)
-            )
+            return await ctx.success(title="Command `{}` has been edited\n".format(name))
 
     @cmdSet.command(
         name="url",
@@ -602,11 +573,7 @@ class Meta(commands.Cog, CogMixin):
     async def setCategory(self, ctx, _command: CMDName, category: CMDName):
         category = category.lower()
 
-        availableCats = [
-            cog.qualified_name.lower()
-            for cog in ctx.bot.cogs.values()
-            if getattr(cog, "cc", False)
-        ]
+        availableCats = [cog.qualified_name.lower() for cog in ctx.bot.cogs.values() if getattr(cog, "cc", False)]
         if category not in availableCats:
             return await ctx.error(title="Invalid category")
 
@@ -617,16 +584,12 @@ class Meta(commands.Cog, CogMixin):
             raise CCommandNoPerm
 
         if command.category == category:
-            return await ctx.success(
-                title="{} already in {}!".format(command, category)
-            )
+            return await ctx.success(title="{} already in {}!".format(command, category))
 
         update = await db.Commands.filter(id=command.id).update(category=category)
 
         if update:
-            return await ctx.success(
-                title="{}'s category has been set to {}!".format(command, category)
-            )
+            return await ctx.success(title="{}'s category has been set to {}!".format(command, category))
 
     @cmdSet.command(
         name="mode",
@@ -684,11 +647,7 @@ class Meta(commands.Cog, CogMixin):
             # NOTE: Aliases will be deleted automatically
             await db.Commands.filter(id=command.id).delete()
 
-        return await ctx.success(
-            title="{} `{}` has been removed".format(
-                "Alias" if isAlias else "Command", name
-            )
-        )
+        return await ctx.success(title="{} `{}` has been removed".format("Alias" if isAlias else "Command", name))
 
     async def disableEnableHelper(
         self,
@@ -719,18 +678,12 @@ class Meta(commands.Cog, CogMixin):
 
                 if str(cmd.root_parent or cmdName) not in immuneRoot:
                     # check if command root parent is immune
-                    foundList.append(
-                        choice(f"{cmdName} (Built-in Command)", (cmdName, "command"))
-                    )
+                    foundList.append(choice(f"{cmdName} (Built-in Command)", (cmdName, "command")))
 
             # find category
             category = ctx.bot.get_cog(str(name))
             if category:
-                foundList.append(
-                    choice(
-                        f"{category.qualified_name} (Category)", (category, "category")
-                    )
-                )
+                foundList.append(choice(f"{category.qualified_name} (Category)", (category, "category")))
 
         # find custom command
         try:
@@ -742,9 +695,7 @@ class Meta(commands.Cog, CogMixin):
 
         if len(foundList) <= 0:
             # Nothing found, abort
-            return await ctx.error(
-                f"No command/category called '{name}' can be {action}d"
-            )
+            return await ctx.error(f"No command/category called '{name}' can be {action}d")
 
         chosen = None
 
@@ -754,9 +705,7 @@ class Meta(commands.Cog, CogMixin):
         else:
             # give user choices, since there's more than 1 type is found
             choices = ZChoices(ctx, foundList)
-            msg = await ctx.try_reply(
-                f"Which one do you want to {action}?", view=choices
-            )
+            msg = await ctx.try_reply(f"Which one do you want to {action}?", view=choices)
             await choices.wait()
             await msg.delete()
             chosen = choices.value
@@ -799,9 +748,7 @@ class Meta(commands.Cog, CogMixin):
         alreadyMsg = "`{}` already disabled!"
         immuneRoot = ("help", "command")
 
-        chosen = await self.disableEnableHelper(
-            ctx, name, action="disable", isMod=isMod, immuneRoot=immuneRoot
-        )
+        chosen = await self.disableEnableHelper(ctx, name, action="disable", isMod=isMod, immuneRoot=immuneRoot)
 
         if not chosen or isinstance(chosen, discord.Message):
             return
@@ -812,26 +759,16 @@ class Meta(commands.Cog, CogMixin):
             disabled = await getDisabledCommands(self.bot, ctx.guild.id)
 
             added = []
-            added.extend(
-                [
-                    c.name
-                    for c in chosen[0].get_commands()
-                    if c.name not in immuneRoot and c.name not in disabled
-                ]
-            )
+            added.extend([c.name for c in chosen[0].get_commands() if c.name not in immuneRoot and c.name not in disabled])
 
             if not added:
                 return await ctx.error(title="No commands succesfully disabled")
 
             self.bot.cache.disabled.extend(ctx.guild.id, added)  # type: ignore
 
-            await db.Disabled.bulk_create(
-                [db.Disabled(guild_id=ctx.guild.id, command=str(cmd)) for cmd in added]
-            )
+            await db.Disabled.bulk_create([db.Disabled(guild_id=ctx.guild.id, command=str(cmd)) for cmd in added])
 
-            return await ctx.success(
-                title="`{}` commands has been disabled".format(len(added))
-            )
+            return await ctx.success(title="`{}` commands has been disabled".format(len(added)))
 
         if mode == "custom":
             command = chosen[0]
@@ -892,9 +829,7 @@ class Meta(commands.Cog, CogMixin):
         successMsg = "`{}` has been enabled"
         alreadyMsg = "`{}` already enabled!"
 
-        chosen = await self.disableEnableHelper(
-            ctx, name, action="enable", isMod=isMod, immuneRoot=[]
-        )
+        chosen = await self.disableEnableHelper(ctx, name, action="enable", isMod=isMod, immuneRoot=[])
 
         if not chosen or isinstance(chosen, discord.Message):
             return
@@ -918,9 +853,7 @@ class Meta(commands.Cog, CogMixin):
             for cmd in removed:
                 await filtered.filter(command=cmd).delete()
 
-            return await ctx.success(
-                title="`{}` commands has been enabled".format(len(removed))
-            )
+            return await ctx.success(title="`{}` commands has been enabled".format(len(removed)))
 
         if mode == "custom":
             command = chosen[0]
@@ -978,9 +911,7 @@ class Meta(commands.Cog, CogMixin):
     async def cmdMode(self, ctx):
         mode = await self.bot.getGuildConfig(ctx.guild.id, "ccMode") or 0
 
-        e = ZEmbed.minimal(
-            title="Current Mode: `{}`".format(mode), description=MODES[mode]
-        )
+        e = ZEmbed.minimal(title="Current Mode: `{}`".format(mode), description=MODES[mode])
         return await ctx.try_reply(embed=e)
 
     @command.command(name="modes", brief="Show all different custom command modes")
@@ -990,11 +921,7 @@ class Meta(commands.Cog, CogMixin):
             title="Custom Command Modes",
             fields=[("Mode `{}`".format(k), v) for k, v in enumerate(MODES)],
         )
-        e.set_footer(
-            text="Use `{}command set mode [mode]` to set the mode!".format(
-                ctx.clean_prefix
-            )
-        )
+        e.set_footer(text="Use `{}command set mode [mode]` to set the mode!".format(ctx.clean_prefix))
         return await ctx.try_reply(embed=e)
 
     @commands.command(
@@ -1019,17 +946,14 @@ class Meta(commands.Cog, CogMixin):
 
         e = ZEmbed.default(
             ctx,
-            description=self.bot.description
-            + "\n\nThis bot is licensed under **{}**.".format(ctx.bot.license),
+            description=self.bot.description + "\n\nThis bot is licensed under **{}**.".format(ctx.bot.license),
         )
         e.set_author(name=ctx.bot.user.name, icon_url=ctx.bot.user.avatar.url)
         e.set_image(url="attachment://banner.png")
         e.add_field(name="Author", value=ctx.bot.author)
         e.add_field(
             name="Library",
-            value="[`zidiscord.py`](https://github.com/null2264/discord.py) - `v{}`".format(
-                discord.__version__
-            ),
+            value="[`zidiscord.py`](https://github.com/null2264/discord.py) - `v{}`".format(discord.__version__),
         )
         e.add_field(name="Version", value=ctx.bot.version)
         view = discord.ui.View()
@@ -1043,12 +967,8 @@ class Meta(commands.Cog, CogMixin):
     async def stats(self, ctx):
         uptime = utcnow() - self.bot.uptime
         e = ZEmbed.default(ctx)
-        e.set_author(
-            name=ctx.bot.user.name + "'s stats", icon_url=ctx.bot.user.avatar.url
-        )
-        e.add_field(
-            name="🕙 | Uptime", value=humanize.precisedelta(uptime), inline=False
-        )
+        e.set_author(name=ctx.bot.user.name + "'s stats", icon_url=ctx.bot.user.avatar.url)
+        e.add_field(name="🕙 | Uptime", value=humanize.precisedelta(uptime), inline=False)
         e.add_field(
             name="<:terminal:852787866554859591> | Command Usage (This session)",
             value="{} commands ({} custom commands)".format(
@@ -1082,19 +1002,14 @@ class Meta(commands.Cog, CogMixin):
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def prefList(self, ctx):
         prefixes = await self.bot.getGuildPrefix(ctx.guild.id)
-        menu = ZMenuPagesView(
-            ctx, source=PrefixesPageSource(ctx, ["placeholder"] * 2 + prefixes)
-        )
+        menu = ZMenuPagesView(ctx, source=PrefixesPageSource(ctx, ["placeholder"] * 2 + prefixes))
         await menu.start()
 
     @prefix.command(
         name="add",
         aliases=("+",),
         brief="Add a custom prefix",
-        description=(
-            'Add a custom prefix.\n\n Tips: Use quotation mark (`""`) to add '
-            "spaces to your prefix."
-        ),
+        description=('Add a custom prefix.\n\n Tips: Use quotation mark (`""`) to add ' "spaces to your prefix."),
         extras=dict(
             example=("prefix add ?", 'prefix + "please do "', "pref + z!"),
             perms={
@@ -1111,11 +1026,7 @@ class Meta(commands.Cog, CogMixin):
 
         try:
             await self.bot.addPrefix(ctx.guild.id, prefix)
-            await ctx.success(
-                title="Prefix `{}` has been added".format(
-                    cleanifyPrefix(self.bot, prefix)
-                )
-            )
+            await ctx.success(title="Prefix `{}` has been added".format(cleanifyPrefix(self.bot, prefix)))
         except Exception as exc:
             await ctx.error(exc)
 
@@ -1139,11 +1050,7 @@ class Meta(commands.Cog, CogMixin):
 
         try:
             await self.bot.rmPrefix(ctx.guild.id, prefix)
-            await ctx.success(
-                title="Prefix `{}` has been removed".format(
-                    cleanifyPrefix(self.bot, prefix)
-                )
-            )
+            await ctx.success(title="Prefix `{}` has been removed".format(cleanifyPrefix(self.bot, prefix)))
         except Exception as exc:
             await ctx.error(exc)
 

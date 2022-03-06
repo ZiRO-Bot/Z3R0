@@ -33,17 +33,13 @@ class AnimeSearchPageSource(menus.ListPageSource):
 
         isAdult = data["isAdult"]
 
-        desc = HTML_PARSER.feed(
-            (data["description"] or "No description").replace("\n", "")
-        )
+        desc = HTML_PARSER.feed((data["description"] or "No description").replace("\n", ""))
 
         maxLen = 250
         if len(desc) > maxLen:
             origLen = len(desc)
             desc = desc[:maxLen]
-            hidden = "... **+{}** hidden\n(click {} to read more)".format(
-                origLen - len(desc), Emojis.info
-            )
+            hidden = "... **+{}** hidden\n(click {} to read more)".format(origLen - len(desc), Emojis.info)
             desc += hidden
 
         e = ZEmbed.default(
@@ -81,19 +77,14 @@ class AnimeSearchPageSource(menus.ListPageSource):
                 e.set_image(url=banner)
         elif isAdult and not chNsfw:
             if cover:
-                e.set_thumbnail(
-                    url=f"https://imagemanip.null2264.repl.co/blur?url={cover}&fixed=false"
-                )
+                e.set_thumbnail(url=f"https://imagemanip.null2264.repl.co/blur?url={cover}&fixed=false")
 
             if banner:
-                e.set_image(
-                    url=f"https://imagemanip.null2264.repl.co/blur?url={banner}&fixed=false"
-                )
+                e.set_image(url=f"https://imagemanip.null2264.repl.co/blur?url={banner}&fixed=false")
 
         e.add_field(
             name="Studios",
-            value=", ".join([studio["name"] for studio in data["studios"]["nodes"]])
-            or "Unknown",
+            value=", ".join([studio["name"] for studio in data["studios"]["nodes"]]) or "Unknown",
             inline=False,
         )
 
@@ -102,9 +93,7 @@ class AnimeSearchPageSource(menus.ListPageSource):
         if data["type"] == "ANIME":
             if data["format"] in ["MOVIE", "MUSIC"]:
                 if data["duration"]:
-                    duration = humanize.precisedelta(
-                        dt.timedelta(seconds=data["duration"] * 60)
-                    )
+                    duration = humanize.precisedelta(dt.timedelta(seconds=data["duration"] * 60))
                 else:
                     duration = "?"
                 e.add_field(name="Duration", value=duration)
@@ -131,21 +120,13 @@ class AnimeSearchPageSource(menus.ListPageSource):
                     value="{0[day]}/{0[month]}/{0[year]}".format(endDate),
                 )
 
-        e.add_field(
-            name="Genres", value=", ".join(data["genres"]) or "Unknown", inline=False
-        )
+        e.add_field(name="Genres", value=", ".join(data["genres"]) or "Unknown", inline=False)
 
-        sites = [
-            "[{0['site']}]({0['url']})".format(site)
-            for site in data["externalLinks"]
-            if site in STREAM_SITES
-        ]
+        sites = ["[{0['site']}]({0['url']})".format(site) for site in data["externalLinks"] if site in STREAM_SITES]
         if sites:
             e.add_field(name="Streaming Sites", value=", ".join(sites), inline=False)
 
         return e
 
     def sendSynopsis(self, data):
-        return HTML_PARSER.feed(
-            (data["description"] or "No description").replace("\n", "")
-        )
+        return HTML_PARSER.feed((data["description"] or "No description").replace("\n", ""))

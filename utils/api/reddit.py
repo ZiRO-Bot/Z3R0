@@ -50,9 +50,7 @@ class Reddit:
 
         API Key not required, used to replace praw
         """
-        self.baseUrl = (
-            "https://www.reddit.com/r/{subreddit}/{listingType}.json?limit={limit}"
-        )
+        self.baseUrl = "https://www.reddit.com/r/{subreddit}/{listingType}.json?limit={limit}"
         self.defaultLimit = defaultLimit
         self.session = session
 
@@ -62,9 +60,7 @@ class Reddit:
         """
         if not limit:
             limit = self.defaultLimit
-        async with self.session.get(
-            self.baseUrl.format(subreddit=subreddit, listingType=_type, limit=limit)
-        ) as res:
+        async with self.session.get(self.baseUrl.format(subreddit=subreddit, listingType=_type, limit=limit)) as res:
             return Subreddit(await res.json())
 
     async def hot(self, subreddit: str):

@@ -35,8 +35,7 @@ class GoogleTranslate:
         # - https://translate.googleapis.com/translate_a/single?client=gtx&dt=t&sl=auto&tl=en&q=bonjour
 
         async with self.session.get(
-            "https://translate.googleapis.com/translate_a/single?client=gtx&dt=t"
-            + f"&sl={source}&tl={dest}&q={query}"
+            "https://translate.googleapis.com/translate_a/single?client=gtx&dt=t" + f"&sl={source}&tl={dest}&q={query}"
         ) as res:
             data = await res.json()
             return Translated(data[2], dest, data[0][0][1], data[0][0][0])

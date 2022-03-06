@@ -14,9 +14,7 @@ class ZView(View):
     async def on_check_failed(self, interaction: Interaction) -> Any:
         """Just incase i need to replace failed check response"""
         if owner := self.owner:
-            await interaction.response.send_message(
-                f"This interaction belongs to {owner.mention}", ephemeral=True
-            )
+            await interaction.response.send_message(f"This interaction belongs to {owner.mention}", ephemeral=True)
 
     async def interaction_check(self, interaction: Interaction) -> bool:
         owner = self.owner

@@ -65,14 +65,11 @@ class Admin(commands.Cog, CogMixin):
             channel = parsed.channel
 
         e = ZEmbed.success(
-            title=("Welcome" if type == "welcome" else "Farewell")
-            + " config has been updated",
+            title=("Welcome" if type == "welcome" else "Farewell") + " config has been updated",
         )
 
         if disable is True:
-            await self.bot.setGuildConfig(
-                ctx.guild.id, f"{type}Ch", None, "GuildChannels"
-            )
+            await self.bot.setGuildConfig(ctx.guild.id, f"{type}Ch", None, "GuildChannels")
             e.add_field(name="Status", value="`Disabled`")
             return await ctx.try_reply(embed=e)
 
@@ -85,9 +82,7 @@ class Admin(commands.Cog, CogMixin):
             e.add_field(name="Message", value=message, inline=False)
 
         if channel is not None:
-            await self.bot.setGuildConfig(
-                ctx.guild.id, f"{type}Ch", channel.id, "GuildChannels"
-            )
+            await self.bot.setGuildConfig(ctx.guild.id, f"{type}Ch", channel.id, "GuildChannels")
             e.add_field(name="Channel", value=channel.mention)
 
         return await ctx.try_reply(embed=e)
@@ -168,10 +163,7 @@ class Admin(commands.Cog, CogMixin):
 
         disable = parsed.disable
 
-        e = ZEmbed.success(
-            title=("Modlog" if type == "modlog" else "Purgatory")
-            + " config has been updated"
-        )
+        e = ZEmbed.success(title=("Modlog" if type == "modlog" else "Purgatory") + " config has been updated")
 
         if parsed.channel is not None:
             channel = parsed.channel
@@ -185,9 +177,7 @@ class Admin(commands.Cog, CogMixin):
             e.add_field(name="Status", value="`Disabled`")
 
         if channelId is not MISSING:
-            await self.bot.setGuildConfig(
-                ctx.guild.id, f"{type}Ch", channelId, "GuildChannels"
-            )
+            await self.bot.setGuildConfig(ctx.guild.id, f"{type}Ch", channelId, "GuildChannels")
         else:
             e.description = "Nothing changed."
 
@@ -331,16 +321,12 @@ class Admin(commands.Cog, CogMixin):
 
             e = ZEmbed.success(
                 title="SUCCESS: Role has been created",
-                description="**Name**: {}\n**Type**: `{}`\n**ID**: `{}`".format(
-                    role.name, type, role.id
-                ),
+                description="**Name**: {}\n**Type**: `{}`\n**ID**: `{}`".format(role.name, type, role.id),
             )
             return await msg.edit(embed=e)
 
         return await ctx.error(
-            "Available role type: {}".format(
-                ", ".join([f"`{type}`" for type in ROLE_TYPES])
-            ),
+            "Available role type: {}".format(", ".join([f"`{type}`" for type in ROLE_TYPES])),
             title="Invalid role type!",
         )
 
@@ -385,18 +371,12 @@ class Admin(commands.Cog, CogMixin):
 
             e = ZEmbed.success(
                 title="SUCCESS: Role has been modified",
-                description="**Name**: {}\n**Type**: `{}`\n**ID**: `{}`".format(
-                    role.name, type, role.id
-                ),
+                description="**Name**: {}\n**Type**: `{}`\n**ID**: `{}`".format(role.name, type, role.id),
             )
             return await msg.edit(embed=e)
 
         return await ctx.error(
-            "Available role type: {}".format(
-                ", ".join(
-                    [f"`{type}`" for type in ROLE_TYPES if type not in disallowed]
-                )
-            ),
+            "Available role type: {}".format(", ".join([f"`{type}`" for type in ROLE_TYPES if type not in disallowed])),
             title="Invalid role type!",
         )
 
@@ -411,9 +391,7 @@ class Admin(commands.Cog, CogMixin):
 
     @commands.command(
         brief="Set auto role",
-        description=(
-            "Set auto role.\n" "A role that will be given to a new member upon joining"
-        ),
+        description=("Set auto role.\n" "A role that will be given to a new member upon joining"),
         usage="(role name)",
         extras=dict(
             example=("autorole @Member",),
@@ -443,9 +421,7 @@ class Admin(commands.Cog, CogMixin):
     )
     @checks.is_mod()
     async def announcement(self, ctx, channel: discord.TextChannel):
-        await self.bot.setGuildConfig(
-            ctx.guild.id, "announcementCh", channel.id, "GuildChannels"
-        )
+        await self.bot.setGuildConfig(ctx.guild.id, "announcementCh", channel.id, "GuildChannels")
         return await ctx.success(
             f"**Channel**: {channel.mention}",
             title="Announcement channel has been updated",

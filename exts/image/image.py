@@ -38,9 +38,7 @@ class Image(commands.Cog, CogMixin):
         userAv = user.display_avatar.with_format("png").url
 
         async with ctx.loading(title="Processing image..."):
-            async with self.bot.session.get(
-                f"{self.imageManipUrl}/{type}?url={userAv}"
-            ) as req:
+            async with self.bot.session.get(f"{self.imageManipUrl}/{type}?url={userAv}") as req:
                 if str(req.content_type).startswith("image/"):
                     filename = f"{type}.{format}"
                     imgBytes = await req.read()

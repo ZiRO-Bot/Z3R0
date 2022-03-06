@@ -26,13 +26,9 @@ DEFAULT_SERVER = "https://emkc.org"
 
 
 class Piston:
-    def __init__(
-        self, server: str = "https://emkc.org", loop=None, session: ClientSession = None
-    ) -> None:
+    def __init__(self, server: str = "https://emkc.org", loop=None, session: ClientSession = None) -> None:
         self.session: ClientSession = session or ClientSession()
-        self.baseUrl: str = server + (
-            "/api/v2/piston" if server == DEFAULT_SERVER else "/api/v2"
-        )
+        self.baseUrl: str = server + ("/api/v2/piston" if server == DEFAULT_SERVER else "/api/v2")
         # Max age: 86400 seconds (24 hour)
         self.languages: ExpiringDict = ExpiringDict(maxAgeSeconds=86400)
 

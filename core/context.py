@@ -36,9 +36,7 @@ class Context(commands.Context):
             action = self.safe_send
             return await self.safe_send(content, **kwargs)
 
-    async def safe_send_reply(
-        self, content, *, escape_mentions=True, type="send", **kwargs
-    ):
+    async def safe_send_reply(self, content, *, escape_mentions=True, type="send", **kwargs):
         action = getattr(self, type)
 
         if escape_mentions and content is not None:
@@ -47,27 +45,19 @@ class Context(commands.Context):
         if content is not None and len(content) > 2000:
             fp = io.BytesIO(content.encode())
             kwargs.pop("file", None)
-            return await action(
-                file=discord.File(fp, filename="message_too_long.txt"), **kwargs
-            )
+            return await action(file=discord.File(fp, filename="message_too_long.txt"), **kwargs)
         else:
             if content is not None:
                 kwargs["content"] = content
             return await action(**kwargs)
 
     async def safe_send(self, content, *, escape_mentions=True, **kwargs):
-        return await self.safe_send_reply(
-            content, escape_mentions=escape_mentions, type="send", **kwargs
-        )
+        return await self.safe_send_reply(content, escape_mentions=escape_mentions, type="send", **kwargs)
 
     async def safe_reply(self, content, *, escape_mentions=True, **kwargs):
-        return await self.safe_send_reply(
-            content, escape_mentions=escape_mentions, type="reply", **kwargs
-        )
+        return await self.safe_send_reply(content, escape_mentions=escape_mentions, type="reply", **kwargs)
 
-    async def error(
-        self, error_message: str = None, title: str = "Something went wrong!"
-    ):
+    async def error(self, error_message: str = None, title: str = "Something went wrong!"):
         e = ZEmbed.error(title="ERROR" + (f": {title}" if title else ""))
         if error_message is not None:
             e.description = str(error_message)
@@ -97,9 +87,7 @@ class Context(commands.Context):
             if msg:
                 await msg.delete()
 
-    async def try_invoke(
-        self, command: Union[commands.Command, str], *args, **kwargs  # type: ignore
-    ):
+    async def try_invoke(self, command: Union[commands.Command, str], *args, **kwargs):  # type: ignore
         """Similar to invoke() except it triggers checks"""
         if isinstance(command, str):
             command: commands.Command = self.bot.get_command(command)

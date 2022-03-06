@@ -80,8 +80,7 @@ class ziBot(commands.Bot):
         super().__init__(
             command_prefix=_callablePrefix,
             description=(
-                "A **free and open source** multi-purpose **discord bot** "
-                "created by ZiRO2264, formerly called `ziBot`."
+                "A **free and open source** multi-purpose **discord bot** " "created by ZiRO2264, formerly called `ziBot`."
             ),
             case_insensitive=True,
             intents=intents,
@@ -89,9 +88,7 @@ class ziBot(commands.Bot):
         )
 
         # make cogs case insensitive
-        self._BotBase__cogs: commands.core._CaseInsensitiveDict = (
-            commands.core._CaseInsensitiveDict()
-        )
+        self._BotBase__cogs: commands.core._CaseInsensitiveDict = commands.core._CaseInsensitiveDict()
 
         # log
         self.logger: logging.Logger = logging.getLogger("discord")
@@ -103,9 +100,7 @@ class ziBot(commands.Bot):
         # Bot master(s)
         # self.master = (186713080841895936,)
         self.owner_ids: tuple = (
-            tuple()
-            if not hasattr(config, "botMasters")
-            else tuple([int(master) for master in config.botMasters])
+            tuple() if not hasattr(config, "botMasters") else tuple([int(master) for master in config.botMasters])
         )
 
         self.issueChannel: int = getattr(config, "issueChannel", 0)
@@ -119,9 +114,7 @@ class ziBot(commands.Bot):
         self.guildDelDays: int = 30
 
         # bot's default prefix
-        self.defPrefix: str = (
-            ">" if not hasattr(config, "prefix") else str(config.prefix)
-        )
+        self.defPrefix: str = ">" if not hasattr(config, "prefix") else str(config.prefix)
 
         # News, shows up in help command
         self.news: Dict[str, Any] = JSON(
@@ -266,9 +259,7 @@ class ziBot(commands.Bot):
             raise RuntimeError("Wtf?")
 
         # Set/edit guild's specific config
-        if (
-            config := await self.getGuildConfig(guildId, configType, table)
-        ) == configValue:
+        if (config := await self.getGuildConfig(guildId, configType, table)) == configValue:
             # cached value is equal to new value
             # No need to overwrite database value
             return config
@@ -308,9 +299,7 @@ class ziBot(commands.Bot):
         try:
             self.cache.prefixes.add(guildId, prefix)  # type: ignore
         except CacheUniqueViolation:
-            raise commands.BadArgument(
-                "Prefix `{}` is already exists".format(cleanifyPrefix(self, prefix))
-            )
+            raise commands.BadArgument("Prefix `{}` is already exists".format(cleanifyPrefix(self, prefix)))
         except CacheListFull:
             raise IndexError(
                 "Custom prefixes is full! (Only allowed to add up to `{}` prefixes)".format(
@@ -329,14 +318,9 @@ class ziBot(commands.Bot):
         try:
             self.cache.prefixes.remove(guildId, prefix)  # type: ignore
         except IndexError:
-            raise commands.BadArgument(
-                "Prefix `{}` is not exists".format(cleanifyPrefix(self, prefix))
-            )
+            raise commands.BadArgument("Prefix `{}` is not exists".format(cleanifyPrefix(self, prefix)))
 
-        [
-            await i.delete()
-            for i in await db.Prefixes.filter(prefix=prefix, guild_id=guildId)
-        ]
+        [await i.delete() for i in await db.Prefixes.filter(prefix=prefix, guild_id=guildId)]
 
         return prefix
 
@@ -348,9 +332,7 @@ class ziBot(commands.Bot):
                 name=f"over {len(self.guilds)} servers",
                 type=discord.ActivityType.watching,
             ),
-            discord.Activity(
-                name=f"over {len(self.users)} users", type=discord.ActivityType.watching
-            ),
+            discord.Activity(name=f"over {len(self.users)} users", type=discord.ActivityType.watching),
             discord.Activity(
                 name="commands | Ping me to get prefix list!",
                 type=discord.ActivityType.listening,
@@ -375,14 +357,10 @@ class ziBot(commands.Bot):
         guildIds = [i.id for i in self.guilds]
 
         # Insert new guilds
-        await db.Guilds.bulk_create(
-            [db.Guilds(id=i) for i in guildIds if i not in dbGuilds]
-        )
+        await db.Guilds.bulk_create([db.Guilds(id=i) for i in guildIds if i not in dbGuilds])
 
         scheduledGuilds = await db.Timer.filter(event="guild_del")
-        cancelledScheduleGuilds = [
-            await i.delete() for i in scheduledGuilds if i.owner in guildIds
-        ]
+        cancelledScheduleGuilds = [await i.delete() for i in scheduledGuilds if i.owner in guildIds]
         scheduledGuildIds = [i.id for i in scheduledGuilds]
 
         # Schedule delete guild where the bot no longer in
@@ -409,8 +387,7 @@ class ziBot(commands.Bot):
 
         # Restart timer task
         if timer._currentTimer and (
-            timer._currentTimer.owner in cancelledScheduleGuilds
-            or when < timer._currentTimer.expires
+            timer._currentTimer.owner in cancelledScheduleGuilds or when < timer._currentTimer.expires
         ):
             timer.restartTimer()
         elif not timer._currentTimer:
@@ -470,9 +447,7 @@ class ziBot(commands.Bot):
             except KeyError:
                 pass
 
-    async def process_commands(
-        self, message: discord.Message
-    ) -> Optional[Union[str, commands.Command, commands.Group]]:
+    async def process_commands(self, message: discord.Message) -> Optional[Union[str, commands.Command, commands.Group]]:
         # initial ctx
         ctx: Context = await self.get_context(message, cls=Context)
 
@@ -488,11 +463,7 @@ class ziBot(commands.Bot):
         # Get msg content without prefix
         msgContent: str = msg.content[len(ctx.prefix) :]
         # TODO: Add ability add custom priority prefix
-        if (
-            msgContent.startswith(">")
-            or msgContent.startswith("!")
-            or (unixStyle := msgContent.startswith("./"))
-        ):
+        if msgContent.startswith(">") or msgContent.startswith("!") or (unixStyle := msgContent.startswith("./")):
             # Also support `./` for unix-style of launching custom scripts
             priority = 1
 
@@ -544,9 +515,7 @@ class ziBot(commands.Bot):
                 prefixes.append(f"`{pref}`")
         prefixes = ", ".join(prefixes)
 
-        result = "My default prefixes are `{}` or {}".format(
-            self.defPrefix, self.user.mention  # type: ignore
-        )
+        result = "My default prefixes are `{}` or {}".format(self.defPrefix, self.user.mention)  # type: ignore
         if prefixes:
             result += "\n\nCustom prefixes: {}".format(prefixes)
         return result
@@ -574,11 +543,7 @@ class ziBot(commands.Bot):
                 description=await self.formattedPrefixes(message.guild.id),
                 colour=ZColour.rounded(),
             )
-            e.set_footer(
-                text="Use `@{} help` to learn how to use the bot".format(
-                    me.display_name
-                )
-            )
+            e.set_footer(text="Use `@{} help` to learn how to use the bot".format(me.display_name))
             await message.reply(embed=e)
 
         await self.process(message)

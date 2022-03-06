@@ -43,10 +43,7 @@ class Developer(*STANDARD_FEATURES, *OPTIONAL_FEATURES):
     def tryLoadReload(self, extension: str):
         reloadFailMessage = "Failed to reload {}:"
         actionType = (
-            "reload"
-            if extension in self.bot.extensions
-            or f"{EXTS_DIR}.{extension}" in self.bot.extensions
-            else "load"
+            "reload" if extension in self.bot.extensions or f"{EXTS_DIR}.{extension}" in self.bot.extensions else "load"
         )
         action = getattr(
             self.bot,
@@ -81,17 +78,13 @@ class Developer(*STANDARD_FEATURES, *OPTIONAL_FEATURES):
 
         if len(exts) > 1:
             e.title = "Extensions Load/Reload Status"
-            e.description = "\n".join(
-                ["{} | `{}`".format(v, k) for k, v in status.items()]
-            )
+            e.description = "\n".join(["{} | `{}`".format(v, k) for k, v in status.items()])
         else:
             extension = exts[0]
             e.title = "{} | {} {}".format(
                 status[extension],
                 extension,
-                "has been loaded/reloaded"
-                if status[extension] == OK
-                else "failed to load/reload",
+                "has been loaded/reloaded" if status[extension] == OK else "failed to load/reload",
             )
 
         return await ctx.try_reply(embed=e)

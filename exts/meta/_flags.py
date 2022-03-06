@@ -6,9 +6,7 @@ from core.flags import StringAndFlags
 
 
 class HelpFlags(StringAndFlags, case_insensitive=True):
-    filters: List[str] = commands.flag(
-        name="filter", aliases=("filters", "filt"), default=[]
-    )
+    filters: List[str] = commands.flag(name="filter", aliases=("filters", "filt"), default=[])
 
 
 class CmdManagerFlags(StringAndFlags, case_insensitive=True):
