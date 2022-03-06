@@ -15,7 +15,7 @@ bot = "main.__main__:main"
 aiohttp = "3.7.3"
 python = "^3.9"
 beautifulsoup4 = "^4.9.3"
-"discord.py" = {git = "https://github.com/Rapptz/discord.py", rev = "fa901afa3a0506e55da704d4d567e1c7c42f51f1"}
+"discord.py" = {git = "https://github.com/Rapptz/discord.py", rev = "eaf94e84bc85c72eb28ed95a88e43cdd65879783"}
 discord-ext-menus = "^1.1"
 fuzzywuzzy = "0.18.0"
 humanize = "3.7.0"
