@@ -4,10 +4,10 @@ import asyncio
 import datetime as dt
 import sqlite3
 
+from core import db
 from tortoise import Tortoise
 
 import config
-from core import db
 
 
 OLD = sqlite3.connect("./data/database3_0.db", isolation_level=None)

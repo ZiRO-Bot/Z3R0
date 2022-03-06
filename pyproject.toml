@@ -4,6 +4,12 @@ version = "3.4.6"
 description = "A multi-purpose open source discord bot"
 authors = ["null2264"]
 license = "MPL-2.0"
+packages = [
+  {include = "main", from = "src"}
+]
+
+[tool.poetry.scripts]
+bot = "main.__main__:main"
 
 [tool.poetry.dependencies]
 aiohttp = "3.7.3"

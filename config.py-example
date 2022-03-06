@@ -38,7 +38,7 @@ TORTOISE_ORM = {
     "connections": {"default": sql},
     "apps": {
         "models": {
-            "models": ["core.db", "aerich.models"],
+            "models": ["main.core.db", "aerich.models"],
             "default_connection": "default",
         },
     },
