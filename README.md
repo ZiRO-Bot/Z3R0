@@ -1,6 +1,6 @@
 <p align="center">
     <!-- Change the img source to Z3R0 logo/mascot when its done --->
-    <a href="https://github.com/ZiRO-Bot/ziBot"><img src="/assets/img/banner.png" alt="Z3R0" width="720"/></a>
+    <a href="https://github.com/ZiRO-Bot/ziBot"><img src="src/main/assets/img/banner.png" alt="Z3R0" width="720"/></a>
 </p>
 
 <h1 align="center"><code>Z3R0 (formerly ziBot)</code></h1>
@@ -71,14 +71,14 @@ More feature coming soon!
 
 - Copy and paste (or rename) [`config.py-example`](./config.py-example) to `config.py`
 - Edit all the necessary config value (`token`, `botMasters`, and `sql`)
-- Run the bot by executing this command, `poetry run python .`
+- Run the bot by executing this command, `poetry run bot`
 - If everything is setup properly, the bot should be online!
 
 ### Development
 
 - Install poetry `pip install poetry` then run `poetry install`
 - Run `poetry run pre-commit install`
-- To run the bot executing this command, `poetry run python .`
+- To run the bot executing this command, `poetry run bot`
 
 ## Changelog
 
