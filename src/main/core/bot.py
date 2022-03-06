@@ -179,14 +179,12 @@ class ziBot(commands.Bot):
         """`__init__` but async"""
         await Tortoise.init(
             config=config.TORTOISE_ORM,
-            # db_url=config.sql,
-            # modules={"models": ["core.db"]},
             use_tz=True,  # d.py now tz-aware
         )
         await Tortoise.generate_schemas(safe=True)
 
     # @property
-    # def db(self) -> BaseDBAsyncClient:  # noqa: F811 - Unrelated
+    # def db(self):  # noqa: F811 - Unrelated
     #     return Tortoise.get_connection("default")
 
     async def startUp(self) -> None:

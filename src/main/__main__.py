@@ -4,8 +4,8 @@ import logging
 import os
 from logging.handlers import RotatingFileHandler
 
-from .core import bot as _bot
-from .utils.other import utcnow
+from src.main.core import bot as _bot
+from src.main.utils.other import utcnow
 
 
 # Use uvloop as loop policy if possible (Linux only)
