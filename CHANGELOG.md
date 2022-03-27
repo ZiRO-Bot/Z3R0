@@ -2,6 +2,8 @@
 
 ## 3.5.0
 - [**Improved**] Changed project structure (all source file now located in `src/`)
+- [**Improved**] **Technical**: Versioning now only handled by pyproject
+- [**Changed**] **Technical**: Adapted discord.py's [asyncio changes](https://gist.github.com/Rapptz/6706e1c8f23ac27c98cee4dd985c8120)
 
 # v3.4
 
