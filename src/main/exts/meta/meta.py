@@ -121,11 +121,6 @@ class Meta(commands.Cog, CogMixin):
         ]
         self.engine = tse.Interpreter(blocks)
 
-        self.bot.loop.create_task(self.asyncInit())
-
-    async def asyncInit(self):
-        pass
-
     def processTag(self, ctx, cmd: CustomCommand):
         """Process tags from CC's content with TSE."""
         author = tse.MemberAdapter(ctx.author)

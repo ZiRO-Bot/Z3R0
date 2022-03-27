@@ -6,5 +6,5 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 from .mod import Moderation
 
 
-def setup(bot):
-    bot.add_cog(Moderation(bot))
+async def setup(bot):
+    await bot.add_cog(Moderation(bot))

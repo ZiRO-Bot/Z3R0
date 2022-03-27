@@ -6,5 +6,5 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 from .anilist import AniList
 
 
-def setup(bot):
-    bot.add_cog(AniList(bot))
+async def setup(bot):
+    await bot.add_cog(AniList(bot))

@@ -4,6 +4,8 @@ import logging
 import os
 from logging.handlers import RotatingFileHandler
 
+import aiohttp
+
 from src.main.core import bot as _bot
 from src.main.utils.other import utcnow
 
@@ -56,22 +58,24 @@ def setup_logging():
             logger.removeHandler(handler)  # type: ignore
 
 
-def init_bot(loop):
+async def main():
+    """Launch the bot."""
     # jishaku env stuff
     os.environ["JISHAKU_NO_UNDERSCORE"] = "True"
     os.environ["JISHAKU_NO_DM_TRACEBACK"] = "True"
 
     bot = _bot.ziBot()
-    bot.uptime = utcnow()
-    bot.run()
+    async with aiohttp.ClientSession(headers={"User-Agent": "Discord/Z3RO (ziBot/3.0 by ZiRO2264)"}) as client:
+        async with bot:
+            bot.session = client
+            bot.uptime = utcnow()
+            await bot.run()
 
 
-def main():
-    """Launch the bot."""
-    loop = asyncio.get_event_loop()
+def run():
     with setup_logging():
-        init_bot(loop)
+        asyncio.run(main())
 
 
 if __name__ == "__main__":
-    main()
+    run()

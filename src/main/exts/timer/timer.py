@@ -78,9 +78,8 @@ class Timer(commands.Cog, CogMixin):
 
         self.haveData = asyncio.Event(loop=bot.loop)
         self._currentTimer: Optional[TimerData] = None
-        self.bot.loop.create_task(self.asyncInit())
 
-    async def asyncInit(self) -> None:
+    async def cog_load(self) -> None:
         self.task = self.bot.loop.create_task(self.dispatchTimers())
 
     def cog_unload(self) -> None:

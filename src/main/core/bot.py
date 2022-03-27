@@ -18,6 +18,7 @@ from tortoise.models import Model
 
 import config
 
+from .. import __version__ as botVersion
 from ..exts.meta._custom_command import getCustomCommands
 from ..exts.meta._utils import getDisabledCommands
 from ..exts.timer.timer import Timer, TimerData
@@ -61,7 +62,7 @@ class ziBot(commands.Bot):
 
     # --- NOTE: Information about the bot
     author: str = getattr(config, "author", "ZiRO2264#9999")
-    version: str = "`3.5.0` - `overhaul`"
+    version: str = f"`{botVersion}` - `overhaul`"
     links: Dict[str, str] = getattr(
         config,
         "links",
@@ -156,13 +157,6 @@ class ziBot(commands.Bot):
             )
         )
 
-        # async init
-        self.session: aiohttp.ClientSession = aiohttp.ClientSession(
-            headers={"User-Agent": "Discord/Z3RO (ziBot/3.0 by ZiRO2264)"}
-        )
-        self.loop.create_task(self.asyncInit())
-        self.loop.create_task(self.startUp())
-
         @self.check
         async def botCheck(ctx):
             """Global check"""
@@ -175,21 +169,21 @@ class ziBot(commands.Bot):
                     raise commands.DisabledCommand
             return True
 
-    async def asyncInit(self) -> None:
+    async def setup_hook(self) -> None:
         """`__init__` but async"""
+
         await Tortoise.init(
             config=config.TORTOISE_ORM,
             use_tz=True,  # d.py now tz-aware
         )
         await Tortoise.generate_schemas(safe=True)
 
-    # @property
-    # def db(self):  # noqa: F811 - Unrelated
-    #     return Tortoise.get_connection("default")
+        # change bot's presence into guild live count
+        self.changingPresence.start()
 
-    async def startUp(self) -> None:
-        """Will run when the bot ready"""
-        await self.wait_until_ready()
+        # load all listed extensions
+        for extension in EXTS:
+            await self.load_extension(extension)
 
         if not self.owner_ids:
             # If self.master not set, warn the hoster
@@ -202,18 +196,10 @@ class ziBot(commands.Bot):
         if owner and owner.id not in self.owner_ids:
             self.owner_ids += (owner.id,)
 
-        # change bot's presence into guild live count
-        self.changingPresence.start()
-
         await self.manageGuildDeletion()
 
         if not hasattr(self, "uptime"):
             self.uptime: datetime.datetime = utcnow()
-
-    @property
-    def master(self):
-        warnings.warn("Bot.master is deprecated, use self.owner_ids instead")
-        return self.owner_ids
 
     async def getGuildConfigs(
         self,
@@ -328,6 +314,7 @@ class ziBot(commands.Bot):
     @tasks.loop(seconds=15)
     async def changingPresence(self) -> None:
         """A loop that change bot's status every 15 seconds."""
+        await self.wait_until_ready()
         activities: tuple = (
             discord.Activity(
                 name=f"over {len(self.guilds)} servers",
@@ -570,12 +557,9 @@ class ziBot(commands.Bot):
         # Close aiohttp session
         await self.session.close()
 
-    def run(self) -> None:
-        # load all listed extensions
-        for extension in EXTS:
-            self.load_extension(extension)
+    async def run(self) -> None:
 
-        super().run(config.token, reconnect=True)
+        await super().start(config.token, reconnect=True)
 
     @property
     def config(self):

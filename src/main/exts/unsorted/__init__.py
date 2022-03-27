@@ -6,5 +6,5 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 from .unsorted import Unsorted
 
 
-def setup(bot):
-    bot.add_cog(Unsorted(bot))
+async def setup(bot):
+    await bot.add_cog(Unsorted(bot))
