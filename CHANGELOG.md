@@ -8,6 +8,7 @@
   This change breaks tortoise from loading, please change your models value from `core.db` into `src.main.core.db`!
 - [**Improved**] **Technical**: Versioning now only handled by pyproject
 - [**Changed**] **Technical**: Adapted discord.py's [asyncio changes](https://gist.github.com/Rapptz/6706e1c8f23ac27c98cee4dd985c8120)
+- [**Improved**] You can now set Welcome and Farewell message using Modal
 
 # v3.4
 

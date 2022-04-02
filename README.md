@@ -94,11 +94,12 @@ Moved to [CHANGELOG.md](./CHANGELOG.md)
 - Starboard
 - Docker thingy for easier way to host the bot
 - Replace mute with the new timeout feature from Discord
+- Modals
+- Slash command
 
 ### Pending Plan
 
 - i18n using gettext (Learning how gettext works)
-- Slash command (Waiting for implementation)
 
 ### Scrapped Plan
 

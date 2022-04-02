@@ -3,17 +3,48 @@ This Source Code Form is subject to the terms of the Mozilla Public
 License, v. 2.0. If a copy of the MPL was not distributed with this
 file, You can obtain one at http://mozilla.org/MPL/2.0/.
 """
-from typing import Optional, Union
+from typing import Callable, Optional, Union
 
 import discord
 from discord.ext import commands
 from discord.utils import MISSING
 
 from ...core import checks, flags
+from ...core.context import Context
 from ...core.embed import ZEmbed
 from ...core.mixin import CogMixin
 from ...utils.format import separateStringFlags
 from ...utils.other import setGuildRole
+
+
+class Greeting(discord.ui.Modal, title="Greeting"):
+    message = discord.ui.TextInput(
+        label="Message",
+        placeholder="Welcome, {user(mention)}! {react: 👋}",
+    )
+
+    # TODO - hopefully discord will add channel input soon into modal
+    #        for now i'll comment this
+    # channel = discord.ui.TextInput(
+    #     label="Channel",
+    #     placeholder="794344590618394625",
+    # )
+
+    def __init__(
+        self,
+        context: Context,
+        type: str,
+    ) -> None:
+        super().__init__(title=type.title())
+        self.context = context
+        self.type = type
+
+    async def callback(self):
+        await handleGreetingConfig(self.context, self.type, message=self.message)
+
+    async def on_submit(self, inter: discord.Interaction):
+        await self.callback()
+        return await inter.response.defer()
 
 
 # Also includes aliases
@@ -26,6 +57,72 @@ ROLE_TYPES = {
     "muted": "mutedRole",
     "regular": "",
 }
+
+
+async def handleGreetingConfig(
+    ctx: Context, type: str, *, arguments=MISSING, message: str = None, disable=False, channel=None
+):
+    """Handle welcome and farewell configuration."""
+    raw = False
+    if arguments is None:
+        # TODO - Add modals here
+
+        def makeCallback():
+            async def callback(interaction: discord.Interaction):
+                modal = Greeting(ctx, type)
+                await interaction.response.send_modal(modal)
+
+            return callback
+
+        btn = discord.ui.Button(label=f"Set {type} config")
+        btn.callback = makeCallback()
+        view = discord.ui.View()
+        view.add_item(btn)
+
+        await ctx.try_reply(
+            "This feature currently not yet available on Mobile!\n"
+            "If you're on Mobile, please do `{}{} "
+            "[message] [options]` instead".format(ctx.clean_prefix, type),
+            view=view,
+        )
+        return
+    elif arguments is not MISSING:
+        changeMsg = False
+        message, args = separateStringFlags(arguments)
+
+        parsed = await flags.GreetingFlags.convert(ctx, args)
+
+        # Parsed value from flags
+        disable = parsed.disable
+        raw = parsed.raw
+        channel = parsed.channel
+        message = " ".join([message.strip()] + parsed.messages).strip()
+
+    if not raw and not disable and message:
+        changeMsg = True
+
+    e = ZEmbed.success(
+        title=("Welcome" if type == "welcome" else "Farewell") + " config has been updated",
+    )
+
+    if disable is True:
+        await ctx.bot.setGuildConfig(ctx.guild.id, f"{type}Ch", None, "GuildChannels")
+        e.add_field(name="Status", value="`Disabled`")
+        return await ctx.try_reply(embed=e)
+
+    if raw is True:
+        message = await ctx.bot.getGuildConfig(ctx.guild.id, f"{type}Msg")
+        return await ctx.try_reply(discord.utils.escape_markdown(str(message)))
+
+    if changeMsg and message:
+        await ctx.bot.setGuildConfig(ctx.guild.id, f"{type}Msg", message)
+        e.add_field(name="Message", value=message, inline=False)
+
+    if channel is not None:
+        await ctx.bot.setGuildConfig(ctx.guild.id, f"{type}Ch", channel.id, "GuildChannels")
+        e.add_field(name="Channel", value=channel.mention)
+
+    return await ctx.try_reply(embed=e)
 
 
 class Admin(commands.Cog, CogMixin):
@@ -41,51 +138,6 @@ class Admin(commands.Cog, CogMixin):
 
     async def cog_check(self, ctx):
         return ctx.guild is not None
-
-    async def handleGreetingConfig(self, ctx, arguments, type: str):
-        """Handle welcome and farewell configuration."""
-        if not arguments:
-            # Nothing to do here.
-            return
-
-        changeMsg = False
-        message, args = separateStringFlags(arguments)
-
-        parsed = await flags.GreetingFlags.convert(ctx, args)
-
-        disable = parsed.disable
-        raw = parsed.raw
-
-        message = " ".join([message.strip()] + parsed.messages).strip()
-        if not raw and not disable and message:
-            changeMsg = True
-
-        channel = None
-        if not raw and not disable and parsed.channel:
-            channel = parsed.channel
-
-        e = ZEmbed.success(
-            title=("Welcome" if type == "welcome" else "Farewell") + " config has been updated",
-        )
-
-        if disable is True:
-            await self.bot.setGuildConfig(ctx.guild.id, f"{type}Ch", None, "GuildChannels")
-            e.add_field(name="Status", value="`Disabled`")
-            return await ctx.try_reply(embed=e)
-
-        if raw is True:
-            message = await self.bot.getGuildConfig(ctx.guild.id, f"{type}Msg")
-            return await ctx.try_reply(discord.utils.escape_markdown(str(message)))
-
-        if changeMsg and message:
-            await self.bot.setGuildConfig(ctx.guild.id, f"{type}Msg", message)
-            e.add_field(name="Message", value=message, inline=False)
-
-        if channel is not None:
-            await self.bot.setGuildConfig(ctx.guild.id, f"{type}Ch", channel.id, "GuildChannels")
-            e.add_field(name="Channel", value=channel.mention)
-
-        return await ctx.try_reply(embed=e)
 
     @commands.command(
         aliases=("wel",),
@@ -115,8 +167,8 @@ class Admin(commands.Cog, CogMixin):
         ),
     )
     @checks.mod_or_permissions(manage_channels=True)
-    async def welcome(self, ctx, *, arguments):
-        await self.handleGreetingConfig(ctx, arguments, type="welcome")
+    async def welcome(self, ctx, *, arguments: str = None):
+        await handleGreetingConfig(ctx, "welcome", arguments=arguments)
 
     @commands.command(
         aliases=("fw",),
@@ -146,8 +198,8 @@ class Admin(commands.Cog, CogMixin):
         ),
     )
     @checks.mod_or_permissions(manage_channels=True)
-    async def farewell(self, ctx, *, arguments):
-        await self.handleGreetingConfig(ctx, arguments, type="farewell")
+    async def farewell(self, ctx, *, arguments: str = None):
+        await handleGreetingConfig(ctx, "farewell", arguments=arguments)
 
     async def handleLogConfig(self, ctx, arguments, type: str):
         """Handle configuration for logs (modlog, purgatory)"""
