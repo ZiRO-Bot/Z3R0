@@ -118,7 +118,7 @@ def isRafael():
 def isAprilFool():
     def predicate(ctx):
         today = utcnow()
-        if not (today.day == 1 and today.month == 5):
+        if not (today.day == 1 and today.month == 4):
             raise DefaultError("Not April Fools yet!")
         return True
 

@@ -1,7 +1,11 @@
 # v3.5
 
 ## 3.5.0
-- [**Improved**] Changed project structure (all source file now located in `src/`)
+
+   **THIS UPDATE CONTAINS BREAKING CHANGES!**
+
+- [**Improved / BREAKING CHANGES**] Changed project structure (all source file now located in `src/`)  
+  This change breaks tortoise from loading, please change your models value from `core.db` into `src.main.core.db`!
 - [**Improved**] **Technical**: Versioning now only handled by pyproject
 - [**Changed**] **Technical**: Adapted discord.py's [asyncio changes](https://gist.github.com/Rapptz/6706e1c8f23ac27c98cee4dd985c8120)
 
