@@ -8,7 +8,7 @@ from core.decorators import in_executor
 
 
 def bytes2image(image: bytes) -> Image.Image:
-    if image.__sizeof__() > 10 * (2 ** 20):
+    if image.__sizeof__() > 10 * (2**20):
         raise ValueError("Exceeds 10MB")
     try:
         io: BytesIO = BytesIO(image)
