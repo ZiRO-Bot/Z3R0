@@ -65,7 +65,7 @@ async def handleGreetingConfig(
     """Handle welcome and farewell configuration."""
     raw = False
     if arguments is None:
-        # TODO - Add modals here
+        # TODO - Revisit once more input introduced to modals
 
         def makeCallback():
             async def callback(interaction: discord.Interaction):
