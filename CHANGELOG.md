@@ -11,6 +11,7 @@
 - [**Improved**] You can now set Welcome and Farewell message using Modal
 - [**Changed**] **Technical**: Splitting meta into several subcogs
 - [**Fixed**] Re-enabled meme command, fixed by itself (probably aiohttp's user-agent bug)
+- [**New**] Added findseed slash command
 
 # v3.4
 

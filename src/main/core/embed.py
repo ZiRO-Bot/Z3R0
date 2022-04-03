@@ -1,7 +1,15 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Union
+
 import discord
 
 from ..utils.other import utcnow
 from .enums import Emojis
+
+
+if TYPE_CHECKING:
+    from ..core.context import Context
 
 
 class ZEmbed(discord.Embed):
@@ -16,11 +24,16 @@ class ZEmbed(discord.Embed):
         return instance
 
     @classmethod
-    def default(cls, ctx, timestamp=None, **kwargs):
+    def default(cls, context: Union[discord.Interaction, Context], timestamp=None, **kwargs):
+        try:
+            author = context.author
+        except AttributeError:
+            author = context.user
+
         instance = cls.minimal(timestamp=timestamp or utcnow(), **kwargs)
         instance.set_footer(
-            text="Requested by {}".format(ctx.author),
-            icon_url=ctx.author.display_avatar.url,
+            text="Requested by {}".format(author),
+            icon_url=author.display_avatar.url,
         )
         return instance
 

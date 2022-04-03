@@ -6,8 +6,10 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import io
 from random import choice, randint, random, shuffle
+from typing import Literal, Tuple, Union, get_args
 
 import discord
+from discord import app_commands
 from discord.ext import commands
 
 from ...core import checks
@@ -17,6 +19,9 @@ from ...core.mixin import CogMixin
 from ...utils.api import reddit
 from ...utils.piglin import Piglin
 from ._flags import FindseedFlags
+
+
+FINDSEED_MODES = Literal["visual", "classic", "pipega", "halloween"]
 
 
 class Fun(commands.Cog, CogMixin):
@@ -65,23 +70,8 @@ class Fun(commands.Cog, CogMixin):
 
         await msg.edit(embed=e)
 
-    @commands.command(
-        brief="Get your minecraft seed's eye count",
-        aliases=("fs", "vfs"),
-        usage="[options]",
-        extras=dict(
-            example=("findseed", "findseed mode: classic", "fs mode: pipega"),
-            flags={"mode": ("Change display mode (modes: visual, classic, pipega " "or pepiga, halloween)")},
-        ),
-    )
-    @commands.cooldown(5, 25, commands.BucketType.user)
-    async def findseed(self, ctx, *, arguments: FindseedFlags):
-        availableMode = ("visual", "classic", "pipega", "halloween")
-        aliasesMode = {"pepiga": "pipega"}
-
-        argMode = aliasesMode.get(arguments.mode, arguments.mode)
-        mode = "visual" if argMode not in availableMode else argMode
-
+    def _findseed(self, executorId: int, mode: str) -> Union[str, Tuple[str, str]]:
+        """Internal function for findseed command"""
         defaultEmojis = {
             "{air}": "<:empty:754550188269633556>",
             "{frame}": "<:portal:754550231017979995>",
@@ -113,8 +103,8 @@ class Fun(commands.Cog, CogMixin):
             575014590371463178: 12,
             755667043117695036: 12,
         }
-        if ctx.author.id in rig:
-            rig = rig[ctx.author.id]
+        if executorId in rig:
+            rig = rig[executorId]
             eyeCount = rig
             if mode != "classic":
                 # cap rig (can't go below 0 or above 12)
@@ -128,12 +118,10 @@ class Fun(commands.Cog, CogMixin):
                     shuffle(eyes)
 
         if mode == "classic":
-            return await ctx.send(
-                "{} -> your seed is a {} eye{}".format(
-                    ctx.author.mention,
-                    eyeCount,
-                    "s" if eyeCount == 0 or eyeCount > 1 else "",
-                )
+            return "<@{}> -> your seed is a {} eye{}".format(
+                executorId,
+                eyeCount,
+                "s" if eyeCount > 1 or eyeCount == 0 else "",
             )
 
         # "render" portal
@@ -160,10 +148,53 @@ class Fun(commands.Cog, CogMixin):
                     portalFrame += air
             portalFrame += "\n"
 
+        return (f"findseed - Your seed is a **{eyeCount}** eye", portalFrame)
+
+    @app_commands.command(
+        name="findseed",
+        description="Get your minecraft seed's eye count",
+    )
+    @app_commands.checks.cooldown(5, 25, key=lambda i: (i.guild_id, i.user.id))
+    async def slashFindseed(self, inter: discord.Interaction, mode: FINDSEED_MODES = "visual"):
+        res = self._findseed(inter.user.id, mode)
+
+        if isinstance(res, str):
+            return await inter.response.send_message(res)
+
+        e = ZEmbed.default(
+            inter,
+            title=res[0],
+            description=res[1],
+            color=discord.Colour(0x38665E),
+        )
+        return await inter.response.send_message(embed=e)
+
+    @commands.command(
+        brief="Get your minecraft seed's eye count",
+        aliases=("fs", "vfs"),
+        usage="[options]",
+        extras=dict(
+            example=("findseed", "findseed mode: classic", "fs mode: pipega"),
+            flags={"mode": "Change display mode (modes: visual, classic, pipega or pepiga, halloween)"},
+        ),
+    )
+    @commands.cooldown(5, 25, commands.BucketType.user)
+    async def findseed(self, ctx, *, arguments: FindseedFlags):
+        availableMode = get_args(FINDSEED_MODES)
+        aliasesMode = {"pepiga": "pipega"}
+
+        argMode = aliasesMode.get(arguments.mode, arguments.mode)
+        mode = "visual" if argMode not in availableMode else argMode
+
+        res = self._findseed(ctx.author.id, mode)
+
+        if isinstance(res, str):
+            return await ctx.send(res)
+
         e = ZEmbed.default(
             ctx,
-            title=f"findseed - Your seed is a **{eyeCount}** eye",
-            description=portalFrame,
+            title=res[0],
+            description=res[1],
             color=discord.Colour(0x38665E),
         )
         await ctx.try_reply(embed=e)
