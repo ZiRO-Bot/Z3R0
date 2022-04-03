@@ -10,6 +10,7 @@
 - [**Changed**] **Technical**: Adapted discord.py's [asyncio changes](https://gist.github.com/Rapptz/6706e1c8f23ac27c98cee4dd985c8120)
 - [**Improved**] You can now set Welcome and Farewell message using Modal
 - [**Changed**] **Technical**: Splitting meta into several subcogs
+- [**Fixed**] Re-enabled meme command, fixed by itself (probably aiohttp's user-agent bug)
 
 # v3.4
 

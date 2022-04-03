@@ -29,7 +29,7 @@ class Fun(commands.Cog, CogMixin):
         super().__init__(bot)
         self.reddit = reddit.Reddit(self.bot.session)
 
-    @commands.command(brief="Get random meme from reddit", enabled=False)
+    @commands.command(brief="Get random meme from reddit")
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def meme(self, ctx):
         # TODO: Add more meme subreddits
