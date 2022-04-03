@@ -210,20 +210,20 @@ class ZMenuPagesView(ZMenuView):
     @discord.ui.button(
         emoji=Emojis.first,
     )
-    async def _first(self, button: discord.ui.Button, interaction: discord.Interaction):
+    async def _first(self, interaction: discord.Interaction, button: discord.ui.Button):
         await self.sendPage(interaction, 0)
 
     @discord.ui.button(
         emoji=Emojis.back,
     )
-    async def _back(self, button: discord.ui.Button, interaction: discord.Interaction):
+    async def _back(self, interaction: discord.Interaction, button: discord.ui.Button):
         await self.sendCheckedPage(interaction, self.currentPage - 1)
 
     @discord.ui.button(
         label="Page NaN/NaN",
         style=discord.ButtonStyle.blurple,
     )
-    async def _pageInfo(self, button: discord.ui.Button, interaction: discord.Interaction):
+    async def _pageInfo(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.send_message(
             content=(
                 "{}, which page would you like to jump to? "
@@ -249,13 +249,13 @@ class ZMenuPagesView(ZMenuView):
     @discord.ui.button(
         emoji=Emojis.next,
     )
-    async def _forward(self, button: discord.ui.Button, interaction: discord.Interaction):
+    async def _forward(self, interaction: discord.Interaction, button: discord.ui.Button):
         await self.sendCheckedPage(interaction, self.currentPage + 1)
 
     @discord.ui.button(
         emoji=Emojis.last,
     )
-    async def _last(self, button: discord.ui.Button, interaction: discord.Interaction):
+    async def _last(self, interaction: discord.Interaction, button: discord.ui.Button):
         await self.sendPage(interaction, self.getMaxPages() - 1)
 
     @discord.ui.button(
@@ -263,7 +263,7 @@ class ZMenuPagesView(ZMenuView):
         emoji=Emojis.stop,
         style=discord.ButtonStyle.red,
     )
-    async def _stop(self, button: discord.ui.Button, interaction: discord.Interaction):
+    async def _stop(self, interaction: discord.Interaction, button: discord.ui.Button):
         await self.stop()
 
 

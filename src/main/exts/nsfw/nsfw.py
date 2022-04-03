@@ -53,11 +53,11 @@ class NekoMenu(ZMenuView):
             pass
 
     @discord.ui.button(emoji="\N{BLACK SQUARE FOR STOP}")
-    async def stopNeko(self, button: discord.ui.Button, interaction: discord.Interaction):
+    async def stopNeko(self, interaction: discord.Interaction, button: discord.ui.Button):
         await self.stop()
 
     @discord.ui.button(emoji="\N{BLACK RIGHT-POINTING TRIANGLE}")
-    async def getNewNeko(self, button: discord.ui.Button, interaction: discord.Interaction):
+    async def getNewNeko(self, interaction: discord.Interaction, button: discord.ui.Button):
         e = await self.getNeko(interaction)
         if interaction.message:
             return await interaction.message.edit(embed=e)

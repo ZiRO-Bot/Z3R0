@@ -34,10 +34,13 @@ class Greeting(discord.ui.Modal, title="Greeting"):
         self,
         context: Context,
         type: str,
+        *,
+        defaultMessage: Optional[str] = None,
     ) -> None:
         super().__init__(title=type.title())
         self.context = context
         self.type = type
+        self.message.default = defaultMessage
 
     async def callback(self):
         await handleGreetingConfig(self.context, self.type, message=self.message)
@@ -66,10 +69,12 @@ async def handleGreetingConfig(
     raw = False
     if arguments is None:
         # TODO - Revisit once more input introduced to modals
+        # TODO - Timeout + disable the button
+        defMsg = await ctx.bot.getGuildConfig(ctx.guild.id, f"{type}Msg")
 
         def makeCallback():
             async def callback(interaction: discord.Interaction):
-                modal = Greeting(ctx, type)
+                modal = Greeting(ctx, type, defaultMessage=defMsg)
                 await interaction.response.send_modal(modal)
 
             return callback

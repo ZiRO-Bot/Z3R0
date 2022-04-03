@@ -9,7 +9,7 @@ class Report(ZView):
         self.value = False
 
     @discord.ui.button(label="Report Error", style=discord.ButtonStyle.red)
-    async def report(self, button: discord.ui.Button, interaction: discord.Interaction):
+    async def report(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.send_message("Reporting...", ephemeral=True)
         self.value = True
         self.stop()

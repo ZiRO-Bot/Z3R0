@@ -36,6 +36,7 @@ from ._help import CustomHelp
 from ._objects import CustomCommand
 from ._pages import PrefixesPageSource
 from ._utils import getDisabledCommands
+from .subcogs import MetaCustomCommands
 
 
 if TYPE_CHECKING:
@@ -57,7 +58,7 @@ MODES = [
 ]
 
 
-class Meta(commands.Cog, CogMixin):
+class Meta(MetaCustomCommands):
     """Bot-related commands."""
 
     icon = "🤖"
@@ -100,26 +101,6 @@ class Meta(commands.Cog, CogMixin):
         # Replace default help menu with custom one
         self.bot.help_command = CustomHelp(command_attrs=attributes)
         self.bot.help_command.cog = self
-
-        self.bot.cache.add(
-            "disabled",
-            cls=CacheListProperty,
-            unique=True,
-        )
-
-        # TSE stuff
-        blocks = [
-            tse.AssignmentBlock(),
-            tse.EmbedBlock(),
-            tse.LooseVariableGetterBlock(),
-            tse.RedirectBlock(),
-            tse.RequireBlock(),
-            tseBlocks.RandomBlock(),
-            tseBlocks.ReactBlock(),
-            tseBlocks.ReactUBlock(),
-            tseBlocks.SilentBlock(),
-        ]
-        self.engine = tse.Interpreter(blocks)
 
     def processTag(self, ctx, cmd: CustomCommand):
         """Process tags from CC's content with TSE."""
@@ -895,7 +876,7 @@ class Meta(commands.Cog, CogMixin):
 
     @command.command(name="list", aliases=("ls",), brief="Show all custom commands")
     async def cmdList(self, ctx):
-        cmd: CustomHelp = ctx.bot.help_command
+        cmd: CustomHelp = self.bot.help_command
         cmd = cmd.copy()
         cmd.context = ctx
         await cmd.command_callback(ctx, arguments="filter: custom")
