@@ -13,6 +13,7 @@ from jishaku.cog import OPTIONAL_FEATURES, STANDARD_FEATURES
 from jishaku.features.baseclass import Feature
 
 from ...core.bot import EXTS_DIR
+from ...core.converter import BannedMember
 from ...core.embed import ZEmbed
 from ...core.menus import ZChoices, ZMenuPagesView, choice
 
@@ -40,7 +41,7 @@ class Developer(*STANDARD_FEATURES, *OPTIONAL_FEATURES):
     async def jsk(self, ctx):
         await ctx.try_invoke("botinfo")
 
-    def tryLoadReload(self, extension: str):
+    async def tryLoadReload(self, extension: str):
         reloadFailMessage = "Failed to reload {}:"
         actionType = (
             "reload" if extension in self.bot.extensions or f"{EXTS_DIR}.{extension}" in self.bot.extensions else "load"
@@ -51,11 +52,10 @@ class Developer(*STANDARD_FEATURES, *OPTIONAL_FEATURES):
         )
         try:
             try:
-                action(extension)
+                await action(extension)
             except BaseException:
-                action(f"{EXTS_DIR}.{extension}")
+                await action(f"{EXTS_DIR}.{extension}")
         except Exception as exc:
-            # await ctx.send("{} failed to reload! Check the log for details.")
             self.bot.logger.exception(reloadFailMessage.format(extension))
             raise exc
 
@@ -66,7 +66,7 @@ class Developer(*STANDARD_FEATURES, *OPTIONAL_FEATURES):
         status = {}
         for extension in exts:
             try:
-                self.tryLoadReload(extension)
+                await self.tryLoadReload(extension)
             except BaseException:
                 status[extension] = ERR
             else:
@@ -120,3 +120,9 @@ class Developer(*STANDARD_FEATURES, *OPTIONAL_FEATURES):
         ctx.bot.news["content"] = news
         ctx.bot.news.dump()
         return await ctx.try_reply("News has been changed")
+
+    @Feature.Command(parent="jsk", name="test_banned")
+    async def jsk_get_banned(self, ctx, banned: BannedMember):
+        """Testing BannedMember converter after Discord paginate ban list"""
+        # TODO
+        return await ctx.try_reply(banned.user.id)
