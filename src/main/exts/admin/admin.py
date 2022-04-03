@@ -18,9 +18,9 @@ from ...utils.other import setGuildRole
 
 
 class Greeting(discord.ui.Modal, title="Greeting"):
+    # TODO - Move this into _view.py
     message = discord.ui.TextInput(
-        label="Message",
-        placeholder="Welcome, {user(mention)}! {react: 👋}",
+        label="Message", placeholder="Welcome, {user(mention)}! {react: 👋}", style=discord.TextStyle.paragraph
     )
 
     # TODO - hopefully discord will add channel input soon into modal
