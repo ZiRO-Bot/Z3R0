@@ -264,3 +264,15 @@ class Cache:
 if __name__ == "__main__":
     cache = Cache().add("guildConfigs", cls=CacheListProperty, unique=True)
     cache.guildConfigs.add(0, ">").remove(0, ".")
+
+    # TODO - Better and more expandable caching system with Tortoise integration
+    # cache = Cache().add("prefix", cls=PrefixCache).add("guildConfigs", cls=GuildConfigCache)
+    #
+    # await cache.prefix.add(0, ">")
+    # await cache.prefix.fetch(0)
+    # cache.prefix.get(0)
+    #
+    # await cache.guildConfigs.set(0, "purgeCh", 69)
+    # await cache.guildConfigs.fetch(0, "purgeCh")
+    # cache.guildConfigs.get(0, "purgeCh") or 69
+    # cache.guildConfigs.get(0, "purgeCh", 69)

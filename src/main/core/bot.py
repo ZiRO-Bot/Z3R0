@@ -207,6 +207,8 @@ class ziBot(commands.Bot):
         filters: Iterable = "*",
         table: Union[str, Model] = "GuildConfigs",  # type: ignore
     ) -> Dict[str, Any]:
+        # TODO - Cleaner caching system, use the cache system directly to
+        # handle these stuff
         if isinstance(table, str):
             table: Optional[Model] = getattr(db, table, None)  # type: ignore
 

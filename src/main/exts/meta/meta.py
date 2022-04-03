@@ -169,6 +169,9 @@ class Meta(MetaCustomCommands):
 
     async def ccModeCheck(self, ctx, _type: str = "manage", command: CustomCommand = None):
         """Check for custom command's modes."""
+        # TODO - check if i can transform this into something cleaner with the
+        # introduction of Context.current_argument
+
         # 0: Only mods,
         # 1: Partial (Can add but only able to manage their own command),
         # 2: Full (Anarchy mode)
