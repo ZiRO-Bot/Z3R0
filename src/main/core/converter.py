@@ -1,7 +1,7 @@
 import datetime as dt
 import re
 from contextlib import suppress
-from typing import Optional, Union
+from typing import TYPE_CHECKING, Optional, Union
 
 import discord
 from dateutil.relativedelta import relativedelta
@@ -53,26 +53,25 @@ class TimeAndArgument(commands.Converter):
         return self
 
 
-# https://github.com/Rapptz/RoboDanny/blob/rewrite/cogs/mod.py#L109-L123
-class BannedMember(commands.Converter):
-    async def convert(self, ctx, argument):
-        if argument.isdigit():
-            member_id = int(argument, base=10)
+class BannedMember(commands.ObjectConverter):
+    async def convert(self, ctx: Context, argument):
+        try:
+            memberId = await super().convert(ctx, argument)
             try:
-                return await ctx.guild.fetch_ban(discord.Object(id=member_id))
+                return await ctx.guild.fetch_ban(discord.Object(id=memberId))
             except discord.NotFound:
                 raise commands.BadArgument("This member has not been banned before.") from None
+        except commands.ObjectNotFound:
+            entity = [u async for u in ctx.guild.bans(limit=None) if str(u.user) == argument]
+            if len(entity) < 1:
+                raise commands.BadArgument("This member has not been banned before.")
+            return entity[0]
 
-        ban_list = await ctx.guild.bans()
-        entity = discord.utils.find(lambda u: str(u.user) == argument, ban_list)
-
-        if entity is None:
-            raise commands.BadArgument("This member has not been banned before.")
-        return entity
+        raise commands.BadArgument("Invalid argument")
 
 
 class MemberOrUser(commands.Converter):
-    async def convert(self, ctx, argument):
+    async def convert(self, ctx: Context, argument):
         try:
             return await commands.MemberConverter().convert(ctx, argument)
         except commands.MemberNotFound:
@@ -82,7 +81,7 @@ class MemberOrUser(commands.Converter):
                 return None
 
 
-def checkHierarchy(ctx, user, action: str = None) -> Optional[str]:
+def checkHierarchy(ctx: Context, user, action: str = None) -> Optional[str]:
     """Check hierarchy stuff"""
     errMsg: Optional[str] = None
 
@@ -107,7 +106,7 @@ class Hierarchy(commands.Converter):
         self.converter: commands.Converter = converter()  # type: ignore
         self.action: str = action or "do that to"
 
-    async def convert(self, ctx, arguments):
+    async def convert(self, ctx: Context, arguments):
         converted: Union[discord.Member, discord.User] = await self.converter.convert(ctx, arguments)
 
         try:

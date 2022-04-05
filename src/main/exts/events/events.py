@@ -167,7 +167,7 @@ class EventHandler(commands.Cog, CogMixin):
         guild: discord.Guild = target.guild if isinstance(target, discord.Member) else target
         # discord needs a few second to update Audit Logs
         await asyncio.sleep(delay)
-        return (await guild.audit_logs(limit=limit, **kwargs).flatten())[0]
+        return ([i async for i in guild.audit_logs(limit=limit, **kwargs)])[0]
 
     @commands.Cog.listener("on_member_remove")
     async def onMemberRemove(self, member: discord.Member) -> None:

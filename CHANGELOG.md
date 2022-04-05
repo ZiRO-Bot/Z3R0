@@ -2,16 +2,20 @@
 
 ## 3.5.0
 
-   **THIS UPDATE CONTAINS BREAKING CHANGES!**
+**NOTE: THIS UPDATE CONTAINS BREAKING CHANGES!**
 
 - [**Improved / BREAKING CHANGES**] Changed project structure (all source file now located in `src/`)  
   This change breaks tortoise from loading, please change your models value from `core.db` into `src.main.core.db`!
-- [**Improved**] **Technical**: Versioning now only handled by pyproject
-- [**Changed**] **Technical**: Adapted discord.py's [asyncio changes](https://gist.github.com/Rapptz/6706e1c8f23ac27c98cee4dd985c8120)
 - [**Improved**] You can now set Welcome and Farewell message using Modal
-- [**Changed**] **Technical**: Splitting meta into several subcogs
 - [**Fixed**] Re-enabled meme command, fixed by itself (probably aiohttp's user-agent bug)
 - [**New**] Added findseed slash command
+
+### Technical Changes
+- [**Improved**] Versioning now only handled by pyproject
+- [**Fixed**] Adapted discord.py's [asyncio changes](https://gist.github.com/Rapptz/6706e1c8f23ac27c98cee4dd985c8120)
+- [**Changed**] Splitting meta into several subcogs
+- [**Fixed**] Dpy 2.0 remove asynciterator's flatten function
+- [**Fixed**] Discord paginate ban list
 
 # v3.4
 
