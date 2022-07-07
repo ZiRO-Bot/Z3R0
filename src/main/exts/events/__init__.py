@@ -22,7 +22,5 @@ async def setup(bot: ziBot):
 
     # TODO - Finish this handler
     @bot.tree.error
-    async def app_command_error(
-        interaction: discord.Interaction, command: Union[Command, ContextMenu], error: AppCommandError
-    ):
+    async def app_command_error(interaction: discord.Interaction, error: AppCommandError):
         await interaction.response.send_message("hmm")

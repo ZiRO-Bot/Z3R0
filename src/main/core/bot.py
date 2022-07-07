@@ -437,9 +437,12 @@ class ziBot(commands.Bot):
             except KeyError:
                 pass
 
+    async def get_context(self, message, *, cls=None):
+        return await super().get_context(message, cls=Context)
+
     async def process_commands(self, message: discord.Message) -> Optional[Union[str, commands.Command, commands.Group]]:
         # initial ctx
-        ctx: Context = await self.get_context(message, cls=Context)
+        ctx: Context = await self.get_context(message)
 
         if not ctx.prefix:
             return

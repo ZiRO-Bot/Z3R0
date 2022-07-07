@@ -26,15 +26,18 @@ class Context(commands.Context):
 
     async def try_reply(self, content=None, *, mention_author=False, **kwargs):
         """Try reply, if failed do send instead"""
-        try:
-            action = self.safe_reply
-            return await action(content, mention_author=mention_author, **kwargs)
-        except BaseException:
-            if mention_author:
-                content = f"{self.author.mention} " + content if content else ""
+        if self.interaction is None or self.interaction.is_expired():
+            try:
+                action = self.safe_reply
+                return await action(content, mention_author=mention_author, **kwargs)
+            except BaseException:
+                if mention_author:
+                    content = f"{self.author.mention} " + content if content else ""
 
-            action = self.safe_send
-            return await self.safe_send(content, **kwargs)
+                action = self.safe_send
+                return await self.safe_send(content, **kwargs)
+
+        return await self.send(content, **kwargs)
 
     async def safe_send_reply(self, content, *, escape_mentions=True, type="send", **kwargs):
         action = getattr(self, type)
