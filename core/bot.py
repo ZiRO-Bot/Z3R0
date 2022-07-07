@@ -60,7 +60,7 @@ class ziBot(commands.Bot):
 
     # --- NOTE: Information about the bot
     author: str = getattr(config, "author", "ZiRO2264#9999")
-    version: str = "`3.4.6` - `overhaul`"
+    version: str = "`3.4.7` - `overhaul`"
     links: Dict[str, str] = getattr(
         config,
         "links",
