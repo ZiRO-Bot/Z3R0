@@ -17,7 +17,7 @@ from ...core.mixin import CogMixin
 from ...utils.other import isNsfw
 
 
-NEKO_API = "https://api.nekos.dev/api/v3"
+NEKO_API = "http://api.nekos.fun:8080/api/"
 
 
 class NekoMenu(ZMenuView):
@@ -77,17 +77,13 @@ class NekoPageSource(menus.PageSource):
             try:
                 async with self.session.get(NEKO_API + self.endpoint) as req:
                     img = await req.json()
-                    return (
-                        ZEmbed()
-                        .set_image(url=img["data"]["response"]["url"].replace(" ", "%20"))
-                        .set_footer(text="Powered by nekos.life")
-                    )
+                    return ZEmbed().set_image(url=img["image"].replace(" ", "%20")).set_footer(text="Powered by nekos.fun")
             except KeyError:
                 continue
         raise DefaultError("Can't find any image, please try again later.")
 
 
-DEFAULT_NEKO = "all_tags_ero"
+DEFAULT_NEKO = "lewd"
 
 
 class NSFW(commands.Cog, CogMixin):
@@ -107,37 +103,34 @@ class NSFW(commands.Cog, CogMixin):
     @commands.command(
         aliases=(
             "pussy",
-            "pantyhose",
+            "feet",
             "tits",
             "boobs",
             "yuri",
-            "cosplay",
-            "futanari",
-            "futa",
-            "trap",
-            "femdom",
-            "anus",
+            "lesbian",
+            "holo",
+            "ahegao",
+            "gasm",
+            "ass",
         ),
-        brief="Get hentai images from nekos.life",
+        brief="Get hentai images from nekos.fun",
         description=(
-            "Get hentai images from nekos.life\n\n"
+            "Get hentai images from nekos.fun\n\n"
             "TIPS: Use different alias to get images from different hentai "
             "category"
         ),
     )
     async def hentai(self, ctx: Context):
-        aliases = {"boobs": "tits", "futa": "futanari"}
+        aliases = {"tits": "boobs", "yuri": "lesbian", "ahegao": "gasm"}
         endpoints = {
             "any": DEFAULT_NEKO,
-            "pussy": "pussy_lewd",
-            "pantyhose": "pantyhose_lewd",
-            "tits": "tits_lewd",
-            "yuri": "yuri_lewd",
-            "cosplay": "cosplay_lewd",
-            "futanari": "futanari_lewd",
-            "trap": "trap_lewd",
-            "femdom": "femdom_lewd",
-            "anus": "anus_lewd",
+            "pussy": "pussy",
+            "feet": "feet",
+            "boobs": "boobs",
+            "lesbian": "lesbian",
+            "holo": "holo",
+            "gasm": "gasm",
+            "ass": "ass",
         }
 
         invokedWith = ctx.invoked_with or "any"
@@ -148,7 +141,7 @@ class NSFW(commands.Cog, CogMixin):
             ctx,
             NekoPageSource(
                 self.bot.session,
-                "/images/nsfw/img/" + endpoints.get(value, DEFAULT_NEKO),
+                endpoints.get(value, DEFAULT_NEKO),
             ),
         )
         await menus.start()

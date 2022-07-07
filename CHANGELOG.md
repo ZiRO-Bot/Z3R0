@@ -19,6 +19,9 @@
 
 # v3.4
 
+## 3.4.7
+- [**Fixed**] Fixed NSFW commands (`nekos.life` NSFW endpoints is dead)
+
 ## 3.4.6
 - [**Fixed**] Getting 0 no longer possible on normal dice roll
 
