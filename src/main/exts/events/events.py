@@ -14,6 +14,7 @@ import discord
 import pytz
 import TagScriptEngine as tse
 from aiohttp.client_exceptions import ClientOSError
+from discord.app_commands import AppCommandError
 from discord.ext import commands
 
 from ...core import errors
@@ -26,7 +27,7 @@ from ._views import Report
 
 
 if TYPE_CHECKING:
-    from core.bot import ziBot
+    from ...core.bot import ziBot
 
 
 REASON_REGEX = re.compile(r"^\[\S+\#\d+ \(ID: (?P<userId>[0-9]+)\) #(?P<caseNum>[0-9]+)\]: (?P<reason>.*)")
@@ -105,6 +106,12 @@ class EventHandler(commands.Cog, CogMixin):
             tseBlocks.ReactBlock(),
         ]
         self.engine = tse.Interpreter(blocks)
+
+        bot.tree.error = self.appCommandError
+
+    # TODO - Finish this handler
+    async def appCommandError(self, interaction: discord.Interaction, error: AppCommandError):
+        await interaction.response.send_message("hmm")
 
     def getGreetSeed(self, member: discord.Member) -> Dict[str, Any]:
         """For welcome and farewell message"""
