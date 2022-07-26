@@ -6,6 +6,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 from typing import Callable, Optional, Union
 
 import discord
+from discord import app_commands
 from discord.ext import commands
 from discord.utils import MISSING
 
@@ -27,7 +28,7 @@ class Greeting(discord.ui.Modal, title="Greeting"):
     #        for now i'll comment this
     # channel = discord.ui.TextInput(
     #     label="Channel",
-    #     placeholder="794344590618394625",
+    #     placeholder="336642139381301249",
     # )
 
     def __init__(
@@ -43,7 +44,7 @@ class Greeting(discord.ui.Modal, title="Greeting"):
         self.message.default = defaultMessage
 
     async def callback(self):
-        await handleGreetingConfig(self.context, self.type, message=self.message)
+        await handleGreetingConfig(self.context, self.type, message=self.message)  # type: ignore
 
     async def on_submit(self, inter: discord.Interaction):
         await self.callback()
@@ -63,10 +64,17 @@ ROLE_TYPES = {
 
 
 async def handleGreetingConfig(
-    ctx: Context, type: str, *, arguments=MISSING, message: str = None, disable=False, channel=None
+    ctx: Context,
+    type: str,
+    *,
+    arguments=MISSING,
+    message: str = None,
+    raw: bool = False,
+    disable: bool = False,
+    channel: discord.TextChannel = None,
 ):
     """Handle welcome and farewell configuration."""
-    raw = False
+    changeMsg = False
     if arguments is None:
         # TODO - Revisit once more input introduced to modals
         # TODO - Timeout + disable the button
@@ -92,7 +100,6 @@ async def handleGreetingConfig(
         )
         return
     elif arguments is not MISSING:
-        changeMsg = False
         message, args = separateStringFlags(arguments)
 
         parsed = await flags.GreetingFlags.convert(ctx, args)
@@ -119,7 +126,7 @@ async def handleGreetingConfig(
         message = await ctx.bot.getGuildConfig(ctx.guild.id, f"{type}Msg")
         return await ctx.try_reply(discord.utils.escape_markdown(str(message)))
 
-    if changeMsg and message:
+    if changeMsg:
         await ctx.bot.setGuildConfig(ctx.guild.id, f"{type}Msg", message)
         e.add_field(name="Message", value=message, inline=False)
 
@@ -144,10 +151,31 @@ class Admin(commands.Cog, CogMixin):
     async def cog_check(self, ctx):
         return ctx.guild is not None
 
+    greetingGroup = app_commands.Group(name="greeting", description="...")
+
+    welcomeDesc = "Set welcome message and/or channel\n`TagScript` is supported!"
+
+    @greetingGroup.command(name="welcome", description=welcomeDesc)
+    @app_commands.describe(
+        channel="Channel where the welcome message will be sent",
+        raw="Get current welcome message in raw mode (Useful for editing, other options is ignored when used!)",
+        disable="Disable welcome event",
+        message="Messagge that will be sent to welcome channel",
+    )
+    async def welcomeSlash(
+        self,
+        interaction,
+        message: str = None,
+        channel: Optional[discord.TextChannel] = None,
+        raw: bool = False,
+        disable: bool = False,
+    ):
+        ctx = await Context.from_interaction(interaction)
+        await handleGreetingConfig(ctx, "welcome", message=message, channel=channel, raw=raw, disable=disable)
+
     @commands.command(
         aliases=("wel",),
         brief="Set welcome message and/or channel",
-        description="Set welcome message and/or channel\n`TagScript` is supported!",
         usage="[message] [options]",
         extras=dict(
             example=(
@@ -170,15 +198,35 @@ class Admin(commands.Cog, CogMixin):
                 "user": "Moderator Role or Manage Channels",
             },
         ),
+        description="Set welcome message and/or channel\n`TagScript` is supported!",
     )
     @checks.mod_or_permissions(manage_channels=True)
-    async def welcome(self, ctx, *, arguments: str = None):
+    async def welcome(self, ctx, *, arguments: str):
         await handleGreetingConfig(ctx, "welcome", arguments=arguments)
+
+    farewellDesc = "Set farewell message and/or channel\n`TagScript` is supported!"
+
+    @greetingGroup.command(name="farewell", description=farewellDesc)
+    @app_commands.describe(
+        channel="Channel where the farewell message will be sent",
+        raw="Get current farewell message in raw mode (Useful for editing, other options is ignored when used!)",
+        disable="Disable farewell event",
+        message="Messagge that will be sent to farewell channel",
+    )
+    async def farewellSlash(
+        self,
+        interaction,
+        message: str = None,
+        channel: Optional[discord.TextChannel] = None,
+        raw: bool = False,
+        disable: bool = False,
+    ):
+        ctx = await Context.from_interaction(interaction)
+        await handleGreetingConfig(ctx, "farewell", message=message, channel=channel, raw=raw, disable=disable)
 
     @commands.command(
         aliases=("fw",),
         brief="Set farewell message and/or channel",
-        description="Set farewell message and/or channel\n`TagScript` is supported!",
         usage="[message] [options]",
         extras=dict(
             example=(
@@ -203,7 +251,7 @@ class Admin(commands.Cog, CogMixin):
         ),
     )
     @checks.mod_or_permissions(manage_channels=True)
-    async def farewell(self, ctx, *, arguments: str = None):
+    async def farewell(self, ctx, *, arguments: str):
         await handleGreetingConfig(ctx, "farewell", arguments=arguments)
 
     async def handleLogConfig(self, ctx, arguments, type: str):
