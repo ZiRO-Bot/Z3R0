@@ -8,14 +8,15 @@
   This change breaks tortoise from loading, please change your models value from `core.db` into `src.main.core.db`!
 - [**Improved**] You can now set Welcome and Farewell message using Modal
 - [**Fixed**] Re-enabled meme command, fixed by itself (probably aiohttp's user-agent bug)
-- [**New**] Added findseed slash command
+- [**Changed**] `findseed` is now hybrid command
 
-### Technical Changes
+### Internal Changes (Won't affect bot users)
 - [**Improved**] Versioning now only handled by pyproject
 - [**Fixed**] Adapted discord.py's [asyncio changes](https://gist.github.com/Rapptz/6706e1c8f23ac27c98cee4dd985c8120)
 - [**Changed**] Splitting meta into several subcogs
 - [**Fixed**] Dpy 2.0 remove asynciterator's flatten function
 - [**Fixed**] Discord paginate ban list
+- [**Added**] Added support for hybrid commands
 
 # v3.4
 
