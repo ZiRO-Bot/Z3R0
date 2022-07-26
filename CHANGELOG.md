@@ -1,6 +1,6 @@
 # v3.5
 
-## 3.5.0 ([discord.py@c2391cf6](https://canary.discord.com/channels/336642139381301249/381965829857738772/965731673717223495))
+## 3.5.0 ([discord.py@eee65ac3](https://canary.discord.com/channels/336642139381301249/381965829857738772/970830966018932806))
 
 **NOTE: THIS UPDATE CONTAINS BREAKING CHANGES!**
 
