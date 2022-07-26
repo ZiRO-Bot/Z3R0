@@ -12,7 +12,7 @@ from src.main.utils.other import utcnow
 
 # Use uvloop as loop policy if possible (Linux only)
 try:
-    import uvloop
+    import uvloop  # type: ignore - error is handled
 except ImportError:
     pass
 else:
