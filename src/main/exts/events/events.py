@@ -111,7 +111,12 @@ class EventHandler(commands.Cog, CogMixin):
 
     # TODO - Finish this handler
     async def appCommandError(self, interaction: discord.Interaction, error: AppCommandError):
+        """Error handler for app commands
+
+        Untested, hybrid commands seems to be handled by on_command_error
+        """
         await interaction.response.send_message("hmm")
+        # await self.onCommandError(await (await self.bot.get_context(None)).from_interaction(interaction), error)
 
     def getGreetSeed(self, member: discord.Member) -> Dict[str, Any]:
         """For welcome and farewell message"""

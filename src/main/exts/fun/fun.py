@@ -87,7 +87,11 @@ class Fun(commands.Cog, CogMixin):
         availableMode = get_args(FINDSEED_MODES)
         aliasesMode = {"pepiga": "pipega"}
 
-        argMode = aliasesMode.get(arguments.mode, arguments.mode)  # type: ignore
+        try:
+            argMode = aliasesMode.get(arguments.mode, arguments.mode)  # type: ignore
+        except AttributeError:
+            argMode = None
+
         mode = "visual" if argMode not in availableMode else argMode
 
         defaultEmojis = {
