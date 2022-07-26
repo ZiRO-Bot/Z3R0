@@ -8,7 +8,9 @@
   This change breaks tortoise from loading, please change your models value from `core.db` into `src.main.core.db`!
 - [**Improved**] You can now set Welcome and Farewell message using Modal
 - [**Fixed**] Re-enabled meme command, fixed by itself (probably aiohttp's user-agent bug)
-- [**Changed**] `findseed` is now hybrid command
+- [**Changed**] Some command is now hybrid command:
+   - `findseed`
+   - `greeting` (`welcome` and `farewell`)
 
 ### Internal Changes (Won't affect bot users)
 - [**Improved**] Versioning now only handled by pyproject
