@@ -54,6 +54,8 @@ More feature coming soon!
 
    # Linux
    python3 -m pip install poetry
+   # or (make sure it's python 3.8+)
+   python -m pip install poetry
    ```
 
 - After poetry successfully installed, execute this command to install all required dependencies,
