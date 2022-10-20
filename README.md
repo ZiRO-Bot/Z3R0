@@ -52,7 +52,7 @@ More feature coming soon!
    # Windows
    py -m pip install poetry
 
-   # Linux
+   # Linux / MacOS / other Unix-based
    python3 -m pip install poetry
    # or (make sure it's python 3.8+)
    python -m pip install poetry
