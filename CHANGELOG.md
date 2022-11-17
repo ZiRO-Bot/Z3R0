@@ -1,48 +1,57 @@
-# v3.5
+# v3.5 (Overhauling an Overhaul?)
 
-## 3.5.0 ([discord.py@40176bb7](https://canary.discord.com/channels/336642139381301249/381965829857738772/973342889771958312))
+**⚠️ DISCLAIMER FOR DEVS: THIS UPDATE (`3.4.x` -> `3.5.x`) CONTAINS BREAKING CHANGES!**
 
-**NOTE: THIS UPDATE CONTAINS BREAKING CHANGES!**
+This update is mostly just migration to stable discord.py v2.0 after discord.py development is continued.
+Most changes are on the code side, so it shouldn't affect users that much, other than the addition of application commands (or `slash`).
 
-- [**Improved / BREAKING CHANGES**] Changed project structure (all source file now located in `src/`)  
-  This change breaks tortoise from loading, please change your models value from `core.db` into `src.main.core.db`!
-- [**Improved**] You can now set Welcome and Farewell message using Modal
+## 3.5.0 (Overhaul 2.0, Kinda - [discord.py@40176bb7](https://canary.discord.com/channels/336642139381301249/381965829857738772/973342889771958312))
+
+### Bugfixes
 - [**Fixed**] Re-enabled meme command, fixed by itself (probably aiohttp's user-agent bug)
-- [**Changed**] Some command is now hybrid command:
-   - `findseed`
-   - `greeting` (`welcome` and `farewell`)
+
+### Addition
+- [**Added**] Application Commands (`slash` commands and more):
+   - `findseed` is now a hybrid command
+   - Greeting commands (`welcome` and `farewell`) is now hybrid commands
+- [**Improved**] You can now set Welcome and Farewell message using Modal
 
 ### Internal Changes (Won't affect bot users)
+- [**Improved / BREAKING CHANGES**] Changed project structure (all source file now located
+-  in `src/`)  
+  This change breaks tortoise from loading, please change your models value from `core.db`
+  into `src.main.core.db`!
 - [**Improved**] Versioning now only handled by pyproject
-- [**Fixed**] Adapted discord.py's [asyncio changes](https://gist.github.com/Rapptz/6706e1c8f23ac27c98cee4dd985c8120)
+- [**Fixed**] Adapted discord.py's
+  [asyncio changes](https://gist.github.com/Rapptz/6706e1c8f23ac27c98cee4dd985c8120)
 - [**Changed**] Splitting meta into several subcogs
 - [**Fixed**] Dpy 2.0 remove asynciterator's flatten function
 - [**Fixed**] Discord paginate ban list
 - [**Added**] Added support for hybrid commands
 
-# v3.4
+# v3.4 (Stomping Bugs Update)
 
-## 3.4.7
+## 3.4.7 (MORE BUGFIX!!)
 - [**Fixed**] Fixed NSFW commands (`nekos.life` NSFW endpoints is dead)
 
-## 3.4.6
+## 3.4.6 (More Bugfix!)
 - [**Fixed**] Getting 0 no longer possible on normal dice roll
 
-## 3.4.5
+## 3.4.5 (More Bugfixes)
 - [**Fixed**] Fixed `AttributeError` trying to unmute a member that already left the server
 - [**Fixed**] Fixed `IndexError` trying to get a AuditLog when AuditLogs is empty
 - [**Removed**] Removed `ClientOSError` from log
 - [**Removed**] Removed prettify.py/pretty, too buggy
 
-## 3.4.4
+## 3.4.4 (Bugfixes)
 - [**Fixed**] Fixed custom command deletion when guild deletion event dispatched
 - [**Fixed**] Suppressed discord.Forbidden when bot can't access AuditLog
 - [**Fixed**] Fixed `Invalid Form Body` when trying to send empty message content to purgatory
 
-## 3.4.3
+## 3.4.3 (Bugfix)
 - [**Fixed**] Fixed command list always show 1 command
 
-## 3.4.2
+## 3.4.2 (Bugfix)
 - [**Fixed**] Fixed `getAuditLogs`
 
 ## 3.4.1 (HotFix)
@@ -54,44 +63,44 @@
 - [**Improved**] Z3R0 now supports hosting using PostgreSQL or MySQL database
   via Tortoise, **migration required!**
 
-# v3.3
+# v3.3 (Fun Stuff)
 
-## 3.3.7
+## 3.3.7 (2.0 is Missing)
 
 - [**New**] Re-added channel mention to purgatory
 
-## 3.3.6
+## 3.3.6 (BUGS EVERYWHERE!)
 
 - [**Fixed**] Fix command names being escaped when its not supposed to be escaped
 - [**Improved**] More typehinting
 - [**Fixed**] Handle invalid time (something like `10000 years`)
 
-## 3.3.5
+## 3.3.5 (Even More Bugfix!)
 
 - [**Fixed**] Fixed `List is empty!` error not being handled
 
-## 3.3.4
+## 3.3.4 (More Bugfixes)
 
 - [**Fixed**] Fixed NSFW check always returns False
 - [**Fixed**] Fixed `AttributeError` when user try to ban `@everyone`
 - [**Improved**] IsAprilFool now raised DefaultError instead of `Check failed`
 - [**Improved**] IsRafael now raise SilentError instead of `Check failed`
 
-## 3.3.3
+## 3.3.3 (UX Improments)
 
 - [**Improved**] Added description to `>caselogs` command
 - [**Improved**] Help command now tell user when they have no usable commands
 
-## 3.3.2
+## 3.3.2 (Bugfixes)
 
 - [**Fixed**] Fixed `AttributeError`
 - [**Fixed**] Fixed `discord.Forbidden` in Error Handler
 
-## 3.3.1
+## 3.3.1 (Internal Change)
 
-- [**New**] You can now change news using a command instead of hardcoding it
+- [**Improved**] De-hardcoded news
 
-## 3.3.0
+## 3.3.0 (Random Bullshit Go!)
 
 - [**New**] Added realurl (get real url of a shorten url)
 - [**Improved**] Added case number to modlog message
@@ -121,48 +130,52 @@
 - [**Improved**] Modlog now log unmute and unban
 - [**Disabled**] Disable `google` command (blocking the whole bot)
 
-# v3.2
+# v3.2 (Internal Upgrade)
 
-## 3.2.9
+## 3.2.9 (UX Improvement)
 
 - [**Improved**] Re-added alias `emote` to `emoji` commands
 
-## 3.2.8
+## 3.2.8 (Bugfix)
 
 - [**Fixed**] Fixed Moderation commands' checks not working properly
 
-## 3.2.7
+## 3.2.7 (Bugfix)
 
 - [**Fixed**] Fixed help command not working in DMs
+
+### Internal Changes
 - [**Changed**] Use HTMLParser to convert HTML to Markdown instead of using
   RegEx
 
-## 3.2.6
+## 3.2.6 (Bugfix)
 
 - [**Fixed**] Fixed modlog. Added 5 seconds delay, letting Audit Logs to update
   before sending modlog
 
-## 3.2.5
+## 3.2.5 (Cool New Toy from Discord)
 
-- [**New**] Added ZView (`core/views.py`)
-- [**New**] Added `Context.loading`
 - [**Improved**] `findanime` merged with `anime` and `manga` as `random`
   subcommand
 
-## 3.2.4
+### Internal Changes
+- [**New**] Added ZView (`core/views.py`)
+- [**New**] Added `Context.loading`
+
+## 3.2.4 (Begone Mute Evader!)
 
 - [**Fixed**] Fixed anti-mute evasion
 
-## 3.2.3
+## 3.2.3 (Weeaboo Update)
 
 - [**Improved**] Merged `anime search` and `manga search` into 1 function
 - [**Fixed**] Fixed IndexError when there's no anime/manga found
 
-## 3.2.2
+## 3.2.2 (Bugfix)
 
 - [**Fixed**] Fixed a lot of issue with v3.2.1
 
-## 3.2.0 (`discord.py v2.0`)
+## 3.2.0 (Upgrade!)
 
 - [**Improved**] Updated `discord.py` (`v1.7.3` -> `v2.0.0`)
 - [**New**] Re-added AniList category
@@ -186,17 +199,13 @@
 - [**Improved**] The bot now will tell you if you or the bot is missing some
   permissions
 
-# v3.1
+# v3.1 (Not So Funny Moderator)
+All about moderation, and some fun command changes and addition
 
-## 3.1.0
+## 3.1.0 (April Fools!)
 
 - [**New**] Re-added someone command (mimicking `@someone` April Fools command
   from discord) but only available on April Fools!
-- [**Improved**] **Behind the scene**: Use pre-commit to run isort and black
-  before committing changes
-- [**Improved**] **Behind the scene**: Replace requirements.txt with poetry
-- [**Improved**] **Behind the scene**: Use flake8 (pyproject-flake8) and
-  pyright
 - [**New**] Added anti mute evasion
 - [**Improved**] Alongside anti mute evasion, newly binded/set mute role will
   merged with old mute rule (added automatically to muted members)
@@ -215,17 +224,29 @@
 - [**Improved**] Added timezone argument to time command (user timezone still
   coming soon)
 
-# v3.0
+### Internal Changes
+- [**Improved**] Use pre-commit to run isort and black
+  before committing changes
+- [**Improved**] Replace requirements.txt with poetry
+- [**Improved**] Use flake8 (pyproject-flake8) and
+  pyright
 
-## 3.0.5
+# v3.0 (Overhaul)
+
+A rewrite and a complete overhaul on the bot, biggest update so far.
+This update completely overhauled command system to integrate custom commands
+more seemlessly, it's not completely done but old stuff will be added back
+slowly in future updates.
+
+## 3.0.5 (Bugfix)
 
 - [**Fixed**] Fix `CCommandNoPerm` not being handled by error handler
 
-## 3.0.4
+## 3.0.4 (Bugfix)
 
 - [**Fixed**] Fix google search's safe search not working
 
-## 3.0.3
+## 3.0.3 (Search Everything)
 
 - [**Fixed**] Fixed more issue with Google search throwing error when there's
   unsupported "special" results
@@ -233,9 +254,9 @@
 - [**New**] Added cooldown for Google search to avoid abuse (1 per 10 seconds,
   per user)
 
-## 3.0.2
+## 3.0.2 (Internal Change)
 
-- [**Changed**] **Behind the scene**: Replace cse with google search web scrape
+- [**Internal Change**] Replace cse with google search web scrape
   (gives better result but have higher chance of breaking)
 
 ## 3.0.1 (Hotfix)
@@ -246,7 +267,7 @@
 - [**New**] Added `>command mode` and `>command modes` to check custom command
   current mode and all different modes for custom command
 
-## 3.0.0 (Overhaul)
+## 3.0.0 (New Beginning)
 
 - [**Rename**] `cogs/` -> `exts/`
 - [**New**] Command priority [0: Built-in, 1: Custom]
