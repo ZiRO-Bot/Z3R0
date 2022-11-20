@@ -1,6 +1,6 @@
 from ...core import db
 from ...core.errors import CCommandNotFound
-from ._objects import CustomCommand
+from ._model import CustomCommand
 
 
 async def getCustomCommand(ctx, command):  # type: ignore

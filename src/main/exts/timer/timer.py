@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import asyncio
 import datetime as dt
+import sys
 from contextlib import suppress
 from typing import TYPE_CHECKING, Optional
 
@@ -76,7 +77,11 @@ class Timer(commands.Cog, CogMixin):
     def __init__(self, bot: ziBot) -> None:
         super().__init__(bot)
 
-        self.haveData = asyncio.Event(loop=bot.loop)
+        pyVer = sys.version_info
+        if pyVer[1] >= 10:
+            self.haveData = asyncio.Event()
+        else:
+            self.haveData = asyncio.Event(loop=bot.loop)
         self._currentTimer: Optional[TimerData] = None
 
     async def cog_load(self) -> None:

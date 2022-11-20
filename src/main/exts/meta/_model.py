@@ -1,4 +1,9 @@
+from enum import Enum
+
 from discord.ext import commands
+
+from ...core import checks
+from ...core.context import Context
 
 
 class Group:
@@ -7,6 +12,20 @@ class Group:
     def __init__(self, command: commands.Group, subcommands: list):
         self.self = command
         self.commands = subcommands
+
+
+class CCMode(Enum):
+    MOD_ONLY = 0
+    PARTIAL = 1
+    ANARCHY = 2
+
+    def __str__(self):
+        MODES = [
+            "Only mods can add and manage custom commands",
+            "Member can add custom command but can only manage **their own** commands",
+            "**A N A R C H Y**",
+        ]
+        return MODES[self.value]
 
 
 class CustomCommand:
@@ -58,3 +77,14 @@ class CustomCommand:
 
     def __str__(self):
         return self.name
+
+    async def canManage(self, context: Context) -> bool:
+        mode = await context.bot.getGuildConfig(context.guild.id, "ccMode") or 0
+        isMod = await checks.isMod(context)
+        isCmdOwner = context.author.id == self.owner
+
+        return {
+            0: isMod,
+            1: isCmdOwner or isMod,
+            2: True,
+        }.get(mode, False)

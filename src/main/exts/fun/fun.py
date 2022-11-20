@@ -6,7 +6,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import io
 from random import choice, randint, random, shuffle
-from typing import Literal, Tuple, Union, get_args
+from typing import TYPE_CHECKING, Literal, Tuple, Union, get_args
 
 import discord
 from discord import app_commands
@@ -14,15 +14,17 @@ from discord.app_commands import Choice
 from discord.ext import commands
 
 from ...core import checks
+from ...core.context import Context
 from ...core.embed import ZEmbed
 from ...core.errors import ArgumentError
 from ...core.mixin import CogMixin
 from ...utils.api import reddit
 from ...utils.piglin import Piglin
-from ._flags import FindseedFlags
+from ._flags import FINDSEED_MODES, FindseedFlags
 
 
-FINDSEED_MODES = Literal["visual", "classic", "pipega", "halloween"]
+if TYPE_CHECKING:
+    from ...core.bot import ziBot
 
 
 class Fun(commands.Cog, CogMixin):
@@ -31,7 +33,7 @@ class Fun(commands.Cog, CogMixin):
     icon = "🎉"
     cc = True
 
-    def __init__(self, bot):
+    def __init__(self, bot: ziBot):
         super().__init__(bot)
         self.reddit = reddit.Reddit(self.bot.session)
 
@@ -71,6 +73,8 @@ class Fun(commands.Cog, CogMixin):
 
         await msg.edit(embed=e)
 
+    @app_commands.choices(args=[Choice(name=i, value=i) for i in get_args(FINDSEED_MODES)])
+    @app_commands.rename(args="mode")
     @commands.hybrid_command(
         brief="Get your minecraft seed's eye count",
         aliases=("fs", "vfs"),
@@ -80,15 +84,13 @@ class Fun(commands.Cog, CogMixin):
             flags={"mode": "Change display mode (modes: visual, classic, pipega or pepiga, halloween)"},
         ),
     )
-    @app_commands.rename(arguments="mode")
-    @app_commands.choices(arguments=[Choice(name=i, value=i) for i in get_args(FINDSEED_MODES)])
     @commands.cooldown(5, 25, commands.BucketType.user)
-    async def findseed(self, ctx, *, arguments: FindseedFlags = None):
+    async def findseed(self, ctx, *, args: FindseedFlags = None):
         availableMode = get_args(FINDSEED_MODES)
         aliasesMode = {"pepiga": "pipega"}
 
         try:
-            argMode = aliasesMode.get(arguments.mode, arguments.mode)  # type: ignore
+            argMode = aliasesMode.get(args.mode, args.mode)  # type: ignore
         except AttributeError:
             argMode = None
 
@@ -197,8 +199,8 @@ class Fun(commands.Cog, CogMixin):
         extras=dict(example=("httpcat 404",)),
     )
     @commands.cooldown(1, 5, commands.BucketType.user)
-    async def httpcat(self, ctx, status_code):
-        async with self.bot.session.get(url=f"https://http.cat/{status_code}") as res:
+    async def httpcat(self, ctx: Context, status_code):
+        async with ctx.session.get(url=f"https://http.cat/{status_code}") as res:
             image = io.BytesIO(await res.read())
             img = discord.File(fp=image, filename="httpcat.jpg")
             await ctx.try_reply(file=img)

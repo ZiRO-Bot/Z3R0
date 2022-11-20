@@ -6,7 +6,7 @@ from ...core.embed import ZEmbed
 from ...core.menus import ZMenuView
 from ...utils import infoQuote
 from ...utils.format import cleanifyPrefix, formatCmd
-from ._objects import CustomCommand, Group
+from ._model import CustomCommand, Group
 from ._utils import getDisabledCommands
 
 

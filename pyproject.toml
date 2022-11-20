@@ -12,17 +12,17 @@ packages = [
 bot = "main.__main__:run"
 
 [tool.poetry.dependencies]
-aiohttp = "3.7.3"
-python = "^3.9"
+aiohttp = "^3.7.4"
+python = "^3.10"
 beautifulsoup4 = "^4.9.3"
-"discord.py" = {git = "https://github.com/Rapptz/discord.py", rev = "40176bb71b903461499c74e6f55247a3d71ac0cb"}
+"discord.py" = "^2.1"
 discord-ext-menus = "^1.1"
 fuzzywuzzy = "0.18.0"
-humanize = "3.7.0"
-jishaku = "^2.2.0"
+humanize = "^4.4.0"
+jishaku = {git = "https://github.com/ZiRO-Bot/jishaku", rev = "9174fad992247c88ca9b3202d44938c4d46e9776"}
 Pillow = "^8.3.1"
 python-dateutil = "^2.8.2"
-python-Levenshtein = "^0.12.2"
+Levenshtein = "^0.13.0"
 pytz = "^2021.1"
 pyparsing = "^2.4.7"
 requests = "^2.26.0"

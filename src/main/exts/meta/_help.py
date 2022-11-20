@@ -13,12 +13,12 @@ from ...utils import infoQuote
 from ...utils.format import formatDiscordDT
 from ._custom_command import getCustomCommand, getCustomCommands
 from ._flags import HelpFlags
-from ._objects import CustomCommand, Group
+from ._model import CustomCommand, Group
 from ._pages import CustomCommandsListSource, HelpCogPage, HelpCommandPage
 
 
 if TYPE_CHECKING:
-    from core.context import Context
+    from ...core.context import Context
 
 
 class CustomHelp(commands.HelpCommand):
