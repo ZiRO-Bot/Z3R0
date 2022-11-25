@@ -23,17 +23,13 @@ from ...utils.piglin import Piglin
 from ._flags import FINDSEED_MODES, FindseedFlags
 
 
-if TYPE_CHECKING:
-    from ...core.bot import ziBot
-
-
 class Fun(commands.Cog, CogMixin):
     """Meme and other fun commands."""
 
     icon = "🎉"
     cc = True
 
-    def __init__(self, bot: ziBot):
+    def __init__(self, bot):
         super().__init__(bot)
         self.reddit = reddit.Reddit(self.bot.session)
 
