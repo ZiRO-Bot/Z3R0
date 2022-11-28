@@ -14,7 +14,9 @@ Most changes are on the code side, so it shouldn't affect users that much, other
 - [**Added**] Application Commands (`slash` commands and more):
    - `findseed` is now a hybrid command
    - Greeting commands (`welcome` and `farewell`) is now hybrid commands
+   - `search` is now a hybrid command
 - [**Improved**] You can now set Welcome and Farewell message using Modal
+- [**Re-added**] Re-added google search command
 
 ### Internal Changes (Won't affect bot users)
 - [**Improved / BREAKING CHANGES**] Changed project structure (all source file now located

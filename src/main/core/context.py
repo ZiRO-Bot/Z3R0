@@ -2,6 +2,7 @@ import io
 from contextlib import asynccontextmanager
 from typing import Union
 
+import aiohttp
 import discord
 from discord.ext import commands
 
@@ -13,7 +14,7 @@ class Context(commands.Context):
         super().__init__(**kwargs)
 
     @property
-    def session(self):
+    def session(self) -> aiohttp.ClientSession:
         return self.bot.session
 
     # @property

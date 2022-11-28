@@ -8,7 +8,7 @@ import re
 import warnings
 from collections import Counter
 from contextlib import suppress
-from typing import Any, Dict, Iterable, List, Optional, Union
+from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Union
 
 import aiohttp
 import discord
@@ -74,6 +74,9 @@ class ziBot(commands.Bot):
     )
     license: str = "Mozilla Public License, v. 2.0"
     # ---
+
+    if TYPE_CHECKING:
+        session: aiohttp.ClientSession
 
     def __init__(self) -> None:
         # custom intents, required since dpy v1.5

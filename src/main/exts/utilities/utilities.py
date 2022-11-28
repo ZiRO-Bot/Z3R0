@@ -3,15 +3,20 @@ This Source Code Form is subject to the terms of the Mozilla Public
 License, v. 2.0. If a copy of the MPL was not distributed with this
 file, You can obtain one at http://mozilla.org/MPL/2.0/.
 """
+from __future__ import annotations
 
 import sys
+import urllib.parse
 from decimal import InvalidOperation, Overflow
+from typing import TYPE_CHECKING
 
 import aiohttp
 import discord
 import pyparsing as pyp
+from discord import app_commands
 from discord.ext import commands
 
+from ...core.context import Context
 from ...core.embed import ZEmbed
 from ...core.mixin import CogMixin
 from ...utils.api.google import Google
@@ -20,13 +25,17 @@ from ...utils.api.piston import Piston
 from ...utils.other import NumericStringParser, decodeMorse, encodeMorse, parseCodeBlock
 
 
+if TYPE_CHECKING:
+    from ...core.bot import ziBot
+
+
 class Utilities(commands.Cog, CogMixin):
     """Useful commands."""
 
     icon = "🔧"
     cc = True
 
-    def __init__(self, bot):
+    def __init__(self, bot: ziBot):
         super().__init__(bot)
         self.piston = Piston(session=self.bot.session, loop=self.bot.loop)
         self.googletrans = GoogleTranslate(session=self.bot.session)
@@ -155,69 +164,95 @@ class Utilities(commands.Cog, CogMixin):
         except ValueError:
             await ctx.error("Invalid morse code!")
 
-    # @commands.command(
-    #     aliases=("g",),
-    #     brief="Searches Google",
-    #     description=(
-    #         "Searches Google\n"
-    #         'Support "special" results, currently supports: Complementary '
-    #         "Results, Currency Converter"
-    #     ),
-    # )
-    # @commands.cooldown(1, 10, commands.BucketType.user)
-    # async def google(self, ctx, *, query: str):
-    #     msg = await ctx.try_reply(embed=ZEmbed.loading(title="Searching..."))
-    #     results = await self.googlesearch.search(query)
+    @commands.hybrid_command(
+        aliases=("google", "g"),
+        description="Search the Internet",
+    )
+    @app_commands.rename(query="keyword")
+    @commands.cooldown(1, 10, commands.BucketType.user)
+    async def search(self, ctx: Context, *, query: str):
+        if not ctx.interaction:
+            msg = await ctx.try_reply(embed=ZEmbed.loading(title="Searching..."))
+        else:
+            await ctx.defer()
 
-    #     if results is None:
-    #         await msg.delete()
-    #         return await ctx.error(
-    #             "Your search - {} - did not match any documents.".format(query),
-    #             title="Not found!",
-    #         )
+        async with ctx.session.get("https://api.palembani.xyz/search?q=" + urllib.parse.quote(query)) as resp:
+            result = await resp.json()
 
-    #     e = ZEmbed.default(ctx)
-    #     e.set_author(name="Search result for '{}'".format(query))
+            if not result:
+                if not ctx.interaction:
+                    await msg.delete()  # type: ignore
+                return await ctx.error(
+                    "Your search - {} - did not match any documents.".format(query),
+                    title="Not found!",
+                )
 
-    #     e.set_footer(text=results["stats"])
+            e = ZEmbed.default(ctx)
+            e.set_author(name="Search result for '{}'".format(query))
 
-    #     complementary = results["complementary"]
-    #     special = results["special"]
-    #     limit = 3
+            resultStats = result["stats"]
+            resultCount = resultStats["count"]
+            resultDuration = resultStats["duration"]
+            e.set_footer(text=(f"About {resultCount:,} results ({resultDuration['value']}" + f" {resultDuration['unit']})"))
 
-    #     if complementary is not None:
-    #         limit -= 1
-    #         e.add_field(
-    #             name=f"{complementary.title or 'Unknown'}",
-    #             value=(
-    #                 f"`{complementary.subtitle or 'Unknown'}`\n"
-    #                 if complementary.subtitle
-    #                 else ""
-    #             )
-    #             + (
-    #                 complementary.description + "\n"
-    #                 if complementary.description
-    #                 else ""
-    #             )
-    #             + "\n".join([f"**{i}**`{j}`" for i, j in complementary.info]),
-    #         )
+            special = result.get("special")
+            complementary = result.get("complementary")
+            limit = 3
 
-    #     if special:
-    #         limit -= 1
-    #         e.add_field(
-    #             name=str(special.type).title(),
-    #             value="\n".join(special.content),
-    #         )
+            if special:
+                limit -= 1
+                specialTitle: str = special["title"]
+                specialContent = special["content"]
 
-    #     for res in results["web"][:limit]:
-    #         try:
-    #             content = res.contents[0]
-    #         except IndexError:
-    #             content = ""
-    #         e.add_field(name=res.title, value=f"{res.link}\n{content}", inline=False)
+                i = specialTitle.lower()
+                if i.startswith("currency"):
+                    from_ = specialContent["from"]
+                    to = specialContent["to"]
 
-    #     await msg.delete()
-    #     await ctx.try_reply(embed=e)
+                    e.add_field(
+                        name=f"Rich Card Info: `{special['title'].title()}`",
+                        value=(
+                            f"`{from_['value']} {from_['currency']}` equals\n"
+                            + f"**`{to['value']}` {to['currency']}**\n"
+                            + f"Last updated: `{specialContent['last_updated']}`"
+                        ),
+                        inline=False,
+                    )
+                elif i.startswith("calculator"):
+                    e.add_field(
+                        name=f"Rich Card Info: `{special['title'].title()}`",
+                        value=" ".join(specialContent.values()),
+                        inline=False,
+                    )
+                else:
+                    e.add_field(name=f"Rich Card Info: `{special['title'].title()}`", value=specialContent, inline=False)
+
+            if complementary is not None:
+                limit -= 1
+                info = ""
+                for i in complementary["info"]:
+                    a = i.split(":")
+                    try:
+                        info += f"**{a[0]}**: `{a[1].strip()}` \n"
+                    except IndexError:
+                        info += f"`{a[0]}`\n"
+                e.add_field(
+                    name=f"Rich Card Info: `{complementary['title'] or 'Unknown'}`",
+                    value=(f"`{complementary['subtitle'] or 'Unknown'}`\n" if complementary["subtitle"] else "")
+                    + (complementary["description"] + "\n" if complementary["description"] else "")
+                    + info,
+                )
+
+            for res in result["sites"][:limit]:
+                try:
+                    content = res["content"]
+                except IndexError:
+                    content = ""
+                e.add_field(name=res["title"], value=f"{res['link']}\n{content}", inline=False)
+
+            if not ctx.interaction:
+                await msg.delete()  # type: ignore
+            await ctx.try_reply(embed=e)
 
     @commands.command(
         brief="Get shorten url's real url. No more rick roll!",
