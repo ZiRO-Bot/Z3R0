@@ -19,7 +19,6 @@ from discord.ext import commands
 from ...core.context import Context
 from ...core.embed import ZEmbed
 from ...core.mixin import CogMixin
-from ...utils.api.google import Google
 from ...utils.api.googletrans import GoogleTranslate
 from ...utils.api.piston import Piston
 from ...utils.other import NumericStringParser, decodeMorse, encodeMorse, parseCodeBlock
@@ -39,7 +38,6 @@ class Utilities(commands.Cog, CogMixin):
         super().__init__(bot)
         self.piston = Piston(session=self.bot.session, loop=self.bot.loop)
         self.googletrans = GoogleTranslate(session=self.bot.session)
-        self.googlesearch = Google(session=self.bot.session)
 
     @commands.command(
         aliases=["calc", "c"],
