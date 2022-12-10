@@ -3,7 +3,7 @@
     <a href="https://github.com/ZiRO-Bot/ziBot"><img src="/assets/img/banner.png" alt="Z3R0" width="720"/></a>
 </p>
 
-<h1 align="center"><code>Z3R0 (formerly ziBot)</code></h1>
+<h1 align="center"><code>Z3R0 (codename ziBot)</code></h1>
 
 <h3 align="center"> A <b>free</b> and <b>open-source</b> multi-purpose discord bot. </h3>
 
@@ -17,7 +17,7 @@
 
 ## About
 
-**`Z3R0`** (formerly **`ziBot`**) is a **free** and **open-source** multi-purpose discord bot, created for fun in the middle of quarantine. Used to be fork of [Steve-Bot](https://github.com/MCBE-Speedrunning/Steve-Bot) by MCBE Speedrunning Moderators.
+**`Z3R0`** (codename **`ziBot`**) is a **free** and **open-source** multi-purpose discord bot, created for fun in the middle of quarantine. Used to be fork of [Steve-Bot](https://github.com/MCBE-Speedrunning/Steve-Bot) by MCBE Speedrunning Moderators.
 
 ### Features
 
