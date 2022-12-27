@@ -1,11 +1,11 @@
-# v3.5 (Overhauling an Overhaul?)
+# v3.5 (Overhaul an Overhaul?)
 
 **⚠️ DISCLAIMER FOR DEVS: THIS UPDATE (`3.4.x` -> `3.5.x`) CONTAINS BREAKING CHANGES!**
 
 This update is mostly just migration to stable discord.py v2.0 after discord.py development is continued.
 Most changes are on the code side, so it shouldn't affect users that much, other than the addition of application commands (or `slash`).
 
-## 3.5.0 (Overhaul 2.0, Kinda - [discord.py@40176bb7](https://canary.discord.com/channels/336642139381301249/381965829857738772/973342889771958312))
+## 3.5.0 (Overhaul-ception)
 
 ### Bugfixes
 - [**Fixed**] Re-enabled meme command, fixed by itself (probably aiohttp's user-agent bug)

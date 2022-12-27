@@ -96,6 +96,7 @@ Moved to [CHANGELOG.md](./CHANGELOG.md)
 - Replace mute with the new timeout feature from Discord
 - Modals
 - Slash command
+- Button-based (or Modal-based?) bot settings
 
 ### Pending Plan
 
