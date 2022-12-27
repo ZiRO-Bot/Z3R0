@@ -31,6 +31,11 @@ Most changes are on the code side, so it shouldn't affect users that much, other
 - [**Fixed**] Discord paginate ban list
 - [**Added**] Added support for hybrid commands
 
+#### Monkeypatches
+- `getGuildPrefix` -> `discord.Guild.getPrefixes`
+- `addPrefix` -> `discord.Guild.addPrefix`
+- `rmPrefix` -> `discord.Guild.rmPrefix`
+
 # v3.4 (Stomping Bugs Update)
 
 ## 3.4.7 (MORE BUGFIX!!)
