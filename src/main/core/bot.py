@@ -53,7 +53,7 @@ async def _callablePrefix(bot: ziBot, message: discord.Message) -> list:
     """Callable Prefix for the bot."""
     base = [bot.defPrefix]
     if message.guild:
-        prefixes = await bot.getGuildPrefix(message.guild.id)
+        prefixes = await message.guild.getPrefixes()
         base.extend(prefixes)
     return commands.when_mentioned_or(*sorted(base))(bot, message)
 
@@ -79,6 +79,8 @@ class ziBot(commands.Bot):
         session: aiohttp.ClientSession
 
     def __init__(self) -> None:
+        self.monkeyPatch()
+
         # custom intents, required since dpy v1.5
         # message content intent, required since dpy v2.0
         intents = discord.Intents.default()
@@ -171,6 +173,74 @@ class ziBot(commands.Bot):
                 if not ctx.author.guild_permissions.manage_guild:
                     raise commands.DisabledCommand
             return True
+
+    def monkeyPatch(self) -> None:
+        """Inject some function to discord.py objects
+
+        Maybe cursed for some python devs, but I miss Kotlin's "Extension
+        Method" so deal with it :)
+        """
+
+        def getPrefix(bot: ziBot):
+            async def predicate(self: discord.Guild) -> List[str]:
+                if bot.cache.prefixes.get(self.id) is None:  # type: ignore
+                    # Only executed when there's no cache for guild's prefix
+                    dbPrefixes = await db.Prefixes.filter(guild_id=self.id)
+
+                    try:
+                        bot.cache.prefixes.extend(self.id, [p.prefix for p in dbPrefixes])  # type: ignore
+                    except ValueError:
+                        return []
+
+                return bot.cache.prefixes[self.id]  # type: ignore
+
+            return predicate
+
+        discord.Guild.getPrefixes = getPrefix(self)
+
+        def addPrefix(bot: ziBot):
+            async def predicate(self: discord.Guild, prefix: str) -> str:
+                """Add a prefix"""
+                # Making sure guild's prefixes being cached
+                await self.getPrefixes()
+
+                try:
+                    bot.cache.prefixes.add(self.id, prefix)  # type: ignore
+                except CacheUniqueViolation:
+                    raise commands.BadArgument("Prefix `{}` is already exists".format(cleanifyPrefix(self, prefix)))
+                except CacheListFull:
+                    raise IndexError(
+                        "Custom prefixes is full! (Only allowed to add up to `{}` prefixes)".format(
+                            bot.cache.prefixes.limit  # type: ignore
+                        )
+                    )
+
+                await db.Prefixes.create(prefix=prefix, guild_id=self.id)
+
+                return prefix
+
+            return predicate
+
+        discord.Guild.addPrefix = addPrefix(self)
+
+        def rmPrefix(bot: ziBot):
+            async def predicate(self: discord.Guild, prefix: str) -> str:
+                """Remove a prefix"""
+                # Making sure guild's prefixes being cached
+                await self.getPrefixes()
+
+                try:
+                    bot.cache.prefixes.remove(self.id, prefix)  # type: ignore
+                except IndexError:
+                    raise commands.BadArgument("Prefix `{}` is not exists".format(cleanifyPrefix(self, prefix)))
+
+                [await i.delete() for i in await db.Prefixes.filter(prefix=prefix, guild_id=self.id)]
+
+                return prefix
+
+            return predicate
+
+        discord.Guild.rmPrefix = rmPrefix(self)
 
     async def setup_hook(self) -> None:
         """`__init__` but async"""
@@ -270,51 +340,6 @@ class ziBot(commands.Bot):
         cached.set(guildId, newData)
 
         return cached.get(guildId, {}).get(configType, None)
-
-    async def getGuildPrefix(self, guildId: int) -> List[str]:
-        if self.cache.prefixes.get(guildId) is None:  # type: ignore
-            # Only executed when there's no cache for guild's prefix
-            dbPrefixes = await db.Prefixes.filter(guild_id=guildId)
-
-            try:
-                self.cache.prefixes.extend(guildId, [p.prefix for p in dbPrefixes])  # type: ignore
-            except ValueError:
-                return []
-
-        return self.cache.prefixes[guildId]  # type: ignore
-
-    async def addPrefix(self, guildId: int, prefix: str) -> str:
-        """Add a prefix"""
-        # Fetch prefixes incase there's no cache
-        await self.getGuildPrefix(guildId)
-
-        try:
-            self.cache.prefixes.add(guildId, prefix)  # type: ignore
-        except CacheUniqueViolation:
-            raise commands.BadArgument("Prefix `{}` is already exists".format(cleanifyPrefix(self, prefix)))
-        except CacheListFull:
-            raise IndexError(
-                "Custom prefixes is full! (Only allowed to add up to `{}` prefixes)".format(
-                    self.cache.prefixes.limit  # type: ignore
-                )
-            )
-
-        await db.Prefixes.create(prefix=prefix, guild_id=guildId)
-
-        return prefix
-
-    async def rmPrefix(self, guildId: int, prefix: str) -> str:
-        """Remove a prefix"""
-        await self.getGuildPrefix(guildId)
-
-        try:
-            self.cache.prefixes.remove(guildId, prefix)  # type: ignore
-        except IndexError:
-            raise commands.BadArgument("Prefix `{}` is not exists".format(cleanifyPrefix(self, prefix)))
-
-        [await i.delete() for i in await db.Prefixes.filter(prefix=prefix, guild_id=guildId)]
-
-        return prefix
 
     @tasks.loop(seconds=15)
     async def changingPresence(self) -> None:

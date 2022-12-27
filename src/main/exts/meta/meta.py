@@ -138,7 +138,7 @@ class Meta(MetaCustomCommands):
     )
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def prefList(self, ctx):
-        prefixes = await self.bot.getGuildPrefix(ctx.guild.id)
+        prefixes = await ctx.guild.getPrefixes()
         menu = ZMenuPagesView(ctx, source=PrefixesPageSource(ctx, ["placeholder"] * 2 + prefixes))
         await menu.start()
 
@@ -162,7 +162,7 @@ class Meta(MetaCustomCommands):
             return await ctx.error("Prefix can't be empty!")
 
         try:
-            await self.bot.addPrefix(ctx.guild.id, prefix)
+            await ctx.guild.addPrefix(prefix)
             await ctx.success(title="Prefix `{}` has been added".format(cleanifyPrefix(self.bot, prefix)))
         except Exception as exc:
             await ctx.error(exc)
@@ -186,7 +186,7 @@ class Meta(MetaCustomCommands):
             return await ctx.error("Prefix can't be empty!")
 
         try:
-            await self.bot.rmPrefix(ctx.guild.id, prefix)
+            await ctx.guild.rmPrefix(prefix)
             await ctx.success(title="Prefix `{}` has been removed".format(cleanifyPrefix(self.bot, prefix)))
         except Exception as exc:
             await ctx.error(exc)
