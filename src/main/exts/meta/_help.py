@@ -11,7 +11,6 @@ from ...core.errors import CCommandNotFound
 from ...core.menus import ZChoices, ZMenuPagesView, choice
 from ...utils import infoQuote
 from ...utils.format import formatDiscordDT
-from ._custom_command import getCustomCommand, getCustomCommands
 from ._flags import HelpFlags
 from ._model import CustomCommand, Group
 from ._pages import CustomCommandsListSource, HelpCogPage, HelpCommandPage
@@ -96,7 +95,7 @@ class CustomHelp(commands.HelpCommand):
 
             if f == "custom":
                 if ctx.guild:
-                    ccs = await getCustomCommands(ctx.guild.id, cog.qualified_name)
+                    ccs = await CustomCommand.getAll(ctx, cog.qualified_name)
                     for cmd in ccs:
                         filtered.append(cmd)
 
@@ -169,7 +168,7 @@ class CustomHelp(commands.HelpCommand):
         if not (guild := ctx.guild):
             return
 
-        cmds = await getCustomCommands(guild.id)
+        cmds = await CustomCommand.getAll(ctx)
         cmds = sorted(cmds, key=lambda cmd: cmd.uses, reverse=True)
         view = ZMenuPagesView(
             ctx,
@@ -198,7 +197,7 @@ class CustomHelp(commands.HelpCommand):
         if "custom" in filters:
             if ctx.guild:
                 with suppress(CCommandNotFound):
-                    cc = await getCustomCommand(ctx, command)
+                    cc = await CustomCommand.get(ctx, command)
                     foundList.append(cc)
 
         if "built-in" in filters:

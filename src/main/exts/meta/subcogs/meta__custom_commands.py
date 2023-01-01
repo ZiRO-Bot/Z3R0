@@ -23,13 +23,12 @@ from ....core.errors import (
     CCommandNotFound,
     CCommandNotInGuild,
 )
-from ....core.menus import ZChoices, ZMenuPagesView, choice
+from ....core.menus import ZChoices, choice
 from ....core.mixin import CogMixin
 from ....utils import tseBlocks
 from ....utils.cache import CacheListProperty, CacheUniqueViolation
 from ....utils.format import CMDName, formatCmdName
 from ....utils.other import reactsToMessage, utcnow
-from .._custom_command import getCustomCommand
 from .._flags import CmdManagerFlags
 from .._model import CCMode, CustomCommand
 from .._utils import getDisabledCommands
@@ -113,7 +112,7 @@ class MetaCustomCommands(commands.Cog, CogMixin):
     async def execCustomCommand(self, ctx, command, raw: bool = False):
         if not ctx.guild:
             raise CCommandNotInGuild
-        cmd = await getCustomCommand(ctx, command)
+        cmd = await CustomCommand.get(ctx, command)
 
         if raw:
             content = discord.utils.escape_markdown(cmd.content)
@@ -307,7 +306,7 @@ class MetaCustomCommands(commands.Cog, CogMixin):
     )
     async def update_url(self, ctx: Context, name: CMDName, url: str):
         # NOTE: Can only be run by cmd owner or guild mods/owner
-        command = await getCustomCommand(ctx, name)
+        command = CustomCommand.get(ctx, name)
 
         perm = await command.canManage(ctx)
         if not perm:
@@ -355,7 +354,7 @@ class MetaCustomCommands(commands.Cog, CogMixin):
 
         # For both checking if command exists and
         # getting its content for comparation later on
-        command = await getCustomCommand(ctx, name)
+        command = await CustomCommand.get(ctx, name)
 
         perm = await command.canManage(ctx)
         if not perm:
@@ -409,7 +408,7 @@ class MetaCustomCommands(commands.Cog, CogMixin):
         ),
     )
     async def alias(self, ctx, commandName: CMDName, alias: CMDName):
-        command: CustomCommand = await getCustomCommand(ctx, commandName)
+        command = await CustomCommand.get(ctx, commandName)
 
         perm = await command.canManage(ctx)
         if not perm:
@@ -468,7 +467,7 @@ class MetaCustomCommands(commands.Cog, CogMixin):
         ),
     )
     async def setContent(self, ctx, name: CMDName, *, content):
-        command = await getCustomCommand(ctx, name)
+        command = await CustomCommand.get(ctx, name)
 
         perm = await command.canManage(ctx)
         if not perm:
@@ -511,7 +510,7 @@ class MetaCustomCommands(commands.Cog, CogMixin):
         if category not in availableCats:
             return await ctx.error(title="Invalid category")
 
-        command = await getCustomCommand(ctx, _command)
+        command = await CustomCommand.get(ctx, _command)
 
         perm = await command.canManage(ctx)
         if not perm:
@@ -568,7 +567,7 @@ class MetaCustomCommands(commands.Cog, CogMixin):
         ),
     )
     async def remove(self, ctx, name: CMDName):
-        command = await getCustomCommand(ctx, name)
+        command = await CustomCommand.get(ctx, name)
 
         perm = await command.canManage(ctx)
         if not perm:
@@ -621,7 +620,7 @@ class MetaCustomCommands(commands.Cog, CogMixin):
 
         # find custom command
         try:
-            cc = await getCustomCommand(ctx, name)
+            cc = await CustomCommand.get(ctx, name)
         except CCommandNotFound:
             pass
         else:

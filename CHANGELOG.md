@@ -5,6 +5,8 @@
 This update is mostly just migration to stable discord.py v2.0 after discord.py development is continued.
 Most changes are on the code side, so it shouldn't affect users that much, other than the addition of application commands (or `slash`).
 
+Starting from 3.5 ziBot will only support Python 3.10+
+
 ## 3.5.0 (Overhaul-ception)
 
 ### Bugfixes
@@ -30,6 +32,7 @@ Most changes are on the code side, so it shouldn't affect users that much, other
 - [**Fixed**] Dpy 2.0 remove asynciterator's flatten function
 - [**Fixed**] Discord paginate ban list
 - [**Added**] Added support for hybrid commands
+- [**Improved**] Moved `_custom_command` functions into `_model.CustomCommand`
 
 #### Monkeypatches
 - `getGuildPrefix` -> `discord.Guild.getPrefixes`

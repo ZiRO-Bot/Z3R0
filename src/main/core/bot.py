@@ -19,7 +19,7 @@ from tortoise.models import Model
 import config
 
 from .. import __version__ as botVersion
-from ..exts.meta._custom_command import getCustomCommands
+from ..exts.meta._model import CustomCommand
 from ..exts.meta._utils import getDisabledCommands
 from ..exts.timer.timer import Timer, TimerData
 from ..utils.cache import (
@@ -446,15 +446,15 @@ class ziBot(commands.Bot):
     async def on_guild_del_timer_complete(self, timer: TimerData) -> None:
         """Executed when guild deletion timer completed"""
         await self.wait_until_ready()
-        guildId = timer.owner
+        guildId: int = timer.owner
 
-        guildIds = [i.id for i in self.guilds]
+        guildIds: list[int] = [i.id for i in self.guilds]
         if guildId in guildIds:
             # The bot rejoin, about the function
             return
 
         # Delete all guild's custom command
-        commands = await getCustomCommands(guildId)
+        commands = await CustomCommand.getAll(discord.Object(id=guildId))
         [await db.Commands.filter(id=i.id).delete() for i in commands]
         await db.Guilds.filter(id=guildId).delete()
 
