@@ -86,7 +86,9 @@ Moved to [CHANGELOG.md](./CHANGELOG.md)
 
 ## Plans
 
-- Docker/Podman support (Need to somehow reduce docker image size)
+- Docker/Podman support
+  - Add env support for easier configuration
+  - Reduce image size
 - Event for ~~member boosting a guild~~ (Just need to implement setup for it)
 - Tags (stripped version of custom command)
 - Unify categories/exts emoji
