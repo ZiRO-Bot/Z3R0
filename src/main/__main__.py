@@ -6,9 +6,17 @@ from logging.handlers import RotatingFileHandler
 
 import aiohttp
 
-from src.main.core import bot as _bot
 from src.main.utils.other import utcnow
 
+
+shouldRun: bool = True
+
+try:
+    from src.main.core import bot as _bot
+except ImportError as e:
+    if e.name == "config":
+        print("Missing config.py")
+    shouldRun = False
 
 # Use uvloop as loop policy if possible (Linux only)
 try:
@@ -60,6 +68,9 @@ def setup_logging():
 
 async def main():
     """Launch the bot."""
+    if not shouldRun:
+        exit(1)
+
     # jishaku env stuff
     os.environ["JISHAKU_NO_UNDERSCORE"] = "True"
     os.environ["JISHAKU_NO_DM_TRACEBACK"] = "True"
