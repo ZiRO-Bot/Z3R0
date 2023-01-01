@@ -11,11 +11,12 @@ from contextlib import suppress
 from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Union
 
 import aiohttp
-import config
 import discord
 from discord.ext import commands, tasks
 from tortoise import Tortoise
 from tortoise.models import Model
+
+import config
 
 from .. import __version__ as botVersion
 from ..exts.meta._model import CustomCommand
