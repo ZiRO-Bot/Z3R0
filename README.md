@@ -42,6 +42,34 @@ More feature coming soon!
 
 ### Self-Hosting
 
+#### Docker
+
+- Install [Docker](https://docs.docker.com/install/) and [Docker-Compose](https://docs.docker.com/compose/install/)
+- Create `docker-compose.yaml` file or use the one in `docker/`:
+
+    ```yaml
+    version: "3"
+
+    services:
+      bot:
+        container_name: zibot
+        image: ghcr.io/ziro-bot/z3r0:latest
+        volumes:
+          - "./data:/app/data"
+          - "./config.py:/app/config.py"
+    ```
+
+- Then run:
+
+    ```zsh
+    docker-compose up -d
+    
+    # or if you want to use the sample yaml file
+    docker-compose -f docker/docker-compose.yml up -d
+    ```
+
+#### Manual
+
 > **NOTE**: Python 3.10+ is required to host this bot!
 
 - Download this repository by executing `git clone https://github.com/ZiRO-Bot/Z3R0.git`
