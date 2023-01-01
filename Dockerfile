@@ -1,4 +1,5 @@
-FROM python:3.10.9-slim AS base
+# TODO: Reduce image size if possible
+FROM python:3.10.9-slim
 
 LABEL org.opencontainers.image.source="https://github.com/ZiRO-Bot/Z3R0"
 LABEL org.opencontainers.image.description="A multi-purpose open-source discord bot"
@@ -6,13 +7,12 @@ LABEL org.opencontainers.image.licenses=MPL-2.0
 
 WORKDIR /app
 
-FROM base as builder
-
 ARG STAGE
 
 ENV STAGE=${STAGE} \
-    PATH="/root/.local/bin:/venv/bin:${PATH}" \
-    VIRTUAL_ENV="/venv"
+    PATH="/root/.local/bin:${PATH}" \
+    VIRTUAL_ENV="/venv" \
+    PYTHONPATH="/app"
 
 RUN apt-get update && apt-get upgrade -y \
     && apt-get install --no-install-recommends -y \
@@ -28,11 +28,8 @@ RUN apt-get update && apt-get upgrade -y \
     && python -m venv /venv
 
 COPY poetry.lock pyproject.toml ./
-COPY src/ ./src
+ADD src/ ./src
 RUN poetry run pip install -U pip \
-    && poetry install $(test "$STAGE" = production && echo "--no-dev") --no-interaction --no-ansi --no-root
+    && poetry install $(test "$STAGE" = production && echo "--no-dev")
 
-FROM base as final
-
-COPY --from=builder /venv /venv
 CMD ["poetry", "run", "bot"]
