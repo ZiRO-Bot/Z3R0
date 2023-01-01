@@ -86,7 +86,7 @@ Moved to [CHANGELOG.md](./CHANGELOG.md)
 
 ## Plans
 
-- Docker/Podman support
+- Docker/Podman support (Need testing and docker-compose sample)
 - Event for ~~member boosting a guild~~ (Just need to implement setup for it)
 - Tags (stripped version of custom command)
 - Unify categories/exts emoji
