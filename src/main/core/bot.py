@@ -244,8 +244,22 @@ class ziBot(commands.Bot):
     async def setup_hook(self) -> None:
         """`__init__` but async"""
 
+        tortoiseORM = getattr(
+            config,
+            "TORTOISE_ORM",
+            {
+                "connections": {"default": config.sql},
+                "apps": {
+                    "models": {
+                        "models": ["src.main.core.db", "aerich.models"],
+                        "default_connection": "default",
+                    },
+                },
+            },
+        )
+
         await Tortoise.init(
-            config=config.TORTOISE_ORM,
+            config=tortoiseORM,
             use_tz=True,  # d.py now tz-aware
         )
         await Tortoise.generate_schemas(safe=True)
