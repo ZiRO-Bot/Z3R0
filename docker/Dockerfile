@@ -33,7 +33,7 @@ COPY poetry.lock pyproject.toml ./
 ADD src/ ./src
 RUN poetry run pip install -U pip \
     && poetry install $(test "$STAGE" = production && echo "--no-dev") \
-    --no-root -E postgresql -E mysql -E music -E speedup
+    --no-root -E postgresql -E mysql -E voice -E speedup
 
 # ---
 FROM base as final
