@@ -75,8 +75,6 @@ async def main(config: Config):
 
 def run():
     with setup_logging():
-        shouldRun: bool = True
-
         logger = logging.getLogger("discord")
 
         config = None
@@ -102,13 +100,12 @@ def run():
             sql = os.environ.get("ZIBOT_DB_URL")
             if not token and not sql:
                 logger.warn("Missing required environment variables, quitting...")
-                shouldRun = False
             else:
                 botMasters = os.environ.get("ZIBOT_BOT_MASTERS")
                 config = Config(
-                    token,
-                    sql,
-                    os.environ.get("ZIBOT_DEFAULT_PREFIX"),
+                    token,  # type: ignore
+                    sql,  # type: ignore
+                    os.environ.get("ZIBOT_DEFAULT_PREFIX", ">"),
                     botMasters.split(" ") if botMasters else [],
                     os.environ.get("ZIBOT_ISSUE_CHANNEL"),
                     os.environ.get("ZIBOT_OPEN_WEATHER_TOKEN"),
@@ -117,7 +114,7 @@ def run():
                     None,  # Tortoise config a dict, idk how you'd define this in environment variables... well you shouldn't touch it anyway
                 )
 
-        if not shouldRun:
+        if not config:
             exit(1)
 
         asyncio.run(main(config))
