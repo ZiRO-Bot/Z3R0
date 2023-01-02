@@ -32,7 +32,8 @@ RUN apt-get update && apt-get upgrade -y \
 COPY poetry.lock pyproject.toml ./
 ADD src/ ./src
 RUN poetry run pip install -U pip \
-    && poetry install $(test "$STAGE" = production && echo "--no-dev") --no-root
+    && poetry install $(test "$STAGE" = production && echo "--no-dev") \
+    --no-root -E postgresql -E mysql -E music -E speedup
 
 # ---
 FROM base as final
