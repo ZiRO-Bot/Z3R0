@@ -45,7 +45,7 @@ More feature coming soon!
 #### Docker
 
 - Install [Docker](https://docs.docker.com/install/) and [Docker-Compose](https://docs.docker.com/compose/install/)
-- Create `docker-compose.yaml` file or use the one in `docker/`:
+- Create `docker-compose.yaml` file or use the one from `docker/compose-examples`:
 
     ```yaml
     version: "3"
@@ -64,8 +64,8 @@ More feature coming soon!
     ```zsh
     docker-compose up -d
     
-    # or if you want to use the sample yaml file
-    docker-compose -f docker/docker-compose.yml up -d
+    # or if you want to use one of the sample yaml file
+    docker-compose -f docker/compose-examples/basic/docker-compose.yml up -d
     ```
 
 > Since 3.5.0, ziBot now support environment variables, added specifically for Docker
