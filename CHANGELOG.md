@@ -34,6 +34,7 @@ Starting from 3.5 ziBot will only support Python 3.10+
 - [**Added**] Added support for hybrid commands
 - [**Improved**] Moved `_custom_command` functions into `_model.CustomCommand`
 - [**Added**] Added Docker/Podman support
+- [**Added**] Added Environment Variable support for Docker
 
 #### Monkeypatches
 - `getGuildPrefix` -> `discord.Guild.getPrefixes`

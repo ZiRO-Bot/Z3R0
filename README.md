@@ -68,6 +68,19 @@ More feature coming soon!
     docker-compose -f docker/docker-compose.yml up -d
     ```
 
+> Since 3.5.0, ziBot now support environment variables, added specifically for Docker
+
+| Env | Json | Description |
+|-----|------|-------------|
+| ZIBOT\_TOKEN | token | **REQUIRED**. Discord Bot's token, without it you can't run the bot at all. You can get it on https://discord.com/developers/applications |
+| ZIBOT\_DB\_URL | sql | **REQUIRED**. The bot's database url. Format: `DB_TYPE://PATH_OR_CREDENTIALS/DB_NAME?PARAM1=value&PARAM2=value`, you can visit [TortoiseORM's documentation](https://tortoise.github.io/databases.html#db-url) to learn more about it |
+| ZIBOT\_BOT\_MASTERS | botMasters | Separated by spaces. The bot's master(s), allows listed user(s) to execute master/dev only commands. By default it'll get whoever owns the bot application |
+| ZIBOT\_ISSUE\_CHANNEL | issueChannel | Channel that the bot will use to send reported errors |
+| ZIBOT\_OPEN\_WEATHER\_TOKEN | openweather | Token for OpenWeatherAPI, only required if you want to use the weather command |
+| ZIBOT\_AUTHOR | author | Change the bot's author name (and tag) shown in the info command |
+| **CURRENTLY NOT AVAILABLE** | links | Change the links shown in the info command |
+| **CURRENTLY NOT AVAILABLE** | TORTOISE\_ORM | Advanced TortoiseORM configuration, you shouldn't touch it if you're not familiar with TortoiseORM |
+
 #### Manual
 
 > **NOTE**: Python 3.10+ is required to host this bot!
@@ -114,8 +127,6 @@ Moved to [CHANGELOG.md](./CHANGELOG.md)
 
 ## Plans
 
-- Docker/Podman support
-  - Add env support for easier configuration
 - Event for ~~member boosting a guild~~ (Just need to implement setup for it)
 - Tags (stripped version of custom command)
 - Unify categories/exts emoji

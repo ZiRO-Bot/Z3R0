@@ -16,8 +16,6 @@ from discord.ext import commands, tasks
 from tortoise import Tortoise
 from tortoise.models import Model
 
-import config
-
 from .. import __version__ as botVersion
 from ..exts.meta._model import CustomCommand
 from ..exts.meta._utils import getDisabledCommands
@@ -33,6 +31,7 @@ from ..utils.format import cleanifyPrefix, formatCmdName
 from ..utils.other import JSON, Blacklist, utcnow
 from . import db
 from .colour import ZColour
+from .config import Config
 from .context import Context
 from .errors import CCommandDisabled, CCommandNotFound, CCommandNotInGuild
 
@@ -60,26 +59,24 @@ async def _callablePrefix(bot: ziBot, message: discord.Message) -> list:
 
 class ziBot(commands.Bot):
 
-    # --- NOTE: Information about the bot
-    author: str = getattr(config, "author", "ZiRO2264#9999")
-    version: str = f"`{botVersion}` - `overhaul`"
-    links: Dict[str, str] = getattr(
-        config,
-        "links",
-        {
-            "Documentation": "https://z3r0.readthedocs.io",
-            "Source Code": "https://github.com/ZiRO-Bot/ziBot",
-            "Support Server": "https://discord.gg/sP9xRy6",
-        },
-    )
-    license: str = "Mozilla Public License, v. 2.0"
-    # ---
-
     if TYPE_CHECKING:
         session: aiohttp.ClientSession
 
-    def __init__(self) -> None:
+    def __init__(self, config: Config) -> None:
         self.monkeyPatch()
+
+        self.config: Config = config
+
+        # --- NOTE: Information about the bot
+        self.author: str = self.config.author or "ZiRO2264#9986"
+        self.version: str = f"`{botVersion}` - `overhaul`"
+        self.links: Dict[str, str] = self.config.links or {
+            "Documentation": "https://z3r0.readthedocs.io",
+            "Source Code": "https://github.com/ZiRO-Bot/ziBot",
+            "Support Server": "https://discord.gg/sP9xRy6",
+        }
+        self.license: str = "Mozilla Public License, v. 2.0"
+        # ---
 
         # custom intents, required since dpy v1.5
         # message content intent, required since dpy v2.0
@@ -108,11 +105,8 @@ class ziBot(commands.Bot):
 
         # Bot master(s)
         # self.master = (186713080841895936,)
-        self.owner_ids: tuple = (
-            tuple() if not hasattr(config, "botMasters") else tuple([int(master) for master in config.botMasters])
-        )
-
-        self.issueChannel: int = getattr(config, "issueChannel", 0)
+        self.owner_ids: tuple = self.config.botMasters
+        self.issueChannel: int = self.config.issueChannel or 0
 
         self.blacklist: Blacklist = Blacklist("blacklist.json")
 
@@ -123,7 +117,7 @@ class ziBot(commands.Bot):
         self.guildDelDays: int = 30
 
         # bot's default prefix
-        self.defPrefix: str = ">" if not hasattr(config, "prefix") else str(config.prefix)
+        self.defPrefix: str = self.config.defaultPrefix
 
         # News, shows up in help command
         self.news: Dict[str, Any] = JSON(
@@ -245,22 +239,8 @@ class ziBot(commands.Bot):
     async def setup_hook(self) -> None:
         """`__init__` but async"""
 
-        tortoiseORM = getattr(
-            config,
-            "TORTOISE_ORM",
-            {
-                "connections": {"default": config.sql},
-                "apps": {
-                    "models": {
-                        "models": ["src.main.core.db", "aerich.models"],
-                        "default_connection": "default",
-                    },
-                },
-            },
-        )
-
         await Tortoise.init(
-            config=tortoiseORM,
+            config=self.config.tortoiseConfig,
             use_tz=True,  # d.py now tz-aware
         )
         await Tortoise.generate_schemas(safe=True)
@@ -606,8 +586,4 @@ class ziBot(commands.Bot):
 
     async def run(self) -> None:
 
-        await super().start(config.token, reconnect=True)
-
-    @property
-    def config(self):
-        return __import__("config")
+        await super().start(self.config.token, reconnect=True)

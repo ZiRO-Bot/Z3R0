@@ -33,7 +33,7 @@ class Info(commands.Cog, CogMixin):
 
     def __init__(self, bot):
         super().__init__(bot)
-        self.openweather = OpenWeatherAPI(key=getattr(self.bot.config, "openweather", None), session=self.bot.session)
+        self.openweather = OpenWeatherAPI(key=bot.config.openWeatherToken, session=self.bot.session)
 
     @commands.command(aliases=("av", "userpfp", "pfp"), brief="Get member's avatar image")
     @commands.cooldown(1, 5, commands.BucketType.user)
