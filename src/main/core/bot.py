@@ -238,32 +238,34 @@ class ziBot(commands.Bot):
 
     async def setup_hook(self) -> None:
         """`__init__` but async"""
-
-        await Tortoise.init(
-            config=self.config.tortoiseConfig,
-            use_tz=True,  # d.py now tz-aware
-        )
-        await Tortoise.generate_schemas(safe=True)
-
-        # change bot's presence into guild live count
-        self.changingPresence.start()
-
-        # load all listed extensions
-        for extension in EXTS:
-            await self.load_extension(extension)
-
         if not self.owner_ids:
             # If self.master not set, warn the hoster
             self.logger.warning(
                 "No master is set, you may not able to use certain commands! (Unless you own the Bot Application)"
             )
 
-        # Add application owner into owner_ids list
+        await Tortoise.init(
+            config=self.config.tortoiseConfig,
+            use_tz=True,  # d.py 2.0 is tz-aware
+        )
+        await Tortoise.generate_schemas(safe=True)
+
+        self.loop.create_task(self.afterReady())
+
+    async def afterReady(self) -> None:
+        """`setup_hook` but wait until ready"""
+        await self.wait_until_ready()
+
+        self.changingPresence.start()
+
         owner: discord.User = (await self.application_info()).owner
         if owner and owner.id not in self.owner_ids:
             self.owner_ids += (owner.id,)
 
         await self.manageGuildDeletion()
+
+        for extension in EXTS:
+            await self.load_extension(extension)
 
         if not hasattr(self, "uptime"):
             self.uptime: datetime.datetime = utcnow()
