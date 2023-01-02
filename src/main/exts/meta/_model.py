@@ -1,15 +1,31 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import overload
 
 import discord
+import TagScriptEngine as tse
 from discord.ext import commands
 
 from ...core import checks, db
 from ...core.context import Context
-from ...core.errors import CCommandNotFound, CCommandNotInGuild
+from ...core.errors import CCommandDisabled, CCommandNotFound, CCommandNotInGuild
+from ...utils import tseBlocks
 from ...utils.format import CMDName
+from ...utils.other import reactsToMessage, utcnow
+
+
+_blocks = [
+    tse.AssignmentBlock(),
+    tse.EmbedBlock(),
+    tse.LooseVariableGetterBlock(),
+    tse.RedirectBlock(),
+    tse.RequireBlock(),
+    tseBlocks.RandomBlock(),
+    tseBlocks.ReactBlock(),
+    tseBlocks.ReactUBlock(),
+    tseBlocks.SilentBlock(),
+]
+ENGINE = tse.Interpreter(_blocks)
 
 
 class Group:
@@ -98,6 +114,70 @@ class CustomCommand:
             1: isCmdOwner or isMod,
             2: True,
         }.get(mode, False)
+
+    def processTag(self, ctx):
+        """Process tags from CC's content with TSE."""
+        author = tse.MemberAdapter(ctx.author)
+        content = self.content
+        # TODO: Make target uses custom command arguments instead
+        target = tse.MemberAdapter(ctx.message.mentions[0]) if ctx.message.mentions else author
+        channel = tse.ChannelAdapter(ctx.channel)
+        seed = {
+            "author": author,
+            "user": author,
+            "target": target,
+            "member": target,
+            "channel": channel,
+            "unix": tse.IntAdapter(int(utcnow().timestamp())),
+            "prefix": ctx.prefix,
+            "uses": tse.IntAdapter(self.uses + 1),
+        }
+        if ctx.guild:
+            guild = tse.GuildAdapter(ctx.guild)
+            seed.update(guild=guild, server=guild)
+        return ENGINE.process(content, seed)
+
+    async def execute(self, ctx: Context, raw: bool = False):
+        if not ctx.guild:
+            raise CCommandNotInGuild
+
+        if raw:
+            content = discord.utils.escape_markdown(self.content)
+            return await ctx.try_reply(content)
+
+        # "raw" bypass disable
+        if not self.enabled:
+            raise CCommandDisabled
+
+        # Increment uses
+        await db.Commands.filter(id=self.id).update(uses=self.uses + 1)
+
+        result = self.processTag(ctx)
+        embed = result.actions.get("embed")
+
+        dest = result.actions.get("target")
+        action = ctx.send
+        kwargs = {"reference": ctx.replied_reference}
+        if dest:
+            if dest == "reply":
+                action = ctx.try_reply
+                kwargs["reference"] = ctx.replied_reference or ctx.message  # type: ignore
+            if dest == "dm":
+                action = ctx.author.send
+                kwargs = {}
+
+        msg = await action(
+            result.body or ("\u200b" if not embed else ""),
+            embed=embed,
+            allowed_mentions=discord.AllowedMentions(everyone=False, users=False, roles=False),
+            **kwargs,
+        )
+        react = result.actions.get("react")
+        reactu = result.actions.get("reactu")
+        if reactu:
+            ctx.bot.loop.create_task(reactsToMessage(ctx.message, reactu))
+        if react:
+            ctx.bot.loop.create_task(reactsToMessage(msg, react))
 
     @classmethod
     async def get(cls, context: Context, command: str | CMDName) -> CustomCommand:

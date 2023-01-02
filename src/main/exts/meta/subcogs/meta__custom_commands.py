@@ -10,25 +10,17 @@ import re
 from typing import TYPE_CHECKING, Any, Iterable
 
 import discord
-import TagScriptEngine as tse
 from discord.ext import commands
 
 from ....core import checks, db
 from ....core.context import Context
 from ....core.embed import ZEmbed
-from ....core.errors import (
-    CCommandAlreadyExists,
-    CCommandDisabled,
-    CCommandNoPerm,
-    CCommandNotFound,
-    CCommandNotInGuild,
-)
+from ....core.errors import CCommandAlreadyExists, CCommandNoPerm, CCommandNotFound
 from ....core.menus import ZChoices, choice
 from ....core.mixin import CogMixin
-from ....utils import tseBlocks
 from ....utils.cache import CacheListProperty, CacheUniqueViolation
 from ....utils.format import CMDName, formatCmdName
-from ....utils.other import reactsToMessage, utcnow
+from ....utils.other import utcnow
 from .._flags import CmdManagerFlags
 from .._model import CCMode, CustomCommand
 from .._utils import getDisabledCommands
@@ -61,20 +53,6 @@ class MetaCustomCommands(commands.Cog, CogMixin):
             unique=True,
         )
 
-        # TSE stuff
-        blocks = [
-            tse.AssignmentBlock(),
-            tse.EmbedBlock(),
-            tse.LooseVariableGetterBlock(),
-            tse.RedirectBlock(),
-            tse.RequireBlock(),
-            tseBlocks.RandomBlock(),
-            tseBlocks.ReactBlock(),
-            tseBlocks.ReactUBlock(),
-            tseBlocks.SilentBlock(),
-        ]
-        self.engine = tse.Interpreter(blocks)
-
     async def getCCMode(self, ctx: Context) -> CCMode:
         return CCMode(await ctx.bot.getGuildConfig(ctx.guild.id, "ccMode") or 0)
 
@@ -86,71 +64,6 @@ class MetaCustomCommands(commands.Cog, CogMixin):
         mode = await self.getCCMode(ctx)
         isMod = await checks.isMod(ctx)
         return isMod if mode == CCMode.MOD_ONLY else True
-
-    def processTag(self, ctx, cmd: CustomCommand):
-        """Process tags from CC's content with TSE."""
-        author = tse.MemberAdapter(ctx.author)
-        content = cmd.content
-        # TODO: Make target uses custom command arguments instead
-        target = tse.MemberAdapter(ctx.message.mentions[0]) if ctx.message.mentions else author
-        channel = tse.ChannelAdapter(ctx.channel)
-        seed = {
-            "author": author,
-            "user": author,
-            "target": target,
-            "member": target,
-            "channel": channel,
-            "unix": tse.IntAdapter(int(utcnow().timestamp())),
-            "prefix": ctx.prefix,
-            "uses": tse.IntAdapter(cmd.uses + 1),
-        }
-        if ctx.guild:
-            guild = tse.GuildAdapter(ctx.guild)
-            seed.update(guild=guild, server=guild)
-        return self.engine.process(content, seed)
-
-    async def execCustomCommand(self, ctx, command, raw: bool = False):
-        if not ctx.guild:
-            raise CCommandNotInGuild
-        cmd = await CustomCommand.get(ctx, command)
-
-        if raw:
-            content = discord.utils.escape_markdown(cmd.content)
-            return await ctx.try_reply(content)
-
-        # "raw" bypass disable
-        if not cmd.enabled:
-            raise CCommandDisabled
-
-        # Increment uses
-        await db.Commands.filter(id=cmd.id).update(uses=cmd.uses + 1)
-
-        result = self.processTag(ctx, cmd)
-        embed = result.actions.get("embed")
-
-        dest = result.actions.get("target")
-        action = ctx.send
-        kwargs = {"reference": ctx.replied_reference}
-        if dest:
-            if dest == "reply":
-                action = ctx.try_reply
-                kwargs["reference"] = ctx.replied_reference or ctx.message
-            if dest == "dm":
-                action = ctx.author.send
-                kwargs = {}
-
-        msg = await action(
-            result.body or ("\u200b" if not embed else ""),
-            embed=embed,
-            allowed_mentions=discord.AllowedMentions(everyone=False, users=False, roles=False),
-            **kwargs,
-        )
-        react = result.actions.get("react")
-        reactu = result.actions.get("reactu")
-        if reactu:
-            self.bot.loop.create_task(reactsToMessage(ctx.message, reactu))
-        if react:
-            self.bot.loop.create_task(reactsToMessage(msg, react))
 
     # TODO: Separate tags from custom command
     @commands.group(
@@ -165,7 +78,8 @@ class MetaCustomCommands(commands.Cog, CogMixin):
     # TODO: Implement argument
     @command.command(aliases=("exec", "execute"), brief="Execute a custom command")
     async def run(self, ctx, name: CMDName, argument: str = None):
-        return await self.execCustomCommand(ctx, name)
+        cmd = await CustomCommand.get(ctx, name)
+        return await cmd.execute(ctx)
 
     @command.command(
         name="source",
@@ -174,7 +88,8 @@ class MetaCustomCommands(commands.Cog, CogMixin):
     )
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def _source(self, ctx, name: CMDName):
-        return await self.execCustomCommand(ctx, name, raw=True)
+        cmd = await CustomCommand.get(ctx, name)
+        return await cmd.execute(ctx, raw=True)
 
     async def addCmd(self, ctx, name: CMDName, content: str, **kwargs):
         """Add cmd to database"""
@@ -306,7 +221,7 @@ class MetaCustomCommands(commands.Cog, CogMixin):
     )
     async def update_url(self, ctx: Context, name: CMDName, url: str):
         # NOTE: Can only be run by cmd owner or guild mods/owner
-        command = CustomCommand.get(ctx, name)
+        command = await CustomCommand.get(ctx, name)
 
         perm = await command.canManage(ctx)
         if not perm:
@@ -833,8 +748,8 @@ class MetaCustomCommands(commands.Cog, CogMixin):
         await cmd.command_callback(ctx, arguments=name)
 
     @command.command(name="list", aliases=("ls",), brief="Show all custom commands")
-    async def cmdList(self, ctx):
-        cmd: CustomHelp = self.bot.help_command
+    async def cmdList(self, ctx: Context):
+        cmd: CustomHelp = ctx.bot.help_command
         cmd = cmd.copy()
         cmd.context = ctx
         await cmd.command_callback(ctx, arguments="filter: custom")
