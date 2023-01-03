@@ -90,7 +90,7 @@ class Meta(MetaCustomCommands):
         e.add_field(name="Author", value=ctx.bot.author)
         e.add_field(
             name="Library",
-            value="[`zidiscord.py`](https://github.com/null2264/discord.py) - `v{}`".format(discord.__version__),
+            value="[`discord.py`](https://github.com/Rapptz/discord.py) - `v{}`".format(discord.__version__),
         )
         e.add_field(name="Version", value=ctx.bot.version)
         view = discord.ui.View()
