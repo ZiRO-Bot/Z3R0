@@ -106,7 +106,7 @@ class ziBot(commands.Bot):
         # Bot master(s)
         # self.master = (186713080841895936,)
         self.owner_ids: tuple = self.config.botMasters
-        self.issueChannel: int = self.config.issueChannel or 0
+        self.issueChannel: int = int(self.config.issueChannel or 0)
 
         self.blacklist: Blacklist = Blacklist("blacklist.json")
 
@@ -157,7 +157,7 @@ class ziBot(commands.Bot):
         )
 
         @self.check
-        async def botCheck(ctx):
+        async def _(ctx):
             """Global check"""
             if not ctx.guild:
                 return True
