@@ -133,22 +133,27 @@ Moved to [CHANGELOG.md](./CHANGELOG.md)
 - Channel manager commands
 - Reaction Role (With buttons... button role?)
 - Starboard
-- Docker thingy for easier way to host the bot
-- Replace mute with the new timeout feature from Discord
-- Modals
 - Slash command
 - Button-based (or Modal-based?) bot settings
 
 ### Pending Plan
 
-- i18n using gettext (Learning how gettext works)
+- i18n using gettext  
+  Currently still figuring out how to actually implement gettext
+- Modals  
+  Too much limitation at the moment, waiting for model input types
 
 ### Scrapped Plan
 
 > Plan that unfortunately not possible (atleast for now)
-- Music Player (ffmpeg+ytdl vs lavalink?)
-- Public/Private commands, allowing other user to use each other's command in a different server.
-- Twitch and YouTube notification (Find how to refresh webhook thingy reliably)
+- Replace mute with the new timeout feature from Discord  
+  The feature is too limited, maybe I'll add timeout command instead
+- Music Player  
+  Not in my top priority, and looking at how aggresive Google is towards music bots... maybe not gonna do it afterall
+- Public/Private commands, allowing other user to use each other's command in a different server  
+  Too complicated, might add it after I finally finish the dashboard
+- Twitch and YouTube notification  
+  Unreliable most of the time, sometimes return duplicates
 
 ## License
 
