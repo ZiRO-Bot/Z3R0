@@ -1,4 +1,3 @@
-# TODO: Reduce image size if possible
 FROM python:3.10.9-slim as base
 
 LABEL org.opencontainers.image.source="https://github.com/ZiRO-Bot/Z3R0"
