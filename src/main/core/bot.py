@@ -5,10 +5,9 @@ import datetime
 import logging
 import os
 import re
-import warnings
 from collections import Counter
 from contextlib import suppress
-from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Union
+from typing import TYPE_CHECKING, Any, Dict, Iterable, Union
 
 import aiohttp
 import discord
@@ -20,20 +19,15 @@ from .. import __version__ as botVersion
 from ..exts.meta._model import CustomCommand
 from ..exts.meta._utils import getDisabledCommands
 from ..exts.timer.timer import Timer, TimerData
-from ..utils.cache import (
-    Cache,
-    CacheDictProperty,
-    CacheListFull,
-    CacheListProperty,
-    CacheUniqueViolation,
-)
-from ..utils.format import cleanifyPrefix, formatCmdName
+from ..utils.cache import Cache, CacheDictProperty, CacheListProperty
+from ..utils.format import formatCmdName
 from ..utils.other import JSON, Blacklist, utcnow
 from . import db
 from .colour import ZColour
 from .config import Config
 from .context import Context
 from .errors import CCommandDisabled, CCommandNotFound, CCommandNotInGuild
+from .monkeypatch import MonkeyPatch
 
 
 EXTS = []
@@ -52,7 +46,7 @@ async def _callablePrefix(bot: ziBot, message: discord.Message) -> list:
     """Callable Prefix for the bot."""
     base = [bot.defPrefix]
     if message.guild:
-        prefixes = await message.guild.getPrefixes()
+        prefixes = await message.guild.getPrefixes()  # type: ignore
         base.extend(prefixes)
     return commands.when_mentioned_or(*sorted(base))(bot, message)
 
@@ -63,8 +57,7 @@ class ziBot(commands.Bot):
         session: aiohttp.ClientSession
 
     def __init__(self, config: Config) -> None:
-        self.monkeyPatch()
-
+        MonkeyPatch(self).inject()
         self.config: Config = config
 
         # --- NOTE: Information about the bot
@@ -168,74 +161,6 @@ class ziBot(commands.Bot):
                     raise commands.DisabledCommand
             return True
 
-    def monkeyPatch(self) -> None:
-        """Inject some function to discord.py objects
-
-        Maybe cursed for some python devs, but I miss Kotlin's "Extension
-        Method" so deal with it :)
-        """
-
-        def getPrefix(bot: ziBot):
-            async def predicate(self: discord.Guild) -> List[str]:
-                if bot.cache.prefixes.get(self.id) is None:  # type: ignore
-                    # Only executed when there's no cache for guild's prefix
-                    dbPrefixes = await db.Prefixes.filter(guild_id=self.id)
-
-                    try:
-                        bot.cache.prefixes.extend(self.id, [p.prefix for p in dbPrefixes])  # type: ignore
-                    except ValueError:
-                        return []
-
-                return bot.cache.prefixes[self.id]  # type: ignore
-
-            return predicate
-
-        discord.Guild.getPrefixes = getPrefix(self)
-
-        def addPrefix(bot: ziBot):
-            async def predicate(self: discord.Guild, prefix: str) -> str:
-                """Add a prefix"""
-                # Making sure guild's prefixes being cached
-                await self.getPrefixes()
-
-                try:
-                    bot.cache.prefixes.add(self.id, prefix)  # type: ignore
-                except CacheUniqueViolation:
-                    raise commands.BadArgument("Prefix `{}` is already exists".format(cleanifyPrefix(self, prefix)))
-                except CacheListFull:
-                    raise IndexError(
-                        "Custom prefixes is full! (Only allowed to add up to `{}` prefixes)".format(
-                            bot.cache.prefixes.limit  # type: ignore
-                        )
-                    )
-
-                await db.Prefixes.create(prefix=prefix, guild_id=self.id)
-
-                return prefix
-
-            return predicate
-
-        discord.Guild.addPrefix = addPrefix(self)
-
-        def rmPrefix(bot: ziBot):
-            async def predicate(self: discord.Guild, prefix: str) -> str:
-                """Remove a prefix"""
-                # Making sure guild's prefixes being cached
-                await self.getPrefixes()
-
-                try:
-                    bot.cache.prefixes.remove(self.id, prefix)  # type: ignore
-                except IndexError:
-                    raise commands.BadArgument("Prefix `{}` is not exists".format(cleanifyPrefix(self, prefix)))
-
-                [await i.delete() for i in await db.Prefixes.filter(prefix=prefix, guild_id=self.id)]
-
-                return prefix
-
-            return predicate
-
-        discord.Guild.rmPrefix = rmPrefix(self)
-
     async def setup_hook(self) -> None:
         """`__init__` but async"""
         if not self.owner_ids:
@@ -273,13 +198,13 @@ class ziBot(commands.Bot):
     async def getGuildConfigs(
         self,
         guildId: int,
-        filters: Iterable = "*",
-        table: Union[str, Model] = "GuildConfigs",  # type: ignore
+        _: Iterable = "*",  # TODO: Deprecated, delete later
+        table: str | Model = "GuildConfigs",  # type: ignore
     ) -> Dict[str, Any]:
         # TODO - Cleaner caching system, use the cache system directly to
         # handle these stuff
         if isinstance(table, str):
-            table: Optional[Model] = getattr(db, table, None)  # type: ignore
+            table: Model | None = getattr(db, table, None)  # type: ignore
 
         if table is None:
             raise RuntimeError("Huh?")
@@ -300,16 +225,14 @@ class ziBot(commands.Bot):
                 cached.set(guildId, {})
         return cached.get(guildId, {})
 
-    async def getGuildConfig(
-        self, guildId: int, configType: str, table: Union[str, Model] = "GuildConfigs"
-    ) -> Optional[Any]:
+    async def getGuildConfig(self, guildId: int, configType: str, table: Union[str, Model] = "GuildConfigs") -> Any | None:
         # Get guild's specific config
         configs: dict = await self.getGuildConfigs(guildId, table=table)
         return configs.get(configType)
 
     async def setGuildConfig(
         self, guildId: int, configType: str, configValue, table: Union[str, Model] = "GuildConfigs"  # type: ignore
-    ) -> Optional[Any]:
+    ) -> Any | None:
         if isinstance(table, str):
             table: Model = getattr(db, table, None)  # type: ignore
 
@@ -364,7 +287,7 @@ class ziBot(commands.Bot):
 
     async def manageGuildDeletion(self) -> None:
         """Manages guild deletion from database on boot"""
-        timer: Optional[Timer] = self.get_cog("Timer")  # type: ignore
+        timer: Timer | None = self.get_cog("Timer")  # type: ignore
 
         dbGuilds = await db.Guilds.all()
         dbGuilds = [i.id for i in dbGuilds]
@@ -461,10 +384,10 @@ class ziBot(commands.Bot):
             except KeyError:
                 pass
 
-    async def get_context(self, message, *, cls=None):
-        return await super().get_context(message, cls=Context)
+    async def get_context(self, message, *, cls=Context):
+        return await super().get_context(message, cls=cls)
 
-    async def process_commands(self, message: discord.Message) -> Optional[Union[str, commands.Command, commands.Group]]:
+    async def process_commands(self, message: discord.Message) -> (str | commands.Command | commands.Group) | None:
         # initial ctx
         ctx: Context = await self.get_context(message)
 
@@ -491,7 +414,7 @@ class ziBot(commands.Bot):
             msg.content = ctx.prefix + msgContent
 
             # This fixes the problem, idk how ._.
-            ctx = await self.get_context(msg, cls=Context)
+            ctx = await self.get_context(msg)
 
         # Get arguments for custom commands
         tmp = msgContent.split(" ")
@@ -520,23 +443,6 @@ class ziBot(commands.Bot):
         await self.invoke(ctx)
         return ctx.command
 
-    async def formattedPrefixes(self, guildId: int) -> str:
-        _prefixes = await self.getGuildPrefix(guildId)
-        prefixes = []
-        for pref in _prefixes:
-            if pref.strip() == "`":
-                prefixes.append(f"`` {pref} ``")
-            elif pref.strip() == "``":
-                prefixes.append(f"` {pref} `")
-            else:
-                prefixes.append(f"`{pref}`")
-        prefixes = ", ".join(prefixes)
-
-        result = "My default prefixes are `{}` or {}".format(self.defPrefix, self.user.mention)  # type: ignore
-        if prefixes:
-            result += "\n\nCustom prefixes: {}".format(prefixes)
-        return result
-
     async def process(self, message):
         processed = await self.process_commands(message)
         if processed is not None and not isinstance(processed, str):
@@ -557,7 +463,7 @@ class ziBot(commands.Bot):
         pattern = f"<@(!?){me.id}>"
         if re.fullmatch(pattern, message.content):
             e = discord.Embed(
-                description=await self.formattedPrefixes(message.guild.id),
+                description=await message.guild.getFormattedPrefixes(),
                 colour=ZColour.rounded(),
             )
             e.set_footer(text="Use `@{} help` to learn how to use the bot".format(me.display_name))
@@ -565,7 +471,7 @@ class ziBot(commands.Bot):
 
         await self.process(message)
 
-    async def on_message_edit(self, before, after):
+    async def on_message_edit(self, _, after):
         message = after
 
         # dont accept commands from bot
