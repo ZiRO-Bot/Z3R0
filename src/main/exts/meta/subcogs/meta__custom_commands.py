@@ -15,7 +15,12 @@ from discord.ext import commands
 from ....core import checks, db
 from ....core.context import Context
 from ....core.embed import ZEmbed
-from ....core.errors import CCommandAlreadyExists, CCommandNoPerm, CCommandNotFound
+from ....core.errors import (
+    CCommandAlreadyExists,
+    CCommandNoPerm,
+    CCommandNotFound,
+    CCommandNotInGuild,
+)
 from ....core.menus import ZChoices, choice
 from ....core.mixin import CogMixin
 from ....utils.cache import CacheListProperty, CacheUniqueViolation
@@ -41,8 +46,6 @@ DIFFER = difflib.Differ()
 class MetaCustomCommands(commands.Cog, CogMixin):
     """Meta subcog for custom commands"""
 
-    # TODO - Complete this
-
     def __init__(self, bot: ziBot):
         super().__init__(bot)
 
@@ -54,7 +57,10 @@ class MetaCustomCommands(commands.Cog, CogMixin):
         )
 
     async def getCCMode(self, ctx: Context) -> CCMode:
-        return CCMode(await ctx.bot.getGuildConfig(ctx.guild.id, "ccMode") or 0)
+        guild: discord.Guild | None = ctx.guild
+        if not guild:
+            raise CCommandNotInGuild
+        return CCMode(await ctx.bot.getGuildConfig(guild.id, "ccMode") or 0)
 
     async def ccModeCheck(self, ctx):
         """Check for custom command's modes."""
@@ -72,14 +78,14 @@ class MetaCustomCommands(commands.Cog, CogMixin):
         description=("Manage commands\n\n**NOTE**: Custom Commands only available for " "guilds/servers!"),
     )
     @commands.guild_only()
-    async def command(self, ctx):
+    async def command(self, _):
         pass
 
     # TODO: Implement argument
     @command.command(aliases=("exec", "execute"), brief="Execute a custom command")
-    async def run(self, ctx, name: CMDName, argument: str = None):
+    async def run(self, ctx, name: CMDName, argument: str | None = None):
         cmd = await CustomCommand.get(ctx, name)
-        return await cmd.execute(ctx)
+        return await cmd.execute(ctx, argument)
 
     @command.command(
         name="source",
@@ -248,7 +254,7 @@ class MetaCustomCommands(commands.Cog, CogMixin):
             title="`{}` url has been set to <{}>".format(name, url),
         )
 
-    async def updateCommandContent(self, ctx: Context, command: CustomCommand, content):
+    async def updateCommandContent(self, _: Context, command: CustomCommand, content):
         """Update command's content"""
         update = await db.Commands.filter(id=command.id).update(content=content)
         if update:
@@ -368,7 +374,7 @@ class MetaCustomCommands(commands.Cog, CogMixin):
             )
         ),
     )
-    async def cmdSet(self, ctx):
+    async def cmdSet(self, _):
         pass
 
     @cmdSet.command(
@@ -668,7 +674,7 @@ class MetaCustomCommands(commands.Cog, CogMixin):
         usage="(name)",
     )
     async def enable(self, ctx, *, arguments: CmdManagerFlags):
-        name, parsed = arguments
+        name, _ = arguments  # name, parsed
         if not name:
             return await ctx.error("You need to specify the command's name!")
 

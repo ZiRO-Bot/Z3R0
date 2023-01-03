@@ -115,7 +115,7 @@ class CustomCommand:
             2: True,
         }.get(mode, False)
 
-    def processTag(self, ctx):
+    def processTag(self, ctx, argument: str | None = None):
         """Process tags from CC's content with TSE."""
         author = tse.MemberAdapter(ctx.author)
         content = self.content
@@ -131,13 +131,14 @@ class CustomCommand:
             "unix": tse.IntAdapter(int(utcnow().timestamp())),
             "prefix": ctx.prefix,
             "uses": tse.IntAdapter(self.uses + 1),
+            "argument": argument,
         }
         if ctx.guild:
             guild = tse.GuildAdapter(ctx.guild)
             seed.update(guild=guild, server=guild)
         return ENGINE.process(content, seed)
 
-    async def execute(self, ctx: Context, raw: bool = False):
+    async def execute(self, ctx: Context, argument: str | None = None, *, raw: bool = False):
         if not ctx.guild:
             raise CCommandNotInGuild
 
