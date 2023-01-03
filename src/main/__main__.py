@@ -84,13 +84,14 @@ def run():
             config = Config(
                 _config.token,
                 getattr(_config, "sql"),
-                getattr(_config, "prefix"),
-                getattr(_config, "botMasters"),
+                getattr(_config, "prefix", None),
+                getattr(_config, "botMasters", None),
                 getattr(_config, "issueChannel", None),
                 getattr(_config, "openweather", None),
                 getattr(_config, "author", None),
                 getattr(_config, "links", None),
                 getattr(_config, "TORTOISE_ORM", None),
+                getattr(_config, "internalApiHost", None),
             )
         except ImportError as e:
             if e.name == "config":
@@ -105,13 +106,14 @@ def run():
                 config = Config(
                     token,  # type: ignore
                     sql,  # type: ignore
-                    os.environ.get("ZIBOT_DEFAULT_PREFIX", ">"),
+                    os.environ.get("ZIBOT_DEFAULT_PREFIX"),
                     botMasters.split(" ") if botMasters else [],
                     os.environ.get("ZIBOT_ISSUE_CHANNEL"),
                     os.environ.get("ZIBOT_OPEN_WEATHER_TOKEN"),
                     os.environ.get("ZIBOT_AUTHOR"),
                     None,  # Links a dict, idk how you'd define this in environment variables
                     None,  # Tortoise config a dict, idk how you'd define this in environment variables... well you shouldn't touch it anyway
+                    os.environ.get("ZIBOT_INTERNAL_API_HOST"),
                 )
 
         if not config:

@@ -174,7 +174,7 @@ class Utilities(commands.Cog, CogMixin):
         else:
             await ctx.defer()
 
-        async with ctx.session.get("https://api.palembani.xyz/search?q=" + urllib.parse.quote(query)) as resp:
+        async with ctx.session.get(f"http://{self.bot.config.internalApiHost}/search?q={urllib.parse.quote(query)}") as resp:
             result = await resp.json()
 
             if not result:

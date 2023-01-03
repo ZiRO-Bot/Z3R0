@@ -22,10 +22,8 @@ class Image(commands.Cog, CogMixin):
 
     def __init__(self, bot):
         super().__init__(bot)
-        # Image manipulation are too heavy for my stuff apparently
-        # so i host it on repl.it
-        # Source: https://github.com/ZiRO-Bot/ImageManip
-        self.imageManipUrl = "https://imagemanip.null2264.repl.co"
+        # Source: https://github.com/ZiRO-Bot/RandomAPI
+        self.imageManipUrl = f"http://{self.bot.config.internalApiHost}/"
 
     async def doImageFilter(
         self,

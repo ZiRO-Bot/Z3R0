@@ -80,6 +80,7 @@ More feature coming soon!
 | ZIBOT\_AUTHOR | author | Change the bot's author name (and tag) shown in the info command |
 | **CURRENTLY NOT AVAILABLE** | links | Change the links shown in the info command |
 | **CURRENTLY NOT AVAILABLE** | TORTOISE\_ORM | Advanced TortoiseORM configuration, you shouldn't touch it if you're not familiar with TortoiseORM |
+| ZIBOT\_INTERNAL\_API\_HOST | internalApiHost | The bot's [internal API](https://github.com/ZiRO-Bot/RandomAPI) |
 
 #### Manual
 

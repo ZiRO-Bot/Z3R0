@@ -19,6 +19,10 @@ botMasters = ["0000000000000000", "0000000000000001"]
 # Uncomment to use it
 #openweather = "0000000000000000000000000000000"
 
+# Optional, Internal API Host, required for some heavy command or easily break commands
+# Uncomment to use it
+#internalApiHost = "127.0.0.1:2264"
+
 # Optional settings for your bot information
 # Uncomment to use it
 #author = "YourName#1234"
