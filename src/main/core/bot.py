@@ -7,7 +7,7 @@ import os
 import re
 from collections import Counter
 from contextlib import suppress
-from typing import TYPE_CHECKING, Any, Dict, Iterable, Union
+from typing import TYPE_CHECKING, Any
 
 import aiohttp
 import discord
@@ -63,7 +63,7 @@ class ziBot(commands.Bot):
         # --- NOTE: Information about the bot
         self.author: str = self.config.author or "ZiRO2264#9986"
         self.version: str = f"`{botVersion}` - `overhaul`"
-        self.links: Dict[str, str] = self.config.links or {
+        self.links: dict[str, str] = self.config.links or {
             "Documentation": "https://z3r0.readthedocs.io",
             "Source Code": "https://github.com/ZiRO-Bot/ziBot",
             "Support Server": "https://discord.gg/sP9xRy6",
@@ -113,7 +113,7 @@ class ziBot(commands.Bot):
         self.defPrefix: str = self.config.defaultPrefix
 
         # News, shows up in help command
-        self.news: Dict[str, Any] = JSON(
+        self.news: dict[str, Any] = JSON(
             "news.json",
             {
                 "time": 0,
@@ -198,9 +198,8 @@ class ziBot(commands.Bot):
     async def getGuildConfigs(
         self,
         guildId: int,
-        _: Iterable = "*",  # TODO: Deprecated, delete later
         table: str | Model = "GuildConfigs",  # type: ignore
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         # TODO - Cleaner caching system, use the cache system directly to
         # handle these stuff
         if isinstance(table, str):
@@ -209,7 +208,6 @@ class ziBot(commands.Bot):
         if table is None:
             raise RuntimeError("Huh?")
 
-        # TODO: filters is deprecated, delete it later
         # Get guild configs and maybe cache it
         cached: CacheDictProperty = getattr(self.cache, table._meta.db_table)
         if cached.get(guildId) is None:
@@ -225,18 +223,20 @@ class ziBot(commands.Bot):
                 cached.set(guildId, {})
         return cached.get(guildId, {})
 
-    async def getGuildConfig(self, guildId: int, configType: str, table: Union[str, Model] = "GuildConfigs") -> Any | None:
+    async def getGuildConfig(self, guildId: int, configType: str, table: str | Model = "GuildConfigs") -> Any | None:
         # Get guild's specific config
-        configs: dict = await self.getGuildConfigs(guildId, table=table)
+        configs: dict = await self.getGuildConfigs(guildId, table)
         return configs.get(configType)
 
     async def setGuildConfig(
-        self, guildId: int, configType: str, configValue, table: Union[str, Model] = "GuildConfigs"  # type: ignore
+        self, guildId: int, configType: str, configValue, table: str | Model = "GuildConfigs"
     ) -> Any | None:
         if isinstance(table, str):
-            table: Model = getattr(db, table, None)  # type: ignore
+            _table: Model = getattr(db, table, None)  # type: ignore
+        else:
+            _table: Model = table
 
-        if not table:
+        if not _table:
             raise RuntimeError("Wtf?")
 
         # Set/edit guild's specific config
@@ -250,11 +250,11 @@ class ziBot(commands.Bot):
             configType: configValue,
         }
 
-        await table.create(**kwargs)
-        # await table.update_or_create(**kwargs)
+        await _table.create(**kwargs)
+        # await _table.update_or_create(**kwargs)
 
         # Overwrite current configs
-        cached: CacheDictProperty = getattr(self.cache, table._meta.db_table)
+        cached: CacheDictProperty = getattr(self.cache, _table._meta.db_table)
         newData = {configType: configValue}
         cached.set(guildId, newData)
 
