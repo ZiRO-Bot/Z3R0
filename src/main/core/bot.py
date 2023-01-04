@@ -42,11 +42,16 @@ for filename in os.listdir(FMT):
             EXTS.append("src.main.{}.{}".format(EXTS_DIR, filename))
 
 
+if TYPE_CHECKING:
+    from .monkeypatch import PatchedGuild
+
+
 async def _callablePrefix(bot: ziBot, message: discord.Message) -> list:
     """Callable Prefix for the bot."""
     base = [bot.defPrefix]
-    if message.guild:
-        prefixes = await message.guild.getPrefixes()  # type: ignore
+    guild: PatchedGuild | None = message.guild  # type: ignore
+    if guild:
+        prefixes = await guild.getPrefixes()
         base.extend(prefixes)
     return commands.when_mentioned_or(*sorted(base))(bot, message)
 

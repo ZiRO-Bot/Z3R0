@@ -6,12 +6,28 @@ import discord
 from discord.ext import commands
 
 from ..utils.cache import CacheListFull, CacheUniqueViolation
-from ..utils.format import cleanifyPrefix, formatCmdName
+from ..utils.format import cleanifyPrefix
 from . import db
 
 
 if TYPE_CHECKING:
     from .bot import ziBot
+
+
+class PatchedGuild(discord.Guild):
+    if TYPE_CHECKING:
+
+        async def getPrefixes(self) -> list[str]:
+            ...
+
+        async def getFormattedPrefixes(self) -> list[str]:
+            ...
+
+        async def addPrefix(self, prefix: str) -> str:
+            ...
+
+        async def rmPrefix(self, prefix: str) -> str:
+            ...
 
 
 class MonkeyPatch:
@@ -41,11 +57,11 @@ class MonkeyPatch:
 
             return predicate
 
-        discord.Guild.getPrefixes = getPrefix(self.bot)
+        discord.Guild.getPrefixes = getPrefix(self.bot)  # type: ignore
 
         # --- discord.Guild.getFormattedPrefixes()
         def formattedPrefixes(bot: ziBot):
-            async def predicate(self: discord.Guild):
+            async def predicate(self: PatchedGuild):
                 _prefixes = await self.getPrefixes()
                 prefixes = []
                 for pref in _prefixes:
@@ -64,11 +80,11 @@ class MonkeyPatch:
 
             return predicate
 
-        discord.Guild.getFormattedPrefixes = formattedPrefixes(self.bot)
+        discord.Guild.getFormattedPrefixes = formattedPrefixes(self.bot)  # type: ignore
 
         # --- discord.Guild.addPrefix(prefix: str)
         def addPrefix(bot: ziBot):
-            async def predicate(self: discord.Guild, prefix: str) -> str:
+            async def predicate(self: PatchedGuild, prefix: str) -> str:
                 """Add a prefix"""
                 # Making sure guild's prefixes being cached
                 await self.getPrefixes()
@@ -90,11 +106,11 @@ class MonkeyPatch:
 
             return predicate
 
-        discord.Guild.addPrefix = addPrefix(self.bot)
+        discord.Guild.addPrefix = addPrefix(self.bot)  # type: ignore
 
         # --- discord.Guild.rmPrefix(prefix: str)
         def rmPrefix(bot: ziBot):
-            async def predicate(self: discord.Guild, prefix: str) -> str:
+            async def predicate(self: PatchedGuild, prefix: str) -> str:
                 """Remove a prefix"""
                 # Making sure guild's prefixes being cached
                 await self.getPrefixes()
@@ -110,4 +126,4 @@ class MonkeyPatch:
 
             return predicate
 
-        discord.Guild.rmPrefix = rmPrefix(self.bot)
+        discord.Guild.rmPrefix = rmPrefix(self.bot)  # type: ignore
