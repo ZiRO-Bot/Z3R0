@@ -134,7 +134,7 @@ Moved to [CHANGELOG.md](./CHANGELOG.md)
 - Channel manager commands
 - Reaction Role (With buttons... button role?)
 - Starboard
-- Slash command
+- Slash and ContextMenu commands (80% complete)
 - Button-based (or Modal-based?) bot settings
 - Setup Tests using dpytest
 
