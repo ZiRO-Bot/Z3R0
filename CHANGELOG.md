@@ -1,7 +1,7 @@
 # v3.5 (Overhaul an Overhaul?)
 
 ## 3.5.1 (Hotfix)
-- [**Fixed**] Subcommand ignore parent's checks
+- [**Fixed**] Fixed some subcommands ignore parent's checks
 
 
 ## 3.5.0 (Overhaul-ception)
