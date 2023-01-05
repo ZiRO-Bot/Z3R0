@@ -115,7 +115,7 @@ class Meta(MetaCustomCommands):
         )
         await ctx.try_reply(embed=e)
 
-    @commands.hybrid_group(
+    @commands.group(
         aliases=("pref",),
         brief="Manages bot's custom prefix",
         extras=dict(
@@ -157,13 +157,14 @@ class Meta(MetaCustomCommands):
         ),
     )
     @checks.is_mod()
-    async def prefAdd(self, ctx, *, prefix: str):
-        if not prefix:
+    async def prefAdd(self, ctx, *prefix: str):
+        _prefix = " ".join(prefix).lstrip()
+        if not _prefix:
             return await ctx.error("Prefix can't be empty!")
 
         try:
-            await ctx.guild.addPrefix(prefix.lstrip())
-            await ctx.success(title="Prefix `{}` has been added".format(cleanifyPrefix(self.bot, prefix)))
+            await ctx.guild.addPrefix(_prefix)
+            await ctx.success(title="Prefix `{}` has been added".format(cleanifyPrefix(self.bot, _prefix)))
         except Exception as exc:
             await ctx.error(exc)
 
@@ -181,12 +182,13 @@ class Meta(MetaCustomCommands):
     )
     @checks.is_mod()
     async def prefRm(self, ctx, *, prefix: str):
-        if not prefix:
+        _prefix = " ".join(prefix).lstrip()
+        if not _prefix:
             return await ctx.error("Prefix can't be empty!")
 
         try:
-            await ctx.guild.rmPrefix(prefix.lstrip())
-            await ctx.success(title="Prefix `{}` has been removed".format(cleanifyPrefix(self.bot, prefix)))
+            await ctx.guild.rmPrefix(_prefix.lstrip())
+            await ctx.success(title="Prefix `{}` has been removed".format(cleanifyPrefix(self.bot, _prefix)))
         except Exception as exc:
             await ctx.error(exc)
 
