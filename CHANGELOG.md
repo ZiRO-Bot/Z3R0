@@ -13,10 +13,8 @@ Starting from 3.5 ziBot will only support Python 3.10+
 - [**Fixed**] Re-enabled meme command, fixed by itself (probably aiohttp's user-agent bug)
 
 ### Addition
-- [**Added**] Application Commands (`slash` commands and more):
-   - `findseed` is now a hybrid command
-   - Greeting commands (`welcome` and `farewell`) is now hybrid commands
-   - `search` is now a hybrid command
+- [**Added**] Application Commands (`slash` commands and more)  
+  Some commands will be added on later version
 - [**Improved**] You can now set Welcome and Farewell message using Modal
 - [**Re-added**] Re-added google search command
 
@@ -35,6 +33,8 @@ Starting from 3.5 ziBot will only support Python 3.10+
 - [**Improved**] Moved `_custom_command` functions into `_model.CustomCommand`
 - [**Added**] Added Docker/Podman support
 - [**Added**] Added Environment Variable support for Docker
+- [**Improved**] Problematic commands like google search can now be hosted
+  using [ZiRO-Bot/RandomAPI](https://github.com/ZiRO-Bot/RandomAPI)
 
 #### Monkeypatches
 - `getGuildPrefix` -> `discord.Guild.getPrefixes`
