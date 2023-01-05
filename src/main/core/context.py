@@ -82,6 +82,10 @@ class Context(commands.Context):
             await asyncio.sleep(5) # or any long process stuff
             await ctx.send("Finished")
         """
+        if self.interaction:
+            yield await self.interaction.response.defer()
+            return
+
         e = ZEmbed.loading(title=title or "Loading...")
         msg = None
         try:

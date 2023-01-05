@@ -40,7 +40,7 @@ class Utilities(commands.Cog, CogMixin):
         self.googletrans = GoogleTranslate(session=self.bot.session)
 
     @commands.hybrid_command(
-        aliases=["calc", "c"],
+        aliases=["math", "c"],
         brief="Simple math evaluator",
         extras=dict(
             example=(
@@ -51,7 +51,7 @@ class Utilities(commands.Cog, CogMixin):
         ),
     )
     @commands.cooldown(1, 5, commands.BucketType.user)
-    async def math(self, ctx, *, equation: str):
+    async def calc(self, ctx, *, equation: str):
         try:
             result = NumericStringParser().eval(equation)
             if result > sys.maxsize:
@@ -171,90 +171,88 @@ class Utilities(commands.Cog, CogMixin):
     @app_commands.rename(query="keyword")
     @commands.cooldown(1, 10, commands.BucketType.user)
     async def search(self, ctx: Context, *, query: str):
-        if not ctx.interaction:
-            msg = await ctx.try_reply(embed=ZEmbed.loading(title="Searching..."))
-        else:
-            await ctx.defer()
+        async with ctx.loading():
+            async with ctx.session.get(
+                f"http://{self.bot.config.internalApiHost}/api/v1/search?q={urllib.parse.quote(query)}"
+            ) as resp:
+                result = await resp.json()
 
-        async with ctx.session.get(
-            f"http://{self.bot.config.internalApiHost}/api/v1/search?q={urllib.parse.quote(query)}"
-        ) as resp:
-            result = await resp.json()
+                if not result:
+                    if not ctx.interaction:
+                        await msg.delete()  # type: ignore
+                    return await ctx.error(
+                        "Your search - {} - did not match any documents.".format(query),
+                        title="Not found!",
+                    )
 
-            if not result:
+                e = ZEmbed.default(ctx)
+                e.set_author(name="Search result for '{}'".format(query))
+
+                resultStats = result["stats"]
+                resultCount = resultStats["count"]
+                resultDuration = resultStats["duration"]
+                e.set_footer(
+                    text=(f"About {resultCount:,} results ({resultDuration['value']}" + f" {resultDuration['unit']})")
+                )
+
+                special = result.get("special")
+                complementary = result.get("complementary")
+                limit = 3
+
+                if special:
+                    limit -= 1
+                    specialTitle: str = special["title"]
+                    specialContent = special["content"]
+
+                    i = specialTitle.lower()
+                    if i.startswith("currency"):
+                        from_ = specialContent["from"]
+                        to = specialContent["to"]
+
+                        e.add_field(
+                            name=f"Rich Card Info: `{special['title'].title()}`",
+                            value=(
+                                f"`{from_['value']} {from_['currency']}` equals\n"
+                                + f"**`{to['value']}` {to['currency']}**\n"
+                                + f"Last updated: `{specialContent['last_updated']}`"
+                            ),
+                            inline=False,
+                        )
+                    elif i.startswith("calculator"):
+                        e.add_field(
+                            name=f"Rich Card Info: `{special['title'].title()}`",
+                            value=" ".join(specialContent.values()),
+                            inline=False,
+                        )
+                    else:
+                        e.add_field(name=f"Rich Card Info: `{special['title'].title()}`", value=specialContent, inline=False)
+
+                if complementary is not None:
+                    limit -= 1
+                    info = ""
+                    for i in complementary["info"]:
+                        a = i.split(":")
+                        try:
+                            info += f"**{a[0]}**: `{a[1].strip()}` \n"
+                        except IndexError:
+                            info += f"`{a[0]}`\n"
+                    e.add_field(
+                        name=f"Rich Card Info: `{complementary['title'] or 'Unknown'}`",
+                        value=(f"`{complementary['subtitle'] or 'Unknown'}`\n" if complementary["subtitle"] else "")
+                        + (complementary["description"] + "\n" if complementary["description"] else "")
+                        + info,
+                    )
+
+                for res in result["sites"][:limit]:
+                    try:
+                        content = res["content"]
+                    except IndexError:
+                        content = ""
+                    e.add_field(name=res["title"], value=f"{res['link']}\n{content}", inline=False)
+
                 if not ctx.interaction:
                     await msg.delete()  # type: ignore
-                return await ctx.error(
-                    "Your search - {} - did not match any documents.".format(query),
-                    title="Not found!",
-                )
-
-            e = ZEmbed.default(ctx)
-            e.set_author(name="Search result for '{}'".format(query))
-
-            resultStats = result["stats"]
-            resultCount = resultStats["count"]
-            resultDuration = resultStats["duration"]
-            e.set_footer(text=(f"About {resultCount:,} results ({resultDuration['value']}" + f" {resultDuration['unit']})"))
-
-            special = result.get("special")
-            complementary = result.get("complementary")
-            limit = 3
-
-            if special:
-                limit -= 1
-                specialTitle: str = special["title"]
-                specialContent = special["content"]
-
-                i = specialTitle.lower()
-                if i.startswith("currency"):
-                    from_ = specialContent["from"]
-                    to = specialContent["to"]
-
-                    e.add_field(
-                        name=f"Rich Card Info: `{special['title'].title()}`",
-                        value=(
-                            f"`{from_['value']} {from_['currency']}` equals\n"
-                            + f"**`{to['value']}` {to['currency']}**\n"
-                            + f"Last updated: `{specialContent['last_updated']}`"
-                        ),
-                        inline=False,
-                    )
-                elif i.startswith("calculator"):
-                    e.add_field(
-                        name=f"Rich Card Info: `{special['title'].title()}`",
-                        value=" ".join(specialContent.values()),
-                        inline=False,
-                    )
-                else:
-                    e.add_field(name=f"Rich Card Info: `{special['title'].title()}`", value=specialContent, inline=False)
-
-            if complementary is not None:
-                limit -= 1
-                info = ""
-                for i in complementary["info"]:
-                    a = i.split(":")
-                    try:
-                        info += f"**{a[0]}**: `{a[1].strip()}` \n"
-                    except IndexError:
-                        info += f"`{a[0]}`\n"
-                e.add_field(
-                    name=f"Rich Card Info: `{complementary['title'] or 'Unknown'}`",
-                    value=(f"`{complementary['subtitle'] or 'Unknown'}`\n" if complementary["subtitle"] else "")
-                    + (complementary["description"] + "\n" if complementary["description"] else "")
-                    + info,
-                )
-
-            for res in result["sites"][:limit]:
-                try:
-                    content = res["content"]
-                except IndexError:
-                    content = ""
-                e.add_field(name=res["title"], value=f"{res['link']}\n{content}", inline=False)
-
-            if not ctx.interaction:
-                await msg.delete()  # type: ignore
-            await ctx.try_reply(embed=e)
+                await ctx.try_reply(embed=e)
 
     @commands.hybrid_command(
         brief="Get shorten url's real url. No more rick roll!",
