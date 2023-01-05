@@ -135,8 +135,8 @@ class CustomHelp(commands.HelpCommand):
 
         # separate string from flags
         # String filters: String -> ("String", "filters: String")
-        command, parsed = await HelpFlags.convert(ctx, arguments)
-        await super().prepare_help_command(ctx, command)
+        parsed = await HelpFlags.convert(ctx, arguments)
+        await super().prepare_help_command(ctx, parsed.string)
 
         filters = []
         for f in parsed.filters:
@@ -159,7 +159,7 @@ class CustomHelp(commands.HelpCommand):
         if not unique:
             unique = defFilters
 
-        return command, unique
+        return parsed.string, unique
 
     async def send_custom_help(self) -> None:
         # TODO: Improve the output

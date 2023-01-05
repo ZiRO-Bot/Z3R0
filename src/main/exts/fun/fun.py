@@ -6,7 +6,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import io
 from random import choice, randint, random, shuffle
-from typing import TYPE_CHECKING, Literal, Tuple, Union, get_args
+from typing import get_args
 
 import discord
 from discord import app_commands
@@ -33,7 +33,7 @@ class Fun(commands.Cog, CogMixin):
         super().__init__(bot)
         self.reddit = reddit.Reddit(self.bot.session)
 
-    @commands.command(brief="Get random meme from reddit")
+    @commands.hybrid_command(brief="Get random meme from reddit")
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def meme(self, ctx):
         # TODO: Add more meme subreddits
@@ -189,19 +189,19 @@ class Fun(commands.Cog, CogMixin):
     async def someone(self, ctx):
         await ctx.send(choice(ctx.guild.members).mention)
 
-    @commands.command(
+    @commands.hybrid_command(
         usage="(status code)",
         brief="Get http status code with cat in it",
         extras=dict(example=("httpcat 404",)),
     )
     @commands.cooldown(1, 5, commands.BucketType.user)
-    async def httpcat(self, ctx: Context, status_code):
+    async def httpcat(self, ctx: Context, status_code: int):
         async with ctx.session.get(url=f"https://http.cat/{status_code}") as res:
             image = io.BytesIO(await res.read())
             img = discord.File(fp=image, filename="httpcat.jpg")
             await ctx.try_reply(file=img)
 
-    @commands.command(brief="Show your pp size")
+    @commands.hybrid_command(brief="Show your pp size")
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def pp(self, ctx):
         pp = "8" + "=" * randint(1, 500) + "D"
@@ -213,13 +213,13 @@ class Fun(commands.Cog, CogMixin):
         )
         await ctx.send(embed=e)
 
-    @commands.command(
+    @commands.hybrid_command(
         aliases=("isimposter",),
         brief="Check if you're an impostor or a crewmate",
         usage="[impostor count] [player count]",
     )
     @commands.cooldown(3, 25, commands.BucketType.user)
-    async def isimpostor(self, ctx, impostor: int = 1, player: int = 10):
+    async def isimpostor(self, ctx, impostor: commands.Range[int, 1, 3] = 1, player: commands.Range[int, 4, 15] = 10):
         if impostor < 1:
             impostor = 1
             await ctx.send("Impostor count has been set to `1`")
@@ -231,7 +231,7 @@ class Fun(commands.Cog, CogMixin):
         else:
             await ctx.send(f"{ctx.author.mention}, you're a crewmate!")
 
-    @commands.command(aliases=("badjokes",), brief="Get random dad jokes")
+    @commands.hybrid_command(aliases=("badjokes",), brief="Get random dad jokes")
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def dadjokes(self, ctx):
         headers = {"accept": "application/json"}
@@ -244,7 +244,7 @@ class Fun(commands.Cog, CogMixin):
         )
         await ctx.send(embed=e)
 
-    @commands.command(
+    @commands.hybrid_command(
         usage="(choice)",
         brief="Rock Paper Scissors with the bot.",
         extras=dict(
@@ -291,6 +291,11 @@ class Fun(commands.Cog, CogMixin):
             f"You chose ***{choice_.capitalize()}***." + f" I chose ***{botChoice.capitalize()}***.\n{result}"
         )
 
+    @rps.autocomplete("choice_")
+    async def choiceSuggestion(self, inter, choice):
+        rps = ("rock", "paper", "scissors")
+        return [app_commands.Choice(name=i, value=i) for i in rps]
+
     @commands.command(aliases=("find-waifu",))
     @checks.isRafael()
     async def findwaifu(self, ctx):
@@ -298,11 +303,12 @@ class Fun(commands.Cog, CogMixin):
         f = discord.File("./assets/img/rafaelAndHisWaifu.png", filename="img.png")
         return await ctx.try_reply(file=f)
 
-    @commands.command(brief="Simple coin flip")
+    @commands.hybrid_command(brief="Simple coin flip")
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def flip(self, ctx):
         await ctx.try_reply(f"You got {choice(['heads', 'tails'])}!")
 
+    # TODO: Slash
     @commands.command(
         brief="Simple dice roller",
         description=(
@@ -340,20 +346,20 @@ class Fun(commands.Cog, CogMixin):
         # Cap dice number up to 5 to prevent bot from freezing
         diceNum = 5 if diceNum > 5 else diceNum
         results = [
-            str(randint(0 if selSize == 100 else 1, selSize)) + ("%" if selSize == 100 else "") for i in range(diceNum)
+            str(randint(0 if selSize == 100 else 1, selSize)) + ("%" if selSize == 100 else "") for _ in range(diceNum)
         ]
         return await ctx.try_reply("You rolled {}".format(", ".join(results)))
 
-    @commands.command(
+    @commands.hybrid_command(
         aliases=("👏",),
         brief="👏",
         extras=dict(example=("clap hell yea", "clap clap clap")),
     )
     @commands.cooldown(1, 5, type=commands.BucketType.user)
-    async def clap(self, ctx, *text):
-        return await ctx.try_reply(" 👏 ".join(text) or " 👏 ")
+    async def clap(self, ctx, *, text: str = ""):
+        return await ctx.try_reply(text.replace(" ", " 👏 ") or " 👏 ")
 
-    @commands.command(
+    @commands.hybrid_command(
         aliases=("piglin",),
         usage="[amount of gold]",
         extras=dict(
@@ -361,7 +367,7 @@ class Fun(commands.Cog, CogMixin):
         ),
     )
     @commands.cooldown(5, 25, type=commands.BucketType.user)
-    async def barter(self, ctx, gold: int = 64):
+    async def barter(self, ctx, gold: commands.Range[int, 1, 2240] = 64):
         """Barter with Minecraft's Piglin
         **Note**: The loot table is based on JE 1.16.1, before nerf
         """

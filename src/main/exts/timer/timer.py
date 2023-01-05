@@ -202,7 +202,7 @@ class Timer(commands.Cog, CogMixin):
             )
         )
 
-    @commands.command(brief="Get current time")
+    @commands.hybrid_command(brief="Get current time")
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def time(self, ctx, timezone: str = None) -> None:
         tz = None

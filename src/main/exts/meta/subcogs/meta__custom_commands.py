@@ -674,7 +674,7 @@ class MetaCustomCommands(commands.Cog, CogMixin):
         usage="(name)",
     )
     async def enable(self, ctx, *, arguments: CmdManagerFlags):
-        name, _ = arguments  # name, parsed
+        name = arguments.string
         if not name:
             return await ctx.error("You need to specify the command's name!")
 

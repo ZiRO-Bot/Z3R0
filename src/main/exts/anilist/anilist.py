@@ -9,6 +9,7 @@ from random import randrange
 from typing import Optional
 
 import discord
+from discord import app_commands
 from discord.ext import commands
 
 from ...core.embed import ZEmbed
@@ -39,7 +40,7 @@ class AniList(commands.Cog, CogMixin):
         super().__init__(bot)
         self.anilist: GraphQL = GraphQL("https://graphql.anilist.co", session=self.bot.session)
 
-    async def anilistSearch(self, ctx, name: str, parsed, type: str = "ANIME") -> Optional[discord.Message]:
+    async def anilistSearch(self, ctx, name: str, format: str | None, type: str = "ANIME") -> Optional[discord.Message]:
         """Function for 'manga search' and 'anime search' command"""
         type = type.upper().replace(" ", "_")
 
@@ -52,8 +53,8 @@ class AniList(commands.Cog, CogMixin):
             "perPage": 25,
             "type": type,
         }
-        if parsed.format_:
-            kwargs["format"] = parsed.format_.strip().upper().replace(" ", "_")
+        if format:
+            kwargs["format"] = format.strip().upper().replace(" ", "_")
 
         req = await self.anilist.queryPost(
             searchQuery,
@@ -116,11 +117,11 @@ class AniList(commands.Cog, CogMixin):
 
         await ctx.try_reply(embed=e)
 
-    @commands.group(
+    @commands.hybrid_group(
         aliases=("ani",),
         brief="Get anime's information",
     )
-    async def anime(self, ctx) -> None:
+    async def anime(self, _) -> None:
         pass
 
     @anime.command(
@@ -134,19 +135,26 @@ class AniList(commands.Cog, CogMixin):
             }
         ),
     )
+    @app_commands.describe(
+        name="The anime's name",
+        format_="The anime's format",
+    )
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def animeSearch(self, ctx, *, arguments: AnimeSearchFlags) -> None:
-        name, parsed = arguments
+        await self.anilistSearch(ctx, arguments.name, arguments.format_, "ANIME")  # type: ignore
 
-        await self.anilistSearch(ctx, name, parsed, "ANIME")  # type: ignore
+    @animeSearch.autocomplete("format_")
+    async def animeFormatSuggestion(self, inter, current: str):
+        animeFormat = ("TV", "TV Short", "OVA", "ONA", "Movie", "Special", "Music")
+        return [app_commands.Choice(name=i, value=i) for i in animeFormat]
 
     @anime.command(name="random", brief="Get random anime")
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def animeRandom(self, ctx) -> None:
         await self.anilistRandom(ctx)
 
-    @commands.group(brief="Get manga's information")
-    async def manga(self, ctx) -> None:
+    @commands.hybrid_group(brief="Get manga's information")
+    async def manga(self, _) -> None:
         pass
 
     @manga.command(
@@ -160,11 +168,18 @@ class AniList(commands.Cog, CogMixin):
             }
         ),
     )
+    @app_commands.describe(
+        name="The manga's name",
+        format_="The manga's format",
+    )
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def mangaSearch(self, ctx, *, arguments: AnimeSearchFlags) -> None:
-        name, parsed = arguments
+        await self.anilistSearch(ctx, arguments.name, arguments.format_, "MANGA")  # type: ignore
 
-        await self.anilistSearch(ctx, name, parsed, "MANGA")  # type: ignore
+    @mangaSearch.autocomplete("format_")
+    async def mangaFormatSuggestion(self, inter, current: str):
+        mangaFormat = ("Manga", "Novel", "One Shot")
+        return [app_commands.Choice(name=i, value=i) for i in mangaFormat]
 
     @manga.command(name="random", brief="Get random manga")
     @commands.cooldown(1, 5, commands.BucketType.user)

@@ -39,7 +39,7 @@ class Utilities(commands.Cog, CogMixin):
         self.piston = Piston(session=self.bot.session, loop=self.bot.loop)
         self.googletrans = GoogleTranslate(session=self.bot.session)
 
-    @commands.command(
+    @commands.hybrid_command(
         aliases=["calc", "c"],
         brief="Simple math evaluator",
         extras=dict(
@@ -51,7 +51,7 @@ class Utilities(commands.Cog, CogMixin):
         ),
     )
     @commands.cooldown(1, 5, commands.BucketType.user)
-    async def math(self, ctx, *, equation):
+    async def math(self, ctx, *, equation: str):
         try:
             result = NumericStringParser().eval(equation)
             if result > sys.maxsize:
@@ -76,6 +76,7 @@ class Utilities(commands.Cog, CogMixin):
         e.set_author(name="Simple Math Evaluator", icon_url=ctx.bot.user.avatar.url)
         return await ctx.try_reply(embed=e)
 
+    # TODO: Slash - Multiline sucks with slash
     @commands.command(
         aliases=("exec", "run"),
         brief="Execute a code",
@@ -111,6 +112,7 @@ class Utilities(commands.Cog, CogMixin):
 
             await ctx.try_reply(embed=e, file=f)
 
+    # TODO: Slash, need to adapt the args
     @commands.command(
         aliases=("tr", "trans"),
         brief="Translate a text",
@@ -140,23 +142,23 @@ class Utilities(commands.Cog, CogMixin):
         e.add_field(name="Translated [{}]".format(translated.dest), value=str(translated))
         return await ctx.try_reply(embed=e)
 
-    @commands.command(
+    @commands.hybrid_command(
         brief="Encode a text into morse code",
     )
     @commands.cooldown(1, 5, commands.BucketType.user)
-    async def morse(self, ctx, *, text):
+    async def morse(self, ctx, *, text: str):
         try:
             await ctx.try_reply(f"`{encodeMorse(text)}`")
         except KeyError:
             await ctx.error("Symbols/accented letters is not supported (yet?)", title="Invalid text")
 
-    @commands.command(
+    @commands.hybrid_command(
         aliases=("demorse",),
         brief="Decode a morse code",
         usage="(morse code)",
     )
     @commands.cooldown(1, 5, commands.BucketType.user)
-    async def unmorse(self, ctx, *, code):
+    async def unmorse(self, ctx, *, code: str):
         try:
             await ctx.try_reply(f"`{decodeMorse(code)}`")
         except ValueError:
@@ -254,10 +256,11 @@ class Utilities(commands.Cog, CogMixin):
                 await msg.delete()  # type: ignore
             await ctx.try_reply(embed=e)
 
-    @commands.command(
+    @commands.hybrid_command(
         brief="Get shorten url's real url. No more rick roll!",
         usage="(shorten url)",
     )
+    @app_commands.rename(shortenUrl="shorten-url")
     @commands.cooldown(1, 10, commands.BucketType.user)
     async def realurl(self, ctx, shortenUrl: str):
         async with ctx.loading():

@@ -1,9 +1,15 @@
-from typing import Any, List, Optional, Tuple
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 import discord
 from discord.ext import commands
 
 from ..utils.format import separateStringFlags
+
+
+if TYPE_CHECKING:
+    from typing_extensions import Self  # type: ignore - A bug from pyright
 
 
 # New features from discord.py v2.0, will be replacing ArgumentParser
@@ -13,34 +19,21 @@ class StringAndFlags(commands.FlagConverter):
     `string flag: value` -> ('string', parsedFlags)
     """
 
-    @classmethod
-    async def _construct_default(cls, ctx) -> Tuple[None, Any]:
-        return None, await super()._construct_default(ctx)
+    def __init__(self):
+        super().__init__()
+        self.string: str | None = None
 
     @classmethod
-    async def convert(cls, ctx, arguments: str) -> Tuple[str, Any]:
+    async def convert(cls, ctx, arguments: str) -> Self:
         string, arguments = separateStringFlags(arguments)
-        return string, await super().convert(ctx, arguments)
+        self: Self = await super().convert(ctx, arguments)
+        self.string = string
+        return self
 
 
 # TODO: Ditch flags for greetings, it breaks TagScript handler
 class GreetingFlags(commands.FlagConverter, case_insensitive=True):
-    channel: Optional[discord.TextChannel]
+    channel: discord.TextChannel | None = commands.flag(name="channel", aliases=["ch"], default=None)
     raw: bool = False
     disable: bool = False
-    messages: List[str] = commands.flag(name="message", aliases=("msg",), default=[])  # type: ignore
-
-
-class LogConfigFlags(commands.FlagConverter, case_insensitive=True):
-    disable: bool = False
-    channel: Optional[discord.TextChannel]
-
-
-class RoleCreateFlags(commands.FlagConverter, case_insensitive=True):
-    type_: Optional[str] = commands.flag(name="type")
-    nameList: List[str] = commands.flag(name="name", default=[])
-
-
-class RoleSetFlags(commands.FlagConverter, case_insensitive=True):
-    type_: str = commands.flag(name="type")
-    role: Optional[discord.Role]
+    messages: list[str] = commands.flag(name="message", aliases=["msg"], default=[])

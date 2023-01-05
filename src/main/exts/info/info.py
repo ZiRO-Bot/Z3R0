@@ -35,6 +35,7 @@ class Info(commands.Cog, CogMixin):
         super().__init__(bot)
         self.openweather = OpenWeatherAPI(key=bot.config.openWeatherToken, session=self.bot.session)
 
+    # TODO: Slash
     @commands.command(aliases=("av", "userpfp", "pfp"), brief="Get member's avatar image")
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def avatar(self, ctx: Context, user: MemberOrUser = None):
@@ -64,13 +65,13 @@ class Info(commands.Cog, CogMixin):
         e.set_image(url=avatar.with_size(1024).url)
         await ctx.try_reply(embed=e)
 
-    @commands.command(
+    @commands.hybrid_command(
         aliases=("w",),
         brief="Get current weather for specific city",
         extras=dict(example=("weather Palembang", "w London")),
     )
     @commands.cooldown(1, 5, commands.BucketType.user)
-    async def weather(self, ctx: Context, *, city):
+    async def weather(self, ctx: Context, *, city: str):
         if not self.openweather.apiKey:
             return await ctx.error("OpenWeather's API Key is not set! Please contact the bot owner to solve this issue.")
 
@@ -95,7 +96,7 @@ class Info(commands.Cog, CogMixin):
         e.set_thumbnail(url=weatherData.iconUrl)
         await ctx.try_reply(embed=e)
 
-    @commands.command(
+    @commands.hybrid_command(
         aliases=("clr", "color"),
         brief="Get colour information from hex value",
         description=(
@@ -136,6 +137,7 @@ class Info(commands.Cog, CogMixin):
     async def level(self, ctx):
         return await ctx.try_reply("https://tenor.com/view/stop-it-get-some-help-gif-7929301")
 
+    # TODO: Slash
     @commands.group(
         aliases=("em", "emote"),
         brief="Get an emoji's information",
@@ -286,7 +288,7 @@ class Info(commands.Cog, CogMixin):
         )
         return await ctx.try_reply(embed=e)
 
-    @commands.command(
+    @commands.hybrid_command(
         aliases=("jsh",),
         brief="Get japanese word",
         description="Get japanese word from english/japanese/romaji/text",
@@ -299,7 +301,7 @@ class Info(commands.Cog, CogMixin):
         ),
     )
     @commands.cooldown(1, 5, commands.BucketType.user)
-    async def jisho(self, ctx: Context, *, words):
+    async def jisho(self, ctx: Context, *, words: str):
         async with ctx.bot.session.get("https://jisho.org/api/v1/search/words", params={"keyword": words}) as req:
             result = await req.json()
 
@@ -326,11 +328,11 @@ class Info(commands.Cog, CogMixin):
                 )
             await ctx.try_reply(embed=e)
 
-    @commands.command(
+    @commands.hybrid_command(
         brief="Show covid information on certain country",
     )
     @commands.cooldown(1, 5, commands.BucketType.user)
-    async def covid(self, ctx: Context, *, country):
+    async def covid(self, ctx: Context, *, country: str):
         # TODO: Remove later
         if country.lower() in ("united state of america", "america"):
             country = "US"
@@ -351,6 +353,7 @@ class Info(commands.Cog, CogMixin):
             e.add_field(name="Confirmed Cases", value=f"{data['confirmed']:,}")
             await ctx.try_reply(embed=e)
 
+    # TODO: Slash
     @commands.command(
         aliases=("ui", "whois"),
         brief="Get user's information",
@@ -466,7 +469,7 @@ class Info(commands.Cog, CogMixin):
 
         await ctx.try_reply(embed=e)
 
-    @commands.command(
+    @commands.hybrid_command(
         aliases=("guild", "gi", "server", "serverinfo", "si"),
         brief="Get guild's information",
     )
@@ -540,7 +543,7 @@ class Info(commands.Cog, CogMixin):
 
         await ctx.try_reply(embed=e)
 
-    @commands.command(
+    @commands.hybrid_command(
         aliases=("spotify", "spot"),
         brief="Show what song a member listening to in Spotify",
     )
@@ -594,6 +597,7 @@ class Info(commands.Cog, CogMixin):
         )
         await ctx.try_reply(embed=e)
 
+    # TODO: Slash
     @commands.command(
         aliases=("perms",),
         brief="Show what permissions a member/role has",
@@ -624,7 +628,7 @@ class Info(commands.Cog, CogMixin):
 
         await ctx.try_reply(embed=e)
 
-    @commands.command(
+    @commands.hybrid_command(
         brief="Get information of a python project from pypi",
         usage="(project name)",
     )

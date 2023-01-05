@@ -86,6 +86,7 @@ class NekoPageSource(menus.PageSource):
 DEFAULT_NEKO = "lewd"
 
 
+# TODO: Slash - Stupid discord took ages to add NSFW tag
 class NSFW(commands.Cog, CogMixin):
     """NSFW Commands."""
 

@@ -24,6 +24,7 @@ from ._flags import AnnouncementFlags
 from ._pages import CaseListSource
 
 
+# TODO: Slash
 class Moderation(commands.Cog, CogMixin):
     """Moderation commands."""
 

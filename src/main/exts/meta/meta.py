@@ -6,7 +6,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 from __future__ import annotations
 
 import time
-from typing import TYPE_CHECKING, Any, Iterable, Optional, Tuple, Union
+from typing import TYPE_CHECKING
 
 import discord
 import humanize
@@ -70,12 +70,12 @@ class Meta(MetaCustomCommands):
         self.bot.help_command = CustomHelp(command_attrs=attributes)
         self.bot.help_command.cog = self
 
-    @commands.command(brief="Get link to my source code")
+    @commands.hybrid_command(brief="Get link to my source code")
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def source(self, ctx):
         await ctx.try_reply("My source code: {}".format(self.bot.links["Source Code"]))
 
-    @commands.command(aliases=("botinfo", "bi"), brief="Information about me")
+    @commands.hybrid_command(aliases=("botinfo", "bi"), brief="Information about me")
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def about(self, ctx):
         # Z3R0 Banner
@@ -99,7 +99,7 @@ class Meta(MetaCustomCommands):
                 view.add_item(discord.ui.Button(label=k, url=v))
         await ctx.try_reply(file=f, embed=e, view=view)
 
-    @commands.command(brief="Information about my stats")
+    @commands.hybrid_command(brief="Information about my stats")
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def stats(self, ctx):
         uptime = utcnow() - self.bot.uptime
@@ -115,7 +115,7 @@ class Meta(MetaCustomCommands):
         )
         await ctx.try_reply(embed=e)
 
-    @commands.group(
+    @commands.hybrid_group(
         aliases=("pref",),
         brief="Manages bot's custom prefix",
         extras=dict(
@@ -125,6 +125,7 @@ class Meta(MetaCustomCommands):
             )
         ),
         invoke_without_command=True,
+        with_app_command=False,
     )
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def prefix(self, ctx):
@@ -156,13 +157,12 @@ class Meta(MetaCustomCommands):
         ),
     )
     @checks.is_mod()
-    async def prefAdd(self, ctx, *prefix):
-        prefix = " ".join(prefix).lstrip()
+    async def prefAdd(self, ctx, *, prefix: str):
         if not prefix:
             return await ctx.error("Prefix can't be empty!")
 
         try:
-            await ctx.guild.addPrefix(prefix)
+            await ctx.guild.addPrefix(prefix.lstrip())
             await ctx.success(title="Prefix `{}` has been added".format(cleanifyPrefix(self.bot, prefix)))
         except Exception as exc:
             await ctx.error(exc)
@@ -180,18 +180,17 @@ class Meta(MetaCustomCommands):
         ),
     )
     @checks.is_mod()
-    async def prefRm(self, ctx, *prefix):
-        prefix = " ".join(prefix).lstrip()
+    async def prefRm(self, ctx, *, prefix: str):
         if not prefix:
             return await ctx.error("Prefix can't be empty!")
 
         try:
-            await ctx.guild.rmPrefix(prefix)
+            await ctx.guild.rmPrefix(prefix.lstrip())
             await ctx.success(title="Prefix `{}` has been removed".format(cleanifyPrefix(self.bot, prefix)))
         except Exception as exc:
             await ctx.error(exc)
 
-    @commands.command(aliases=("p",), brief="Get bot's response time")
+    @commands.hybrid_command(aliases=("p",), brief="Get bot's response time")
     async def ping(self, ctx):
         start = time.perf_counter()
         e = ZEmbed.default(ctx, title="Pong!")
@@ -209,7 +208,7 @@ class Meta(MetaCustomCommands):
         )
         await msg.edit(embed=e)
 
-    @commands.command(brief="Get bot's invite link")
+    @commands.hybrid_command(brief="Get bot's invite link")
     async def invite(self, ctx):
         botUser: discord.ClientUser = self.bot.user  # type: ignore
         clientId = botUser.id

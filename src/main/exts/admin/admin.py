@@ -3,7 +3,9 @@ This Source Code Form is subject to the terms of the Mozilla Public
 License, v. 2.0. If a copy of the MPL was not distributed with this
 file, You can obtain one at http://mozilla.org/MPL/2.0/.
 """
-from typing import Callable, Optional, Union
+from __future__ import annotations
+
+from typing import Optional, Union
 
 import discord
 from discord import app_commands
@@ -16,6 +18,7 @@ from ...core.embed import ZEmbed
 from ...core.mixin import CogMixin
 from ...utils.format import separateStringFlags
 from ...utils.other import setGuildRole
+from ._flags import ROLE_TYPES, LogFlags, RoleCreateFlags, RoleSetFlags
 
 
 class Greeting(discord.ui.Modal, title="Greeting"):
@@ -51,18 +54,6 @@ class Greeting(discord.ui.Modal, title="Greeting"):
         return await inter.response.defer()
 
 
-# Also includes aliases
-ROLE_TYPES = {
-    "default": "autoRole",  # Role that automatically given upon joining a guild
-    "member": "autoRole",
-    "moderator": "modRole",
-    "mod": "modRole",
-    "mute": "mutedRole",
-    "muted": "mutedRole",
-    "regular": "",
-}
-
-
 async def handleGreetingConfig(
     ctx: Context,
     type: str,
@@ -74,11 +65,16 @@ async def handleGreetingConfig(
     channel: discord.TextChannel = None,
 ):
     """Handle welcome and farewell configuration."""
+    guild: discord.Guild | None = ctx.guild
+    if not guild:
+        raise RuntimeError
+
     changeMsg = False
+
     if arguments is None:
         # TODO - Revisit once more input introduced to modals
         # TODO - Timeout + disable the button
-        defMsg = await ctx.bot.getGuildConfig(ctx.guild.id, f"{type}Msg")
+        defMsg = await ctx.bot.getGuildConfig(guild.id, f"{type}Msg")
 
         def makeCallback():
             async def callback(interaction: discord.Interaction):
@@ -118,20 +114,20 @@ async def handleGreetingConfig(
     )
 
     if disable is True:
-        await ctx.bot.setGuildConfig(ctx.guild.id, f"{type}Ch", None, "GuildChannels")
+        await ctx.bot.setGuildConfig(guild.id, f"{type}Ch", None, "GuildChannels")
         e.add_field(name="Status", value="`Disabled`")
         return await ctx.try_reply(embed=e)
 
     if raw is True:
-        message = await ctx.bot.getGuildConfig(ctx.guild.id, f"{type}Msg")
+        message = await ctx.bot.getGuildConfig(guild.id, f"{type}Msg")
         return await ctx.try_reply(discord.utils.escape_markdown(str(message)))
 
     if changeMsg:
-        await ctx.bot.setGuildConfig(ctx.guild.id, f"{type}Msg", message)
+        await ctx.bot.setGuildConfig(guild.id, f"{type}Msg", message)
         e.add_field(name="Message", value=message, inline=False)
 
     if channel is not None:
-        await ctx.bot.setGuildConfig(ctx.guild.id, f"{type}Ch", channel.id, "GuildChannels")
+        await ctx.bot.setGuildConfig(guild.id, f"{type}Ch", channel.id, "GuildChannels")
         e.add_field(name="Channel", value=channel.mention)
 
     return await ctx.try_reply(embed=e)
@@ -157,10 +153,10 @@ class Admin(commands.Cog, CogMixin):
 
     @greetingGroup.command(name="welcome", description=welcomeDesc)
     @app_commands.describe(
-        channel="Channel where the welcome message will be sent",
+        channel="Channel where welcome messages will be sent",
         raw="Get current welcome message in raw mode (Useful for editing, other options is ignored when used!)",
         disable="Disable welcome event",
-        message="Messagge that will be sent to welcome channel",
+        message="Message that will be sent to the welcome channel",
     )
     async def welcomeSlash(
         self,
@@ -208,10 +204,10 @@ class Admin(commands.Cog, CogMixin):
 
     @greetingGroup.command(name="farewell", description=farewellDesc)
     @app_commands.describe(
-        channel="Channel where the farewell message will be sent",
+        channel="Channel where farewell messages will be sent",
         raw="Get current farewell message in raw mode (Useful for editing, other options is ignored when used!)",
         disable="Disable farewell event",
-        message="Messagge that will be sent to farewell channel",
+        message="Message that will be sent to the farewell channel",
     )
     async def farewellSlash(
         self,
@@ -254,41 +250,34 @@ class Admin(commands.Cog, CogMixin):
     async def farewell(self, ctx, *, arguments: str):
         await handleGreetingConfig(ctx, "farewell", arguments=arguments)
 
-    async def handleLogConfig(self, ctx, arguments, type: str):
+    async def handleLogConfig(self, ctx, arguments: LogFlags, type: str):
         """Handle configuration for logs (modlog, purgatory)"""
         # Parsing arguments
-        channel, args = separateStringFlags(arguments)
-        channel = channel.strip()
-        if channel != "":
-            channel = await commands.TextChannelConverter().convert(ctx, channel)
-        else:
-            channel = None
-
-        parsed = await flags.LogConfigFlags.convert(ctx, args)
-
-        disable = parsed.disable
+        channel = arguments.channel
+        disable = arguments.disable
 
         e = ZEmbed.success(title=("Modlog" if type == "modlog" else "Purgatory") + " config has been updated")
-
-        if parsed.channel is not None:
-            channel = parsed.channel
 
         channelId = MISSING
         if channel is not None and not disable:
             channelId = channel.id
             e.add_field(name="Channel", value=channel.mention)
-        else:
+        elif disable is True:
             channelId = None
             e.add_field(name="Status", value="`Disabled`")
 
         if channelId is not MISSING:
             await self.bot.setGuildConfig(ctx.guild.id, f"{type}Ch", channelId, "GuildChannels")
         else:
-            e.description = "Nothing changed."
+            channelId = await self.bot.getGuildConfig(ctx.guild.id, f"{type}Ch", "GuildChannels")
+            if channelId:
+                e.add_field(name="Channel", value=f"<#{channelId}>")
+            else:
+                e.add_field(name="Status", value="`Disabled`")
 
         return await ctx.try_reply(embed=e)
 
-    @commands.command(
+    @commands.hybrid_command(
         aliases=("ml",),
         brief="Set modlog channel",
         description="Set modlog channel",
@@ -305,12 +294,16 @@ class Admin(commands.Cog, CogMixin):
             },
         ),
     )
+    @app_commands.describe(
+        channel="Channel where modlogs will be sent",
+        disable="Disable modlog",
+    )
     @commands.bot_has_guild_permissions(view_audit_log=True, manage_channels=True)
     @checks.mod_or_permissions(manage_channels=True)
-    async def modlog(self, ctx, *, arguments):
+    async def modlog(self, ctx, *, arguments: LogFlags):
         await self.handleLogConfig(ctx, arguments, "modlog")
 
-    @commands.command(
+    @commands.hybrid_command(
         aliases=("purge", "userlog"),
         brief="Set purgatory channel",
         description="Set purgatory channel",
@@ -331,11 +324,15 @@ class Admin(commands.Cog, CogMixin):
             },
         ),
     )
+    @app_commands.describe(
+        channel="Channel where deleted/edited messages will be sent",
+        disable="Disable purgatory",
+    )
     @checks.mod_or_permissions(manage_channels=True)
-    async def purgatory(self, ctx, *, arguments):
+    async def purgatory(self, ctx, *, arguments: LogFlags):
         await self.handleLogConfig(ctx, arguments, "purgatory")
 
-    @commands.group(
+    @commands.hybrid_group(
         name="role",
         brief="Manage guild's role",
         extras=dict(
@@ -351,7 +348,7 @@ class Admin(commands.Cog, CogMixin):
         ),
     )
     @checks.is_admin()
-    async def _role(self, ctx):
+    async def _role(self, _):
         # Role manager
         pass
 
@@ -397,15 +394,12 @@ class Admin(commands.Cog, CogMixin):
         ),
     )
     @commands.bot_has_guild_permissions(manage_roles=True)
-    async def roleCreate(self, ctx, *, arguments):
-        name, args = separateStringFlags(arguments)
-        parsed = await flags.RoleCreateFlags.convert(ctx, args)
-
-        name = " ".join([name.strip()] + parsed.nameList).strip()
+    async def roleCreate(self, ctx, *, arguments: RoleCreateFlags):
+        name = arguments.name
         if not name:
             return await ctx.error("Name can't be empty!")
 
-        type = parsed.type_ or "regular"
+        type = arguments.type_ or "regular"
 
         if (type := type.lower()) in ROLE_TYPES:
             msg = await ctx.try_reply(
@@ -447,20 +441,9 @@ class Admin(commands.Cog, CogMixin):
             },
         ),
     )
-    async def roleSet(self, ctx, *, arguments):
-        roleArg, args = separateStringFlags(arguments)
-        parsed = await flags.RoleSetFlags.convert(ctx, args)
-        if parsed.role:
-            role = parsed.role
-        else:
-            role = await commands.RoleConverter().convert(ctx, roleArg.strip())
-
-        if not role:
-            # should already handled by command.RoleConverter but just incase
-            return
-
-        type = parsed.type_
-
+    async def roleSet(self, ctx, *, arguments: RoleSetFlags):
+        role = arguments.role
+        type = arguments.type_
         disallowed = ("regular",)
 
         if (type := type.lower()) in ROLE_TYPES and type not in disallowed:
@@ -514,7 +497,7 @@ class Admin(commands.Cog, CogMixin):
             arguments=f"{getattr(name, 'id', name)} type: member",
         )
 
-    @commands.command(
+    @commands.hybrid_command(
         brief="Set announcement channel",
         extras=dict(
             example=("announcement #announcement",),
@@ -524,6 +507,7 @@ class Admin(commands.Cog, CogMixin):
             },
         ),
     )
+    @app_commands.describe(channel="Channel where announcements will be sent")
     @checks.is_mod()
     async def announcement(self, ctx, channel: discord.TextChannel):
         await self.bot.setGuildConfig(ctx.guild.id, "announcementCh", channel.id, "GuildChannels")
