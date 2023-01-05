@@ -528,7 +528,7 @@ class EventHandler(commands.Cog, CogMixin):
             )
             return await channel.send(embed=e)
 
-        if after.is_timed_out():
+        if not before.is_timed_out() and after.is_timed_out():
             entry = await self.getAuditLogs(after.guild, action=discord.AuditLogAction.member_update)
 
             if entry.target == after:
@@ -538,6 +538,20 @@ class EventHandler(commands.Cog, CogMixin):
                     entry.target,  # type: ignore
                     entry.user,
                     "timed_out",
+                    entry.reason,
+                )
+            return
+
+        if before.is_timed_out() and not after.is_timed_out():
+            entry = await self.getAuditLogs(after.guild, action=discord.AuditLogAction.member_update)
+
+            if entry.target == after:
+                await doModlog(
+                    self.bot,
+                    after.guild,
+                    entry.target,  # type: ignore
+                    entry.user,
+                    "time-out_removed",
                     entry.reason,
                 )
 
