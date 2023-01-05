@@ -68,6 +68,7 @@ class TimerData:
         )
 
 
+# TODO: Slash
 class Timer(commands.Cog, CogMixin):
     """Time-related commands."""
 
