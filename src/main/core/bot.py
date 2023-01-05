@@ -489,6 +489,9 @@ class ziBot(commands.Bot):
 
         await self.process(message)
 
+    async def on_app_command_completion(self, _, command: discord.app_commands.Command | discord.app_commands.ContextMenu):
+        self.commandUsage[formatCmdName(command)] += 1
+
     async def close(self) -> None:
         """Properly close/turn off bot"""
         await super().close()

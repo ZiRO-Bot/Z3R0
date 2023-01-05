@@ -328,31 +328,6 @@ class Info(commands.Cog, CogMixin):
                 )
             await ctx.try_reply(embed=e)
 
-    @commands.hybrid_command(
-        brief="Show covid information on certain country",
-    )
-    @commands.cooldown(1, 5, commands.BucketType.user)
-    async def covid(self, ctx: Context, *, country: str):
-        # TODO: Remove later
-        if country.lower() in ("united state of america", "america"):
-            country = "US"
-        if country.lower() in ("uk",):
-            country = "United Kingdom"
-
-        async with self.bot.session.get("https://covid-api.mmediagroup.fr/v1/cases?country={}".format(country)) as req:
-            data = list((await req.json()).values())[0]
-            try:
-                e = ZEmbed.default(ctx, title="{}'s COVID Report".format(data["country"]))
-            except KeyError:
-                return await ctx.error(
-                    "**Note**: Country name is case-sensitive",
-                    title="Invalid Country Name",
-                )
-            e.add_field(name="Recovered", value=f"{data['recovered']:,}")
-            e.add_field(name="Deaths", value=f"{data['deaths']:,}")
-            e.add_field(name="Confirmed Cases", value=f"{data['confirmed']:,}")
-            await ctx.try_reply(embed=e)
-
     # TODO: Slash
     @commands.command(
         aliases=("ui", "whois"),
@@ -535,8 +510,7 @@ class Info(commands.Cog, CogMixin):
             name="Settings",
             value=(
                 "**Verification Level**: `{}`\n".format(guild.verification_level)
-                + "**Two-Factor Auth**: {}\n".format("On" if guild.mfa_level == 1 else "Off")
-                + "**Voice Region**: `{}`".format(guild.region)
+                + "**Two-Factor Auth**: {}".format("On" if guild.mfa_level == 1 else "Off")
             ),
             inline=False,
         )
