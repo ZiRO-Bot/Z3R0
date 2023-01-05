@@ -136,6 +136,7 @@ Moved to [CHANGELOG.md](./CHANGELOG.md)
 - Starboard
 - Slash command
 - Button-based (or Modal-based?) bot settings
+- Setup Tests using dpytest
 
 ### Pending Plan
 
