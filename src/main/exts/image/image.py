@@ -3,9 +3,9 @@ This Source Code Form is subject to the terms of the Mozilla Public
 License, v. 2.0. If a copy of the MPL was not distributed with this
 file, You can obtain one at http://mozilla.org/MPL/2.0/.
 """
+from __future__ import annotations
 
 from io import BytesIO
-from typing import Optional, Union
 
 import discord
 from discord.ext import commands
@@ -23,12 +23,12 @@ class Image(commands.Cog, CogMixin):
     def __init__(self, bot):
         super().__init__(bot)
         # Source: https://github.com/ZiRO-Bot/RandomAPI
-        self.imageManipUrl = f"http://{self.bot.config.internalApiHost}/"
+        self.imageManipUrl = f"http://{self.bot.config.internalApiHost}/api/v1/image"
 
     async def doImageFilter(
         self,
         ctx,
-        _user: Optional[Union[MemberOrUser, discord.User]],
+        _user: (MemberOrUser | discord.User) | None,
         type: str,
         format: str = "png",
     ) -> discord.Message:

@@ -22,5 +22,5 @@ services:
       POSTGRES_DB: zibot
 
   api:
-    image: ghcr.io/ziro-bot/randomapi:latest
+    image: ghcr.io/ziro-bot/randomapi:1.0.0
     restart: unless-stopped
