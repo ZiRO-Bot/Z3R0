@@ -73,7 +73,7 @@ async def doModlog(
         # No channel found, don't do modlog
         return
 
-    title = type.title()
+    title = type.replace("_", " ").title()
     if caseNum:
         title += " | #{}".format(caseNum)
 
@@ -513,7 +513,7 @@ class EventHandler(commands.Cog, CogMixin):
         return await logCh.send(content=message.channel.mention, embed=e)  # type: ignore
 
     @commands.Cog.listener("on_member_update")
-    async def onMemberUpdate(self, before: discord.Member, after: discord.Member) -> None:
+    async def onMemberUpdate(self, before: discord.Member, after: discord.Member):
         if after.guild.id != 807260318270619748:
             return
 
@@ -526,7 +526,20 @@ class EventHandler(commands.Cog, CogMixin):
                 description="<:booster:865087663609610241> {} has just boosted the server!".format(after.mention),
                 color=self.bot.color,
             )
-            await channel.send(embed=e)
+            return await channel.send(embed=e)
+
+        if after.is_timed_out():
+            entry = await self.getAuditLogs(after.guild, action=discord.AuditLogAction.member_update)
+
+            if entry.target == after:
+                await doModlog(
+                    self.bot,
+                    after.guild,
+                    entry.target,  # type: ignore
+                    entry.user,
+                    "timed_out",
+                    entry.reason,
+                )
 
     @commands.Cog.listener("on_member_muted")
     async def onMemberMuted(self, member: discord.Member, mutedRole: discord.Object):
