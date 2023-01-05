@@ -1,13 +1,17 @@
 # v3.5 (Overhaul an Overhaul?)
 
+## 3.5.1 (Hotfix)
+- [**Fixed**] Subcommand ignore parent's checks
+
+
+## 3.5.0 (Overhaul-ception)
+
 **⚠️ DISCLAIMER FOR DEVS: THIS UPDATE (`3.4.x` -> `3.5.x`) CONTAINS BREAKING CHANGES!**
 
 This update is mostly just migration to stable discord.py v2.0 after discord.py development is continued.
 Most changes are on the code side, so it shouldn't affect users that much, other than the addition of application commands (or `slash`).
 
 Starting from 3.5 ziBot will only support Python 3.10+
-
-## 3.5.0 (Overhaul-ception)
 
 ### Bugfixes
 - [**Fixed**] Re-enabled meme command, fixed by itself (probably aiohttp's user-agent bug)
@@ -67,7 +71,7 @@ Starting from 3.5 ziBot will only support Python 3.10+
 ## 3.4.2 (Bugfix)
 - [**Fixed**] Fixed `getAuditLogs`
 
-## 3.4.1 (HotFix)
+## 3.4.1 (Hotfix)
 - [**Fixed**] Added missing file to git repo (`timer/_views.py`)
 - [**Fixed**] Fixed "not in the list" error when it's not supposed to do that
 

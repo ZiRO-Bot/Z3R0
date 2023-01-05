@@ -158,6 +158,7 @@ class Admin(commands.Cog, CogMixin):
         disable="Disable welcome event",
         message="Message that will be sent to the welcome channel",
     )
+    @checks.mod_or_permissions(manage_channels=True)
     async def welcomeSlash(
         self,
         interaction,
@@ -209,6 +210,7 @@ class Admin(commands.Cog, CogMixin):
         disable="Disable farewell event",
         message="Message that will be sent to the farewell channel",
     )
+    @checks.mod_or_permissions(manage_channels=True)
     async def farewellSlash(
         self,
         interaction,
@@ -394,6 +396,7 @@ class Admin(commands.Cog, CogMixin):
         ),
     )
     @commands.bot_has_guild_permissions(manage_roles=True)
+    @checks.is_admin()
     async def roleCreate(self, ctx, *, arguments: RoleCreateFlags):
         name = arguments.name
         if not name:
@@ -441,6 +444,8 @@ class Admin(commands.Cog, CogMixin):
             },
         ),
     )
+    @commands.bot_has_guild_permissions(manage_roles=True)
+    @checks.is_admin()
     async def roleSet(self, ctx, *, arguments: RoleSetFlags):
         role = arguments.role
         type = arguments.type_
