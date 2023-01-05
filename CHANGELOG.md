@@ -17,6 +17,7 @@ Starting from 3.5 ziBot will only support Python 3.10+
   Some commands will be added on later version
 - [**Improved**] You can now set Welcome and Farewell message using Modal
 - [**Re-added**] Re-added google search command
+- [**Added**] Handle timed\_out to be logged on modlog
 
 ### Internal Changes (Won't affect bot users)
 - [**Improved / BREAKING CHANGES**] Changed project structure (all source file now located
