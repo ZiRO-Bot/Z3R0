@@ -78,7 +78,7 @@ class ziBot(commands.Bot):
 
         # custom intents, required since dpy v1.5
         # message content intent, required since dpy v2.0
-        intents = discord.Intents.default()
+        intents = discord.Intents.all()
         intents.message_content = True
 
         super().__init__(
