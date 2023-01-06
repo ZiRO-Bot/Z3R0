@@ -330,11 +330,11 @@ class Info(commands.Cog, CogMixin):
 
     # TODO: Slash
     @commands.command(
-        aliases=("ui", "whois"),
+        aliases=("userinfo", "ui", "whois"),
         brief="Get user's information",
     )
     @commands.cooldown(1, 5, commands.BucketType.user)
-    async def userinfo(self, ctx: Context, *, _user: MemberOrUser = None):
+    async def user(self, ctx: Context, *, _user: MemberOrUser = None):
         user: Union[discord.User, discord.Member] = _user or await authorOrReferenced(
             ctx
         )  # type: ignore # MemberOrUser or authorOrReferenced will return user/member
@@ -445,12 +445,12 @@ class Info(commands.Cog, CogMixin):
         await ctx.try_reply(embed=e)
 
     @commands.hybrid_command(
-        aliases=("guild", "gi", "server", "serverinfo", "si"),
+        aliases=("guild", "guildinfo", "gi", "serverinfo", "si"),
         brief="Get guild's information",
     )
     @commands.guild_only()
     @commands.cooldown(1, 5, commands.BucketType.user)
-    async def guildinfo(self, ctx):
+    async def server(self, ctx):
         guild: discord.Guild = ctx.guild
         createdAt = guild.created_at
 
@@ -518,12 +518,12 @@ class Info(commands.Cog, CogMixin):
         await ctx.try_reply(embed=e)
 
     @commands.hybrid_command(
-        aliases=("spotify", "spot"),
+        aliases=("spotifyinfo", "spot"),
         brief="Show what song a member listening to in Spotify",
     )
     @commands.cooldown(1, 5, commands.BucketType.user)
     @commands.guild_only()
-    async def spotifyinfo(self, ctx: Context, user: discord.Member = None):
+    async def spotify(self, ctx: Context, user: discord.Member = None):
         user = user or await authorOrReferenced(ctx)  # type: ignore
 
         spotify: discord.Spotify = discord.utils.find(
