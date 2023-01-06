@@ -448,8 +448,8 @@ class Info(commands.Cog, CogMixin):
         aliases=("guild", "gi", "server", "serverinfo", "si"),
         brief="Get guild's information",
     )
-    @commands.cooldown(1, 5, commands.BucketType.user)
     @commands.guild_only()
+    @commands.cooldown(1, 5, commands.BucketType.user)
     async def guildinfo(self, ctx):
         guild: discord.Guild = ctx.guild
         createdAt = guild.created_at

@@ -158,6 +158,7 @@ class Admin(commands.Cog, CogMixin):
         disable="Disable welcome event",
         message="Message that will be sent to the welcome channel",
     )
+    @app_commands.guild_only()
     @checks.mod_or_permissions(manage_channels=True)
     async def welcomeSlash(
         self,
@@ -197,6 +198,7 @@ class Admin(commands.Cog, CogMixin):
         ),
         description="Set welcome message and/or channel\n`TagScript` is supported!",
     )
+    @commands.guild_only()
     @checks.mod_or_permissions(manage_channels=True)
     async def welcome(self, ctx, *, arguments: str):
         await handleGreetingConfig(ctx, "welcome", arguments=arguments)
@@ -210,6 +212,7 @@ class Admin(commands.Cog, CogMixin):
         disable="Disable farewell event",
         message="Message that will be sent to the farewell channel",
     )
+    @app_commands.guild_only()
     @checks.mod_or_permissions(manage_channels=True)
     async def farewellSlash(
         self,
@@ -248,6 +251,7 @@ class Admin(commands.Cog, CogMixin):
             },
         ),
     )
+    @commands.guild_only()
     @checks.mod_or_permissions(manage_channels=True)
     async def farewell(self, ctx, *, arguments: str):
         await handleGreetingConfig(ctx, "farewell", arguments=arguments)
@@ -300,6 +304,7 @@ class Admin(commands.Cog, CogMixin):
         channel="Channel where modlogs will be sent",
         disable="Disable modlog",
     )
+    @commands.guild_only()
     @commands.bot_has_guild_permissions(view_audit_log=True, manage_channels=True)
     @checks.mod_or_permissions(manage_channels=True)
     async def modlog(self, ctx, *, arguments: LogFlags):
@@ -330,6 +335,7 @@ class Admin(commands.Cog, CogMixin):
         channel="Channel where deleted/edited messages will be sent",
         disable="Disable purgatory",
     )
+    @commands.guild_only()
     @checks.mod_or_permissions(manage_channels=True)
     async def purgatory(self, ctx, *, arguments: LogFlags):
         await self.handleLogConfig(ctx, arguments, "purgatory")
@@ -349,6 +355,7 @@ class Admin(commands.Cog, CogMixin):
             },
         ),
     )
+    @commands.guild_only()
     @checks.is_admin()
     async def _role(self, _):
         # Role manager
@@ -395,6 +402,7 @@ class Admin(commands.Cog, CogMixin):
             },
         ),
     )
+    @commands.guild_only()
     @commands.bot_has_guild_permissions(manage_roles=True)
     @checks.is_admin()
     async def roleCreate(self, ctx, *, arguments: RoleCreateFlags):
@@ -444,6 +452,7 @@ class Admin(commands.Cog, CogMixin):
             },
         ),
     )
+    @commands.guild_only()
     @commands.bot_has_guild_permissions(manage_roles=True)
     @checks.is_admin()
     async def roleSet(self, ctx, *, arguments: RoleSetFlags):
@@ -494,6 +503,7 @@ class Admin(commands.Cog, CogMixin):
             },
         ),
     )
+    @commands.guild_only()
     @commands.bot_has_guild_permissions(manage_roles=True)
     @checks.is_admin()
     async def autorole(self, ctx, name: Union[discord.Role, str]):
@@ -513,6 +523,7 @@ class Admin(commands.Cog, CogMixin):
         ),
     )
     @app_commands.describe(channel="Channel where announcements will be sent")
+    @commands.guild_only()
     @checks.is_mod()
     async def announcement(self, ctx, channel: discord.TextChannel):
         await self.bot.setGuildConfig(ctx.guild.id, "announcementCh", channel.id, "GuildChannels")
