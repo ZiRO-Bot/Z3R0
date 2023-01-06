@@ -22,7 +22,7 @@ class Config:
     def __init__(
         self,
         token: str,
-        databaseUrl: str,
+        databaseUrl: str | None = None,
         defaultPrefix: str | None = None,
         botMasters: list[str] | None = None,
         issueChannel: str | None = None,
@@ -39,7 +39,7 @@ class Config:
         self.openWeatherToken = openWeatherToken
         self.author = author
         self.links = links
-        self.databaseUrl = databaseUrl
+        self.databaseUrl = databaseUrl or "sqlite://data/database.db"
         self._tortoiseConfig = tortoiseConfig
         self.internalApiHost = internalApiHost or "127.0.0.1:2264"
 

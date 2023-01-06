@@ -83,7 +83,7 @@ def run():
 
             config = Config(
                 _config.token,
-                getattr(_config, "sql"),
+                getattr(_config, "sql", None),
                 getattr(_config, "prefix", None),
                 getattr(_config, "botMasters", None),
                 getattr(_config, "issueChannel", None),
@@ -98,14 +98,13 @@ def run():
                 logger.warn("Missing config.py, getting config from environment variables instead...")
 
             token = os.environ.get("ZIBOT_TOKEN")
-            sql = os.environ.get("ZIBOT_DB_URL")
-            if not token and not sql:
+            if not token:
                 logger.warn("Missing required environment variables, quitting...")
             else:
                 botMasters = os.environ.get("ZIBOT_BOT_MASTERS")
                 config = Config(
-                    token,  # type: ignore
-                    sql,  # type: ignore
+                    token,
+                    os.environ.get("ZIBOT_DB_URL"),
                     os.environ.get("ZIBOT_DEFAULT_PREFIX"),
                     botMasters.split(" ") if botMasters else [],
                     os.environ.get("ZIBOT_ISSUE_CHANNEL"),
