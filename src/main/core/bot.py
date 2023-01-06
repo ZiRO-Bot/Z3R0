@@ -106,7 +106,7 @@ class ziBot(commands.Bot):
         self.owner_ids: tuple = self.config.botMasters
         self.issueChannel: int = int(self.config.issueChannel or 0)
 
-        self.blacklist: Blacklist = Blacklist("blacklist.json")
+        self.blacklist: Blacklist = Blacklist("data/blacklist.json")
 
         self.activityIndex: int = 0
         self.commandUsage: Counter = Counter()
@@ -119,7 +119,7 @@ class ziBot(commands.Bot):
 
         # News, shows up in help command
         self.news: dict[str, Any] = JSON(
-            "news.json",
+            "data/news.json",
             {
                 "time": 0,
                 "content": "Nothing to see here...",
