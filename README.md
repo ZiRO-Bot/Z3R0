@@ -84,7 +84,7 @@ More feature coming soon!
 
 #### Manual
 
-> **NOTE**: Python 3.10+ is required to host this bot!
+> **Warning**: Python 3.10+ is required to host this bot!
 
 - Download this repository by executing `git clone https://github.com/ZiRO-Bot/Z3R0.git`
   or click "Code" -> "Download ZIP"
@@ -147,7 +147,8 @@ Moved to [CHANGELOG.md](./CHANGELOG.md)
 
 ### Scrapped Plan
 
-> Plan that unfortunately not possible (atleast for now)
+Plan that unfortunately not possible (atleast for now)
+
 - Replace mute with the new timeout feature from Discord  
   The feature is too limited, maybe I'll add timeout command instead
 - Music Player  
