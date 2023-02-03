@@ -1,3 +1,9 @@
+"""
+This Source Code Form is subject to the terms of the Mozilla Public
+License, v. 2.0. If a copy of the MPL was not distributed with this
+file, You can obtain one at http://mozilla.org/MPL/2.0/.
+"""
+
 from discord.ext import commands
 
 from ..utils.other import getGuildRole, utcnow
@@ -7,6 +13,9 @@ from .errors import (
     MissingModPrivilege,
     SilentError,
 )
+
+
+# TODO: Re-organize, also make it hybrid
 
 
 def has_guild_permissions(**perms):

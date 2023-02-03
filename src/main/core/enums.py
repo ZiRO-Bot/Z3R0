@@ -1,3 +1,10 @@
+"""
+This Source Code Form is subject to the terms of the Mozilla Public
+License, v. 2.0. If a copy of the MPL was not distributed with this
+file, You can obtain one at http://mozilla.org/MPL/2.0/.
+"""
+
+
 class Emojis:
     ok = "<:ok2_0:873464878982115360>"
     error = "<:error:783265883228340245>"
