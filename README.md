@@ -124,7 +124,9 @@ More feature coming soon!
 
 ## Changelog
 
-Moved to [CHANGELOG.md](./CHANGELOG.md)
+Go to the [release page](https://github.com/ZiRO-Bot/Z3R0/releases) to see
+per-version changelog or [CHANGELOG.md](./CHANGELOG.md) for more detailed
+changelog
 
 ## Plans
 
@@ -147,7 +149,11 @@ Moved to [CHANGELOG.md](./CHANGELOG.md)
 
 ### Scrapped Plan
 
-Plan that unfortunately not possible (atleast for now)
+> **Note**
+>
+> Some of these plans are not completely scrapped, some simply scrapped since
+> it's not yet possible for me to do but I don't know whether or not it'll
+> eventually be possible to be added
 
 - Replace mute with the new timeout feature from Discord  
   The feature is too limited, maybe I'll add timeout command instead
