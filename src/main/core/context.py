@@ -13,6 +13,7 @@ import discord
 from discord.ext import commands
 
 from .embed import ZEmbed
+from .guild import GuildWrapper
 
 
 class Context(commands.Context):
@@ -115,4 +116,11 @@ class Context(commands.Context):
         ref = self.message.reference
         if ref and isinstance(ref.resolved, discord.Message):
             return ref.resolved.to_reference()
+        return None
+
+    @discord.utils.cached_property
+    def guild(self):
+        g = self.message.guild
+        if g:
+            return GuildWrapper(g, self.bot)
         return None

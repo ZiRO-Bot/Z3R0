@@ -84,6 +84,9 @@ class Disabled(ContainsGuildId, Model):
 class Prefixes(ContainsGuildId, Model):
     prefix = fields.TextField()
 
+    class Meta:
+        unique_together = (("prefix", "guild_id"),)
+
 
 class GuildConfigs(ContainsGuildId, Model):
     ccMode = fields.IntField(pk=False, generated=False, default=0)

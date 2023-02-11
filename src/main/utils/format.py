@@ -10,12 +10,16 @@ import datetime as dt
 import re
 import sys
 import traceback
-from typing import Tuple, Union
+from typing import TYPE_CHECKING, Tuple, Union
 
 import discord
 from discord.ext import commands
 
 from ..core.embed import ZEmbed
+
+
+if TYPE_CHECKING:
+    from ..core.bot import ziBot
 
 
 def formatCmdParams(command):
@@ -127,7 +131,7 @@ class CMDName(commands.clean_content):
         return lower
 
 
-def cleanifyPrefix(bot, prefix):
+def cleanifyPrefix(bot: ziBot, prefix: str):
     """Cleanify prefix (similar to context.clean_prefix)"""
     pattern = re.compile(r"<@!?{}>".format(bot.user.id))
     return pattern.sub("@{}".format(bot.user.display_name.replace("\\", r"\\")), prefix)

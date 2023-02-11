@@ -33,7 +33,7 @@ from .colour import ZColour
 from .config import Config
 from .context import Context
 from .errors import CCommandDisabled, CCommandNotFound, CCommandNotInGuild
-from .monkeypatch import MonkeyPatch
+from .guild import GuildWrapper
 
 
 EXTS = []
@@ -48,18 +48,17 @@ for filename in os.listdir(FMT):
             EXTS.append("src.main.{}.{}".format(EXTS_DIR, filename))
 
 
-if TYPE_CHECKING:
-    from .monkeypatch import PatchedGuild
-
-
 async def _callablePrefix(bot: ziBot, message: discord.Message) -> list:
     """Callable Prefix for the bot."""
     base = [bot.defPrefix]
-    guild: PatchedGuild | None = message.guild  # type: ignore
+    guild: GuildWrapper | None = GuildWrapper.fromContext(message.guild, bot)
     if guild:
         prefixes = await guild.getPrefixes()
         base.extend(prefixes)
     return commands.when_mentioned_or(*sorted(base))(bot, message)
+
+
+__all__ = ("ziBot",)
 
 
 class ziBot(commands.Bot):
@@ -68,7 +67,6 @@ class ziBot(commands.Bot):
         session: aiohttp.ClientSession
 
     def __init__(self, config: Config) -> None:
-        MonkeyPatch(self).inject()
         self.config: Config = config
 
         # --- NOTE: Information about the bot
@@ -133,6 +131,7 @@ class ziBot(commands.Bot):
         )
 
         # Caches
+        # TODO: Improve type checking support
         self.cache: Cache = (
             Cache()
             .add(

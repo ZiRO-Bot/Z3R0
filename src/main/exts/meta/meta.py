@@ -14,6 +14,7 @@ import humanize
 from discord.ext import commands
 
 from ...core import checks
+from ...core.context import Context
 from ...core.embed import ZEmbed
 from ...core.menus import ZMenuPagesView
 from ...utils.format import cleanifyPrefix
@@ -182,7 +183,7 @@ class Meta(MetaCustomCommands):
         ),
     )
     @checks.is_mod()
-    async def prefRm(self, ctx, *, prefix: str):
+    async def prefRm(self, ctx: Context, *, prefix: str):
         _prefix = " ".join(prefix).lstrip()
         if not _prefix:
             return await ctx.error("Prefix can't be empty!")
