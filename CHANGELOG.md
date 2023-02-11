@@ -1,8 +1,22 @@
 # v3.5 (Overhaul an Overhaul?)
 
+## 3.5.2
+### Bugfixes
+- [**Fixed**] Guild only (slash) commands is registered to DMs
+
+### Improvements
+- [**Changed**] Rename some command (only affecting for slash)
+- [**Improved**] Use SQLite by default when DB\_URL is not specified
+
+### Internal Changes
+- [**Changed**] Turn monkeypatches into wrapper classes to clean up the
+  codebase
+- [**Improved**] Add `__init__.py` file to clean up the codebase
+- [**Fixed**] Updated `discord.py` to v2.1.1 to fix GIF sticker support
+- [**Fixed**] Added missing license headers
+
 ## 3.5.1 (Hotfix)
 - [**Fixed**] Fixed some subcommands ignore parent's checks
-
 
 ## 3.5.0 (Overhaul-ception)
 
