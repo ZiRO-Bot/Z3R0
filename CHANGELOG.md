@@ -4,8 +4,9 @@
 
 ### Bugfixes
 - [**Fixed**] Guild only (slash) commands is registered to DMs
-- [**Fixed**] Duration parser stop working
+- [**Fixed**] Duration parser stopped working
 - [**Fixed**] `1 spam` is parsed as 1 seconds
+- [**Fixed**] `>mute set` command stopped working
 
 ### Improvements
 - [**Changed**] Rename some command (only affecting for slash)

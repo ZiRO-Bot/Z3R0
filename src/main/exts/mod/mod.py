@@ -16,6 +16,7 @@ from ...core.embed import ZEmbed
 from ...core.errors import MissingMuteRole
 from ...core.menus import ZMenuPagesView
 from ...core.mixin import CogMixin
+from ...exts.admin._flags import RoleCreateFlags, RoleSetFlags
 from ...exts.timer.timer import Timer, TimerData
 from ...utils.cache import CacheUniqueViolation
 from ...utils.format import formatDateTime
@@ -310,9 +311,17 @@ class Moderation(commands.Cog, CogMixin):
         usage="[role name]",
     )
     async def muteCreate(self, ctx, name: Union[discord.Role, str] = "Muted"):
+        cmd = "create" if isinstance(name, str) else "set"
+        argString = f"role: {getattr(name, 'id', name)} type: muted"
+
+        if cmd == "create":
+            argument = await RoleCreateFlags.convert(ctx, arguments=argString)
+        else:
+            argument = await RoleSetFlags.convert(ctx, arguments=argString)
+
         await ctx.try_invoke(
-            "role create" if isinstance(name, str) else "role set",
-            arguments=f"{getattr(name, 'id', name)} type: muted",
+            f"role {cmd}",
+            arguments=argument,
         )
 
     @commands.command(
