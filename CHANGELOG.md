@@ -1,8 +1,11 @@
 # v3.5 (Overhaul an Overhaul?)
 
 ## 3.5.2
+
 ### Bugfixes
 - [**Fixed**] Guild only (slash) commands is registered to DMs
+- [**Fixed**] Duration parser stop working
+- [**Fixed**] `1 spam` is parsed as 1 seconds
 
 ### Improvements
 - [**Changed**] Rename some command (only affecting for slash)
@@ -20,12 +23,14 @@
 
 ## 3.5.0 (Overhaul-ception)
 
-**⚠️ DISCLAIMER FOR DEVS: THIS UPDATE (`3.4.x` -> `3.5.x`) CONTAINS BREAKING CHANGES!**
-
-This update is mostly just migration to stable discord.py v2.0 after discord.py development is continued.
-Most changes are on the code side, so it shouldn't affect users that much, other than the addition of application commands (or `slash`).
-
-Starting from 3.5 ziBot will only support Python 3.10+
+> **Warning**
+>
+> **THIS UPDATE (`3.4.x` -> `3.5.x`) CONTAINS BREAKING CHANGES!**
+>
+> This update is mostly just migration to stable discord.py v2.0 after discord.py development is continued.  
+> Most changes are on the code side, so it shouldn't affect users that much, other than the addition of application commands (or `slash`).
+>
+> Starting from 3.5 ziBot will only support Python 3.10+
 
 ### Bugfixes
 - [**Fixed**] Re-enabled meme command, fixed by itself (probably aiohttp's user-agent bug)
@@ -231,7 +236,6 @@ Starting from 3.5 ziBot will only support Python 3.10+
   permissions
 
 # v3.1 (Not So Funny Moderator)
-All about moderation, and some fun command changes and addition
 
 ## 3.1.0 (April Fools!)
 
@@ -264,11 +268,6 @@ All about moderation, and some fun command changes and addition
 
 # v3.0 (Overhaul)
 
-A rewrite and a complete overhaul on the bot, biggest update so far.
-This update completely overhauled command system to integrate custom commands
-more seemlessly, it's not completely done but old stuff will be added back
-slowly in future updates.
-
 ## 3.0.5 (Bugfix)
 
 - [**Fixed**] Fix `CCommandNoPerm` not being handled by error handler
@@ -299,6 +298,13 @@ slowly in future updates.
   current mode and all different modes for custom command
 
 ## 3.0.0 (New Beginning)
+
+> **Note**
+>
+> A rewrite and a complete overhaul on the bot, biggest update so far.
+> This update completely overhauled command system to integrate custom commands
+> more seemlessly, it's not completely done but old stuff will be added back
+> slowly in future updates.
 
 - [**Rename**] `cogs/` -> `exts/`
 - [**New**] Command priority [0: Built-in, 1: Custom]

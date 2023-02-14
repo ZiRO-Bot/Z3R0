@@ -21,13 +21,13 @@ from .errors import DefaultError, HierarchyError
 
 TIME_REGEX = re.compile(
     r"""
-        (?:(?P<years>([\d]+))(?:\ )?(?:years?|y))?
-        (?:(?P<months>([\d]+))(?:\ )?(?:months?|mo))?
-        (?:(?P<weeks>([\d]+))(?:\ )?(?:weeks?|w))?
-        (?:(?P<days>([\d]+))(?:\ )?(?:days?|d))?
-        (?:(?P<hours>([\d]+))(?:\ )?(?:hours?|h))?
-        (?:(?P<minutes>([\d]+))(?:\ )?(?:minutes?|mins?|m))?
-        (?:(?P<seconds>([\d]+))(?:\ )?(?:seconds?|secs?|s))?
+        (?:(?P<years>([\d]+))((?:\ )?years?|y))?
+        (?:(?P<months>([\d]+))((?:\ )?months?|mo))?
+        (?:(?P<weeks>([\d]+))((?:\ )?weeks?|w))?
+        (?:(?P<days>([\d]+))((?:\ )?days?|d))?
+        (?:(?P<hours>([\d]+))((?:\ )?hours?|h))?
+        (?:(?P<minutes>([\d]+))((?:\ )?minutes?|(m(?:in(?:s)?)?)))?
+        (?:(?P<seconds>([\d]+))((?:\ )?seconds?|(s(?:ec(?:s)?)?)))?
     """,
     re.VERBOSE | re.IGNORECASE,
 )
@@ -48,7 +48,7 @@ class TimeAndArgument(commands.Converter):
                 now = utcnow()
                 try:
                     self.when = now + relativedelta(**kwargs)
-                    self.delta = naturaldelta(self.when, when=now)
+                    self.delta = naturaldelta(self.when - now)
                 except (ValueError, OverflowError):
                     raise DefaultError("Invalid time provided")
                 return self
