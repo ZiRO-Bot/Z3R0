@@ -1,6 +1,9 @@
 # v3.5 (Overhaul an Overhaul?)
 
-## 3.5.2
+## 3.5.3 (Docker Fix)
+- [**Fixed**] Assets is missing for docker setup
+
+## 3.5.2 (Chore)
 
 ### Bugfixes
 - [**Fixed**] Guild only (slash) commands is registered to DMs

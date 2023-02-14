@@ -44,6 +44,7 @@ ENV PATH="/venv/bin:${PATH}" \
 
 COPY --from=builder /venv /venv
 COPY --from=builder /app/src/ /app/src
+COPY assets/ /app/assets
 COPY docker/__main__.py ./
 
 CMD ["python", "."]
