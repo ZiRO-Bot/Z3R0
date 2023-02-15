@@ -7,21 +7,18 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 from __future__ import annotations
 
 import aiohttp
-import discord
 import discord.ext.test as dpytest
 import pytest
 import pytest_asyncio
-from discord.ext import commands
 
 from main.core.bot import ziBot
 from main.core.config import Config
 from main.core.embed import ZEmbed
 
 
-@pytest_asyncio.fixture
+@pytest_asyncio.fixture  # type: ignore
 async def bot():
-    Config("")
-    testBot = ziBot(Config("", test=True))
+    testBot = ziBot(Config("totally a token yup...", "sqlite://:memory:", test=True))
     dpytest.configure(testBot)
     await testBot._async_setup_hook()
     await testBot.setup_hook()
@@ -31,6 +28,20 @@ async def bot():
 
 @pytest.mark.asyncio
 async def testPing(bot: ziBot):
-    ctx = await bot.get_context(await dpytest.message(">ping"))
+    msg = await dpytest.message(">ping")
+    ctx = await bot.get_context(msg)
     e = ZEmbed.default(ctx, title="Pong!")
-    assert dpytest.verify().message().embed(e)
+    e.add_field(
+        name="<a:discordLoading:857138980192911381> | Websocket",
+        value="∞",
+    )
+    e.add_field(
+        name="<a:typing:785053882664878100> | Typing",
+        value="0ms",
+        inline=False,
+    )
+
+    be = dpytest.get_embed()
+
+    # dpytest don't test fields for some reason
+    assert all([dpytest.utils.embed_eq(e, be), all([f == be.fields[i] for i, f in enumerate(e.fields)])])
