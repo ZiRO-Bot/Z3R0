@@ -32,28 +32,39 @@ TIME_REGEX = re.compile(
     re.VERBOSE | re.IGNORECASE,
 )
 
+DISCORD_TS_REGEX = re.compile(r"<t:(?P<ts>[0-9]+)(?:\:?[RFfDdTt])?>")
+
 
 class TimeAndArgument(commands.Converter):
     async def convert(self, ctx: Context, argument: str):
         # Default values
         self.arg = argument
-        self.when: Optional[dt.datetime] = None
+        self.when: dt.datetime
         self.delta: Optional[str] = None
 
+        now = utcnow()
+
         match = TIME_REGEX.match(argument)
-        if match:
-            kwargs = {k: int(v) for k, v in match.groupdict().items() if v}
+        if not match:
+            match = DISCORD_TS_REGEX.fullmatch(argument)
+            if match:
+                self.arg = argument[match.end() :].strip()
+                self.when = dt.datetime.fromtimestamp(int(match.group("ts")), tz=dt.timezone.utc)
+            else:
+                raise DefaultError("Invalid time provided")
+        else:
+            kwargs = {k: int(v) for k, v in match.groupdict(default=0).items() if v}
             if kwargs:
                 self.arg = argument[match.end() :].strip()
-                now = utcnow()
                 try:
                     self.when = now + relativedelta(**kwargs)
-                    self.delta = naturaldelta(self.when - now)
                 except (ValueError, OverflowError):
                     raise DefaultError("Invalid time provided")
-                return self
-            # prevent NaN (empty) time like 'min' makes arg empty
-            self.arg = argument
+            else:
+                # prevent NaN (empty) time like 'min' makes arg empty
+                self.arg = argument
+
+        self.delta = naturaldelta(self.when - now)
 
         # TODO: Try to parse "specific time" (8:00am or 16 Jun 2021)
         return self
