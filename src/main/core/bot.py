@@ -45,7 +45,7 @@ for filename in os.listdir(FMT):
         if filename in EXTS_IGNORED:
             continue
         if not filename.startswith("_"):
-            EXTS.append("src.main.{}.{}".format(EXTS_DIR, filename))
+            EXTS.append("main.{}.{}".format(EXTS_DIR, filename))
 
 
 async def _callablePrefix(bot: ziBot, message: discord.Message) -> list:
@@ -189,18 +189,19 @@ class ziBot(commands.Bot):
 
     async def afterReady(self) -> None:
         """`setup_hook` but wait until ready"""
-        await self.wait_until_ready()
+        if not self.config.test:
+            await self.wait_until_ready()
 
-        self.changingPresence.start()
+            owner: discord.User = (await self.application_info()).owner
+            if owner and owner.id not in self.owner_ids:
+                self.owner_ids += (owner.id,)
 
-        owner: discord.User = (await self.application_info()).owner
-        if owner and owner.id not in self.owner_ids:
-            self.owner_ids += (owner.id,)
+            await self.manageGuildDeletion()
 
-        await self.manageGuildDeletion()
+            self.changingPresence.start()
 
         for extension in EXTS:
-            await self.load_extension(extension)
+            await self.load_extension(f"src.{extension}" if not self.config.test else extension)
 
         if not hasattr(self, "uptime"):
             self.uptime: datetime.datetime = utcnow()
