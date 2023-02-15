@@ -1,6 +1,7 @@
 # v3.5 (Overhaul an Overhaul?)
 
-## 3.5.4 ()
+## 3.5.4 (Bugfix)
+- [**Fixed**] Prefixes is not loaded properly
 
 ## 3.5.3 (Docker Fix)
 - [**Fixed**] Assets is missing for docker setup

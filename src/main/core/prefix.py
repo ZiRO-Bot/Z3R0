@@ -30,7 +30,7 @@ class Prefix:
         self.bot: ziBot = bot
 
     async def fetch(self) -> list[db.Prefixes]:
-        if self.owner is discord.Guild:
+        if isinstance(self.owner, discord.Guild):
             return await db.Prefixes.filter(guild_id=self.owner.id)
         return []
 
@@ -70,8 +70,8 @@ class Prefix:
             if prefixes and (len(prefixes) + 1) > self.bot.cache.prefixes.limit:  # type: ignore
                 raise CacheListFull
 
-            self.bot.cache.prefixes.add(self.owner.id, prefix)  # type: ignore
             await db.Prefixes.create(prefix=prefix, guild_id=self.owner.id)
+            self.bot.cache.prefixes.add(self.owner.id, prefix)  # type: ignore
         except (CacheUniqueViolation, IntegrityError) as exc:
             if exc is IntegrityError:
                 self.bot.cache.prefixes.remove(self.owner.id, prefix)  # type: ignore

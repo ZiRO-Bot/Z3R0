@@ -33,20 +33,23 @@ class GuildWrapper:
             return cls(guild, bot)
         return None
 
+    def __str__(self) -> str:
+        return str(self.guild)
+
     def __getattr__(self, name: str):
         try:
             return self.guild.__getattribute__(name)
         except:
             return self.__getattribute__(name)
 
-    def getPrefixes(self):
-        return self.prefix.get()
+    async def getPrefixes(self):
+        return await self.prefix.get()
 
-    def getFormattedPrefixes(self):
-        return self.prefix.getFormatted()
+    async def getFormattedPrefixes(self):
+        return await self.prefix.getFormatted()
 
-    def rmPrefix(self, prefix: str):
-        return self.prefix.remove(prefix)
+    async def rmPrefix(self, prefix: str):
+        return await self.prefix.remove(prefix)
 
-    def addPrefix(self, prefix: str):
-        return self.prefix.add(prefix)
+    async def addPrefix(self, prefix: str):
+        return await self.prefix.add(prefix)
