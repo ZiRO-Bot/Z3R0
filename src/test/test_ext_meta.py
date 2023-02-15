@@ -6,24 +6,11 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from __future__ import annotations
 
-import aiohttp
 import discord.ext.test as dpytest
 import pytest
-import pytest_asyncio
 
 from main.core.bot import ziBot
-from main.core.config import Config
 from main.core.embed import ZEmbed
-
-
-@pytest_asyncio.fixture  # type: ignore
-async def bot():
-    testBot = ziBot(Config("totally a token yup...", "sqlite://:memory:", test=True))
-    dpytest.configure(testBot)
-    await testBot._async_setup_hook()
-    await testBot.setup_hook()
-    testBot.session = aiohttp.ClientSession(headers={"User-Agent": "Discord/Z3RO (ziBot/3.0 by ZiRO2264)"})
-    return testBot
 
 
 @pytest.mark.asyncio
