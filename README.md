@@ -119,8 +119,11 @@ More feature coming soon!
 ### Development
 
 - Install poetry `pip install poetry` then run `poetry install`
-- Run `poetry run pre-commit install`
-- To run the bot executing this command, `poetry run bot`
+- Install pre-commit then run `poetry run pre-commit install`
+- Start the bot by running `poetry run bot`
+- It is recommended to setup a test unit inside `src/test` when you added a new
+  command, you can run the test by running `poetry run pytest`  
+  Read [dpytest](https://dpytest.readthedocs.io/) documentation for more information
 
 ## Changelog
 
