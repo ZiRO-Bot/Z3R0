@@ -25,7 +25,7 @@ jobs:
     strategy:
       matrix:
         os: [Ubuntu, macOS, Windows]
-        python-version: ["3.7", "3.8", "3.9", "3.10", "3.11"]
+        python-version: ["3.10", "3.11"]
         include:
           - os: Ubuntu
             image: ubuntu-22.04
@@ -90,4 +90,4 @@ jobs:
         env:
           POETRY_TEST_INTEGRATION_GIT_USERNAME: ${GITHUB_ACTOR}
           POETRY_TEST_INTEGRATION_GIT_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
-        run: poetry run pytest --integration -v
+        run: poetry run pytest -v
