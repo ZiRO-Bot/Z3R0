@@ -191,7 +191,7 @@ class JSON(dict):
 
     def __init__(self, filename: str, default: Dict[Any, Any] = {}) -> None:
         self.filename: Path = Path(filename)
-        self.filename.mkdir(parents=True, exist_ok=True)
+        self.filename.parent.mkdir(parents=True, exist_ok=True)
 
         data: Dict[Any, Any] = default or {}
 
