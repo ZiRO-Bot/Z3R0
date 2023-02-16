@@ -32,3 +32,43 @@ async def testPing(bot: ziBot):
 
     # dpytest don't test fields for some reason
     assert all([dpytest.utils.embed_eq(e, be), all([f == be.fields[i] for i, f in enumerate(e.fields)])])
+
+
+@pytest.mark.asyncio
+async def testPrefixAdd(bot: ziBot):
+    await dpytest.message(">prefix + !")
+    assert str(dpytest.get_embed(peek=True).title).endswith("added")
+
+
+@pytest.mark.asyncio
+async def testPrefixUnique(bot: ziBot):
+    await dpytest.message(">prefix + !")
+    await dpytest.message(">prefix + !")
+    assert str(dpytest.get_embed(peek=True).description).endswith("exists")
+
+
+@pytest.mark.asyncio
+async def testPrefixFull(bot: ziBot):
+    await dpytest.message(">prefix + 1")
+    await dpytest.message(">prefix + 2")
+    await dpytest.message(">prefix + 3")
+    await dpytest.message(">prefix + 4")
+    await dpytest.message(">prefix + 5")
+    await dpytest.message(">prefix + 6")
+    await dpytest.message(">prefix + 7")
+    await dpytest.message(">prefix + 8")
+    await dpytest.message(">prefix + 9")
+    await dpytest.message(">prefix + 10")
+    await dpytest.message(">prefix + 11")
+    await dpytest.message(">prefix + 12")
+    await dpytest.message(">prefix + 13")
+    await dpytest.message(">prefix + 14")
+    await dpytest.message(">prefix + 15")
+    await dpytest.message(">prefix + fail")
+    assert "full" in str(dpytest.get_embed(peek=True).description)
+
+
+@pytest.mark.asyncio
+async def testPrefixNotExists(bot: ziBot):
+    await dpytest.message(">prefix - !")
+    assert str(dpytest.get_embed(peek=True).description).endswith("exists")

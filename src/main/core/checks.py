@@ -43,6 +43,9 @@ def is_botmaster():
 def is_mod():
     # Moderator is a member that either have manage_guild or mod role
     async def predicate(ctx):
+        if ctx.bot.config.test:
+            return True
+
         try:
             roleId = await getGuildRole(ctx.bot, ctx.guild.id, "modRole")
             role = ctx.guild.get_role(roleId)

@@ -17,8 +17,10 @@ from main.core.config import Config
 @pytest_asyncio.fixture  # type: ignore
 async def bot():
     testBot = ziBot(Config("totally a token yup...", "sqlite://:memory:", test=True))
+    testBot.session = aiohttp.ClientSession(headers={"User-Agent": "Discord/Z3RO (ziBot/3.0 by ZiRO2264)"})
     dpytest.configure(testBot)
     await testBot._async_setup_hook()
     await testBot.setup_hook()
-    testBot.session = aiohttp.ClientSession(headers={"User-Agent": "Discord/Z3RO (ziBot/3.0 by ZiRO2264)"})
-    return testBot
+    await testBot.on_guild_join(dpytest.get_config().guilds[0])
+    yield testBot
+    await testBot.close()
