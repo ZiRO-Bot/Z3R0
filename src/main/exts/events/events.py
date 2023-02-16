@@ -376,7 +376,7 @@ class EventHandler(commands.Cog, CogMixin):
                 description=desc,
                 # colour=discord.Colour(0x2F3136),
             )
-            e.set_footer(text="Waiting for answer...", icon_url=ctx.author.avatar.url)
+            e.set_footer(text="Waiting for answer...", icon_url=ctx.author.display_avatar.url)
 
             view = Report(ctx.author, timeout=60.0)
 
@@ -388,7 +388,7 @@ class EventHandler(commands.Cog, CogMixin):
             await view.wait()
 
             if not view.value:
-                e.set_footer(text="You were too late to answer.", icon_url=ctx.author.avatar.url)
+                e.set_footer(text="You were too late to answer.", icon_url=ctx.author.display_avatar.url)
                 view.report.disabled = True
                 await msg.edit(embed=e, view=view)
             else:
@@ -402,7 +402,7 @@ class EventHandler(commands.Cog, CogMixin):
                 await dest.send(embed=e_owner)
                 e.set_footer(
                     text="Error has been reported to {}".format(destName),
-                    icon_url=ctx.author.avatar.url,
+                    icon_url=ctx.author.display_avatar.url,
                 )
                 view.report.disabled = True
                 await msg.edit(embed=e, view=view)

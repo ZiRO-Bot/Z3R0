@@ -87,7 +87,7 @@ class Meta(MetaCustomCommands):
             ctx,
             description=self.bot.description + "\n\nThis bot is licensed under **{}**.".format(ctx.bot.license),
         )
-        e.set_author(name=ctx.bot.user.name, icon_url=ctx.bot.user.avatar.url)
+        e.set_author(name=ctx.bot.user.name, icon_url=ctx.bot.user.display_avatar.url)
         e.set_image(url="attachment://banner.png")
         e.add_field(name="Author", value=ctx.bot.author)
         e.add_field(
@@ -106,7 +106,7 @@ class Meta(MetaCustomCommands):
     async def stats(self, ctx):
         uptime = utcnow() - self.bot.uptime
         e = ZEmbed.default(ctx)
-        e.set_author(name=ctx.bot.user.name + "'s stats", icon_url=ctx.bot.user.avatar.url)
+        e.set_author(name=ctx.bot.user.name + "'s stats", icon_url=ctx.bot.user.display_avatar.url)
         e.add_field(name="🕙 | Uptime", value=humanize.precisedelta(uptime), inline=False)
         e.add_field(
             name="<:terminal:852787866554859591> | Command Usage (This session)",

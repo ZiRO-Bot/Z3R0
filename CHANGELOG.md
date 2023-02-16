@@ -2,6 +2,9 @@
 
 ## 3.5.5 (Mostly Test)
 
+### Bugfixes
+- [**Fixed**] Fixed potential error related to user without avatar
+
 ### Internal Changes
 - [**Added**] Unit testing the bot using [dpytest](https://github.com/CraftSpider/dpytest)
 - [**Improved**] Initial Python v3.11 support
