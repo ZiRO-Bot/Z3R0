@@ -14,6 +14,7 @@ import os
 import uuid
 from decimal import Decimal
 from html.parser import HTMLParser
+from pathlib import Path
 from typing import Any, Dict, Optional, Tuple
 
 import discord
@@ -189,7 +190,8 @@ class JSON(dict):
     __slots__ = ("filename", "data")
 
     def __init__(self, filename: str, default: Dict[Any, Any] = {}) -> None:
-        self.filename: str = filename
+        self.filename: Path = Path(filename)
+        self.filename.mkdir(parents=True, exist_ok=True)
 
         data: Dict[Any, Any] = default or {}
 
