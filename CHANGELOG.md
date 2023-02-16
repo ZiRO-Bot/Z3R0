@@ -1,7 +1,10 @@
 # v3.5 (Overhaul an Overhaul?)
 
 ## 3.5.5 (Mostly Test)
+
+### Internal Changes
 - [**Added**] Unit testing the bot using [dpytest](https://github.com/CraftSpider/dpytest)
+- [**Improved**] Initial Python v3.11 support
 
 ## 3.5.4 (Bugfix)
 - [**Fixed**] Prefixes is not loaded properly
