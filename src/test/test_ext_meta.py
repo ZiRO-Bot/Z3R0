@@ -72,7 +72,7 @@ async def testPrefixFull(bot: ziBot):
 async def testPrefixRemove(bot: ziBot):
     await dpytest.message(">prefix + !")
     await dpytest.message(">prefix - !")
-    assert str(dpytest.get_embed(peek=True).description).endswith("exists")
+    assert str(dpytest.get_embed(peek=True).title).endswith("removed")
 
 
 @pytest.mark.asyncio
