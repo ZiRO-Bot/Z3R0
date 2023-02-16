@@ -21,7 +21,7 @@ humanize = "4.4.0"
 jishaku = {git = "https://github.com/ZiRO-Bot/jishaku", rev = "9174fad992247c88ca9b3202d44938c4d46e9776"}
 Pillow = "8.4.0"
 python-dateutil = "2.8.2"
-Levenshtein = "0.13.0"
+Levenshtein = "0.20.3"
 pytz = "2021.3"
 pyparsing = "2.4.7"
 requests = "2.28.1"
