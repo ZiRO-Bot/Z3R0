@@ -197,17 +197,26 @@ class Meta(MetaCustomCommands):
     @commands.hybrid_command(aliases=("p",), brief="Get bot's response time")
     async def ping(self, ctx):
         start = time.perf_counter()
+        msgPing = 0
+
         e = ZEmbed.default(ctx, title="Pong!")
+
+        botLatency = f"{round(self.bot.latency*1000)}ms" if not ctx.bot.config.test else "∞"
+
         e.add_field(
             name="<a:discordLoading:857138980192911381> | Websocket",
-            value=f"{round(self.bot.latency*1000)}ms",
+            value=botLatency,
         )
+
         msg = await ctx.try_reply(embed=e)
-        end = time.perf_counter()
-        msg_ping = (end - start) * 1000
+
+        if not ctx.bot.config.test:
+            end = time.perf_counter()
+            msgPing = (end - start) * 1000
+
         e.add_field(
             name="<a:typing:785053882664878100> | Typing",
-            value=f"{round(msg_ping)}ms",
+            value=f"{round(msgPing)}ms",
             inline=False,
         )
         await msg.edit(embed=e)

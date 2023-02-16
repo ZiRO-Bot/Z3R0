@@ -19,6 +19,7 @@ import aiohttp
 import discord
 from discord.ext import commands, tasks
 from tortoise import Tortoise
+from tortoise.exceptions import DBConnectionError, OperationalError
 from tortoise.models import Model
 
 from .. import __version__ as botVersion
@@ -45,7 +46,7 @@ for filename in os.listdir(FMT):
         if filename in EXTS_IGNORED:
             continue
         if not filename.startswith("_"):
-            EXTS.append("src.main.{}.{}".format(EXTS_DIR, filename))
+            EXTS.append("main.{}.{}".format(EXTS_DIR, filename))
 
 
 async def _callablePrefix(bot: ziBot, message: discord.Message) -> list:
@@ -179,6 +180,14 @@ class ziBot(commands.Bot):
                 "No master is set, you may not able to use certain commands! (Unless you own the Bot Application)"
             )
 
+        if self.config.test:
+            await Tortoise.init(
+                config=self.config.tortoiseConfig,
+                use_tz=True,  # d.py 2.0 is tz-aware
+            )
+            with suppress(DBConnectionError, OperationalError):
+                await Tortoise._drop_databases()
+
         await Tortoise.init(
             config=self.config.tortoiseConfig,
             use_tz=True,  # d.py 2.0 is tz-aware
@@ -189,18 +198,19 @@ class ziBot(commands.Bot):
 
     async def afterReady(self) -> None:
         """`setup_hook` but wait until ready"""
-        await self.wait_until_ready()
+        if not self.config.test:
+            await self.waitUntilReady()
 
-        self.changingPresence.start()
+            owner: discord.User = (await self.application_info()).owner
+            if owner and owner.id not in self.owner_ids:
+                self.owner_ids += (owner.id,)
 
-        owner: discord.User = (await self.application_info()).owner
-        if owner and owner.id not in self.owner_ids:
-            self.owner_ids += (owner.id,)
+            await self.manageGuildDeletion()
 
-        await self.manageGuildDeletion()
+            self.changingPresence.start()
 
         for extension in EXTS:
-            await self.load_extension(extension)
+            await self.load_extension(f"src.{extension}" if not self.config.test else extension)
 
         if not hasattr(self, "uptime"):
             self.uptime: datetime.datetime = utcnow()
@@ -273,7 +283,7 @@ class ziBot(commands.Bot):
     @tasks.loop(seconds=15)
     async def changingPresence(self) -> None:
         """A loop that change bot's status every 15 seconds."""
-        await self.wait_until_ready()
+        await self.waitUntilReady()
         activities: tuple = (
             discord.Activity(
                 name=f"over {len(self.guilds)} servers",
@@ -342,7 +352,7 @@ class ziBot(commands.Bot):
 
     async def on_guild_join(self, guild: discord.Guild) -> None:
         """Executed when bot joins a guild"""
-        await self.wait_until_ready()
+        await self.waitUntilReady()
 
         await db.Guilds.create(id=guild.id)
 
@@ -351,13 +361,16 @@ class ziBot(commands.Bot):
 
     async def on_guild_remove(self, guild: discord.Guild) -> None:
         """Executed when bot leaves a guild"""
-        await self.wait_until_ready()
+        await self.waitUntilReady()
         # Schedule deletion
         await self.scheduleDeletion(guild.id, days=self.guildDelDays)
 
     async def scheduleDeletion(self, guildId: int, days: int = 30) -> None:
         """Schedule guild deletion from `guilds` table"""
         timer: Timer = self.get_cog("Timer")  # type: ignore
+        if not timer:
+            return
+
         now = utcnow()
         when = now + datetime.timedelta(days=days)
         await timer.createTimer(when, "guild_del", created=now, owner=guildId)
@@ -365,6 +378,8 @@ class ziBot(commands.Bot):
     async def cancelDeletion(self, guild: discord.Guild) -> None:
         """Cancel guild deletion"""
         timer: Timer = self.get_cog("Timer")  # type: ignore
+        if not timer:
+            return
 
         # Remove the deletion timer and restart timer task
         await db.Timer.filter(owner=guild.id, event="guild_del").delete()
@@ -374,7 +389,7 @@ class ziBot(commands.Bot):
 
     async def on_guild_del_timer_complete(self, timer: TimerData) -> None:
         """Executed when guild deletion timer completed"""
-        await self.wait_until_ready()
+        await self.waitUntilReady()
         guildId: int = timer.owner
 
         guildIds: list[int] = [i.id for i in self.guilds]
@@ -497,11 +512,20 @@ class ziBot(commands.Bot):
     async def on_app_command_completion(self, _, command: discord.app_commands.Command | discord.app_commands.ContextMenu):
         self.commandUsage[formatCmdName(command)] += 1
 
+    async def waitUntilReady(self):
+        if self.config.test:
+            return
+
+        await super().wait_until_ready()
+
     async def close(self) -> None:
         """Properly close/turn off bot"""
-        await super().close()
-        # Close database
-        await Tortoise.close_connections()
+        if not self.config.test:
+            await super().close()
+            # Close database
+            await Tortoise.close_connections()
+        else:
+            await Tortoise._drop_databases()
         # Close aiohttp session
         await self.session.close()
 

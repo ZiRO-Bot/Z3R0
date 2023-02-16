@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "Z3R0"
-version = "3.5.4"
+version = "3.5.5"
 description = "A multi-purpose open source discord bot"
 authors = ["null2264"]
 license = "MPL-2.0"
@@ -21,7 +21,7 @@ humanize = "4.4.0"
 jishaku = {git = "https://github.com/ZiRO-Bot/jishaku", rev = "9174fad992247c88ca9b3202d44938c4d46e9776"}
 Pillow = "8.4.0"
 python-dateutil = "2.8.2"
-Levenshtein = "0.13.0"
+Levenshtein = "0.20.3"
 pytz = "2021.3"
 pyparsing = "2.4.7"
 requests = "2.28.1"
@@ -37,15 +37,25 @@ tortoise-orm = "0.18.1"
 orjson = {version = "3.8.3", optional = true}
 single-source = "0.3.0"
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
 black = "^22.10.0"
 isort = "^5.10.1"
 pre-commit = "^2.13.0"
 pyproject-flake8 = "^0.0.1-alpha.2"
 aerich = "^0.6.2"
-pytest = {version = "^7.2.0", optional = true}
-pytest-asyncio = {version = "^0.20.3", optional = true}
-dpytest = {version = "^0.6", optional = true}
+
+[tool.poetry.group.test]
+
+[tool.poetry.group.test.dependencies]
+pytest = "^7.2.0"
+pytest-asyncio = "^0.20.3"
+dpytest = "^0.6"
+
+[tool.poetry.group.github-actions]
+optional = true
+
+[tool.poetry.group.github-actions.dependencies]
+pytest-github-actions-annotate-failures = "^0.1.7"
 
 [tool.poetry.extras]
 postgresql = ["asyncpg"]
@@ -53,7 +63,6 @@ mysql = ["aiomysql"]
 "mysql+asyncmy" = ["asyncmy"]
 voice = ["PyNaCl"]
 speedup = ["uvloop", "orjson"]
-test = ["pytest", "pytest-asyncio", "dpytest"]
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
@@ -77,3 +86,6 @@ lines_after_imports = 2
 tortoise_orm = "config.TORTOISE_ORM"
 location = "./migrations"
 src_folder = "./."
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
