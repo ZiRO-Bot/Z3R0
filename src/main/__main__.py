@@ -8,6 +8,7 @@ import asyncio
 import contextlib
 import logging
 import os
+import sys
 from logging.handlers import RotatingFileHandler
 
 import aiohttp
@@ -16,14 +17,6 @@ from src.main.core import bot as _bot
 from src.main.core.config import Config
 from src.main.utils.other import utcnow
 
-
-# Use uvloop as loop policy if possible (Linux only)
-try:
-    import uvloop  # type: ignore - error is handled
-except ImportError:
-    pass
-else:
-    asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
 
 # Create data directory if its not exist
 try:
@@ -124,7 +117,18 @@ def run():
         if not config:
             exit(1)
 
-        asyncio.run(main(config))
+        # Use uvloop as loop policy if possible (Linux only)
+        try:
+            import uvloop  # type: ignore - error is handled
+        except ImportError:
+            asyncio.run(main(config))
+        else:
+            if sys.version_info >= (3, 11):
+                with asyncio.Runner(loop_factory=uvloop.new_event_loop) as runner:
+                    runner.run(main(config))
+            else:
+                uvloop.install()
+                asyncio.run(main(config))
 
 
 if __name__ == "__main__":
