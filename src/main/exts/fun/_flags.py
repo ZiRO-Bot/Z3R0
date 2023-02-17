@@ -7,7 +7,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 from typing import Literal
 
 from discord.ext import commands
-from discord.ext.commands.errors import BadLiteralArgument
+from discord.ext.commands.errors import BadFlagArgument, BadLiteralArgument
 
 
 FINDSEED_MODES = Literal["visual", "classic", "pipega", "halloween"]
@@ -22,5 +22,5 @@ class FindseedFlags(commands.FlagConverter, case_insensitive=True):
             mode = f"mode: {mode}"
         try:
             return await super().convert(context, mode)
-        except BadLiteralArgument:
+        except (BadLiteralArgument, BadFlagArgument):
             return "visual"
