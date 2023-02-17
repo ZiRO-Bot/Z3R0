@@ -18,7 +18,7 @@ class FindseedFlags(commands.FlagConverter, case_insensitive=True):
 
     @classmethod
     async def convert(cls, context, mode: str):
-        if not mode.startswith("mode:"):
+        if not mode.startswith("mode:") and context.interaction:
             mode = f"mode: {mode}"
         try:
             return await super().convert(context, mode)
