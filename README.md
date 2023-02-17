@@ -42,6 +42,16 @@ More feature coming soon!
 
 ### Self-Hosting
 
+> **Note**
+>
+> If you're planning to self-host the bot, I'll assume you already have a
+> decent knowledge of Python, discord.py and hosting bot in general. I will
+> **NOT** give support for basic issue such as "Where do I get bot token", "How
+> to install Python", etc.
+>
+> Hosting from free hosting such as Heroku is not supported either! It's
+> recommended to get a proper VPS/Cloud Server to host a bot.
+
 #### Docker
 
 - Install [Docker](https://docs.docker.com/install/) and [Docker-Compose](https://docs.docker.com/compose/install/)
@@ -84,7 +94,9 @@ More feature coming soon!
 
 #### Manual
 
-> **Warning**: Python 3.10+ is required to host this bot!
+> **Warning**
+>
+> Python 3.10+ (3.10.9 is recommended) is required to host this bot!
 
 - Download this repository by executing `git clone https://github.com/ZiRO-Bot/Z3R0.git`
   or click "Code" -> "Download ZIP"
