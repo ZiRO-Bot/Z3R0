@@ -9,10 +9,7 @@ FROM base as builder
 
 WORKDIR /app
 
-ARG STAGE
-
-ENV STAGE=${STAGE} \
-    PATH="/root/.local/bin:${PATH}" \
+ENV PATH="/root/.local/bin:${PATH}" \
     VIRTUAL_ENV="/venv"
 
 RUN apt-get update && apt-get upgrade -y \
@@ -31,7 +28,7 @@ RUN apt-get update && apt-get upgrade -y \
 COPY poetry.lock pyproject.toml ./
 ADD src/ ./src
 RUN poetry run pip install -U pip \
-    && poetry install $(test "$STAGE" = production && echo "--no-dev") \
+    && poetry install --without test,dev \
     --no-root -E postgresql -E mysql -E voice -E speedup
 
 # ---

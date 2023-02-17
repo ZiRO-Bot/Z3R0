@@ -5,6 +5,10 @@
 ### Bugfixes
 - [**Fixed**] Fixed potential error related to user without avatar
 
+### Improvements
+- [**Improved**] Docker ignores `src/test`
+- [**Improved**] Docker no longer install development tools
+
 ### Internal Changes
 - [**Added**] Unit testing the bot using [dpytest](https://github.com/CraftSpider/dpytest)
 - [**Improved**] Initial Python v3.11 support
