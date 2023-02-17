@@ -84,7 +84,7 @@ async def testPrefixList(bot: ziBot):
     await dpytest.message(">prefix list")
     assert str(dpytest.get_embed(peek=True).description).endswith("No custom prefix.")
     await dpytest.message(">prefix + !")
-    await asyncio.sleep(5)  # Cooldown
+    await asyncio.sleep(6)  # Cooldown, extra 1 seconds because Windows is bad and slow
     await dpytest.message(">prefix list")
     assert str(dpytest.get_embed(peek=True).description).endswith("`!`")
 
