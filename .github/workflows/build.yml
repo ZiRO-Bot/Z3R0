@@ -51,6 +51,6 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           context: .
-          file: {context}/docker/Dockerfile
+          file: ./docker/Dockerfile
           push: true
           tags: ghcr.io/ziro-bot/z3r0:nightly
