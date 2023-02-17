@@ -122,7 +122,7 @@ More feature coming soon!
 - Install pre-commit then run `poetry run pre-commit install`
 - Start the bot by running `poetry run bot`
 - It is recommended to setup a test unit inside `src/test` when you added a new
-  command, you can run the test by running `poetry run pytest`  
+  command, you can run the test by running `poetry run pytest -v`  
   Read [dpytest](https://dpytest.readthedocs.io/) documentation for more information
 
 ## Changelog
