@@ -50,6 +50,6 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v4
         with:
-          context: .
+          context: "{{defaultContext}}:docker"
           push: true
           tags: ghcr.io/ziro-bot/z3r0:nightly
