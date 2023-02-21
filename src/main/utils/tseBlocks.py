@@ -7,7 +7,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 import random
 from typing import Optional
 
-from TagScriptEngine import Block, Context, helper_parse_if
+from tse import Block, Context, helper_parse_if
 
 
 class SilentBlock(Block):

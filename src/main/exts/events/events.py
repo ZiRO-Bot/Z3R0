@@ -13,10 +13,11 @@ from typing import TYPE_CHECKING, Any, Dict, Optional, Union
 
 import discord
 import pytz
-import TagScriptEngine as tse
 from aiohttp.client_exceptions import ClientOSError
 from discord.app_commands import AppCommandError
 from discord.ext import commands
+
+import tse
 
 from ...core import errors
 from ...core.embed import ZEmbed

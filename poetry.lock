@@ -1786,14 +1786,14 @@ use-chardet-on-py3 = ["chardet (>=3.0.2,<6)"]
 
 [[package]]
 name = "setuptools"
-version = "67.3.2"
+version = "67.3.3"
 description = "Easily download, build, install, upgrade, and uninstall Python packages"
 category = "dev"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "setuptools-67.3.2-py3-none-any.whl", hash = "sha256:bb6d8e508de562768f2027902929f8523932fcd1fb784e6d573d2cafac995a48"},
-    {file = "setuptools-67.3.2.tar.gz", hash = "sha256:95f00380ef2ffa41d9bba85d95b27689d923c93dfbafed4aecd7cf988a25e012"},
+    {file = "setuptools-67.3.3-py3-none-any.whl", hash = "sha256:9d3de8591bd6f6522594406fa46a6418eabd0562dacb267f8556675762801514"},
+    {file = "setuptools-67.3.3.tar.gz", hash = "sha256:ed4e75fafe103c79b692f217158ba87edf38d31004b9dbc1913debb48793c828"},
 ]
 
 [package.extras]
@@ -1851,22 +1851,6 @@ files = [
 
 [package.extras]
 widechars = ["wcwidth"]
-
-[[package]]
-name = "TagScriptEngine"
-version = "2.5.13a138+g99a7999"
-description = ""
-category = "main"
-optional = false
-python-versions = "*"
-files = []
-develop = false
-
-[package.source]
-type = "git"
-url = "https://github.com/ZiRO-Bot/TagScript"
-reference = "99a7999d61d891b0ed75ad2f2767eb49a7a9abc6"
-resolved_reference = "99a7999d61d891b0ed75ad2f2767eb49a7a9abc6"
 
 [[package]]
 name = "tomli"
@@ -2124,4 +2108,4 @@ voice = ["PyNaCl"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "222075fb57720386870b76098a85865d5648784538253ad373f02ea25ca74ab0"
+content-hash = "aa5f8bc453215c9a875ca91ad0b34d919801dd4e08a0680ad6aaa1bc1695198e"

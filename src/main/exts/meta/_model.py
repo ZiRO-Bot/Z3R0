@@ -9,8 +9,9 @@ from __future__ import annotations
 from enum import Enum
 
 import discord
-import TagScriptEngine as tse
 from discord.ext import commands
+
+import tse
 
 from ...core import checks, db
 from ...core.context import Context

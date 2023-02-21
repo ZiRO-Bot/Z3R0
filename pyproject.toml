@@ -5,7 +5,8 @@ description = "A multi-purpose open source discord bot"
 authors = ["null2264"]
 license = "MPL-2.0"
 packages = [
-  {include = "main", from = "src"}
+  {include = "main", from = "src"},
+  {include = "tse", from = "src"}
 ]
 
 [tool.poetry.scripts]
@@ -25,7 +26,6 @@ Levenshtein = "0.20.3"
 pytz = "2021.3"
 pyparsing = "2.4.7"
 requests = "2.28.1"
-tagscriptengine = {git = "https://github.com/ZiRO-Bot/TagScript", rev = "99a7999d61d891b0ed75ad2f2767eb49a7a9abc6"}
 uvloop = {version = "^0.17.0", optional = true}
 typing-extensions = "4.4.0"
 asyncpg = {version = "*", optional = true}
