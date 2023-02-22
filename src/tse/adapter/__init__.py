@@ -1,3 +1,4 @@
+from .argumentadapter import ArgumentAdapter
 from .discordadapters import *
 from .functionadapter import FunctionAdapter
 from .intadapter import IntAdapter

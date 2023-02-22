@@ -7,14 +7,19 @@
 - [**Fixed**] `>findseed` command throws error when invalid mode is given
   instead of falling back to `visual`
 
+### Additions
+- [**Added**] Add `{args}` tag block
+
 ### Improvements
 - [**Improved**] Docker ignores `src/test`
 - [**Improved**] Docker no longer install development tools
+- [**Improved**] Moved tseBlocks into TagScript module (`src/tse`)
 
 ### Internal Changes
 - [**Added**] Unit testing the bot using
   [dpytest](https://github.com/CraftSpider/dpytest)
 - [**Improved**] Initial Python v3.11 support
+- [**Changed**] Merge TagScript into Z3R0 repository
 
 ## 3.5.4 (Bugfix)
 - [**Fixed**] Prefixes is not loaded properly

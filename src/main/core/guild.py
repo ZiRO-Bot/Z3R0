@@ -6,6 +6,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from __future__ import annotations
 
+from enum import Enum
 from typing import TYPE_CHECKING
 
 import discord
@@ -17,7 +18,21 @@ if TYPE_CHECKING:
     from .bot import ziBot
 
 
-__all__ = ("GuildWrapper",)
+__all__ = ("GuildWrapper", "CCMode")
+
+
+class CCMode(Enum):
+    MOD_ONLY = 0
+    PARTIAL = 1
+    ANARCHY = 2
+
+    def __str__(self):
+        MODES = [
+            "Only mods can add and manage custom commands",
+            "Member can add custom command but can only manage **their own** commands",
+            "**A N A R C H Y**",
+        ]
+        return MODES[self.value]
 
 
 class GuildWrapper:
@@ -25,6 +40,7 @@ class GuildWrapper:
 
     def __init__(self, guild: discord.Guild, bot: ziBot):
         self.guild = guild
+        self.bot = bot
         self.prefix = Prefix(owner=self.guild, bot=bot)
 
     @classmethod
@@ -53,3 +69,6 @@ class GuildWrapper:
 
     async def addPrefix(self, prefix: str):
         return await self.prefix.add(prefix)
+
+    async def getCCMode(self) -> CCMode:
+        return CCMode(await self.bot.getGuildConfig(self.id, "ccMode") or 0)

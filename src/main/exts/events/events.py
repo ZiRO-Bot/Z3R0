@@ -22,7 +22,6 @@ import tse
 from ...core import errors
 from ...core.embed import ZEmbed
 from ...core.mixin import CogMixin
-from ...utils import tseBlocks
 from ...utils.format import formatMissingArgError, formatPerms, formatTraceback
 from ...utils.other import doCaselog, reactsToMessage, utcnow
 from ._views import Report
@@ -105,7 +104,7 @@ class EventHandler(commands.Cog, CogMixin):
             tse.AssignmentBlock(),
             tse.RequireBlock(),
             tse.EmbedBlock(),
-            tseBlocks.ReactBlock(),
+            tse.ReactBlock(),
         ]
         self.engine = tse.Interpreter(blocks)
 

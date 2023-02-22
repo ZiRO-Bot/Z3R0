@@ -16,19 +16,15 @@ from discord.ext import commands
 from ....core import checks, db
 from ....core.context import Context
 from ....core.embed import ZEmbed
-from ....core.errors import (
-    CCommandAlreadyExists,
-    CCommandNoPerm,
-    CCommandNotFound,
-    CCommandNotInGuild,
-)
+from ....core.errors import CCommandAlreadyExists, CCommandNoPerm, CCommandNotFound
+from ....core.guild import CCMode, GuildWrapper
 from ....core.menus import ZChoices, choice
 from ....core.mixin import CogMixin
 from ....utils.cache import CacheListProperty, CacheUniqueViolation
 from ....utils.format import CMDName, formatCmdName
 from ....utils.other import utcnow
+from .._custom_command import CustomCommand
 from .._flags import CmdManagerFlags
-from .._model import CCMode, CustomCommand
 from .._utils import getDisabledCommands
 
 
@@ -57,18 +53,12 @@ class MetaCustomCommands(commands.Cog, CogMixin):
             unique=True,
         )
 
-    async def getCCMode(self, ctx: Context) -> CCMode:
-        guild: discord.Guild | None = ctx.guild
-        if not guild:
-            raise CCommandNotInGuild
-        return CCMode(await ctx.bot.getGuildConfig(guild.id, "ccMode") or 0)
-
     async def ccModeCheck(self, ctx):
         """Check for custom command's modes."""
         # 0: Only mods,
         # 1: Partial (Can add but only able to manage their own command),
         # 2: Full (Anarchy mode)
-        mode = await self.getCCMode(ctx)
+        mode = await ctx.guild.getCCMode()
         isMod = await checks.isMod(ctx)
         return isMod if mode == CCMode.MOD_ONLY else True
 
@@ -764,7 +754,8 @@ class MetaCustomCommands(commands.Cog, CogMixin):
     @command.command(name="mode", brief="Show current custom command mode")
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def cmdMode(self, ctx: Context):
-        mode = await self.getCCMode(ctx)
+        guild: GuildWrapper = ctx.guild  # type: ignore
+        mode = await guild.getCCMode()
 
         e = ZEmbed.minimal(title="Current Mode: `{}`".format(str(mode.value)), description=mode)
         return await ctx.try_reply(embed=e)

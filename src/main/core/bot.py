@@ -23,7 +23,7 @@ from tortoise.exceptions import DBConnectionError, OperationalError
 from tortoise.models import Model
 
 from .. import __version__ as botVersion
-from ..exts.meta._model import CustomCommand
+from ..exts.meta._custom_command import CustomCommand
 from ..exts.meta._utils import getDisabledCommands
 from ..exts.timer.timer import Timer, TimerData
 from ..utils.cache import Cache, CacheDictProperty, CacheListProperty

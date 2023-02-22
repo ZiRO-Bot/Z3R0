@@ -12,10 +12,12 @@ from .loosevariablegetter import LooseVariableGetterBlock
 from .math import MathBlock
 from .randomblock import RandomBlock
 from .range import RangeBlock
+from .react import ReactBlock, ReactUBlock
 from .redirect import RedirectBlock
 from .replaceblock import PythonBlock, ReplaceBlock
 from .require_blacklist import BlacklistBlock, RequireBlock
 from .shortcutredirect import ShortCutRedirectBlock
+from .silent import SilentBlock
 from .stopblock import StopBlock
 from .strf import StrfBlock
 from .strictvariablegetter import StrictVariableGetterBlock
@@ -42,10 +44,13 @@ __all__ = (
     "PythonBlock",
     "RandomBlock",
     "RangeBlock",
+    "ReactBlock",
+    "ReactUBlock",
     "RedirectBlock",
     "ReplaceBlock",
     "RequireBlock",
     "ShortCutRedirectBlock",
+    "SilentBlock",
     "StopBlock",
     "StrfBlock",
     "StrictVariableGetterBlock",

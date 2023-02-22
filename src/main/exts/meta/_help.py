@@ -17,8 +17,9 @@ from ...core.errors import CCommandNotFound
 from ...core.menus import ZChoices, ZMenuPagesView, choice
 from ...utils import infoQuote
 from ...utils.format import formatDiscordDT
+from ._custom_command import CustomCommand
 from ._flags import HelpFlags
-from ._model import CustomCommand, Group
+from ._model import Group
 from ._pages import CustomCommandsListSource, HelpCogPage, HelpCommandPage
 
 
