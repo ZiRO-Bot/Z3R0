@@ -13,11 +13,11 @@ import discord
 from discord.ext import commands
 
 from ...core.embed import ZEmbed
-from ...core.errors import CCommandNotFound
 from ...core.menus import ZChoices, ZMenuPagesView, choice
 from ...utils import infoQuote
 from ...utils.format import formatDiscordDT
 from ._custom_command import CustomCommand
+from ._errors import CCommandNotFound
 from ._flags import HelpFlags
 from ._pages import CustomCommandsListSource, HelpCogPage, HelpCommandPage
 from ._wrapper import GroupSplitWrapper

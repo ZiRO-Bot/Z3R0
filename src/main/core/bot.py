@@ -24,6 +24,7 @@ from tortoise.models import Model
 
 from .. import __version__ as botVersion
 from ..exts.meta._custom_command import CustomCommand
+from ..exts.meta._errors import CCommandDisabled, CCommandNotFound, CCommandNotInGuild
 from ..exts.meta._utils import getDisabledCommands
 from ..exts.timer.timer import Timer, TimerData
 from ..utils.cache import Cache, CacheDictProperty, CacheListProperty
@@ -33,7 +34,6 @@ from . import db
 from .colour import ZColour
 from .config import Config
 from .context import Context
-from .errors import CCommandDisabled, CCommandNotFound, CCommandNotInGuild
 from .guild import GuildWrapper
 
 

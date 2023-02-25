@@ -20,6 +20,8 @@
   [dpytest](https://github.com/CraftSpider/dpytest)
 - [**Improved**] Initial Python v3.11 support
 - [**Changed**] Merge TagScript into Z3R0 repository
+- [**Improved**] Split `_model` into `_wrapper` and `_custom_command`
+- [**Improved**] Moved Custom Command related errors into `exts.meta._errors`
 
 ## 3.5.4 (Bugfix)
 - [**Fixed**] Prefixes is not loaded properly

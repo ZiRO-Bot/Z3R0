@@ -24,6 +24,7 @@ from ...core.embed import ZEmbed
 from ...core.mixin import CogMixin
 from ...utils.format import formatMissingArgError, formatPerms, formatTraceback
 from ...utils.other import doCaselog, reactsToMessage, utcnow
+from ..meta import _errors as ccErrors
 from ._views import Report
 
 
@@ -269,11 +270,11 @@ class EventHandler(commands.Cog, CogMixin):
         # These errors should have `message` already defined
         defaultError = (
             errors.DefaultError,
-            errors.CCommandAlreadyExists,
+            ccErrors.CCommandAlreadyExists,
+            ccErrors.CCommandNoPerm,
+            ccErrors.CCommandDisabled,
             commands.BadArgument,
             errors.MissingMuteRole,
-            errors.CCommandNoPerm,
-            errors.CCommandDisabled,
             errors.NotNSFWChannel,
         )
 

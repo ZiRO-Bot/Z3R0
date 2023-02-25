@@ -12,35 +12,6 @@ from discord.ext.commands.errors import CommandError
 from ..utils.format import formatPerms
 
 
-class CCException(CommandError):
-    pass
-
-
-class CCommandNotFound(CCException):
-    def __init__(self, name: Any = "Unknown"):
-        super().__init__("Command '{}' not Found!".format(name))
-
-
-class CCommandAlreadyExists(CCException):
-    def __init__(self, name: Any = "Unknown"):
-        super().__init__("A command/alias called `{}` already exists!".format(name))
-
-
-class CCommandNotInGuild(CCException):
-    def __init__(self, name: Any = "Unknown"):
-        super().__init__("Custom command only available in guilds")
-
-
-class CCommandNoPerm(CCException):
-    def __init__(self, name: Any = "Unknown"):
-        super().__init__("You have no permissions to use this command")
-
-
-class CCommandDisabled(CCException):
-    def __init__(self, name: Any = "Unknown"):
-        super().__init__("This command is disabled")
-
-
 class MissingMuteRole(CommandError):
     def __init__(self, prefix):
         super().__init__(

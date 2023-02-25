@@ -14,10 +14,10 @@ import tse
 
 from ...core import checks, db
 from ...core.context import Context
-from ...core.errors import CCommandDisabled, CCommandNotFound, CCommandNotInGuild
 from ...core.guild import GuildWrapper
 from ...utils.format import CMDName
 from ...utils.other import reactsToMessage, utcnow
+from ._errors import CCommandDisabled, CCommandNotFound, CCommandNotInGuild
 
 
 _blocks = [

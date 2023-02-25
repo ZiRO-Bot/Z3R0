@@ -10,7 +10,7 @@ import discord.ext.test as dpytest
 import pytest
 
 from main.core.bot import ziBot
-from main.core.errors import CCommandAlreadyExists, CCommandNotFound
+from main.exts.meta._errors import CCommandAlreadyExists, CCommandNotFound
 
 
 @pytest.mark.asyncio

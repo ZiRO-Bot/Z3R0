@@ -16,7 +16,6 @@ from discord.ext import commands
 from ....core import checks, db
 from ....core.context import Context
 from ....core.embed import ZEmbed
-from ....core.errors import CCommandAlreadyExists, CCommandNoPerm, CCommandNotFound
 from ....core.guild import CCMode, GuildWrapper
 from ....core.menus import ZChoices, choice
 from ....core.mixin import CogMixin
@@ -24,6 +23,7 @@ from ....utils.cache import CacheListProperty, CacheUniqueViolation
 from ....utils.format import CMDName, formatCmdName
 from ....utils.other import utcnow
 from .._custom_command import CustomCommand
+from .._errors import CCommandAlreadyExists, CCommandNoPerm, CCommandNotFound
 from .._flags import CmdManagerFlags
 from .._utils import getDisabledCommands
 
