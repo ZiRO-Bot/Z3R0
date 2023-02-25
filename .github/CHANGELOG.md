@@ -6,6 +6,8 @@
 - [**Fixed**] Fixed potential error related to user without avatar
 - [**Fixed**] `>findseed` command throws error when invalid mode is given
   instead of falling back to `visual`
+- [**Fixed**] Error while changing changelog caused by unhandled parent
+  directories
 
 ### Additions
 - [**Added**] Add `{args}` tag block
