@@ -1,6 +1,6 @@
-# v3.5 (Overhaul an Overhaul?)
+# v3.6 (Structure Refactor)
 
-## 3.5.5 (Mostly Test)
+## 3.6.0 (Project Structure Refactor)
 
 ### Bugfixes
 - [**Fixed**] Fixed potential error related to user without avatar
@@ -22,6 +22,8 @@
 - [**Changed**] Merge TagScript into Z3R0 repository
 - [**Improved**] Split `_model` into `_wrapper` and `_custom_command`
 - [**Improved**] Moved Custom Command related errors into `exts.meta._errors`
+
+# v3.5 (Overhaul an Overhaul?)
 
 ## 3.5.4 (Bugfix)
 - [**Fixed**] Prefixes is not loaded properly
