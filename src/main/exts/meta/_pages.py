@@ -46,7 +46,7 @@ class PrefixesPageSource(menus.ListPageSource):
             else:
                 fmt += "`{}`"
             prefixes.append(fmt.format(cleanifyPrefix(ctx.bot, prefix)))
-        e.description = str(e.description) + "\n".join(prefixes) or "No custom prefix."
+        e.description = str(e.description) + ("\n".join(prefixes) or "No custom prefix.")
         return e
 
 
