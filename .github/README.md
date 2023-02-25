@@ -56,7 +56,7 @@ More feature coming soon!
 #### Docker
 
 - Install [Docker](https://docs.docker.com/install/) and [Docker-Compose](https://docs.docker.com/compose/install/)
-- Create `docker-compose.yaml` file or use the one from [`docker/compose-examples`](./docker/compose-examples):
+- Create `docker-compose.yaml` file or use the one from [`docker/compose-examples`](../docker/compose-examples):
 
     ```yaml
     version: "3"
@@ -124,7 +124,7 @@ More feature coming soon!
    poetry install --no-dev -E "mysql+asyncmy"
    ```
 
-- Copy and paste (or rename) [`config.py-example`](./config.py-example) to `config.py`
+- Copy and paste (or rename) [`config.py-example`](../config.py-example) to `config.py`
 - Edit all the necessary config value (`token`, `botMasters`, and `sql`)
 - Run the bot by executing this command, `poetry run bot`
 - If everything is setup properly, the bot should be online!
