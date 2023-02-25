@@ -9,9 +9,9 @@ from __future__ import annotations
 from discord.ext import commands
 
 
-class Group:
-    """Dummy class for splitted subcommands group"""
+class GroupSplitWrapper:
+    """Wrapper class to split group's subcommands"""
 
     def __init__(self, command: commands.Group, subcommands: list):
-        self.self = command
+        self.origin = command
         self.commands = subcommands

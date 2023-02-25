@@ -19,8 +19,8 @@ from ...utils import infoQuote
 from ...utils.format import formatDiscordDT
 from ._custom_command import CustomCommand
 from ._flags import HelpFlags
-from ._model import Group
 from ._pages import CustomCommandsListSource, HelpCogPage, HelpCommandPage
+from ._wrapper import GroupSplitWrapper
 
 
 if TYPE_CHECKING:
@@ -124,9 +124,10 @@ class CustomHelp(commands.HelpCommand):
         for command in commands_:
             if isinstance(command, commands.Group):
                 list_ = list(command.commands)
+                # Split group subcommands into 5 per page
                 perList = 5
                 res = [list_[i : i + perList] for i in range(0, len(list_), perList)]
-                filtered.extend([Group(command, i) for i in res])
+                filtered.extend([GroupSplitWrapper(command, i) for i in res])
             else:
                 filtered.append(command)
 

@@ -4,7 +4,7 @@ License, v. 2.0. If a copy of the MPL was not distributed with this
 file, You can obtain one at http://mozilla.org/MPL/2.0/.
 """
 
-from typing import Any, List, Optional, Tuple
+from typing import List, Optional, Tuple
 
 from discord.ext import commands, menus
 
@@ -13,8 +13,8 @@ from ...core.menus import ZMenuView
 from ...utils import infoQuote
 from ...utils.format import cleanifyPrefix, formatCmd
 from ._custom_command import CustomCommand
-from ._model import Group
 from ._utils import getDisabledCommands
+from ._wrapper import GroupSplitWrapper
 
 
 class PrefixesPageSource(menus.ListPageSource):
@@ -46,7 +46,7 @@ class PrefixesPageSource(menus.ListPageSource):
             else:
                 fmt += "`{}`"
             prefixes.append(fmt.format(cleanifyPrefix(ctx.bot, prefix)))
-        e.description += "\n".join(prefixes) or "No custom prefix."
+        e.description = str(e.description) + "\n".join(prefixes) or "No custom prefix."
         return e
 
 
@@ -75,7 +75,7 @@ class HelpCogPage(menus.ListPageSource):
         )
 
         if not _commands:
-            e.description += "\nNo usable commands."
+            e.description = str(e.description) + "\nNo usable commands."
             return e
 
         for cmd in _commands:
@@ -106,9 +106,9 @@ class HelpCommandPage(menus.ListPageSource):
         prefix = ctx.clean_prefix
 
         subcmds = None
-        if isinstance(command, Group):
+        if isinstance(command, GroupSplitWrapper):
             subcmds = command.commands
-            command = command.self
+            command = command.origin
 
         e = ZEmbed(
             title=formatCmd(prefix, command),
@@ -117,7 +117,7 @@ class HelpCommandPage(menus.ListPageSource):
         )
 
         if isinstance(command, CustomCommand):
-            e.title = e.title.strip() + "ᶜ"
+            e.title = str(e.title).strip() + "ᶜ"
             e.add_field(
                 name="Info/Stats",
                 value=("**Owner**: <@{0.owner}>\n" "**Uses**: `{0.uses}`\n" "**Enabled**: `{0.enabled}`".format(command)),
