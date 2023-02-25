@@ -6,15 +6,19 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from __future__ import annotations
 
+import json
+import os
 import time
-from typing import Any, Dict, Iterable, List, Optional, Tuple
+import uuid
+from pathlib import Path
+from typing import Any, Iterable, Optional
 
 
 # https://github.com/Rapptz/RoboDanny/blob/rewrite/cogs/utils/cache.py#L22-L43
 class ExpiringDict(dict):
     """Subclassed dict for expiring cache"""
 
-    def __init__(self, items: Optional[Dict] = None, maxAgeSeconds: Optional[int] = None) -> None:
+    def __init__(self, items: Optional[dict] = None, maxAgeSeconds: Optional[int] = None) -> None:
         self.maxAgeSeconds: int = maxAgeSeconds or 3600  # (Default: 3600 seconds (1 hour))
         curTime: float = time.monotonic()
 
@@ -41,7 +45,7 @@ class ExpiringDict(dict):
         except KeyError:
             return fallback
 
-    def getRaw(self, key: Any) -> Tuple[Any]:
+    def getRaw(self, key: Any) -> tuple[Any]:
         self.verifyCache()
         return super().__getitem__(key)
 
@@ -73,7 +77,7 @@ class CacheProperty:
 
     def __init__(self, unique: bool = False, ttl: int = 0) -> None:
         self.unique: bool = unique  # Only unique value can be added/appended
-        self._items: Dict[str, Any] = {} if ttl < 1 else ExpiringDict(maxAgeSeconds=ttl)
+        self._items: dict[str, Any] = {} if ttl < 1 else ExpiringDict(maxAgeSeconds=ttl)
 
     def __repr__(self) -> str:
         return f"<CacheProperty: {self._items}>"
@@ -125,12 +129,12 @@ class CacheDictProperty(CacheProperty):
         ttl: int = 0,
     ) -> None:
         super().__init__(unique=unique, ttl=ttl)
-        self._items: Dict[str, Any] = {}
+        self._items: dict[str, Any] = {}
 
-    def set(self, _key: Any, value: Dict[str, Any]) -> CacheDictProperty:
+    def set(self, _key: Any, value: dict[str, Any]) -> CacheDictProperty:
         key: str = str(_key)
 
-        if not isinstance(value, Dict):
+        if not isinstance(value, dict):
             raise RuntimeError("Only dict value is allowed!")
         try:
             self._items[key].update(value)
@@ -247,10 +251,10 @@ class Cache:
     """Cache manager"""
 
     def __init__(self):
-        self._property: List[str] = list()
+        self._property: list[str] = list()
 
     @property
-    def property(self) -> List:
+    def property(self) -> list:
         return self._property
 
     def __repr__(self) -> str:
@@ -267,7 +271,71 @@ class Cache:
         return self
 
 
+class JSON(dict):
+    __slots__ = ("filename", "data")
+
+    def __init__(self, filename: str, default: dict[Any, Any] = {}) -> None:
+        self.filename: Path = Path(filename)
+        self.filename.parent.mkdir(parents=True, exist_ok=True)
+
+        data: dict[Any, Any] = default or {}
+
+        try:
+            f = open(filename, "r")
+            data = json.loads(f.read())
+        except FileNotFoundError:
+            with open(filename, "w+") as f:
+                json.dump(data, f, indent=4)
+
+        super().__init__(data)
+
+    def __repl__(self):
+        return f"<JSON: data={self.items}>"
+
+    def dump(self, indent: int = 4, **kwargs):
+        temp = self.filename.with_name(f"{uuid.uuid4()}-{self.filename.name}.tmp")
+        with open(temp, "w") as tmp:
+            json.dump(self.copy(), tmp, indent=indent, **kwargs)
+
+        os.replace(temp, self.filename)
+        return True
+
+
+class Blacklist(JSON):
+    def __init__(self, filename: str = "blacklist.json"):
+        super().__init__(filename)
+
+    @property
+    def guilds(self):
+        return self.get("guilds", [])
+
+    @property
+    def users(self):
+        return self.get("users", [])
+
+    def __repl__(self):
+        return f"<Blacklist: guilds={self.guilds} users={self.users}>"
+
+    def append(self, key: Any, value: Any, **kwargs) -> Any:
+        val: list = self.get(key, [])
+        val.append(value)
+        self.update({key: val})
+
+        self.dump(**kwargs)
+        return value
+
+    def remove(self, key: Any, value: Any, **kwargs) -> Any:
+        val: list = self.get(key, [])
+        val.remove(value)
+        self.update({key: val})
+
+        self.dump(**kwargs)
+        return value
+
+
 if __name__ == "__main__":
+    # FOR TESTING ONLY
+
     cache = Cache().add("guildConfigs", cls=CacheListProperty, unique=True)
     cache.guildConfigs.add(0, ">").remove(0, ".")
 

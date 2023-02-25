@@ -21,7 +21,3 @@ class CogMixin:
 
     def __init__(self, bot: ziBot) -> None:
         self.bot: ziBot = bot
-
-    # @property
-    # def db(self) -> Database:
-    #     return self.bot.db

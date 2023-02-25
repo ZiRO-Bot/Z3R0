@@ -4,6 +4,8 @@ License, v. 2.0. If a copy of the MPL was not distributed with this
 file, You can obtain one at http://mozilla.org/MPL/2.0/.
 """
 
+from __future__ import annotations
+
 import aiohttp
 
 
@@ -15,10 +17,10 @@ class CityNotFound(Exception):
 class Temperature:
     def __init__(self, temperature):
         """Uses kelvin by default"""
-        self._temperature = round(temperature, 2)
+        self._temperature: float = round(temperature, 2)
 
     @property
-    def temperature(self):
+    def temperature(self) -> float:
         return self._temperature
 
     def __str__(self):

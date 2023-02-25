@@ -12,9 +12,9 @@ import discord
 from discord.ext import commands
 from tortoise.exceptions import IntegrityError
 
-from ..utils.cache import CacheListFull, CacheUniqueViolation
 from ..utils.format import cleanifyPrefix
 from . import db
+from .data import CacheListFull, CacheUniqueViolation
 
 
 if TYPE_CHECKING:
