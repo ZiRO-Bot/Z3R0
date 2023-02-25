@@ -208,7 +208,10 @@ class JSON(dict):
         return f"<JSON: data={self.items}>"
 
     def dump(self, indent: int = 4, **kwargs):
-        temp = "{}-{}.tmp".format(uuid.uuid4(), self.filename)
+        parent = str(self.filename.parent)
+        if parent:
+            parent += "/"
+        temp = "{}{}-{}.tmp".format(parent, uuid.uuid4(), self.filename.name)
         with open(temp, "w") as tmp:
             json.dump(self.copy(), tmp, indent=indent, **kwargs)
 
