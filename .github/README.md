@@ -155,6 +155,7 @@ changelog
 - Slash and ContextMenu commands (80% complete)
 - Button-based (or Modal-based?) bot settings
 - Setup Tests using dpytest
+- Data migration between 2 database
 
 ### Pending Plan
 
