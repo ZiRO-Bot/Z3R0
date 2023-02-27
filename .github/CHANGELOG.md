@@ -25,6 +25,7 @@
 - [**Improved**] Split `_model` into `_wrapper` and `_custom_command`
 - [**Improved**] Moved Custom Command related errors into `exts.meta._errors`
 - [**Improved**] Moved JSON (and Blacklist) and Cache (and its properties) into `core.data`
+- [**Changed**] Removed `CMDName`
 
 # v3.5 (Overhaul an Overhaul?)
 

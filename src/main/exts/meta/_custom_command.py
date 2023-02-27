@@ -15,7 +15,6 @@ import tse
 from ...core import checks, db
 from ...core.context import Context
 from ...core.guild import GuildWrapper
-from ...utils.format import CMDName
 from ...utils.other import reactsToMessage, utcnow
 from ._errors import CCommandDisabled, CCommandNotFound, CCommandNotInGuild
 
@@ -167,7 +166,7 @@ class CustomCommand:
             ctx.bot.loop.create_task(reactsToMessage(msg, react))
 
     @classmethod
-    async def get(cls, context: Context, command: str | CMDName) -> CustomCommand:
+    async def get(cls, context: Context, command: str) -> CustomCommand:
         guild: GuildWrapper | None = context.guild
         if not guild:
             raise CCommandNotInGuild
