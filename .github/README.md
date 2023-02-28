@@ -146,6 +146,11 @@ changelog
 
 ## Plans
 
+> **Note**
+>
+> Listed from highest to lowest priority
+
+- Add test for every command
 - Event for ~~member boosting a guild~~ (Just need to implement setup for it)
 - Tags (stripped version of custom command)
 - Unify categories/exts emoji
