@@ -6,6 +6,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from __future__ import annotations
 
+import asyncio
 import copy
 import datetime
 import logging
@@ -164,7 +165,7 @@ class ziBot(commands.Bot):
             )
         )
 
-        self.mqtt_client: aiomqtt.Client | None = mqttClient
+        self.mqttClient: aiomqtt.Client | None = mqttClient
 
         @self.check
         async def _(ctx):
@@ -215,11 +216,25 @@ class ziBot(commands.Bot):
 
             self.changingPresence.start()
 
+            asyncio.create_task(self.mqttSubscriber())
+
         for extension in EXTS:
             await self.load_extension(f"src.{extension}" if not self.config.test else extension)
 
         if not hasattr(self, "uptime"):
             self.uptime: datetime.datetime = utcnow()
+
+    async def mqttSubscriber(self):
+        if not self.mqttClient:
+            return
+
+        await self.mqttClient.subscribe("z3r0/test/#")
+
+        print("Started listening to messages from MQTT...")
+        channel: discord.TextChannel = self.get_channel(814009733006360597)
+        async with self.mqttClient.messages() as messages:
+            async for message in messages:
+                await channel.send(f"Received message '{message.payload}' from topic {message.topic} with QoS {message.qos}")
 
     async def getGuildConfigs(
         self,
@@ -510,6 +525,8 @@ class ziBot(commands.Bot):
             return await self.processNoNitroEmoji(message)
         if processed and not isinstance(processed, str):
             self.commandUsage[formatCmdName(processed)] += 1
+        # if self.mqttClient:
+        #     await self.mqttClient.publish("z3r0/test/command", payload=str(processed))
 
     async def on_message(self, message: discord.Message) -> None:
         # dont accept commands from bot
