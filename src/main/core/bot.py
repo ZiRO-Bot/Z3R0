@@ -17,8 +17,9 @@ from contextlib import suppress
 from typing import TYPE_CHECKING, Any
 
 import aiohttp
-import asyncio_mqtt as aiomqtt
 import discord
+import zmq
+import zmq.asyncio
 from discord.ext import commands, tasks
 from tortoise import Tortoise
 from tortoise.exceptions import DBConnectionError, OperationalError
@@ -72,7 +73,7 @@ class ziBot(commands.Bot):
     if TYPE_CHECKING:
         session: aiohttp.ClientSession
 
-    def __init__(self, config: Config, mqttClient: aiomqtt.Client | None = None) -> None:
+    def __init__(self, config: Config) -> None:
         self.config: Config = config
 
         # --- NOTE: Information about the bot
@@ -165,7 +166,7 @@ class ziBot(commands.Bot):
             )
         )
 
-        self.mqttClient: aiomqtt.Client | None = mqttClient
+        self.subSocket: zmq.asyncio.Socket | None = None
 
         @self.check
         async def _(ctx):
@@ -215,8 +216,7 @@ class ziBot(commands.Bot):
             await self.manageGuildDeletion()
 
             self.changingPresence.start()
-
-            asyncio.create_task(self.mqttSubscriber())
+            await self.zmqBind()
 
         for extension in EXTS:
             await self.load_extension(f"src.{extension}" if not self.config.test else extension)
@@ -224,17 +224,31 @@ class ziBot(commands.Bot):
         if not hasattr(self, "uptime"):
             self.uptime: datetime.datetime = utcnow()
 
-    async def mqttSubscriber(self):
-        if not self.mqttClient:
+    async def on_ready(self) -> None:
+        self.logger.warning("Ready: {0} (ID: {0.id})".format(self.user))
+
+    async def zmqBind(self):
+        context = zmq.asyncio.Context.instance()
+        self.subSocket = context.socket(zmq.SUB)
+        self.subSocket.setsockopt(zmq.SUBSCRIBE, b"")
+        # Note to self:
+        # - SUB = connect
+        # - PUB = bind
+        self.subSocket.connect("tcp://127.0.0.1:5555")
+        asyncio.create_task(self.onZMQReceiveMessage())
+
+    async def onZMQReceiveMessage(self):
+        if not self.subSocket:
             return
 
-        await self.mqttClient.subscribe("z3r0/test/#")
+        try:
+            while True:
+                message = await self.subSocket.recv_string()
 
-        print("Started listening to messages from MQTT...")
-        channel: discord.TextChannel = self.get_channel(814009733006360597)
-        async with self.mqttClient.messages() as messages:
-            async for message in messages:
-                await channel.send(f"Received message '{message.payload}' from topic {message.topic} with QoS {message.qos}")
+                channel: discord.TextChannel = self.get_channel(814009733006360597)  # type: ignore
+                await channel.send(f"Received message '{message}'")
+        except Exception as e:
+            print(e)
 
     async def getGuildConfigs(
         self,
@@ -322,9 +336,6 @@ class ziBot(commands.Bot):
             self.activityIndex = 0
 
         await self.change_presence(activity=activities[self.activityIndex])
-
-    async def on_ready(self) -> None:
-        self.logger.warning("Ready: {0} (ID: {0.id})".format(self.user))
 
     async def manageGuildDeletion(self) -> None:
         """Manages guild deletion from database on boot"""
@@ -525,8 +536,12 @@ class ziBot(commands.Bot):
             return await self.processNoNitroEmoji(message)
         if processed and not isinstance(processed, str):
             self.commandUsage[formatCmdName(processed)] += 1
-        # if self.mqttClient:
-        #     await self.mqttClient.publish("z3r0/test/command", payload=str(processed))
+
+        context = zmq.asyncio.Context.instance()
+        socket = context.socket(zmq.PUB)
+        socket.bind("tcp://127.0.0.1:5555")
+        await asyncio.sleep(1)
+        await socket.send_string("Hello!")
 
     async def on_message(self, message: discord.Message) -> None:
         # dont accept commands from bot
@@ -582,6 +597,11 @@ class ziBot(commands.Bot):
             await Tortoise.close_connections()
         else:
             await Tortoise._drop_databases()
+
+        if self.subSocket:
+            self.subSocket.close()
+        zmq.asyncio.Context.instance().term()
+
         # Close aiohttp session
         await self.session.close()
 

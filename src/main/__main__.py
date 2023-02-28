@@ -12,7 +12,8 @@ import sys
 from logging.handlers import RotatingFileHandler
 
 import aiohttp
-import asyncio_mqtt as aiomqtt
+import zmq
+import zmq.asyncio
 
 from src.main.core import bot as _bot
 from src.main.core.config import Config
@@ -65,14 +66,13 @@ async def main(config: Config):
     os.environ["JISHAKU_NO_UNDERSCORE"] = "True"
     os.environ["JISHAKU_NO_DM_TRACEBACK"] = "True"
 
-    async with contextlib.AsyncExitStack() as astack:
-        # mqttClient: aiomqtt.Client = await astack.enter_async_context(aiomqtt.Client(hostname="test.mosquitto.org"))  # type: ignore
-        bot = _bot.ziBot(config)
-        async with aiohttp.ClientSession(headers={"User-Agent": "Discord/Z3RO (ziBot/3.0 by ZiRO2264)"}) as client:
-            async with bot:
-                bot.session = client
-                bot.uptime = utcnow()
-                await bot.run()
+    zmqContext = zmq.asyncio.Context.instance()
+    bot = _bot.ziBot(config)
+    async with aiohttp.ClientSession(headers={"User-Agent": "Discord/Z3RO (ziBot/3.0 by ZiRO2264)"}) as client:
+        async with bot:
+            bot.session = client
+            bot.uptime = utcnow()
+            await bot.run()
 
 
 def run():

@@ -36,7 +36,7 @@ PyNaCl = {version = ">=1.3.0,<1.5", optional = true}
 tortoise-orm = "0.18.1"
 orjson = {version = "3.8.3", optional = true}
 single-source = "0.3.0"
-asyncio-mqtt = "0.16.1"
+pyzmq = "^25.0.0"
 
 [tool.poetry.group.dev.dependencies]
 black = "^22.10.0"

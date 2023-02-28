@@ -21,6 +21,7 @@ RUN apt-get update && apt-get upgrade -y \
         gettext \
         git \
         libpq-dev \
+        libzmq3-dev \
     && curl -sSL 'https://install.python-poetry.org' | python - \
     && poetry --version \
     && python -m venv /venv
