@@ -537,11 +537,11 @@ class ziBot(commands.Bot):
         if processed and not isinstance(processed, str):
             self.commandUsage[formatCmdName(processed)] += 1
 
-        context = zmq.asyncio.Context.instance()
-        socket = context.socket(zmq.PUB)
-        socket.bind("tcp://127.0.0.1:5555")
-        await asyncio.sleep(1)
-        await socket.send_string("Hello!")
+        # context = zmq.asyncio.Context.instance()
+        # socket = context.socket(zmq.PUB)
+        # socket.bind("tcp://127.0.0.1:5555")
+        # await asyncio.sleep(1)
+        # await socket.send_string("Hello!")
 
     async def on_message(self, message: discord.Message) -> None:
         # dont accept commands from bot
