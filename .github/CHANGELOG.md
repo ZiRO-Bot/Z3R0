@@ -8,6 +8,7 @@
   instead of falling back to `visual`
 - [**Fixed**] Error while changing changelog caused by unhandled parent
   directories
+- [**Fixed**] Prefix list no longer being sent when bot is mentioned
 
 ### Additions
 - [**Added**] Add `{args}` tag block

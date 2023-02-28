@@ -594,19 +594,3 @@ class EventHandler(commands.Cog, CogMixin):
                     "unmute",
                     entry.reason,
                 )
-
-    @commands.Cog.listener("on_message")
-    async def onNoNitroEmoji(self, message: discord.Message):
-        if message.author.id != 186713080841895936:
-            return
-
-        match = re.findall(r";([a-zA-Z0-9\_]{1,32});", message.content)
-        if not match:
-            return
-
-        emojiName = match[0]
-        result = discord.utils.get(self.bot.emojis, name=emojiName)
-        if not result:
-            return
-
-        return await message.channel.send(message.content.replace(f";{match[0]};", str(result)))

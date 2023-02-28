@@ -49,6 +49,9 @@ for filename in os.listdir(FMT):
             EXTS.append("main.{}.{}".format(EXTS_DIR, filename))
 
 
+EMOJI_REGEX = re.compile(r";(?P<name>[a-zA-Z0-9_]{2,32});")
+
+
 async def _callablePrefix(bot: ziBot, message: discord.Message) -> list:
     """Callable Prefix for the bot."""
     base = [bot.defPrefix]
@@ -468,12 +471,44 @@ class ziBot(commands.Bot):
         await self.invoke(ctx)
         return ctx.command
 
-    async def process(self, message):
+    async def processNoNitroEmoji(self, message: discord.Message):
+        if message.author.id != 186713080841895936:
+            return
+
+        matches = EMOJI_REGEX.findall(message.content)
+        if not matches:
+            return
+
+        content = message.content
+
+        prefer = {"shuba": 855604899743793152}
+        handled = []
+        for match in matches:
+            if match:
+                if match in handled:
+                    continue
+
+                prefered = prefer.get(match)
+                emoji = None
+                if prefered:
+                    emoji = discord.utils.get(self.emojis, id=prefered)
+                if not emoji:
+                    emoji = discord.utils.get(self.emojis, name=match)
+
+                if emoji:
+                    content = content.replace(f";{match};", str(emoji))
+                handled.append(match)
+
+        await message.reply(content)
+
+    async def process(self, message: discord.Message):
         processed = await self.process_commands(message)
-        if processed is not None and not isinstance(processed, str):
+        if not processed:
+            return await self.processNoNitroEmoji(message)
+        if processed and not isinstance(processed, str):
             self.commandUsage[formatCmdName(processed)] += 1
 
-    async def on_message(self, message) -> None:
+    async def on_message(self, message: discord.Message) -> None:
         # dont accept commands from bot
         if (
             message.author.bot
@@ -485,10 +520,11 @@ class ziBot(commands.Bot):
         me: discord.ClientUser = self.user  # type: ignore
 
         # if bot is mentioned without any other message, send prefix list
+        guild = GuildWrapper.fromContext(message.guild, self)
         pattern = f"<@(!?){me.id}>"
-        if re.fullmatch(pattern, message.content):
+        if re.fullmatch(pattern, message.content) and guild:
             e = discord.Embed(
-                description=await message.guild.getFormattedPrefixes(),
+                description=await guild.getFormattedPrefixes(),
                 colour=ZColour.rounded(),
             )
             e.set_footer(text="Use `@{} help` to learn how to use the bot".format(me.display_name))
