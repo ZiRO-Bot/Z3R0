@@ -27,6 +27,7 @@
 - [**Improved**] Moved Custom Command related errors into `exts.meta._errors`
 - [**Improved**] Moved JSON (and Blacklist) and Cache (and its properties) into `core.data`
 - [**Changed**] Removed `CMDName`
+- [**Added**] Initial ZeroMQ support for Dashboard
 
 # v3.5 (Overhaul an Overhaul?)
 
