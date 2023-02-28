@@ -16,6 +16,7 @@ from contextlib import suppress
 from typing import TYPE_CHECKING, Any
 
 import aiohttp
+import asyncio_mqtt as aiomqtt
 import discord
 from discord.ext import commands, tasks
 from tortoise import Tortoise
@@ -70,7 +71,7 @@ class ziBot(commands.Bot):
     if TYPE_CHECKING:
         session: aiohttp.ClientSession
 
-    def __init__(self, config: Config) -> None:
+    def __init__(self, config: Config, mqttClient: aiomqtt.Client | None = None) -> None:
         self.config: Config = config
 
         # --- NOTE: Information about the bot
@@ -162,6 +163,8 @@ class ziBot(commands.Bot):
                 unique=True,
             )
         )
+
+        self.mqtt_client: aiomqtt.Client | None = mqttClient
 
         @self.check
         async def _(ctx):

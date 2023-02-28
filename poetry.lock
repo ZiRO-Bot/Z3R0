@@ -210,6 +210,26 @@ files = [
 ]
 
 [[package]]
+name = "asyncio-mqtt"
+version = "0.16.1"
+description = "Idiomatic asyncio wrapper around paho-mqtt"
+category = "main"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "asyncio_mqtt-0.16.1-py3-none-any.whl", hash = "sha256:ef12c1d0250ffd65b70085d66c457128ed6aa98b3d821d2316213fb9d1957d5b"},
+    {file = "asyncio_mqtt-0.16.1.tar.gz", hash = "sha256:38416481bb7cc9613c6a1a8e58b8f9f9c9a522d93411003e8000e74ef2b7ed85"},
+]
+
+[package.dependencies]
+paho-mqtt = ">=1.6.0"
+
+[package.extras]
+format = ["black (>=22.10.0)"]
+lint = ["mypy (>=0.991)", "ruff (>=0.0.158)", "types-paho-mqtt (>=1.6.0.1)"]
+tests = ["anyio (>=3.6.2)", "pytest (>=7.2.0)", "pytest-cov (>=4.0.0)"]
+
+[[package]]
 name = "asyncmy"
 version = "0.2.7"
 description = "A fast asyncio MySQL driver"
@@ -1207,6 +1227,20 @@ files = [
 ]
 
 [[package]]
+name = "paho-mqtt"
+version = "1.6.1"
+description = "MQTT version 5.0/3.1.1 client class"
+category = "main"
+optional = false
+python-versions = "*"
+files = [
+    {file = "paho-mqtt-1.6.1.tar.gz", hash = "sha256:2a8291c81623aec00372b5a85558a372c747cbca8e9934dfe218638b8eefc26f"},
+]
+
+[package.extras]
+proxy = ["PySocks"]
+
+[[package]]
 name = "pathspec"
 version = "0.11.0"
 description = "Utility library for gitignore style pattern matching of file paths."
@@ -2108,4 +2142,4 @@ voice = ["PyNaCl"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "aa5f8bc453215c9a875ca91ad0b34d919801dd4e08a0680ad6aaa1bc1695198e"
+content-hash = "fbbdfea20e110e1b39464cc4e3999b4a766d0d7ec0ada4bdf503db31cfb4dfb8"
