@@ -21,7 +21,7 @@ import discord
 import zmq
 import zmq.asyncio
 from discord.ext import commands, tasks
-from tortoise import Tortoise
+from tortoise import Tortoise, connections
 from tortoise.exceptions import DBConnectionError, OperationalError
 from tortoise.models import Model
 
@@ -88,8 +88,8 @@ class ziBot(commands.Bot):
         # ---
 
         # custom intents, required since dpy v1.5
-        # message content intent, required since dpy v2.0
         intents = discord.Intents.all()
+        # message content intent, required since dpy v2.0
         intents.message_content = True
 
         super().__init__(
@@ -267,13 +267,12 @@ class ziBot(commands.Bot):
         cached: CacheDictProperty = getattr(self.cache, table._meta.db_table)
         if cached.get(guildId) is None:
             # Executed when guild configs is not in the cache
-            config = await table.filter(guild_id=guildId).values()
+            config = await table.filter(guild_id=guildId).first().values()  # type: ignore
 
             if config:
-                row = config[0]
                 for i in ("id", "guild_id"):
-                    row.pop(i, None)
-                cached.set(guildId, row)
+                    config.pop(i, None)
+                cached.set(guildId, config)
             else:
                 cached.set(guildId, {})
         return cached.get(guildId, {})
@@ -593,9 +592,10 @@ class ziBot(commands.Bot):
         """Properly close/turn off bot"""
         if not self.config.test:
             await super().close()
-            # Close database
-            await Tortoise.close_connections()
-        else:
+
+        # Close database connections
+        await connections.close_all()
+        if self.config.test:
             await Tortoise._drop_databases()
 
         if self.subSocket:

@@ -19,6 +19,7 @@ oldMemberDict = factories.make_member_dict
 
 
 def newMakeMemberDict(*args, **kwargs):
+    """Temporary fix for KeyError caused by dpy v2.2"""
     res = oldMemberDict(*args, **kwargs)
     res["flags"] = 0
     return res
