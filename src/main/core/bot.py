@@ -267,14 +267,11 @@ class ziBot(commands.Bot):
         cached: CacheDictProperty = getattr(self.cache, table._meta.db_table)
         if cached.get(guildId) is None:
             # Executed when guild configs is not in the cache
-            config = await table.filter(guild_id=guildId).first().values()  # type: ignore
+            config = await table.filter(guild_id=guildId).first().values() or {}  # type: ignore
 
-            if config:
-                for i in ("id", "guild_id"):
-                    config.pop(i, None)
-                cached.set(guildId, config)
-            else:
-                cached.set(guildId, {})
+            for i in ("id", "guild_id"):
+                config.pop(i, None)
+            cached.set(guildId, config)
         return cached.get(guildId, {})
 
     async def getGuildConfig(self, guildId: int, configType: str, table: str | Model = "GuildConfigs") -> Any | None:
