@@ -14,7 +14,7 @@ from ...core.context import Context
 from ...core.embed import ZEmbed
 from ...core.guild import GuildWrapper
 from ...utils.format import separateStringFlags
-from ._views import OpenGreetingModal
+from . import _views
 
 
 async def handleGreetingConfig(
@@ -43,7 +43,7 @@ async def handleGreetingConfig(
             "This feature currently not yet available on Mobile!\n"
             "If you're on Mobile, please do `{}{} "
             "[message] [options]` instead".format(ctx.clean_prefix, type),
-            view=OpenGreetingModal(ctx, type, defMsg, owner=ctx.author),
+            view=_views.OpenGreetingModal(ctx, type, defMsg, owner=ctx.author),
         )
         return
     elif arguments is not MISSING:

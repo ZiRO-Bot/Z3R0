@@ -10,7 +10,7 @@ import discord
 
 from ...core.context import Context
 from ...core.views import ZView
-from ._common import handleGreetingConfig
+from . import _common
 
 
 class Greeting(discord.ui.Modal, title="Greeting"):
@@ -38,7 +38,7 @@ class Greeting(discord.ui.Modal, title="Greeting"):
         self.message.default = defaultMessage
 
     async def callback(self):
-        await handleGreetingConfig(self.context, self.type, message=self.message)  # type: ignore
+        await _common.handleGreetingConfig(self.context, self.type, message=self.message)  # type: ignore
 
     async def on_submit(self, inter: discord.Interaction):
         await self.callback()
