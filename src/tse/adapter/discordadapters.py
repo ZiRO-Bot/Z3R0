@@ -214,7 +214,7 @@ class GuildAdapter(AttributeAdapter):
             else:
                 humans += 1
         additional_attributes = {
-            "icon": (guild.icon.url, False),
+            "icon": (getattr(guild.icon, "url", "https://cdn.discordapp.com/embed/avatars/1.png"), False),
             "member_count": guild.member_count,
             "members": guild.member_count,
             "bots": bots,
