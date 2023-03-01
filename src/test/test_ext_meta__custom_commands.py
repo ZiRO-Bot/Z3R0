@@ -46,13 +46,14 @@ async def testCommandRemoveNotExists(bot: ziBot):
 @pytest.mark.asyncio
 async def testCommandPriorityExecution(bot: ziBot):
     """Test custom command execution priority"""
-    await dpytest.message(">cmd + ping Test")
+    msg = "Test"
+    await dpytest.message(f">cmd + ping {msg}")
 
     await dpytest.message(">>ping")
-    assert dpytest.verify().message().content("Test")
+    assert dpytest.get_message(peek=True).content == msg
 
     await dpytest.message(">!ping")
-    assert dpytest.verify().message().content("Test")
+    assert dpytest.get_message(peek=True).content == msg
 
     await dpytest.message(">ping")
-    assert not dpytest.verify().message().content("Test")
+    assert dpytest.get_message(peek=True).content != msg
