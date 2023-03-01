@@ -41,3 +41,18 @@ async def testCommandRemoveNotExists(bot: ziBot):
     """Test failed command removal (doesn't exists)"""
     with pytest.raises(CCommandNotFound) as excinfo:
         await dpytest.message(">cmd - test")
+
+
+@pytest.mark.asyncio
+async def testCommandPriorityExecution(bot: ziBot):
+    """Test custom command execution priority"""
+    await dpytest.message(">cmd + ping Test")
+
+    await dpytest.message(">>ping")
+    assert dpytest.verify().message().content("Test")
+
+    await dpytest.message(">!ping")
+    assert dpytest.verify().message().content("Test")
+
+    await dpytest.message(">ping")
+    assert not dpytest.verify().message().content("Test")
