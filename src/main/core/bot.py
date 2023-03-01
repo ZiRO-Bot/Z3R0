@@ -9,6 +9,7 @@ from __future__ import annotations
 import asyncio
 import copy
 import datetime
+import json
 import logging
 import os
 import re
@@ -234,7 +235,7 @@ class ziBot(commands.Bot):
         # Note to self:
         # - SUB = connect
         # - PUB = bind
-        self.subSocket.connect("tcp://127.0.0.1:5555")
+        self.subSocket.connect("tcp://*:5555")
         asyncio.create_task(self.onZMQReceiveMessage())
 
     async def onZMQReceiveMessage(self):
@@ -243,7 +244,7 @@ class ziBot(commands.Bot):
 
         try:
             while True:
-                message = await self.subSocket.recv_string()
+                message = json.loads(await self.subSocket.recv_string())
 
                 channel: discord.TextChannel = self.get_channel(814009733006360597)  # type: ignore
                 await channel.send(f"Received message '{message}'")
