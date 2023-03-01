@@ -9,6 +9,7 @@
 - [**Fixed**] Error while changing changelog caused by unhandled parent
   directories
 - [**Fixed**] Prefix list no longer being sent when bot is mentioned
+- [**Fixed**] Some command doesn't show its full description in Help Page
 
 ### Additions
 - [**Added**] Add `{args}` tag block
@@ -17,6 +18,7 @@
 - [**Improved**] Docker ignores `src/test`
 - [**Improved**] Docker no longer install development tools
 - [**Improved**] Moved tseBlocks into TagScript module (`src/tse`)
+- [**Improved**] Moved command usage tips from footer to a new field
 
 ### Internal Changes
 - [**Added**] Unit testing the bot using

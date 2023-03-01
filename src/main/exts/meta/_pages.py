@@ -113,7 +113,7 @@ class HelpCommandPage(menus.ListPageSource):
         e = ZEmbed(
             title=formatCmd(prefix, command),
             description="**Aliases**: `{}`\n".format(", ".join(command.aliases) if command.aliases else "No alias")
-            + (getattr(command, "help", command.description) or command.short_doc or "No description"),
+            + (command.description or command.short_doc or "No description"),
         )
 
         if isinstance(command, CustomCommand):
@@ -121,12 +121,14 @@ class HelpCommandPage(menus.ListPageSource):
             e.add_field(
                 name="Info/Stats",
                 value=("**Owner**: <@{0.owner}>\n" "**Uses**: `{0.uses}`\n" "**Enabled**: `{0.enabled}`".format(command)),
+                inline=False,
             )
-            e.set_footer(
-                text=(
-                    "Add extra `>` or `!` after prefix to prioritize custom "
-                    "command.\nExample: `{0}>example` or `{0}!example`".format(prefix)
-                )
+            e.add_field(
+                name="Tips",
+                value=(
+                    "> Add extra `>` or `!` after prefix to prioritize custom "
+                    f"command.\n> Example: `{prefix}>example` or `{prefix}!example`"
+                ),
             )
 
         if isinstance(command, (commands.Command, commands.Group)):
