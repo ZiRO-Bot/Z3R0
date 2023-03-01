@@ -66,7 +66,10 @@ class HelpCogPage(menus.ListPageSource):
             self.disabled = []
 
         desc = infoQuote.info(
-            "` ᶜ ` = Custom Command\n" "` ᵍ ` = Group (have subcommand(s))\n" "~~` C `~~ = Disabled",
+            "` ᶜ ` = Custom Command\n"
+            "` ᵍ ` = Group (have subcommand(s))\n"
+            "` ˢ ` = Slash (integrated to Discord's `/` command handler)\n"
+            "~~` C `~~ = Disabled",
         )
 
         e = ZEmbed(
@@ -87,6 +90,10 @@ class HelpCogPage(menus.ListPageSource):
             else:
                 if cmd.name in self.disabled:
                     name = f"~~{name}~~"
+
+            if isinstance(cmd, (commands.HybridCommand, commands.HybridGroup)):
+                name += "ˢ"
+
             if isinstance(cmd, commands.Group):
                 name += "ᵍ"
 
@@ -115,6 +122,9 @@ class HelpCommandPage(menus.ListPageSource):
             description="**Aliases**: `{}`\n".format(", ".join(command.aliases) if command.aliases else "No alias")
             + (command.description or command.short_doc or "No description"),
         )
+
+        if isinstance(command, (commands.HybridCommand, commands.HybridGroup)):
+            e.title = str(e.title).strip() + "ˢ"
 
         if isinstance(command, CustomCommand):
             e.title = str(e.title).strip() + "ᶜ"

@@ -232,10 +232,7 @@ class ziBot(commands.Bot):
         context = zmq.asyncio.Context.instance()
         self.subSocket = context.socket(zmq.SUB)
         self.subSocket.setsockopt(zmq.SUBSCRIBE, b"")
-        # Note to self:
-        # - SUB = connect
-        # - PUB = bind
-        self.subSocket.connect("tcp://*:5555")
+        self.subSocket.bind("tcp://*:5555")
         asyncio.create_task(self.onZMQReceiveMessage())
 
     async def onZMQReceiveMessage(self):
@@ -536,9 +533,9 @@ class ziBot(commands.Bot):
 
         # context = zmq.asyncio.Context.instance()
         # socket = context.socket(zmq.PUB)
-        # socket.bind("tcp://127.0.0.1:5555")
+        # socket.connect("tcp://127.0.0.1:5555")
         # await asyncio.sleep(1)
-        # await socket.send_string("Hello!")
+        # await socket.send_string("{}")
 
     async def on_message(self, message: discord.Message) -> None:
         # dont accept commands from bot
