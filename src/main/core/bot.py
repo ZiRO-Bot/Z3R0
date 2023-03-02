@@ -168,6 +168,7 @@ class ziBot(commands.Bot):
         )
 
         self.subSocket: zmq.asyncio.Socket | None = None
+        self.repSocket: zmq.asyncio.Socket | None = None
 
         @self.check
         async def _(ctx):
@@ -233,9 +234,14 @@ class ziBot(commands.Bot):
         self.subSocket = context.socket(zmq.SUB)
         self.subSocket.setsockopt(zmq.SUBSCRIBE, b"")
         self.subSocket.bind("tcp://*:5555")
-        asyncio.create_task(self.onZMQReceiveMessage())
+        asyncio.create_task(self.onZMQReceivePUBMessage())
 
-    async def onZMQReceiveMessage(self):
+        context = zmq.asyncio.Context.instance()
+        self.repSocket = context.socket(zmq.REP)
+        self.repSocket.bind("tcp://*:5556")
+        asyncio.create_task(self.onZMQReceiveREQMessage())
+
+    async def onZMQReceivePUBMessage(self):
         if not self.subSocket:
             return
 
@@ -245,6 +251,22 @@ class ziBot(commands.Bot):
 
                 channel: discord.TextChannel = self.get_channel(814009733006360597)  # type: ignore
                 await channel.send(f"Received message '{message}'")
+        except Exception as e:
+            print(e)
+
+    async def onZMQReceiveREQMessage(self):
+        if not self.repSocket:
+            return
+
+        try:
+            while True:
+                message = json.loads(await self.repSocket.recv_string())
+                # TODO:
+                match message:
+                    case {"type": "guild"}:
+                        await self.repSocket.send_string(json.dumps({"guild": str(message)}))
+                    case _:
+                        await self.repSocket.send_string(json.dumps({"test": str(message)}))
         except Exception as e:
             print(e)
 
@@ -595,6 +617,8 @@ class ziBot(commands.Bot):
 
         if self.subSocket:
             self.subSocket.close()
+        if self.repSocket:
+            self.repSocket.close()
         zmq.asyncio.Context.instance().term()
 
         # Close aiohttp session
