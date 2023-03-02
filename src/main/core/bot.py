@@ -261,12 +261,36 @@ class ziBot(commands.Bot):
         try:
             while True:
                 message = json.loads(await self.repSocket.recv_string())
+                data = {}
                 # TODO:
                 match message:
                     case {"type": "guild"}:
-                        await self.repSocket.send_string(json.dumps({"guild": str(message)}))
+                        guild = self.get_guild(message["id"])
+                        if guild:
+                            data = {
+                                "id": guild.id,
+                                "name": guild.name,
+                                "icon": getattr(guild.icon, "url", None),
+                                "owner": False,  # TODO
+                                "features": [],
+                                "permissions": 0,
+                            }
+                    case {"type": "user"}:
+                        user = self.get_user(message["id"])
+                        data = {}
+                        if user:
+                            data = {
+                                "id": user.id,
+                                "username": user.name,
+                                "avatar": user.display_avatar.url,
+                                "discriminator": user.discriminator,
+                                "mfa_enabled": False,  # TODO
+                                "email": "email@example.org",
+                                "verified": True,
+                            }
                     case _:
-                        await self.repSocket.send_string(json.dumps({"test": str(message)}))
+                        data = {"test": str(message)}
+                await self.repSocket.send_string(json.dumps(data))
         except Exception as e:
             print(e)
 
