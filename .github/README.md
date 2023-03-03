@@ -152,6 +152,14 @@ changelog
 > Listed from highest to lowest priority
 
 - Add test for every command
+- Rework permissions  
+  Currently:
+  - Admin = Can configure bot
+  - Manage Guild (and Mod role) = Can moderate using the bot  
+  Planned:
+  - Admin = Full access to bot (except for dev commands ofc)
+  - Manage Guild (and Bot Manager role) = Can configure bot
+  - Mod role = Bypass every moderator checks like Ban Member, Kick Member, etc
 - Event for ~~member boosting a guild~~ (Just need to implement setup for it)
 - Tags (stripped version of custom command)
 - Unify categories/exts emoji
