@@ -264,7 +264,7 @@ class ziBot(commands.Bot):
                 data = {}
                 # TODO:
                 match message:
-                    case {"type": "guild"}:
+                    case {"type": "guilds"}:
                         guild = self.get_guild(message["id"])
                         if guild:
                             data = {
@@ -288,6 +288,14 @@ class ziBot(commands.Bot):
                                 "email": "email@example.org",
                                 "verified": True,
                             }
+                    case {"type": "managed-guilds"}:
+                        data = [guild.id for guild in self.guilds]
+                    case {"type": "bot-stats"}:
+                        data = {
+                            "guilds": len(self.guilds),
+                            "users": len(self.users),
+                            "commands": sum(self.commandUsage.values()),
+                        }
                     case _:
                         data = {"test": str(message)}
                 await self.repSocket.send_string(json.dumps(data))
