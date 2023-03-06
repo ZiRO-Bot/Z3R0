@@ -4,7 +4,7 @@
 - [**New**] Added highlight  
   An event when a highlight word/phrase is sent by someone, the bot will send
   you a private message with the message that triggered it along with contexts
-  if you haven't talk for 5 minutes in that channel
+  if you haven't talk for 30 minutes in that channel
   (Heavily inspired by `Highlight` by Danny/Rapptz)
 
 ## 3.5.4 (Bugfix)
