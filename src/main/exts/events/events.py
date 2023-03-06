@@ -601,6 +601,7 @@ class EventHandler(commands.Cog, CogMixin):
         if not self.bot.pubSocket:
             return
 
+        # TODO: Send more data
         ret: dict[str, Any] = {}
         ret["before"] = {"name": before.name}
         ret["after"] = {"name": after.name}
