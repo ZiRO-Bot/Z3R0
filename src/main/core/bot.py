@@ -167,6 +167,7 @@ class ziBot(commands.Bot):
             )
         )
 
+        self.pubSocket: zmq.asyncio.Socket | None = None
         self.subSocket: zmq.asyncio.Socket | None = None
         self.repSocket: zmq.asyncio.Socket | None = None
 
@@ -231,6 +232,9 @@ class ziBot(commands.Bot):
 
     async def zmqBind(self):
         context = zmq.asyncio.Context.instance()
+        self.pubSocket = context.socket(zmq.PUB)
+        self.pubSocket.bind("tcp://*:5554")
+
         self.subSocket = context.socket(zmq.SUB)
         self.subSocket.setsockopt(zmq.SUBSCRIBE, b"")
         self.subSocket.bind("tcp://*:5555")
@@ -647,6 +651,8 @@ class ziBot(commands.Bot):
         if self.config.test:
             await Tortoise._drop_databases()
 
+        if self.pubSocket:
+            self.pubSocket.close()
         if self.subSocket:
             self.subSocket.close()
         if self.repSocket:

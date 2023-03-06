@@ -7,6 +7,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 from __future__ import annotations
 
 import asyncio
+import json
 import re
 from contextlib import suppress
 from typing import TYPE_CHECKING, Any, Dict, Optional, Union
@@ -594,3 +595,15 @@ class EventHandler(commands.Cog, CogMixin):
                     "unmute",
                     entry.reason,
                 )
+
+    @commands.Cog.listener("on_guild_update")
+    async def onGuildUpdate(self, before: discord.Guild, after: discord.Guild):
+        if not self.bot.pubSocket:
+            return
+
+        ret: dict[str, Any] = {}
+        ret["before"] = {"name": before.name}
+        ret["after"] = {"name": after.name}
+
+        await asyncio.sleep(1)
+        await self.bot.pubSocket.send_multipart([b"guild.update", json.dumps(ret).encode("utf8")])
