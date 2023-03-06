@@ -170,6 +170,7 @@ class ziBot(commands.Bot):
         self.pubSocket: zmq.asyncio.Socket | None = None
         self.subSocket: zmq.asyncio.Socket | None = None
         self.repSocket: zmq.asyncio.Socket | None = None
+        self.socketTasks: list[asyncio.Task] = []
 
         @self.check
         async def _(ctx):
@@ -238,12 +239,12 @@ class ziBot(commands.Bot):
         self.subSocket = context.socket(zmq.SUB)
         self.subSocket.setsockopt(zmq.SUBSCRIBE, b"")
         self.subSocket.bind("tcp://*:5555")
-        asyncio.create_task(self.onZMQReceivePUBMessage())
+        self.socketTasks.append(asyncio.create_task(self.onZMQReceivePUBMessage()))
 
         context = zmq.asyncio.Context.instance()
         self.repSocket = context.socket(zmq.REP)
         self.repSocket.bind("tcp://*:5556")
-        asyncio.create_task(self.onZMQReceiveREQMessage())
+        self.socketTasks.append(asyncio.create_task(self.onZMQReceiveREQMessage()))
 
     async def onZMQReceivePUBMessage(self):
         if not self.subSocket:
@@ -657,6 +658,10 @@ class ziBot(commands.Bot):
             self.subSocket.close()
         if self.repSocket:
             self.repSocket.close()
+
+        for task in self.socketTasks:
+            task.cancel()
+
         zmq.asyncio.Context.instance().term()
 
         # Close aiohttp session
