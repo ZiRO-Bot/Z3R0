@@ -1,0 +1,21 @@
+version: "3"
+
+services:
+  bot:
+    container_name: zibot
+    image: ghcr.io/ziro-bot/z3r0:latest
+    restart: unless-stopped
+    environment:
+      ZIBOT_TOKEN: 'YOUR_TOKEN'
+      ZIBOT_DB_URL: 'mysql://mysql:pass@db:3306/zibot'
+    depends_on:
+      - db
+  
+  db:
+    image: mariadb:10.10
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: 'pass'
+      MYSQL_DATABASE: 'zibot'
+      MYSQL_USER: 'mysql'
+      MYSQL_PASSWORD: 'pass'

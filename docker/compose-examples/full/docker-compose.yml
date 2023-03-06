@@ -1,0 +1,26 @@
+version: "3"
+
+services:
+  bot:
+    container_name: zibot
+    image: ghcr.io/ziro-bot/z3r0:latest
+    restart: unless-stopped
+    environment:
+      ZIBOT_TOKEN: 'YOUR_TOKEN'
+      ZIBOT_DB_URL: 'postgres://postgres:pass@db:5432/zibot'
+      ZIBOT_INTERNAL_API_HOST: 'api:2264'
+    depends_on:
+      - db
+      - api
+  
+  db:
+    image: postgres:15.1
+    restart: unless-stopped
+    environment:
+      POSTGRES_PASSWORD: pass
+      POSTGRES_USER: postgres
+      POSTGRES_DB: zibot
+
+  api:
+    image: ghcr.io/ziro-bot/randomapi:1.0.0
+    restart: unless-stopped

@@ -1,13 +1,16 @@
 .vscode/
 __pycache__/
+data/
 downloads/
 zibot.egg-info/
 
 .env
 exts/youtube.py
-config.json
-config.py
+blacklist.json
+config.*
+!src/main/core/config.py
+news.json
 
-discord.log
+*.log
 
-database.db
+*.db
