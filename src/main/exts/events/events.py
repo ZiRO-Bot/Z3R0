@@ -606,4 +606,4 @@ class EventHandler(commands.Cog, CogMixin):
         ret["after"] = {"name": after.name}
 
         await asyncio.sleep(1)
-        await self.bot.pubSocket.send_multipart([b"guild.update", json.dumps(ret).encode("utf8")])
+        await self.bot.pubSocket.send_multipart([b"guild.update", json.dumps(ret).encode()])
