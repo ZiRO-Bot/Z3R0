@@ -19,6 +19,7 @@ from ...core.context import Context
 from ...core.embed import ZEmbed
 from ...core.menus import ZMenuPagesView
 from ...exts.timer._views import LinkView
+from ...utils.cache import ExpiringDict
 from ...utils.format import cleanifyPrefix, formatDiscordDT
 from ...utils.other import utcnow
 from ._help import CustomHelp
@@ -264,10 +265,11 @@ class Meta(MetaCustomCommands):
 
         channelId = message.channel.id
         authorId = message.author.id
-        lastSeen: datetime.datetime | None = self.lastSeen.get(channelId, {}).get(authorId)
+        msgId = message.id
+        lastSeen: int | None = self.lastSeen.get(channelId, {}).get(authorId)
         if not self.lastSeen.get(channelId):
-            self.lastSeen[channelId] = {}
-        self.lastSeen[channelId][authorId] = utcnow()
+            self.lastSeen[channelId] = ExpiringDict(maxAgeSeconds=1800)
+        self.lastSeen[channelId][authorId] = msgId
 
         if not (guildHighlight := self.highlights.get(guild.id)):
             return
@@ -276,8 +278,8 @@ class Meta(MetaCustomCommands):
             if hl not in message.content.lower():
                 continue
 
-            if lastSeen is not None and (lastSeen - utcnow()).total_seconds() < 1800:
-                return
+            if lastSeen is not None:
+                continue
 
             # Getting context
             msgs: list[discord.Message] = [message]
