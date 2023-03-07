@@ -7,7 +7,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 from __future__ import annotations
 
 from enum import Enum
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import discord
 
@@ -69,6 +69,10 @@ class GuildWrapper:
 
     async def addPrefix(self, prefix: str):
         return await self.prefix.add(prefix)
+
+    async def getConfig(self, configType: str) -> Any:
+        # TODO: Move self.bot.getGuildConfig codes here
+        return await self.bot.getGuildConfig(self.id, configType)
 
     async def getCCMode(self) -> CCMode:
         return CCMode(await self.bot.getGuildConfig(self.id, "ccMode") or 0)

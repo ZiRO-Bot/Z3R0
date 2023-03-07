@@ -13,45 +13,39 @@ from ...core.views import ZView
 from . import _common
 
 
-class Greeting(discord.ui.Modal, title="Greeting"):
+class Greeting(discord.ui.Modal):
+    # TODO: Change this to Channel Select menu when discord finally added them
+    # They really take their time for this one, even tho modal itself is pretty
+    # rushed, I'm impressed Discord (NOT!)
+    channel = discord.ui.TextInput(
+        label="Channel",
+        placeholder="You can type #channel-name or the channels' ID for better accuracy",
+    )
+
     message = discord.ui.TextInput(
         label="Message", placeholder="Welcome, {user(mention)}! {react: 👋}", style=discord.TextStyle.paragraph
     )
-
-    # TODO - hopefully discord will add channel input soon into modal
-    #        for now i'll comment this
-    # channel = discord.ui.TextInput(
-    #     label="Channel",
-    #     placeholder="336642139381301249",
-    # )
 
     def __init__(
         self,
         context: Context,
         type: str,
-        *,
-        defaultMessage: str | None = None,
     ) -> None:
         super().__init__(title=type.title())
         self.context = context
         self.type = type
-        self.message.default = defaultMessage
-
-    async def callback(self):
-        await _common.handleGreetingConfig(self.context, self.type, message=self.message)  # type: ignore
 
     async def on_submit(self, inter: discord.Interaction):
-        await self.callback()
+        await _common.handleGreetingConfig(self.context, self.type, message=self.message.value)
         return await inter.response.defer()
 
 
 class OpenGreetingModal(ZView):
-    def __init__(self, context: Context, type, defaultMessage, message: discord.Message | None = None, **kwargs) -> None:
+    def __init__(self, context: Context, type, message: discord.Message | None = None, **kwargs) -> None:
         super().__init__(**kwargs)
         self.context = context
         self.message = message
         self.type = type
-        self.defaultMessage = defaultMessage
 
     async def on_timeout(self) -> None:
         if not self.message:
@@ -65,11 +59,12 @@ class OpenGreetingModal(ZView):
 
     @discord.ui.button(label='Configure')
     async def configureGreeting(self, interaction: discord.Interaction, button: discord.ui.Button):
-        modal = Greeting(self.context, self.type, defaultMessage=self.defaultMessage)
+        modal = Greeting(self.context, self.type)
         await interaction.response.send_modal(modal)
 
         if not self.message:
             return
 
-        button.disabled = True
+        self.configureGreeting.disabled = True
         await self.message.edit(view=self)
+        self.message = None  # Clean up

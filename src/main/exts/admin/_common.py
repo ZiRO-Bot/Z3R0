@@ -21,7 +21,7 @@ async def handleGreetingConfig(
     ctx: Context,
     type: str,
     *,
-    arguments=MISSING,
+    arguments: str = MISSING,
     message: str = None,
     raw: bool = False,
     disable: bool = False,
@@ -36,14 +36,19 @@ async def handleGreetingConfig(
 
     if arguments is None:
         # TODO - Revisit once more input introduced to modals
-        # TODO - Timeout + disable the button
-        defMsg = await ctx.bot.getGuildConfig(guild.id, f"{type}Msg")
+        defMsg = await guild.getConfig(f"{type}Msg") or "No message is set"
+        currentChannel = await guild.getConfig(f"{type}Ch")
 
-        await ctx.try_reply(
-            "This feature currently not yet available on Mobile!\n"
-            "If you're on Mobile, please do `{}{} "
-            "[message] [options]` instead".format(ctx.clean_prefix, type),
-            view=_views.OpenGreetingModal(ctx, type, defMsg, owner=ctx.author),
+        e = ZEmbed.default(ctx)
+        e.title = f"{guild.name}'s {type.title()} Configuration"
+        e.add_field(name="Channel", value=f"<#{currentChannel}>" if currentChannel else "`Disabled`", inline=False)
+        e.add_field(name="Message", value=defMsg, inline=False)
+        e.add_field(name="Raw Message", value=discord.utils.escape_markdown(defMsg), inline=False)
+
+        v = _views.OpenGreetingModal(ctx, type, owner=ctx.author)
+        v.message = await ctx.try_reply(
+            view=v,
+            embeds=(e,),
         )
         return
     elif arguments is not MISSING:
@@ -70,7 +75,7 @@ async def handleGreetingConfig(
         return await ctx.try_reply(embed=e)
 
     if raw is True:
-        message = await ctx.bot.getGuildConfig(guild.id, f"{type}Msg")
+        message = await guild.getConfig(f"{type}Msg")
         return await ctx.try_reply(discord.utils.escape_markdown(str(message)))
 
     if changeMsg:
