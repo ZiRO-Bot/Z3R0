@@ -48,16 +48,18 @@ def botMasterOnly():
 is_botmaster = botMasterOnly
 
 
-# TODO
 def botManagerOnly():
-    async def predicate(ctx):
+    async def predicate(ctx) -> bool:
         try:
+            # TODO: Create role
             roleId = await getGuildRole(ctx.bot, ctx.guild.id, "botManagerRole")
             role = ctx.guild.get_role(roleId)
             isManager = role in ctx.author.roles
         except AttributeError:
             isManager = False
 
+        with suppress(commands.MissingPermissions):
+            isManager = isManager or await hasGuildPermissions(manage_guild=True).predicate(ctx)
         return isManager
 
     return commands.check(predicate)
