@@ -233,18 +233,23 @@ class ziBot(commands.Bot):
 
     async def zmqBind(self):
         context = zmq.asyncio.Context.instance()
-        self.pubSocket = context.socket(zmq.PUB)
-        self.pubSocket.bind("tcp://*:5554")
+        pubPort = self.config.zmqPorts.get("PUB")
+        if pubPort:
+            self.pubSocket = context.socket(zmq.PUB)
+            self.pubSocket.bind(f"tcp://*:{pubPort}")
 
-        self.subSocket = context.socket(zmq.SUB)
-        self.subSocket.setsockopt(zmq.SUBSCRIBE, b"")
-        self.subSocket.bind("tcp://*:5555")
-        self.socketTasks.append(asyncio.create_task(self.onZMQReceivePUBMessage()))
+        subPort = self.config.zmqPorts.get("SUB")
+        if subPort:
+            self.subSocket = context.socket(zmq.SUB)
+            self.subSocket.setsockopt(zmq.SUBSCRIBE, b"")
+            self.subSocket.bind(f"tcp://*:{subPort}")
+            self.socketTasks.append(asyncio.create_task(self.onZMQReceivePUBMessage()))
 
-        context = zmq.asyncio.Context.instance()
-        self.repSocket = context.socket(zmq.REP)
-        self.repSocket.bind("tcp://*:5556")
-        self.socketTasks.append(asyncio.create_task(self.onZMQReceiveREQMessage()))
+        repPort = self.config.zmqPorts.get("REP")
+        if repPort:
+            self.repSocket = context.socket(zmq.REP)
+            self.repSocket.bind(f"tcp://*:{repPort}")
+            self.socketTasks.append(asyncio.create_task(self.onZMQReceiveREQMessage()))
 
     async def onZMQReceivePUBMessage(self):
         if not self.subSocket:

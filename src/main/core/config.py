@@ -24,6 +24,7 @@ class Config:
         "_tortoiseConfig",
         "internalApiHost",
         "test",
+        "zmqPorts",
     )
 
     def __init__(
@@ -39,6 +40,7 @@ class Config:
         tortoiseConfig: dict[str, Any] | None = None,
         internalApiHost: str | None = None,
         test: bool = False,
+        zmqPorts: dict[str, int] | None = None,
     ):
         self.token = token
         self.defaultPrefix = defaultPrefix or ">"
@@ -51,6 +53,7 @@ class Config:
         self._tortoiseConfig = tortoiseConfig
         self.internalApiHost = internalApiHost or "127.0.0.1:2264"
         self.test = test
+        self.zmqPorts = zmqPorts or {}
 
     @property
     def tortoiseConfig(self):

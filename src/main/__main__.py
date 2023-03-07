@@ -12,8 +12,6 @@ import sys
 from logging.handlers import RotatingFileHandler
 
 import aiohttp
-import zmq
-import zmq.asyncio
 
 from src.main.core import bot as _bot
 from src.main.core.config import Config
@@ -66,7 +64,6 @@ async def main(config: Config):
     os.environ["JISHAKU_NO_UNDERSCORE"] = "True"
     os.environ["JISHAKU_NO_DM_TRACEBACK"] = "True"
 
-    zmqContext = zmq.asyncio.Context.instance()
     bot = _bot.ziBot(config)
     async with aiohttp.ClientSession(headers={"User-Agent": "Discord/Z3RO (ziBot/3.0 by ZiRO2264)"}) as client:
         async with bot:
@@ -94,6 +91,8 @@ def run():
                 getattr(_config, "links", None),
                 getattr(_config, "TORTOISE_ORM", None),
                 getattr(_config, "internalApiHost", None),
+                getattr(_config, "test", False),
+                getattr(_config, "zmqPorts", None),
             )
         except ImportError as e:
             if e.name == "config":
@@ -104,6 +103,17 @@ def run():
                 logger.warn("Missing required environment variables, quitting...")
             else:
                 botMasters = os.environ.get("ZIBOT_BOT_MASTERS")
+                PUB = int(os.environ.get("ZIBOT_ZMQ_PUB", 0))
+                SUB = int(os.environ.get("ZIBOT_ZMQ_SUB", 0))
+                REP = int(os.environ.get("ZIBOT_ZMQ_REP", 0))
+                zmqPorts = None
+                if not all([i <= 0 for i in (PUB, SUB, REP)]):
+                    zmqPorts = {
+                        "PUB": PUB,
+                        "SUB": SUB,
+                        "REP": REP,
+                    }
+
                 config = Config(
                     token,
                     os.environ.get("ZIBOT_DB_URL"),
@@ -115,6 +125,8 @@ def run():
                     None,  # Links a dict, idk how you'd define this in environment variables
                     None,  # Tortoise config a dict, idk how you'd define this in environment variables... well you shouldn't touch it anyway
                     os.environ.get("ZIBOT_INTERNAL_API_HOST"),
+                    False,  # Can't test inside docker
+                    zmqPorts,
                 )
 
         if not config:
