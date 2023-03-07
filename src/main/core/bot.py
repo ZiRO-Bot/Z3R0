@@ -652,12 +652,11 @@ class ziBot(commands.Bot):
         if self.config.test:
             await Tortoise._drop_databases()
 
-        if self.pubSocket:
-            self.pubSocket.close()
-        if self.subSocket:
-            self.subSocket.close()
-        if self.repSocket:
-            self.repSocket.close()
+        sockets = (self.pubSocket, self.subSocket, self.repSocket)
+        for socket in sockets:
+            if not socket:
+                continue
+            socket.close()
 
         for task in self.socketTasks:
             task.cancel()
