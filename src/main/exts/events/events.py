@@ -603,8 +603,8 @@ class EventHandler(commands.Cog, CogMixin):
 
         # TODO: Send more data
         ret: dict[str, Any] = {}
-        ret["before"] = {"name": before.name, "id": before.id, "icon": before.icon}
-        ret["after"] = {"name": after.name, "id": after.id, "icon": after.icon}
+        ret["before"] = {"name": before.name, "id": before.id, "icon": getattr(before.icon, "url", None)}
+        ret["after"] = {"name": after.name, "id": after.id, "icon": getattr(before.icon, "url", None)}
 
         await asyncio.sleep(1)
         await self.bot.pubSocket.send_multipart([b"guild.update", json.dumps(ret).encode()])
