@@ -608,3 +608,48 @@ class EventHandler(commands.Cog, CogMixin):
 
         await asyncio.sleep(1)
         await self.bot.pubSocket.send_multipart([b"guild.update", json.dumps(ret).encode()])
+
+    @commands.Cog.listener("on_zmq_request")
+    async def onZMQRequest(self, request: dict[str, Any]):
+        if not self.bot.repSocket:
+            return
+
+        data = {}
+
+        match request:
+            case {"type": "guilds"}:
+                guild = self.bot.get_guild(request["id"])
+                if guild:
+                    data = {
+                        "id": guild.id,
+                        "name": guild.name,
+                        "icon": getattr(guild.icon, "url", None),
+                        "owner": False,  # TODO
+                        "features": [],
+                        "permissions": 0,
+                    }
+            case {"type": "user"}:
+                user = self.bot.get_user(request["id"])
+                data = {}
+                if user:
+                    data = {
+                        "id": user.id,
+                        "username": user.name,
+                        "avatar": user.display_avatar.url,
+                        "discriminator": user.discriminator,
+                        "mfa_enabled": False,  # TODO
+                        "email": "email@example.org",
+                        "verified": True,
+                    }
+            case {"type": "managed-guilds"}:
+                data = [guild.id for guild in self.bot.guilds]
+            case {"type": "bot-stats"}:
+                data = {
+                    "guilds": len(self.bot.guilds),
+                    "users": len(self.bot.users),
+                    "commands": sum(self.bot.commandUsage.values()),
+                }
+            case _:
+                data = {"test": str(request)}
+
+        await self.bot.repSocket.send_string(json.dumps(data))

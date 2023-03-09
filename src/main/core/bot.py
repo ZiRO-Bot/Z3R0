@@ -270,45 +270,14 @@ class ziBot(commands.Bot):
 
         try:
             while True:
-                message = json.loads(await self.repSocket.recv_string())
-                data = {}
-                # TODO:
-                match message:
-                    case {"type": "guilds"}:
-                        guild = self.get_guild(message["id"])
-                        if guild:
-                            data = {
-                                "id": guild.id,
-                                "name": guild.name,
-                                "icon": getattr(guild.icon, "url", None),
-                                "owner": False,  # TODO
-                                "features": [],
-                                "permissions": 0,
-                            }
-                    case {"type": "user"}:
-                        user = self.get_user(message["id"])
-                        data = {}
-                        if user:
-                            data = {
-                                "id": user.id,
-                                "username": user.name,
-                                "avatar": user.display_avatar.url,
-                                "discriminator": user.discriminator,
-                                "mfa_enabled": False,  # TODO
-                                "email": "email@example.org",
-                                "verified": True,
-                            }
-                    case {"type": "managed-guilds"}:
-                        data = [guild.id for guild in self.guilds]
-                    case {"type": "bot-stats"}:
-                        data = {
-                            "guilds": len(self.guilds),
-                            "users": len(self.users),
-                            "commands": sum(self.commandUsage.values()),
-                        }
-                    case _:
-                        data = {"test": str(message)}
-                await self.repSocket.send_string(json.dumps(data))
+                try:
+                    request = json.loads(await self.repSocket.recv_string())
+                except Exception as e:
+                    # Probably failed to load since it's an invalid json?
+                    request = {}
+                    print(e)
+
+                self.dispatch("zmq_request", request)
         except Exception as e:
             print(e)
 
