@@ -154,7 +154,8 @@ changelog
 >
 > Listed from highest to lowest priority
 
-- Add test for every command
+- Setup Tests using dpytest
+  - Add test for every command
 - Rework permissions
   - Currently:
     - Admin = Can configure bot
@@ -163,15 +164,16 @@ changelog
     - Admin = Full access to bot (except for dev commands ofc)
     - Manage Guild (and Bot Manager role) = Can configure bot
     - Mod role = Bypass every moderator checks like Ban Member, Kick Member, etc
+- Rework prefix system (currently `>` is hardcoded as default prefix, this
+  prefix should be added to guild's data when that guild invited the bot)
 - Event for ~~member boosting a guild~~ (Just need to implement setup for it)
 - Tags (stripped version of custom command)
 - Unify categories/exts emoji
 - Channel manager commands
-- Reaction Role (With buttons... button role?)
+- Reaction Role (With buttons)
 - Starboard
 - Slash and ContextMenu commands (80% complete)
 - Button-based (or Modal-based?) bot settings
-- Setup Tests using dpytest
 - Data migration between 2 database
 
 ### Pending Plan

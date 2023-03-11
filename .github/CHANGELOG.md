@@ -1,5 +1,11 @@
 # v3.6 (Structure Refactor)
 
+> **Info**
+>
+> Version 3.6.x is mostly about refactoring the project structure since
+> previously functions and constants are all over the place that it's starting
+> to get harder to find what I'm looking for.
+
 ## 3.6.0 (Project Structure Refactor)
 
 ### Bugfixes
