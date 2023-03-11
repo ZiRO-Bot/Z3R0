@@ -164,8 +164,17 @@ changelog
     - Admin = Full access to bot (except for dev commands ofc)
     - Manage Guild (and Bot Manager role) = Can configure bot
     - Mod role = Bypass every moderator checks like Ban Member, Kick Member, etc
-- Rework prefix system (currently `>` is hardcoded as default prefix, this
-  prefix should be added to guild's data when that guild invited the bot)
+- Rework prefix system  
+  Currently `>` is hardcoded as default prefix, this prefix should be added to
+  guild's data when that guild invited the bot)
+- Rework issue report system  
+  Currently reporting error is done manually by the user, but users doesn't
+  seems to bother reporting these errors, even tho all they gotta do is press a
+  button.  
+  So instead, I probably gonna make the bot report the error manually and keep
+  track if the error already reported before. I'll also strip some information
+  out of the reported messages to respect my user's privacy since issue report
+  is no longer manual.
 - Event for ~~member boosting a guild~~ (Just need to implement setup for it)
 - Tags (stripped version of custom command)
 - Unify categories/exts emoji
