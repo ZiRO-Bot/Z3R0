@@ -187,8 +187,6 @@ changelog
 
 ### Pending Plan
 
-- i18n using gettext  
-  Currently still figuring out how to actually implement gettext
 - Modals  
   Too much limitation at the moment, waiting for model input types
 
