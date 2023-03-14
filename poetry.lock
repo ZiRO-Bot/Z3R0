@@ -338,6 +338,18 @@ tests = ["attrs[tests-no-zope]", "zope.interface"]
 tests-no-zope = ["cloudpickle", "cloudpickle", "hypothesis", "hypothesis", "mypy (>=0.971,<0.990)", "mypy (>=0.971,<0.990)", "pympler", "pympler", "pytest (>=4.3.0)", "pytest (>=4.3.0)", "pytest-mypy-plugins", "pytest-mypy-plugins", "pytest-xdist[psutil]", "pytest-xdist[psutil]"]
 
 [[package]]
+name = "babel"
+version = "2.12.1"
+description = "Internationalization utilities"
+category = "main"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "Babel-2.12.1-py3-none-any.whl", hash = "sha256:b4246fb7677d3b98f501a39d43396d3cafdc8eadb045f4a31be01863f655c610"},
+    {file = "Babel-2.12.1.tar.gz", hash = "sha256:cc2d99999cd01d44420ae725a21c9e3711b3aadc7976d6147f622d8581963455"},
+]
+
+[[package]]
 name = "beautifulsoup4"
 version = "4.11.1"
 description = "Screen-scraping library"
@@ -675,6 +687,25 @@ files = [
 mccabe = ">=0.6.0,<0.7.0"
 pycodestyle = ">=2.8.0,<2.9.0"
 pyflakes = ">=2.4.0,<2.5.0"
+
+[[package]]
+name = "fluent-runtime"
+version = "0.3.1"
+description = "Localization library for expressive translations."
+category = "main"
+optional = false
+python-versions = "*"
+files = [
+    {file = "fluent.runtime-0.3.1-py2.py3-none-any.whl", hash = "sha256:1da9bf779e6b8cbfb5a71dd59cd7e193f8dc8da318bda7163bc41e9ae15f8574"},
+    {file = "fluent.runtime-0.3.1.tar.gz", hash = "sha256:f3a879b9d0a2129b3f8e8755f0291c445f272f3d0d26a408c7b76f608acf3409"},
+]
+
+[package.dependencies]
+attrs = "*"
+babel = "*"
+"fluent.syntax" = ">=0.17,<0.19"
+pytz = "*"
+six = "*"
 
 [[package]]
 name = "fluent-syntax"
@@ -2212,4 +2243,4 @@ voice = ["PyNaCl"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "954ef258ad39c7bdaf6ca82226473b228138462ec8fff0125727574564f99c61"
+content-hash = "17cc9d2837938f4915ccb18ed05bffd6fb5716cfd2870ef8840e968c1d8f2c49"
