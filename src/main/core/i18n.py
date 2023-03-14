@@ -35,11 +35,15 @@ class Localization:
 
     def __init__(self, defaultLocale: discord.Locale = discord.Locale.american_english):
         self.defaultLocale: discord.Locale = defaultLocale
+        self.currentLocale: discord.Locale | None = None
         self.root = Path("src/main/locale")
         self._defaultResource: Resource = self._getResource(defaultLocale)
         self.bundles: dict[discord.Locale, Any] = {}
 
         self._bundle(defaultLocale)
+
+    def set(self, locale: discord.Locale | None = None):
+        self.currentLocale = locale
 
     def _bundle(self, locale: discord.Locale):
         if locale in self.bundles:
@@ -65,7 +69,7 @@ class Localization:
         return cast(str, val)
 
     def format(self, msgId: str, locale: discord.Locale | None = None, **kwargs) -> str:
-        return self.get(msgId, locale or self.defaultLocale, kwargs)
+        return self.get(msgId, locale or self.currentLocale or self.defaultLocale, kwargs)
 
     def _getResource(self, locale: discord.Locale) -> Resource:
         with Path(self.root, f"{locale.value}.ftl").open() as fp:
@@ -83,3 +87,7 @@ if __name__ == "__main__":
     print(localization.format("var"))
     print(localization.format("var", discord.Locale.japanese, name="Z3R0"))
     print(localization.format("var", discord.Locale.indonesian, name="Z3R0"))
+    print(localization.format("var", name="Z3R0"))
+    localization.set(discord.Locale.indonesian)
+    print(localization.format("var", name="Z3R0"))
+    localization.set()
