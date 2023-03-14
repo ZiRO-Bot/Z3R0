@@ -17,6 +17,7 @@ from ...core.bot import EXTS_DIR
 from ...core.context import Context
 from ...core.converter import BannedMember
 from ...core.embed import ZEmbed
+from ...core.i18n import localization
 from ...core.menus import ZChoices, ZMenuPagesView, choice
 
 
@@ -128,3 +129,8 @@ class Developer(*STANDARD_FEATURES, *OPTIONAL_FEATURES):
         """Testing BannedMember converter after Discord paginate ban list"""
         # TODO
         return await ctx.try_reply(banned.user.id)
+
+    @Feature.Command(parent="jsk", name="i18n")
+    async def jsk_i18n(self, ctx):
+        await ctx.try_reply(localization.format("var", name=ctx.author.name))
+        await ctx.try_reply(_("test", name=ctx.author.name))
