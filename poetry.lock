@@ -677,6 +677,18 @@ pycodestyle = ">=2.8.0,<2.9.0"
 pyflakes = ">=2.4.0,<2.5.0"
 
 [[package]]
+name = "fluent-syntax"
+version = "0.18.1"
+description = "Localization library for expressive translations."
+category = "main"
+optional = false
+python-versions = "*"
+files = [
+    {file = "fluent.syntax-0.18.1-py2.py3-none-any.whl", hash = "sha256:0e63679fa4f1b3042565220a5127b4bab842424f07d6a13c12299e3b3835486a"},
+    {file = "fluent.syntax-0.18.1.tar.gz", hash = "sha256:3a55f5e605d1b029a65cc8b6492c86ec4608e15447e73db1495de11fd46c104f"},
+]
+
+[[package]]
 name = "frozenlist"
 version = "1.3.3"
 description = "A list-like structure which implements collections.abc.MutableSequence"
@@ -2200,4 +2212,4 @@ voice = ["PyNaCl"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "76b8672b23c518cb77bf7e0eb2582150ce6b08765eae71bf3f61966d42292434"
+content-hash = "954ef258ad39c7bdaf6ca82226473b228138462ec8fff0125727574564f99c61"
