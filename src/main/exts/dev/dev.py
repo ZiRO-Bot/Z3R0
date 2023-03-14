@@ -10,6 +10,7 @@ import asyncio
 import os
 import time
 
+import discord
 from jishaku.cog import OPTIONAL_FEATURES, STANDARD_FEATURES
 from jishaku.features.baseclass import Feature
 
@@ -132,5 +133,5 @@ class Developer(*STANDARD_FEATURES, *OPTIONAL_FEATURES):
 
     @Feature.Command(parent="jsk", name="i18n")
     async def jsk_i18n(self, ctx):
-        await ctx.try_reply(localization.format("var", name=ctx.author.name))
-        await ctx.try_reply(_("test", name=ctx.author.name))
+        msg = await ctx.try_reply(localization.format("var", name=ctx.author.name))
+        await msg.edit(content=msg.content + "\n" + _("test", discord.Locale("id")))
