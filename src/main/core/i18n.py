@@ -81,13 +81,27 @@ localization = Localization()
 builtins._ = localization.format  # type: ignore
 
 if __name__ == "__main__":
-    print(localization.format("test"))
-    print(localization.format("test", discord.Locale.japanese))
-    print(localization.format("test", discord.Locale.indonesian))
-    print(localization.format("var"))
-    print(localization.format("var", discord.Locale.japanese, name="Z3R0"))
-    print(localization.format("var", discord.Locale.indonesian, name="Z3R0"))
-    print(localization.format("var", name="Z3R0"))
-    localization.set(discord.Locale.indonesian)
-    print(localization.format("var", name="Z3R0"))
-    localization.set()
+    import threading
+    import time
+
+    def test1():
+        while time.time() <= start_time:
+            pass
+
+        localization.set(discord.Locale.american_english)
+        print(localization.format("var", name="Z3R0 1-1"))
+        localization.set(discord.Locale.indonesian)
+        print(localization.format("var", name="Z3R0 1-2"))
+
+    def test2():
+        while time.time() <= start_time:
+            pass
+
+        localization.set(discord.Locale.indonesian)
+        print(localization.format("var", name="Z3R0 2-1"))
+        localization.set(discord.Locale.american_english)
+        print(localization.format("var", name="Z3R0 2-2"))
+
+    start_time = time.time() + 20
+    threading.Thread(target=test1).start()
+    threading.Thread(target=test2).start()
