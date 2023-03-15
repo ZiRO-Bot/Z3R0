@@ -31,8 +31,9 @@ class Localization:
     Then either use _() or use localization.format() function.
     """
 
-    def __init__(self, defaultLocale: discord.Locale = discord.Locale.american_english):
-        self.root = Path("src/main/locale")
+    def __init__(self, defaultLocale: discord.Locale = discord.Locale.american_english, useIsolating: bool = False):
+        self.root: Path = Path("src/main/locale")
+        self.useIsolating: bool = useIsolating
 
         self.defaultLocale: discord.Locale = defaultLocale
         self.currentLocale: discord.Locale | None = None
@@ -48,17 +49,17 @@ class Localization:
     def locales(self) -> frozenset[str]:
         return frozenset(i.rstrip(".ftl") for i in self._locales)
 
-    def set(self, locale: discord.Locale | None = None):
+    def set(self, locale: discord.Locale | None = None) -> None:
         self.currentLocale = locale
 
-    def _bundle(self, locale: discord.Locale):
+    def _bundle(self, locale: discord.Locale) -> FluentBundle:
         if str(locale) not in self.locales:
             return self._bundle(self.defaultLocale)
 
         if locale in self.bundles:
             return self.bundles[locale]
 
-        bundle = FluentBundle([str(locale)])
+        bundle = FluentBundle([str(locale)], use_isolating=self.useIsolating)
         if locale != self.defaultLocale:
             bundle.add_resource(self._getResource(locale))
         bundle.add_resource(self._defaultResource)
