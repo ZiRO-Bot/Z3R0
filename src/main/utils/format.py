@@ -118,19 +118,6 @@ def formatName(name: str):
     return name.strip().lower().replace(" ", "-")
 
 
-class CMDName(commands.clean_content):
-    def __init__(self, *, lower=True):
-        self.lower = lower
-        super().__init__()
-
-    async def convert(self, ctx, argument: str):
-        converted = await super().convert(ctx, argument)
-        lower = formatName(converted)
-        if not lower:
-            raise commands.BadArgument("Missing command name.")
-        return lower
-
-
 def cleanifyPrefix(bot: ziBot, prefix: str):
     """Cleanify prefix (similar to context.clean_prefix)"""
     pattern = re.compile(r"<@!?{}>".format(bot.user.id))

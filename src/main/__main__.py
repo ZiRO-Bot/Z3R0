@@ -8,6 +8,7 @@ import asyncio
 import contextlib
 import logging
 import os
+import sys
 from logging.handlers import RotatingFileHandler
 
 import aiohttp
@@ -16,14 +17,6 @@ from src.main.core import bot as _bot
 from src.main.core.config import Config
 from src.main.utils.other import utcnow
 
-
-# Use uvloop as loop policy if possible (Linux only)
-try:
-    import uvloop  # type: ignore - error is handled
-except ImportError:
-    pass
-else:
-    asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
 
 # Create data directory if its not exist
 try:
@@ -98,6 +91,8 @@ def run():
                 getattr(_config, "links", None),
                 getattr(_config, "TORTOISE_ORM", None),
                 getattr(_config, "internalApiHost", None),
+                getattr(_config, "test", False),
+                getattr(_config, "zmqPorts", None),
             )
         except ImportError as e:
             if e.name == "config":
@@ -108,6 +103,17 @@ def run():
                 logger.warn("Missing required environment variables, quitting...")
             else:
                 botMasters = os.environ.get("ZIBOT_BOT_MASTERS")
+                PUB = int(os.environ.get("ZIBOT_ZMQ_PUB", 0))
+                SUB = int(os.environ.get("ZIBOT_ZMQ_SUB", 0))
+                REP = int(os.environ.get("ZIBOT_ZMQ_REP", 0))
+                zmqPorts = None
+                if not all([i <= 0 for i in (PUB, SUB, REP)]):
+                    zmqPorts = {
+                        "PUB": PUB,
+                        "SUB": SUB,
+                        "REP": REP,
+                    }
+
                 config = Config(
                     token,
                     os.environ.get("ZIBOT_DB_URL"),
@@ -119,12 +125,25 @@ def run():
                     None,  # Links a dict, idk how you'd define this in environment variables
                     None,  # Tortoise config a dict, idk how you'd define this in environment variables... well you shouldn't touch it anyway
                     os.environ.get("ZIBOT_INTERNAL_API_HOST"),
+                    False,  # Can't test inside docker
+                    zmqPorts,
                 )
 
         if not config:
             exit(1)
 
-        asyncio.run(main(config))
+        # Use uvloop as loop policy if possible (Linux only)
+        try:
+            import uvloop  # type: ignore - error is handled
+        except ImportError:
+            asyncio.run(main(config))
+        else:
+            if sys.version_info >= (3, 11):
+                with asyncio.Runner(loop_factory=uvloop.new_event_loop) as runner:
+                    runner.run(main(config))
+            else:
+                uvloop.install()
+                asyncio.run(main(config))
 
 
 if __name__ == "__main__":

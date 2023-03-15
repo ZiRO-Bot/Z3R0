@@ -23,6 +23,8 @@ class Config:
         "databaseUrl",
         "_tortoiseConfig",
         "internalApiHost",
+        "test",
+        "zmqPorts",
     )
 
     def __init__(
@@ -37,6 +39,8 @@ class Config:
         links: dict[str, str] | None = None,
         tortoiseConfig: dict[str, Any] | None = None,
         internalApiHost: str | None = None,
+        test: bool = False,
+        zmqPorts: dict[str, int] | None = None,
     ):
         self.token = token
         self.defaultPrefix = defaultPrefix or ">"
@@ -48,14 +52,20 @@ class Config:
         self.databaseUrl = databaseUrl or "sqlite://data/database.db"
         self._tortoiseConfig = tortoiseConfig
         self.internalApiHost = internalApiHost or "127.0.0.1:2264"
+        self.test = test
+        self.zmqPorts = zmqPorts or {}
 
     @property
     def tortoiseConfig(self):
+        mainModel = "main.core.db"
+        if not self.test:
+            mainModel = "src." + mainModel
+
         return self._tortoiseConfig or {
             "connections": {"default": self.databaseUrl},
             "apps": {
                 "models": {
-                    "models": ["src.main.core.db", "aerich.models"],
+                    "models": [mainModel, "aerich.models"],
                     "default_connection": "default",
                 },
             },

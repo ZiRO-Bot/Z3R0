@@ -46,8 +46,6 @@ class GoogleTranslate:
             data = await res.json()
             return Translated(data[2], dest, data[0][0][1], data[0][0][0])
 
-        return
-
 
 if __name__ == "__main__":
     import asyncio

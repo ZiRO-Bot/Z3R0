@@ -7,23 +7,25 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 from __future__ import annotations
 
 import asyncio
+import json
 import re
 from contextlib import suppress
 from typing import TYPE_CHECKING, Any, Dict, Optional, Union
 
 import discord
 import pytz
-import TagScriptEngine as tse
 from aiohttp.client_exceptions import ClientOSError
 from discord.app_commands import AppCommandError
 from discord.ext import commands
 
+import tse
+
 from ...core import errors
 from ...core.embed import ZEmbed
 from ...core.mixin import CogMixin
-from ...utils import tseBlocks
 from ...utils.format import formatMissingArgError, formatPerms, formatTraceback
 from ...utils.other import doCaselog, reactsToMessage, utcnow
+from ..meta import _errors as ccErrors
 from ._views import Report
 
 
@@ -104,7 +106,7 @@ class EventHandler(commands.Cog, CogMixin):
             tse.AssignmentBlock(),
             tse.RequireBlock(),
             tse.EmbedBlock(),
-            tseBlocks.ReactBlock(),
+            tse.ReactBlock(),
         ]
         self.engine = tse.Interpreter(blocks)
 
@@ -269,11 +271,11 @@ class EventHandler(commands.Cog, CogMixin):
         # These errors should have `message` already defined
         defaultError = (
             errors.DefaultError,
-            errors.CCommandAlreadyExists,
+            ccErrors.CCommandAlreadyExists,
+            ccErrors.CCommandNoPerm,
+            ccErrors.CCommandDisabled,
             commands.BadArgument,
             errors.MissingMuteRole,
-            errors.CCommandNoPerm,
-            errors.CCommandDisabled,
             errors.NotNSFWChannel,
         )
 
@@ -376,7 +378,7 @@ class EventHandler(commands.Cog, CogMixin):
                 description=desc,
                 # colour=discord.Colour(0x2F3136),
             )
-            e.set_footer(text="Waiting for answer...", icon_url=ctx.author.avatar.url)
+            e.set_footer(text="Waiting for answer...", icon_url=ctx.author.display_avatar.url)
 
             view = Report(ctx.author, timeout=60.0)
 
@@ -388,7 +390,7 @@ class EventHandler(commands.Cog, CogMixin):
             await view.wait()
 
             if not view.value:
-                e.set_footer(text="You were too late to answer.", icon_url=ctx.author.avatar.url)
+                e.set_footer(text="You were too late to answer.", icon_url=ctx.author.display_avatar.url)
                 view.report.disabled = True
                 await msg.edit(embed=e, view=view)
             else:
@@ -402,7 +404,7 @@ class EventHandler(commands.Cog, CogMixin):
                 await dest.send(embed=e_owner)
                 e.set_footer(
                     text="Error has been reported to {}".format(destName),
-                    icon_url=ctx.author.avatar.url,
+                    icon_url=ctx.author.display_avatar.url,
                 )
                 view.report.disabled = True
                 await msg.edit(embed=e, view=view)
@@ -594,18 +596,60 @@ class EventHandler(commands.Cog, CogMixin):
                     entry.reason,
                 )
 
-    @commands.Cog.listener("on_message")
-    async def onNoNitroEmoji(self, message: discord.Message):
-        if message.author.id != 186713080841895936:
+    @commands.Cog.listener("on_guild_update")
+    async def onGuildUpdate(self, before: discord.Guild, after: discord.Guild):
+        if not self.bot.pubSocket:
             return
 
-        match = re.findall(r";([a-zA-Z0-9\_]{1,32});", message.content)
-        if not match:
+        # TODO: Send more data
+        ret: dict[str, Any] = {}
+        ret["before"] = {"name": before.name, "id": before.id, "icon": getattr(before.icon, "url", None)}
+        ret["after"] = {"name": after.name, "id": after.id, "icon": getattr(before.icon, "url", None)}
+
+        await asyncio.sleep(1)
+        await self.bot.pubSocket.send_multipart([b"guild.update", json.dumps(ret).encode()])
+
+    @commands.Cog.listener("on_zmq_request")
+    async def onZMQRequest(self, request: dict[str, Any]):
+        if not self.bot.repSocket:
             return
 
-        emojiName = match[0]
-        result = discord.utils.get(self.bot.emojis, name=emojiName)
-        if not result:
-            return
+        data = {}
 
-        return await message.channel.send(message.content.replace(f";{match[0]};", str(result)))
+        match request:
+            case {"type": "guilds"}:
+                guild = self.bot.get_guild(request["id"])
+                if guild:
+                    data = {
+                        "id": guild.id,
+                        "name": guild.name,
+                        "icon": getattr(guild.icon, "url", None),
+                        "owner": False,  # TODO
+                        "features": [],
+                        "permissions": 0,
+                    }
+            case {"type": "user"}:
+                user = self.bot.get_user(request["id"])
+                data = {}
+                if user:
+                    data = {
+                        "id": user.id,
+                        "username": user.name,
+                        "avatar": user.display_avatar.url,
+                        "discriminator": user.discriminator,
+                        "mfa_enabled": False,  # TODO
+                        "email": "email@example.org",
+                        "verified": True,
+                    }
+            case {"type": "managed-guilds"}:
+                data = [guild.id for guild in self.bot.guilds]
+            case {"type": "bot-stats"}:
+                data = {
+                    "guilds": len(self.bot.guilds),
+                    "users": len(self.bot.users),
+                    "commands": sum(self.bot.commandUsage.values()),
+                }
+            case _:
+                data = {"test": str(request)}
+
+        await self.bot.repSocket.send_string(json.dumps(data))

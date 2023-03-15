@@ -13,125 +13,13 @@ from discord import app_commands
 from discord.ext import commands
 from discord.utils import MISSING
 
-from ...core import checks, flags
+from ...core import checks
 from ...core.context import Context
 from ...core.embed import ZEmbed
 from ...core.mixin import CogMixin
-from ...utils.format import separateStringFlags
 from ...utils.other import setGuildRole
+from ._common import handleGreetingConfig
 from ._flags import ROLE_TYPES, LogFlags, RoleCreateFlags, RoleSetFlags
-
-
-class Greeting(discord.ui.Modal, title="Greeting"):
-    # TODO - Move this into _view.py
-    message = discord.ui.TextInput(
-        label="Message", placeholder="Welcome, {user(mention)}! {react: 👋}", style=discord.TextStyle.paragraph
-    )
-
-    # TODO - hopefully discord will add channel input soon into modal
-    #        for now i'll comment this
-    # channel = discord.ui.TextInput(
-    #     label="Channel",
-    #     placeholder="336642139381301249",
-    # )
-
-    def __init__(
-        self,
-        context: Context,
-        type: str,
-        *,
-        defaultMessage: Optional[str] = None,
-    ) -> None:
-        super().__init__(title=type.title())
-        self.context = context
-        self.type = type
-        self.message.default = defaultMessage
-
-    async def callback(self):
-        await handleGreetingConfig(self.context, self.type, message=self.message)  # type: ignore
-
-    async def on_submit(self, inter: discord.Interaction):
-        await self.callback()
-        return await inter.response.defer()
-
-
-async def handleGreetingConfig(
-    ctx: Context,
-    type: str,
-    *,
-    arguments=MISSING,
-    message: str = None,
-    raw: bool = False,
-    disable: bool = False,
-    channel: discord.TextChannel = None,
-):
-    """Handle welcome and farewell configuration."""
-    guild: discord.Guild | None = ctx.guild
-    if not guild:
-        raise RuntimeError
-
-    changeMsg = False
-
-    if arguments is None:
-        # TODO - Revisit once more input introduced to modals
-        # TODO - Timeout + disable the button
-        defMsg = await ctx.bot.getGuildConfig(guild.id, f"{type}Msg")
-
-        def makeCallback():
-            async def callback(interaction: discord.Interaction):
-                modal = Greeting(ctx, type, defaultMessage=defMsg)
-                await interaction.response.send_modal(modal)
-
-            return callback
-
-        btn = discord.ui.Button(label=f"Set {type} config")
-        btn.callback = makeCallback()
-        view = discord.ui.View()
-        view.add_item(btn)
-
-        await ctx.try_reply(
-            "This feature currently not yet available on Mobile!\n"
-            "If you're on Mobile, please do `{}{} "
-            "[message] [options]` instead".format(ctx.clean_prefix, type),
-            view=view,
-        )
-        return
-    elif arguments is not MISSING:
-        message, args = separateStringFlags(arguments)
-
-        parsed = await flags.GreetingFlags.convert(ctx, args)
-
-        # Parsed value from flags
-        disable = parsed.disable
-        raw = parsed.raw
-        channel = parsed.channel
-        message = " ".join([message.strip()] + parsed.messages).strip()
-
-    if not raw and not disable and message:
-        changeMsg = True
-
-    e = ZEmbed.success(
-        title=("Welcome" if type == "welcome" else "Farewell") + " config has been updated",
-    )
-
-    if disable is True:
-        await ctx.bot.setGuildConfig(guild.id, f"{type}Ch", None, "GuildChannels")
-        e.add_field(name="Status", value="`Disabled`")
-        return await ctx.try_reply(embed=e)
-
-    if raw is True:
-        message = await ctx.bot.getGuildConfig(guild.id, f"{type}Msg")
-        return await ctx.try_reply(discord.utils.escape_markdown(str(message)))
-
-    if changeMsg:
-        await ctx.bot.setGuildConfig(guild.id, f"{type}Msg", message)
-        e.add_field(name="Message", value=message, inline=False)
-
-    if channel is not None:
-        await ctx.bot.setGuildConfig(guild.id, f"{type}Ch", channel.id, "GuildChannels")
-        e.add_field(name="Channel", value=channel.mention)
-
-    return await ctx.try_reply(embed=e)
 
 
 class Admin(commands.Cog, CogMixin):

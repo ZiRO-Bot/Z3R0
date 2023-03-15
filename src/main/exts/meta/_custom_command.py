@@ -9,15 +9,14 @@ from __future__ import annotations
 from enum import Enum
 
 import discord
-import TagScriptEngine as tse
-from discord.ext import commands
+
+import tse
 
 from ...core import checks, db
 from ...core.context import Context
-from ...core.errors import CCommandDisabled, CCommandNotFound, CCommandNotInGuild
-from ...utils import tseBlocks
-from ...utils.format import CMDName
+from ...core.guild import GuildWrapper
 from ...utils.other import reactsToMessage, utcnow
+from ._errors import CCommandDisabled, CCommandNotFound, CCommandNotInGuild
 
 
 _blocks = [
@@ -26,34 +25,12 @@ _blocks = [
     tse.LooseVariableGetterBlock(),
     tse.RedirectBlock(),
     tse.RequireBlock(),
-    tseBlocks.RandomBlock(),
-    tseBlocks.ReactBlock(),
-    tseBlocks.ReactUBlock(),
-    tseBlocks.SilentBlock(),
+    tse.RandomBlock(),
+    tse.ReactBlock(),
+    tse.ReactUBlock(),
+    tse.SilentBlock(),
 ]
 ENGINE = tse.Interpreter(_blocks)
-
-
-class Group:
-    """Dummy class for splitted subcommands group"""
-
-    def __init__(self, command: commands.Group, subcommands: list):
-        self.self = command
-        self.commands = subcommands
-
-
-class CCMode(Enum):
-    MOD_ONLY = 0
-    PARTIAL = 1
-    ANARCHY = 2
-
-    def __str__(self):
-        MODES = [
-            "Only mods can add and manage custom commands",
-            "Member can add custom command but can only manage **their own** commands",
-            "**A N A R C H Y**",
-        ]
-        return MODES[self.value]
 
 
 class CustomCommand:
@@ -90,8 +67,7 @@ class CustomCommand:
         # Incase its invoked using its alias
         self.invokedName = kwargs.pop("invokedName", name)
 
-        # TODO: Add "brief"
-        self.brief = None
+        self.brief = kwargs.pop("brief", None)
         self.short_doc = self.brief
         self.description = kwargs.pop("description", None)
         self.help = self.description
@@ -107,7 +83,7 @@ class CustomCommand:
         return self.name
 
     async def canManage(self, context: Context) -> bool:
-        guild: discord.Guild | None = context.guild
+        guild: GuildWrapper | None = context.guild
         if not guild:
             raise CCommandNotInGuild
 
@@ -121,13 +97,14 @@ class CustomCommand:
             2: True,
         }.get(mode, False)
 
-    def processTag(self, ctx, argument: str | None = None):
+    def _processTag(self, ctx, argument: str = ""):
         """Process tags from CC's content with TSE."""
         author = tse.MemberAdapter(ctx.author)
         content = self.content
         # TODO: Make target uses custom command arguments instead
         target = tse.MemberAdapter(ctx.message.mentions[0]) if ctx.message.mentions else author
         channel = tse.ChannelAdapter(ctx.channel)
+        arguments = tse.ArgumentAdapter(argument)
         seed = {
             "author": author,
             "user": author,
@@ -137,14 +114,15 @@ class CustomCommand:
             "unix": tse.IntAdapter(int(utcnow().timestamp())),
             "prefix": ctx.prefix,
             "uses": tse.IntAdapter(self.uses + 1),
-            "argument": argument,
+            "args": arguments,
+            "argument": arguments,
         }
         if ctx.guild:
             guild = tse.GuildAdapter(ctx.guild)
             seed.update(guild=guild, server=guild)
         return ENGINE.process(content, seed)
 
-    async def execute(self, ctx: Context, argument: str | None = None, *, raw: bool = False):
+    async def execute(self, ctx: Context, argument: str = "", *, raw: bool = False):
         if not ctx.guild:
             raise CCommandNotInGuild
 
@@ -159,7 +137,7 @@ class CustomCommand:
         # Increment uses
         await db.Commands.filter(id=self.id).update(uses=self.uses + 1)
 
-        result = self.processTag(ctx)
+        result = self._processTag(ctx, argument)
         embed = result.actions.get("embed")
 
         dest = result.actions.get("target")
@@ -173,7 +151,7 @@ class CustomCommand:
                 action = ctx.author.send
                 kwargs = {}
 
-        msg = await action(
+        msg = await action(  # type: ignore
             result.body or ("\u200b" if not embed else ""),
             embed=embed,
             allowed_mentions=discord.AllowedMentions(everyone=False, users=False, roles=False),
@@ -187,8 +165,8 @@ class CustomCommand:
             ctx.bot.loop.create_task(reactsToMessage(msg, react))
 
     @classmethod
-    async def get(cls, context: Context, command: str | CMDName) -> CustomCommand:
-        guild: discord.Guild | None = context.guild
+    async def get(cls, context: Context, command: str) -> CustomCommand:
+        guild: GuildWrapper | None = context.guild
         if not guild:
             raise CCommandNotInGuild
 
@@ -197,14 +175,14 @@ class CustomCommand:
             # No command found
             raise CCommandNotFound(command)
 
-        _id = lookup.cmd_id
+        _id = lookup.cmd_id  # type: ignore
         name = lookup.name
 
-        results: db.CommandsLookup | None = await db.CommandsLookup.filter(cmd_id=_id).prefetch_related("cmd")
+        results: db.CommandsLookup | None = await db.CommandsLookup.filter(cmd_id=_id).prefetch_related("cmd")  # type: ignore
         if not results:
             raise CCommandNotFound(command)
 
-        cmd: db.Commands = results[0].cmd
+        cmd: db.Commands = results[0].cmd  # type: ignore
 
         return cls(
             id=_id,
@@ -223,7 +201,7 @@ class CustomCommand:
     @staticmethod
     async def getAll(context: Context | discord.Object, category: str = None) -> list[CustomCommand]:
         if isinstance(context, Context):
-            guild: discord.Object | (discord.Guild | None) = context.guild
+            guild: discord.Object | (GuildWrapper | None) = context.guild
         else:
             guild = context
 

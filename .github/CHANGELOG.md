@@ -1,3 +1,42 @@
+# v3.6 (Structure Refactor)
+
+> **Info**
+>
+> Version 3.6.x is mostly about refactoring the project structure since
+> previously functions and constants are all over the place that it's starting
+> to get harder to find what I'm looking for.
+
+## 3.6.0 (Project Structure Refactor)
+
+### Bugfixes
+- [**Fixed**] Fixed potential error related to user without avatar
+- [**Fixed**] `>findseed` command throws error when invalid mode is given
+  instead of falling back to `visual`
+- [**Fixed**] Error while changing changelog caused by unhandled parent
+  directories
+- [**Fixed**] Prefix list no longer being sent when bot is mentioned
+- [**Fixed**] Some command doesn't show its full description in Help Page
+
+### Additions
+- [**Added**] Add `{args}` tag block
+
+### Improvements
+- [**Improved**] Docker ignores `src/test`
+- [**Improved**] Docker no longer install development tools
+- [**Improved**] Moved tseBlocks into TagScript module (`src/tse`)
+- [**Improved**] Moved command usage tips from footer to a new field
+
+### Internal Changes
+- [**Added**] Unit testing the bot using
+  [dpytest](https://github.com/CraftSpider/dpytest)
+- [**Improved**] Initial Python v3.11 support
+- [**Changed**] Merge TagScript into Z3R0 repository
+- [**Improved**] Split `_model` into `_wrapper` and `_custom_command`
+- [**Improved**] Moved Custom Command related errors into `exts.meta._errors`
+- [**Improved**] Moved JSON (and Blacklist) and Cache (and its properties) into `core.data`
+- [**Changed**] Removed `CMDName`
+- [**Added**] Initial ZeroMQ support for Dashboard
+
 # v3.5 (Overhaul an Overhaul?)
 
 ## 3.5.5

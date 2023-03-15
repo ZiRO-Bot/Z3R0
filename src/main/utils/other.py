@@ -7,14 +7,11 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 from __future__ import annotations, division
 
 import datetime as dt
-import json
 import math
 import operator
-import os
-import uuid
 from decimal import Decimal
 from html.parser import HTMLParser
-from typing import Any, Dict, Optional, Tuple
+from typing import Optional, Tuple
 
 import discord
 from pyparsing import (
@@ -183,67 +180,6 @@ async def reactsToMessage(message: discord.Message, reactions: list = []):
         except discord.Forbidden:
             # Don't have perms to do reaction
             continue
-
-
-class JSON(dict):
-    __slots__ = ("filename", "data")
-
-    def __init__(self, filename: str, default: Dict[Any, Any] = {}) -> None:
-        self.filename: str = filename
-
-        data: Dict[Any, Any] = default or {}
-
-        try:
-            f = open(filename, "r")
-            data = json.loads(f.read())
-        except FileNotFoundError:
-            with open(filename, "w+") as f:
-                json.dump(data, f, indent=4)
-
-        super().__init__(data)
-
-    def __repl__(self):
-        return f"<JSON: data={self.items}>"
-
-    def dump(self, indent: int = 4, **kwargs):
-        temp = "{}-{}.tmp".format(uuid.uuid4(), self.filename)
-        with open(temp, "w") as tmp:
-            json.dump(self.copy(), tmp, indent=indent, **kwargs)
-
-        os.replace(temp, self.filename)
-        return True
-
-
-class Blacklist(JSON):
-    def __init__(self, filename: str = "blacklist.json"):
-        super().__init__(filename)
-
-    @property
-    def guilds(self):
-        return self.get("guilds", [])
-
-    @property
-    def users(self):
-        return self.get("users", [])
-
-    def __repl__(self):
-        return f"<Blacklist: guilds={self.guilds} users={self.users}>"
-
-    def append(self, key: Any, value: Any, **kwargs) -> Any:
-        val: list = self.get(key, [])
-        val.append(value)
-        self.update({key: val})
-
-        self.dump(**kwargs)
-        return value
-
-    def remove(self, key: Any, value: Any, **kwargs) -> Any:
-        val: list = self.get(key, [])
-        val.remove(value)
-        self.update({key: val})
-
-        self.dump(**kwargs)
-        return value
 
 
 def utcnow():

@@ -16,20 +16,16 @@ from discord.ext import commands
 
 from ....core import checks, db
 from ....core.context import Context
+from ....core.data import CacheListProperty, CacheUniqueViolation
 from ....core.embed import ZEmbed
-from ....core.errors import (
-    CCommandAlreadyExists,
-    CCommandNoPerm,
-    CCommandNotFound,
-    CCommandNotInGuild,
-)
+from ....core.guild import CCMode, GuildWrapper
 from ....core.menus import ZChoices, choice
 from ....core.mixin import CogMixin
-from ....utils.cache import CacheListProperty, CacheUniqueViolation
-from ....utils.format import CMDName, formatCmdName
+from ....utils.format import formatCmdName
 from ....utils.other import utcnow
+from .._custom_command import CustomCommand
+from .._errors import CCommandAlreadyExists, CCommandNoPerm, CCommandNotFound
 from .._flags import CmdManagerFlags
-from .._model import CCMode, CustomCommand
 from .._utils import getDisabledCommands
 
 
@@ -58,18 +54,12 @@ class MetaCustomCommands(commands.Cog, CogMixin):
             unique=True,
         )
 
-    async def getCCMode(self, ctx: Context) -> CCMode:
-        guild: discord.Guild | None = ctx.guild
-        if not guild:
-            raise CCommandNotInGuild
-        return CCMode(await ctx.bot.getGuildConfig(guild.id, "ccMode") or 0)
-
     async def ccModeCheck(self, ctx):
         """Check for custom command's modes."""
         # 0: Only mods,
         # 1: Partial (Can add but only able to manage their own command),
         # 2: Full (Anarchy mode)
-        mode = await self.getCCMode(ctx)
+        mode = await ctx.guild.getCCMode()
         isMod = await checks.isMod(ctx)
         return isMod if mode == CCMode.MOD_ONLY else True
 
@@ -83,9 +73,8 @@ class MetaCustomCommands(commands.Cog, CogMixin):
     async def command(self, _):
         pass
 
-    # TODO: Implement argument
     @command.command(aliases=("exec", "execute"), brief="Execute a custom command")
-    async def run(self, ctx, name: CMDName, argument: str | None = None):
+    async def run(self, ctx, name: str, argument: str = ""):
         cmd = await CustomCommand.get(ctx, name)
         return await cmd.execute(ctx, argument)
 
@@ -95,11 +84,11 @@ class MetaCustomCommands(commands.Cog, CogMixin):
         brief="Get raw content of a custom command",
     )
     @commands.cooldown(1, 5, commands.BucketType.user)
-    async def _source(self, ctx, name: CMDName):
+    async def _source(self, ctx, name: str):
         cmd = await CustomCommand.get(ctx, name)
         return await cmd.execute(ctx, raw=True)
 
-    async def addCmd(self, ctx, name: CMDName, content: str, **kwargs):
+    async def addCmd(self, ctx, name: str, content: str, **kwargs):
         """Add cmd to database"""
         cmd = await db.Commands.create(
             name=name,
@@ -138,7 +127,7 @@ class MetaCustomCommands(commands.Cog, CogMixin):
             link = "https://pastebin.com/raw/" + group.group(1)
         return link
 
-    async def isCmdExist(self, ctx, name: CMDName):
+    async def isCmdExist(self, ctx, name: str):
         """Check if command already exists"""
         rows = await db.CommandsLookup.filter(name=name, guild__id=ctx.guild.id).first()
         if rows:
@@ -158,7 +147,7 @@ class MetaCustomCommands(commands.Cog, CogMixin):
             },
         ),
     )
-    async def _import(self, ctx: Context, name: CMDName, *, url: str):
+    async def _import(self, ctx: Context, name: str, *, url: str):
         perm = await self.ccModeCheck(ctx)
         if not perm:
             raise CCommandNoPerm
@@ -204,7 +193,7 @@ class MetaCustomCommands(commands.Cog, CogMixin):
             },
         ),
     )
-    async def _add(self, ctx, name: CMDName, *, content: str):
+    async def _add(self, ctx, name: str, *, content: str):
         perm = await self.ccModeCheck(ctx)
         if not perm:
             raise CCommandNoPerm
@@ -227,7 +216,7 @@ class MetaCustomCommands(commands.Cog, CogMixin):
             },
         ),
     )
-    async def update_url(self, ctx: Context, name: CMDName, url: str):
+    async def update_url(self, ctx: Context, name: str, url: str):
         # NOTE: Can only be run by cmd owner or guild mods/owner
         command = await CustomCommand.get(ctx, name)
 
@@ -272,7 +261,7 @@ class MetaCustomCommands(commands.Cog, CogMixin):
             },
         ),
     )
-    async def update(self, ctx: Context, name: CMDName):
+    async def update(self, ctx: Context, name: str):
         # NOTE: Can only be run by cmd owner or guild mods/owner
 
         # For both checking if command exists and
@@ -330,7 +319,7 @@ class MetaCustomCommands(commands.Cog, CogMixin):
             },
         ),
     )
-    async def alias(self, ctx, commandName: CMDName, alias: CMDName):
+    async def alias(self, ctx, commandName: str, alias: str):
         command = await CustomCommand.get(ctx, commandName)
 
         perm = await command.canManage(ctx)
@@ -357,7 +346,7 @@ class MetaCustomCommands(commands.Cog, CogMixin):
             },
         ),
     )
-    async def cmdEdit(self, ctx, command: CMDName, *, content):
+    async def cmdEdit(self, ctx, command: str, *, content):
         await self.setContent(ctx, command, content=content)
 
     @command.group(
@@ -389,7 +378,7 @@ class MetaCustomCommands(commands.Cog, CogMixin):
             },
         ),
     )
-    async def setContent(self, ctx, name: CMDName, *, content):
+    async def setContent(self, ctx, name: str, *, content):
         command = await CustomCommand.get(ctx, name)
 
         perm = await command.canManage(ctx)
@@ -405,14 +394,14 @@ class MetaCustomCommands(commands.Cog, CogMixin):
         aliases=("u",),
         brief="Alias for `command update-url`",
     )
-    async def setUrl(self, ctx, name: CMDName, url: str):
+    async def setUrl(self, ctx, name: str, url: str):
         await self.update_url(ctx, name, url)
 
     @cmdSet.command(
         name="alias",
         brief="Alias for `command alias`",
     )
-    async def setAlias(self, ctx, command: CMDName, alias: CMDName):
+    async def setAlias(self, ctx, command: str, alias: str):
         await self.alias(ctx, command, alias)
 
     @cmdSet.command(
@@ -426,7 +415,7 @@ class MetaCustomCommands(commands.Cog, CogMixin):
             },
         ),
     )
-    async def setCategory(self, ctx, _command: CMDName, category: CMDName):
+    async def setCategory(self, ctx, _command: str, category: str):
         category = category.lower()
 
         availableCats = [cog.qualified_name.lower() for cog in ctx.bot.cogs.values() if getattr(cog, "cc", False)]
@@ -489,7 +478,7 @@ class MetaCustomCommands(commands.Cog, CogMixin):
             },
         ),
     )
-    async def remove(self, ctx, name: CMDName):
+    async def remove(self, ctx, name: str):
         command = await CustomCommand.get(ctx, name)
 
         perm = await command.canManage(ctx)
@@ -765,7 +754,8 @@ class MetaCustomCommands(commands.Cog, CogMixin):
     @command.command(name="mode", brief="Show current custom command mode")
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def cmdMode(self, ctx: Context):
-        mode = await self.getCCMode(ctx)
+        guild: GuildWrapper = ctx.guild  # type: ignore
+        mode = await guild.getCCMode()
 
         e = ZEmbed.minimal(title="Current Mode: `{}`".format(str(mode.value)), description=mode)
         return await ctx.try_reply(embed=e)

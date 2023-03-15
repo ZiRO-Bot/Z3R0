@@ -6,8 +6,10 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from __future__ import annotations
 
+import asyncio
 import copy
 import datetime
+import json
 import logging
 import os
 import re
@@ -17,22 +19,25 @@ from typing import TYPE_CHECKING, Any
 
 import aiohttp
 import discord
+import zmq
+import zmq.asyncio
 from discord.ext import commands, tasks
-from tortoise import Tortoise
+from tortoise import Tortoise, connections
+from tortoise.exceptions import DBConnectionError, OperationalError
 from tortoise.models import Model
 
 from .. import __version__ as botVersion
-from ..exts.meta._model import CustomCommand
+from ..exts.meta._custom_command import CustomCommand
+from ..exts.meta._errors import CCommandDisabled, CCommandNotFound, CCommandNotInGuild
 from ..exts.meta._utils import getDisabledCommands
 from ..exts.timer.timer import Timer, TimerData
-from ..utils.cache import Cache, CacheDictProperty, CacheListProperty
 from ..utils.format import formatCmdName
-from ..utils.other import JSON, Blacklist, utcnow
+from ..utils.other import utcnow
 from . import db
 from .colour import ZColour
 from .config import Config
 from .context import Context
-from .errors import CCommandDisabled, CCommandNotFound, CCommandNotInGuild
+from .data import JSON, Blacklist, Cache, CacheDictProperty, CacheListProperty
 from .guild import GuildWrapper
 
 
@@ -45,7 +50,10 @@ for filename in os.listdir(FMT):
         if filename in EXTS_IGNORED:
             continue
         if not filename.startswith("_"):
-            EXTS.append("src.main.{}.{}".format(EXTS_DIR, filename))
+            EXTS.append("main.{}.{}".format(EXTS_DIR, filename))
+
+
+EMOJI_REGEX = re.compile(r";(?P<name>[a-zA-Z0-9_]{2,32});")
 
 
 async def _callablePrefix(bot: ziBot, message: discord.Message) -> list:
@@ -81,8 +89,8 @@ class ziBot(commands.Bot):
         # ---
 
         # custom intents, required since dpy v1.5
-        # message content intent, required since dpy v2.0
         intents = discord.Intents.all()
+        # message content intent, required since dpy v2.0
         intents.message_content = True
 
         super().__init__(
@@ -159,6 +167,11 @@ class ziBot(commands.Bot):
             )
         )
 
+        self.pubSocket: zmq.asyncio.Socket | None = None
+        self.subSocket: zmq.asyncio.Socket | None = None
+        self.repSocket: zmq.asyncio.Socket | None = None
+        self.socketTasks: list[asyncio.Task] = []
+
         @self.check
         async def _(ctx):
             """Global check"""
@@ -179,6 +192,14 @@ class ziBot(commands.Bot):
                 "No master is set, you may not able to use certain commands! (Unless you own the Bot Application)"
             )
 
+        if self.config.test:
+            await Tortoise.init(
+                config=self.config.tortoiseConfig,
+                use_tz=True,  # d.py 2.0 is tz-aware
+            )
+            with suppress(DBConnectionError, OperationalError):
+                await Tortoise._drop_databases()
+
         await Tortoise.init(
             config=self.config.tortoiseConfig,
             use_tz=True,  # d.py 2.0 is tz-aware
@@ -189,21 +210,76 @@ class ziBot(commands.Bot):
 
     async def afterReady(self) -> None:
         """`setup_hook` but wait until ready"""
-        await self.wait_until_ready()
+        if not self.config.test:
+            await self.waitUntilReady()
 
-        self.changingPresence.start()
+            owner: discord.User = (await self.application_info()).owner
+            if owner and owner.id not in self.owner_ids:
+                self.owner_ids += (owner.id,)
 
-        owner: discord.User = (await self.application_info()).owner
-        if owner and owner.id not in self.owner_ids:
-            self.owner_ids += (owner.id,)
+            await self.manageGuildDeletion()
 
-        await self.manageGuildDeletion()
+            self.changingPresence.start()
+            await self.zmqBind()
 
         for extension in EXTS:
-            await self.load_extension(extension)
+            await self.load_extension(f"src.{extension}" if not self.config.test else extension)
 
         if not hasattr(self, "uptime"):
             self.uptime: datetime.datetime = utcnow()
+
+    async def on_ready(self) -> None:
+        self.logger.warning("Ready: {0} (ID: {0.id})".format(self.user))
+
+    async def zmqBind(self):
+        context = zmq.asyncio.Context.instance()
+        pubPort = self.config.zmqPorts.get("PUB")
+        if pubPort:
+            self.pubSocket = context.socket(zmq.PUB)
+            self.pubSocket.bind(f"tcp://*:{pubPort}")
+
+        subPort = self.config.zmqPorts.get("SUB")
+        if subPort:
+            self.subSocket = context.socket(zmq.SUB)
+            self.subSocket.setsockopt(zmq.SUBSCRIBE, b"")
+            self.subSocket.bind(f"tcp://*:{subPort}")
+            self.socketTasks.append(asyncio.create_task(self.onZMQReceivePUBMessage()))
+
+        repPort = self.config.zmqPorts.get("REP")
+        if repPort:
+            self.repSocket = context.socket(zmq.REP)
+            self.repSocket.bind(f"tcp://*:{repPort}")
+            self.socketTasks.append(asyncio.create_task(self.onZMQReceiveREQMessage()))
+
+    async def onZMQReceivePUBMessage(self):
+        if not self.subSocket:
+            return
+
+        try:
+            while True:
+                message = json.loads(await self.subSocket.recv_string())
+
+                channel: discord.TextChannel = self.get_channel(814009733006360597)  # type: ignore
+                await channel.send(f"Received message '{message}'")
+        except Exception as e:
+            print(e)
+
+    async def onZMQReceiveREQMessage(self):
+        if not self.repSocket:
+            return
+
+        try:
+            while True:
+                try:
+                    request = json.loads(await self.repSocket.recv_string())
+                except Exception as e:
+                    # Probably failed to load since it's an invalid json?
+                    request = {}
+                    print(e)
+
+                self.dispatch("zmq_request", request)
+        except Exception as e:
+            print(e)
 
     async def getGuildConfigs(
         self,
@@ -222,15 +298,11 @@ class ziBot(commands.Bot):
         cached: CacheDictProperty = getattr(self.cache, table._meta.db_table)
         if cached.get(guildId) is None:
             # Executed when guild configs is not in the cache
-            config = await table.filter(guild_id=guildId).values()
+            config = await table.filter(guild_id=guildId).first().values() or {}  # type: ignore
 
-            if config:
-                row = config[0]
-                for i in ("id", "guild_id"):
-                    row.pop(i, None)
-                cached.set(guildId, row)
-            else:
-                cached.set(guildId, {})
+            for i in ("id", "guild_id"):
+                config.pop(i, None)
+            cached.set(guildId, config)
         return cached.get(guildId, {})
 
     async def getGuildConfig(self, guildId: int, configType: str, table: str | Model = "GuildConfigs") -> Any | None:
@@ -273,7 +345,7 @@ class ziBot(commands.Bot):
     @tasks.loop(seconds=15)
     async def changingPresence(self) -> None:
         """A loop that change bot's status every 15 seconds."""
-        await self.wait_until_ready()
+        await self.waitUntilReady()
         activities: tuple = (
             discord.Activity(
                 name=f"over {len(self.guilds)} servers",
@@ -291,9 +363,6 @@ class ziBot(commands.Bot):
             self.activityIndex = 0
 
         await self.change_presence(activity=activities[self.activityIndex])
-
-    async def on_ready(self) -> None:
-        self.logger.warning("Ready: {0} (ID: {0.id})".format(self.user))
 
     async def manageGuildDeletion(self) -> None:
         """Manages guild deletion from database on boot"""
@@ -342,7 +411,7 @@ class ziBot(commands.Bot):
 
     async def on_guild_join(self, guild: discord.Guild) -> None:
         """Executed when bot joins a guild"""
-        await self.wait_until_ready()
+        await self.waitUntilReady()
 
         await db.Guilds.create(id=guild.id)
 
@@ -351,13 +420,16 @@ class ziBot(commands.Bot):
 
     async def on_guild_remove(self, guild: discord.Guild) -> None:
         """Executed when bot leaves a guild"""
-        await self.wait_until_ready()
+        await self.waitUntilReady()
         # Schedule deletion
         await self.scheduleDeletion(guild.id, days=self.guildDelDays)
 
     async def scheduleDeletion(self, guildId: int, days: int = 30) -> None:
         """Schedule guild deletion from `guilds` table"""
         timer: Timer = self.get_cog("Timer")  # type: ignore
+        if not timer:
+            return
+
         now = utcnow()
         when = now + datetime.timedelta(days=days)
         await timer.createTimer(when, "guild_del", created=now, owner=guildId)
@@ -365,6 +437,8 @@ class ziBot(commands.Bot):
     async def cancelDeletion(self, guild: discord.Guild) -> None:
         """Cancel guild deletion"""
         timer: Timer = self.get_cog("Timer")  # type: ignore
+        if not timer:
+            return
 
         # Remove the deletion timer and restart timer task
         await db.Timer.filter(owner=guild.id, event="guild_del").delete()
@@ -374,7 +448,7 @@ class ziBot(commands.Bot):
 
     async def on_guild_del_timer_complete(self, timer: TimerData) -> None:
         """Executed when guild deletion timer completed"""
-        await self.wait_until_ready()
+        await self.waitUntilReady()
         guildId: int = timer.owner
 
         guildIds: list[int] = [i.id for i in self.guilds]
@@ -453,12 +527,50 @@ class ziBot(commands.Bot):
         await self.invoke(ctx)
         return ctx.command
 
-    async def process(self, message):
+    async def processNoNitroEmoji(self, message: discord.Message):
+        if message.author.id != 186713080841895936:
+            return
+
+        matches = EMOJI_REGEX.findall(message.content)
+        if not matches:
+            return
+
+        content = message.content
+
+        prefer = {"shuba": 855604899743793152}
+        handled = []
+        for match in matches:
+            if match:
+                if match in handled:
+                    continue
+
+                prefered = prefer.get(match)
+                emoji = None
+                if prefered:
+                    emoji = discord.utils.get(self.emojis, id=prefered)
+                if not emoji:
+                    emoji = discord.utils.get(self.emojis, name=match)
+
+                if emoji:
+                    content = content.replace(f";{match};", str(emoji))
+                handled.append(match)
+
+        await message.reply(content)
+
+    async def process(self, message: discord.Message):
         processed = await self.process_commands(message)
-        if processed is not None and not isinstance(processed, str):
+        if not processed:
+            return await self.processNoNitroEmoji(message)
+        if processed and not isinstance(processed, str):
             self.commandUsage[formatCmdName(processed)] += 1
 
-    async def on_message(self, message) -> None:
+        # context = zmq.asyncio.Context.instance()
+        # socket = context.socket(zmq.PUB)
+        # socket.connect("tcp://127.0.0.1:5555")
+        # await asyncio.sleep(1)
+        # await socket.send_string("{}")
+
+    async def on_message(self, message: discord.Message) -> None:
         # dont accept commands from bot
         if (
             message.author.bot
@@ -470,10 +582,11 @@ class ziBot(commands.Bot):
         me: discord.ClientUser = self.user  # type: ignore
 
         # if bot is mentioned without any other message, send prefix list
+        guild = GuildWrapper.fromContext(message.guild, self)
         pattern = f"<@(!?){me.id}>"
-        if re.fullmatch(pattern, message.content):
+        if re.fullmatch(pattern, message.content) and guild:
             e = discord.Embed(
-                description=await message.guild.getFormattedPrefixes(),
+                description=await guild.getFormattedPrefixes(),
                 colour=ZColour.rounded(),
             )
             e.set_footer(text="Use `@{} help` to learn how to use the bot".format(me.display_name))
@@ -497,11 +610,33 @@ class ziBot(commands.Bot):
     async def on_app_command_completion(self, _, command: discord.app_commands.Command | discord.app_commands.ContextMenu):
         self.commandUsage[formatCmdName(command)] += 1
 
+    async def waitUntilReady(self):
+        if self.config.test:
+            return
+
+        await super().wait_until_ready()
+
     async def close(self) -> None:
         """Properly close/turn off bot"""
-        await super().close()
-        # Close database
-        await Tortoise.close_connections()
+        if not self.config.test:
+            await super().close()
+
+        # Close database connections
+        await connections.close_all()
+        if self.config.test:
+            await Tortoise._drop_databases()
+
+        sockets = (self.pubSocket, self.subSocket, self.repSocket)
+        for socket in sockets:
+            if not socket:
+                continue
+            socket.close()
+
+        for task in self.socketTasks:
+            task.cancel()
+
+        zmq.asyncio.Context.instance().term()
+
         # Close aiohttp session
         await self.session.close()
 

@@ -4,7 +4,7 @@ License, v. 2.0. If a copy of the MPL was not distributed with this
 file, You can obtain one at http://mozilla.org/MPL/2.0/.
 """
 
-from typing import Any, List, Optional, Tuple
+from typing import List, Optional, Tuple
 
 from discord.ext import commands, menus
 
@@ -12,8 +12,9 @@ from ...core.embed import ZEmbed
 from ...core.menus import ZMenuView
 from ...utils import infoQuote
 from ...utils.format import cleanifyPrefix, formatCmd
-from ._model import CustomCommand, Group
+from ._custom_command import CustomCommand
 from ._utils import getDisabledCommands
+from ._wrapper import GroupSplitWrapper
 
 
 class PrefixesPageSource(menus.ListPageSource):
@@ -45,7 +46,7 @@ class PrefixesPageSource(menus.ListPageSource):
             else:
                 fmt += "`{}`"
             prefixes.append(fmt.format(cleanifyPrefix(ctx.bot, prefix)))
-        e.description += "\n".join(prefixes) or "No custom prefix."
+        e.description = str(e.description) + ("\n".join(prefixes) or "No custom prefix.")
         return e
 
 
@@ -65,7 +66,10 @@ class HelpCogPage(menus.ListPageSource):
             self.disabled = []
 
         desc = infoQuote.info(
-            "` ᶜ ` = Custom Command\n" "` ᵍ ` = Group (have subcommand(s))\n" "~~` C `~~ = Disabled",
+            "` ᶜ ` = Custom Command\n"
+            "` ᵍ ` = Group (have subcommand(s))\n"
+            "` ˢ ` = Slash (integrated to Discord's `/` command handler)\n"
+            "~~` C `~~ = Disabled",
         )
 
         e = ZEmbed(
@@ -74,7 +78,7 @@ class HelpCogPage(menus.ListPageSource):
         )
 
         if not _commands:
-            e.description += "\nNo usable commands."
+            e.description = str(e.description) + "\nNo usable commands."
             return e
 
         for cmd in _commands:
@@ -86,6 +90,10 @@ class HelpCogPage(menus.ListPageSource):
             else:
                 if cmd.name in self.disabled:
                     name = f"~~{name}~~"
+
+            if isinstance(cmd, (commands.HybridCommand, commands.HybridGroup)):
+                name += "ˢ"
+
             if isinstance(cmd, commands.Group):
                 name += "ᵍ"
 
@@ -105,27 +113,32 @@ class HelpCommandPage(menus.ListPageSource):
         prefix = ctx.clean_prefix
 
         subcmds = None
-        if isinstance(command, Group):
+        if isinstance(command, GroupSplitWrapper):
             subcmds = command.commands
-            command = command.self
+            command = command.origin
 
         e = ZEmbed(
             title=formatCmd(prefix, command),
             description="**Aliases**: `{}`\n".format(", ".join(command.aliases) if command.aliases else "No alias")
-            + (getattr(command, "help", command.description) or command.short_doc or "No description"),
+            + (command.description or command.short_doc or "No description"),
         )
 
+        if isinstance(command, (commands.HybridCommand, commands.HybridGroup)):
+            e.title = str(e.title).strip() + "ˢ"
+
         if isinstance(command, CustomCommand):
-            e.title = e.title.strip() + "ᶜ"
+            e.title = str(e.title).strip() + "ᶜ"
             e.add_field(
                 name="Info/Stats",
                 value=("**Owner**: <@{0.owner}>\n" "**Uses**: `{0.uses}`\n" "**Enabled**: `{0.enabled}`".format(command)),
+                inline=False,
             )
-            e.set_footer(
-                text=(
-                    "Add extra `>` or `!` after prefix to prioritize custom "
-                    "command.\nExample: `{0}>example` or `{0}!example`".format(prefix)
-                )
+            e.add_field(
+                name="Tips",
+                value=(
+                    "> Add extra `>` or `!` after prefix to prioritize custom "
+                    f"command.\n> Example: `{prefix}>example` or `{prefix}!example`"
+                ),
             )
 
         if isinstance(command, (commands.Command, commands.Group)):

@@ -1,0 +1,36 @@
+version: "3"
+
+# NOTICE: Don't use this compose (yet)! Dashboard feature is still in Alpha
+# stage and likely gonna break frequently on update.
+services:
+  bot:
+    hostname: bot
+    container_name: zibot
+    image: ghcr.io/ziro-bot/z3r0:latest
+    restart: unless-stopped
+    environment:
+      ZIBOT_TOKEN: 'YOUR_TOKEN'
+      ZIBOT_DB_URL: 'postgres://postgres:pass@db:5432/zibot'
+      ZIBOT_INTERNAL_API_HOST: 'api:2264'
+    depends_on:
+      - db
+      - api
+  
+  db:
+    hostname: db
+    image: postgres:15.1
+    restart: unless-stopped
+    environment:
+      POSTGRES_PASSWORD: pass
+      POSTGRES_USER: postgres
+      POSTGRES_DB: zibot
+
+  api:
+    hostname: api
+    image: ghcr.io/ziro-bot/backend:0.0.1
+    restart: unless-stopped
+
+  web:
+    hostname: web
+    image: ghcr.io/ziro-bot/frontend:0.0.1
+    restart: unless-stopped

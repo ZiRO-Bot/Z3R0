@@ -8,7 +8,7 @@ import asyncio
 
 from aiohttp import ClientSession
 
-from ...utils.cache import ExpiringDict
+from ...core.data import ExpiringDict
 
 
 class PistonOutput:

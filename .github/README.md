@@ -1,6 +1,5 @@
 <p align="center">
-    <!-- Change the img source to Z3R0 logo/mascot when its done --->
-    <a href="https://github.com/ZiRO-Bot/ziBot"><img src="/assets/img/banner.png" alt="Z3R0" width="720"/></a>
+    <a href="https://github.com/ZiRO-Bot/ziBot"><img src="/assets/img/banner.png" alt="Z3R0" width="540"/></a>
 </p>
 
 <h1 align="center"><code>Z3R0 (codename ziBot)</code></h1>
@@ -13,6 +12,9 @@
     <a href="https://pycqa.github.io/isort"><img alt="Imports: isort" src="https://img.shields.io/badge/%20imports-isort-%231674b1?style=flat&labelColor=ef8336"></a>
     <a href="/LICENSE"><img alt="License: MPL-2.0" src="https://img.shields.io/badge/license-MPL--2.0-blue.svg"></a>
     <a href="https://liberapay.com/ZiRO2264/donate"><img alt="Donate using Librepay" src="https://img.shields.io/liberapay/patrons/ZiRO2264.svg?logo=liberapay"></a>
+    <br/>
+    <a href="https://github.com/ZiRO-Bot/Z3R0/actions/workflows/test.yml"><img alt="CI: Tests" src="https://github.com/ZiRO-Bot/Z3R0/actions/workflows/test.yml/badge.svg"></a>
+    <a href="https://github.com/ZiRO-Bot/Z3R0/actions/workflows/build.yml"><img alt="CI: Nightly Build" src="https://github.com/ZiRO-Bot/Z3R0/actions/workflows/build.yml/badge.svg"></a>
 </p>
 
 ## About
@@ -42,10 +44,20 @@ More feature coming soon!
 
 ### Self-Hosting
 
+> **Note**
+>
+> If you're planning to self-host the bot, I'll assume you already have a
+> decent knowledge of Python, discord.py and hosting bot in general. I will
+> **NOT** give support for basic issue such as "Where do I get bot token", "How
+> to install Python", etc.
+>
+> Hosting from free hosting such as Heroku is not supported either! It's
+> recommended to get a proper VPS/Cloud Server to host a bot.
+
 #### Docker
 
 - Install [Docker](https://docs.docker.com/install/) and [Docker-Compose](https://docs.docker.com/compose/install/)
-- Create `docker-compose.yaml` file or use the one from [`docker/compose-examples`](./docker/compose-examples):
+- Create `docker-compose.yaml` file or use the one from [`docker/compose-examples`](../docker/compose-examples):
 
     ```yaml
     version: "3"
@@ -81,10 +93,15 @@ More feature coming soon!
 | **CURRENTLY NOT AVAILABLE** | links | Change the links shown in the info command |
 | **CURRENTLY NOT AVAILABLE** | TORTOISE\_ORM | Advanced TortoiseORM configuration, you shouldn't touch it if you're not familiar with TortoiseORM |
 | ZIBOT\_INTERNAL\_API\_HOST | internalApiHost | The bot's [internal API](https://github.com/ZiRO-Bot/RandomAPI) |
+| ZIBOT\_ZMQ\_PUB | zmqPorts | Port for ZeroMQ's Publish |
+| ZIBOT\_ZMQ\_SUB | zmqPorts | Port for ZeroMQ's Subscribe |
+| ZIBOT\_ZMQ\_REP | zmqPorts | Port for ZeroMQ's Reply |
 
 #### Manual
 
-> **Warning**: Python 3.10+ is required to host this bot!
+> **Warning**
+>
+> Python 3.10+ (3.10.9 is recommended) is required to host this bot!
 
 - Download this repository by executing `git clone https://github.com/ZiRO-Bot/Z3R0.git`
   or click "Code" -> "Download ZIP"
@@ -111,7 +128,7 @@ More feature coming soon!
    poetry install --no-dev -E "mysql+asyncmy"
    ```
 
-- Copy and paste (or rename) [`config.py-example`](./config.py-example) to `config.py`
+- Copy and paste (or rename) [`config.py-example`](../config.py-example) to `config.py`
 - Edit all the necessary config value (`token`, `botMasters`, and `sql`)
 - Run the bot by executing this command, `poetry run bot`
 - If everything is setup properly, the bot should be online!
@@ -119,8 +136,11 @@ More feature coming soon!
 ### Development
 
 - Install poetry `pip install poetry` then run `poetry install`
-- Run `poetry run pre-commit install`
-- To run the bot executing this command, `poetry run bot`
+- Install pre-commit then run `poetry run pre-commit install`
+- Start the bot by running `poetry run bot`
+- It is recommended to setup a test unit inside `src/test` when you added a new
+  command, you can run the test by running `poetry run pytest -v`  
+  Read [dpytest](https://dpytest.readthedocs.io/) documentation for more information
 
 ## Changelog
 
@@ -130,15 +150,40 @@ changelog
 
 ## Plans
 
+> **Note**
+>
+> Listed from highest to lowest priority
+
+- Setup Tests using dpytest
+  - Add test for every command
+- Rework permissions
+  - Currently:
+    - Admin = Can configure bot
+    - Manage Guild (and Mod role) = Can moderate using the bot
+  - Planned:
+    - Admin = Full access to bot (except for dev commands ofc)
+    - Manage Guild (and Bot Manager role) = Can configure bot
+    - Mod role = Bypass every moderator checks like Ban Member, Kick Member, etc
+- Rework prefix system  
+  Currently `>` is hardcoded as default prefix, this prefix should be added to
+  guild's data when that guild invited the bot)
+- Rework issue report system  
+  Currently reporting error is done manually by the user, but users doesn't
+  seems to bother reporting these errors, even tho all they gotta do is press a
+  button.  
+  So instead, I probably gonna make the bot report the error manually and keep
+  track if the error already reported before. I'll also strip some information
+  out of the reported messages to respect my user's privacy since issue report
+  is no longer manual.
 - Event for ~~member boosting a guild~~ (Just need to implement setup for it)
 - Tags (stripped version of custom command)
 - Unify categories/exts emoji
 - Channel manager commands
-- Reaction Role (With buttons... button role?)
+- Reaction Role (With buttons)
 - Starboard
 - Slash and ContextMenu commands (80% complete)
 - Button-based (or Modal-based?) bot settings
-- Setup Tests using dpytest
+- Data migration between 2 database
 
 ### Pending Plan
 
