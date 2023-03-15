@@ -7,12 +7,14 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 from __future__ import annotations
 
 import aiohttp
+import discord
 import discord.ext.test as dpytest
 import pytest_asyncio
 from discord.ext.test import factories
 
 from main.core.bot import ziBot
 from main.core.config import Config
+from main.core.i18n import localization
 
 
 oldMemberDict = factories.make_member_dict
@@ -37,5 +39,6 @@ async def bot():
     await testBot._async_setup_hook()
     await testBot.setup_hook()
     await testBot.on_guild_join(dpytest.get_config().guilds[0])
+    localization.set(discord.Locale.american_english)
     yield testBot
     await testBot.close()

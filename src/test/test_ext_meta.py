@@ -30,7 +30,7 @@ async def testNothingIsEmpty(bot: ziBot):
 async def testPrefixAdd(bot: ziBot):
     """Test prefix addition"""
     await dpytest.message(">prefix + !")
-    assert str(dpytest.get_embed(peek=True).title).endswith("added")
+    assert str(dpytest.get_embed(peek=True).title).endswith("added!")
 
 
 @pytest.mark.asyncio
@@ -68,7 +68,7 @@ async def testPrefixRemove(bot: ziBot):
     """Test prefix removal"""
     await dpytest.message(">prefix + !")
     await dpytest.message(">prefix - !")
-    assert str(dpytest.get_embed(peek=True).title).endswith("removed")
+    assert str(dpytest.get_embed(peek=True).title).endswith("removed!")
 
 
 @pytest.mark.asyncio
