@@ -135,3 +135,8 @@ class Developer(*STANDARD_FEATURES, *OPTIONAL_FEATURES):
     async def jsk_i18n(self, ctx):
         msg = await ctx.try_reply(localization.format("var", name=ctx.author.name))
         await msg.edit(content=msg.content + "\n" + _("test", discord.Locale("id")))
+
+    @Feature.Command(parent="jsk", name="lang")
+    async def jsk_lang(self, ctx, language: str = "en-US"):
+        localization.set(discord.Locale(language))
+        await ctx.try_reply("Language has been changed")

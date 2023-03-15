@@ -13,7 +13,7 @@ import discord
 import humanize
 from discord.ext import commands
 
-from ...core import checks
+from ...core import checks, i18n
 from ...core.context import Context
 from ...core.embed import ZEmbed
 from ...core.menus import ZMenuPagesView
@@ -106,12 +106,12 @@ class Meta(MetaCustomCommands):
     async def stats(self, ctx):
         uptime = utcnow() - self.bot.uptime
         e = ZEmbed.default(ctx)
-        e.set_author(name=ctx.bot.user.name + "'s stats", icon_url=ctx.bot.user.display_avatar.url)
-        e.add_field(name="🕙 | Uptime", value=humanize.precisedelta(uptime), inline=False)
+        e.set_author(name=_("stats-title", bot=ctx.bot.user.name), icon_url=ctx.bot.user.display_avatar.url)
+        e.add_field(name=_("stats-uptime-title"), value=humanize.precisedelta(uptime), inline=False)
         e.add_field(
-            name="<:terminal:852787866554859591> | Command Usage (This session)",
-            value="{} commands ({} custom commands)".format(
-                sum(self.bot.commandUsage.values()), self.bot.customCommandUsage
+            name=_("stats-command-title"),
+            value=_(
+                "stats-command", commandCount=sum(self.bot.commandUsage.values()), customCommand=self.bot.customCommandUsage
             ),
             inline=False,
         )
@@ -162,11 +162,11 @@ class Meta(MetaCustomCommands):
     async def prefAdd(self, ctx, *prefix: str):
         _prefix = " ".join(prefix).lstrip()
         if not _prefix:
-            return await ctx.error("Prefix can't be empty!")
+            return await ctx.error(_("prefix-empty"))
 
         try:
             await ctx.guild.addPrefix(_prefix)
-            await ctx.success(title="Prefix `{}` has been added".format(cleanifyPrefix(self.bot, _prefix)))
+            await ctx.success(title=_("prefix-added", prefix=cleanifyPrefix(self.bot, _prefix)))
         except Exception as exc:
             await ctx.error(exc)
 
@@ -183,14 +183,14 @@ class Meta(MetaCustomCommands):
         ),
     )
     @checks.is_mod()
-    async def prefRm(self, ctx: Context, *, prefix: str):
+    async def prefRm(self, ctx: Context, *prefix: str):
         _prefix = " ".join(prefix).lstrip()
         if not _prefix:
-            return await ctx.error("Prefix can't be empty!")
+            return await ctx.error(_("prefix-empty"))
 
         try:
             await ctx.guild.rmPrefix(_prefix.lstrip())
-            await ctx.success(title="Prefix `{}` has been removed".format(cleanifyPrefix(self.bot, _prefix)))
+            await ctx.success(title=_("prefix-removed", prefix=cleanifyPrefix(self.bot, _prefix)))
         except Exception as exc:
             await ctx.error(exc)
 
