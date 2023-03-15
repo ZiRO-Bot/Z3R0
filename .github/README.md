@@ -19,6 +19,10 @@
 
 ## About
 
+> **Info**
+>
+> `dev` branch is used mostly for development and generally considered as unstable, to host the bot it's recommended to use `overhaul` branch instead!
+
 **`Z3R0`** (codename **`ziBot`**) is a **free** and **open-source** multi-purpose discord bot, created for fun in the middle of quarantine. Used to be fork of [Steve-Bot](https://github.com/MCBE-Speedrunning/Steve-Bot) by MCBE Speedrunning Moderators.
 
 ### Features
@@ -104,7 +108,7 @@ More feature coming soon!
 > Python 3.10+ (3.10.9 is recommended) is required to host this bot!
 
 - Download this repository by executing `git clone https://github.com/ZiRO-Bot/Z3R0.git`
-  or click "Code" -> "Download ZIP"
+  or click "Code" -> "Download ZIP" (be sure to choose `overhaul` branch first!)
 - Install poetry by executing this command,
 
    ```zsh
