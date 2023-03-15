@@ -6,8 +6,6 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from __future__ import annotations
 
-import builtins
-from contextlib import suppress
 from pathlib import Path
 from typing import Any, cast
 
@@ -28,9 +26,9 @@ class Localization:
     Usage
     =====
     To use it you just need to import 'localization' or this script itself:
-    'from core import i18n' or 'from core.i18n import localization'
+    'from core.i18n import _format as _' or 'from core.i18n import localization'
 
-    Then either use localization.format() or use _() function.
+    Then either use _() or use localization.format() function.
     """
 
     def __init__(self, defaultLocale: discord.Locale = discord.Locale.american_english):
@@ -89,7 +87,7 @@ class Localization:
 
 
 localization = Localization()
-builtins._ = localization.format  # type: ignore
+_format = localization.format  # TIPS: import as _
 
 if __name__ == "__main__":
 
@@ -102,18 +100,18 @@ if __name__ == "__main__":
                 pass
 
             localization.set(discord.Locale.american_english)
-            print(localization.format("var", name="Z3R0 1-1"))
+            print(_format("var", name="Z3R0 1-1"))
             localization.set(discord.Locale.indonesian)
-            print(localization.format("var", name="Z3R0 1-2"))
+            print(_format("var", name="Z3R0 1-2"))
 
         def test2():
             while time.time() <= start_time:
                 pass
 
             localization.set(discord.Locale.indonesian)
-            print(localization.format("var", name="Z3R0 2-1"))
+            print(_format("var", name="Z3R0 2-1"))
             localization.set(discord.Locale.american_english)
-            print(localization.format("var", name="Z3R0 2-2"))
+            print(_format("var", name="Z3R0 2-2"))
 
         start_time = time.time() + 20
         threading.Thread(target=test1).start()
@@ -121,10 +119,10 @@ if __name__ == "__main__":
 
     def testLocale():
         print(localization.locales)
-        print(localization.format("var", name="Z3R0 1-1"))
+        print(_format("var", name="Z3R0 1-1"))
         localization.set(discord.Locale.indonesian)
-        print(localization.format("var", name="Z3R0 1-1"))
+        print(_format("var", name="Z3R0 1-1"))
         localization.set(discord.Locale.japanese)  # Doesn't exists
-        print(localization.format("var", name="Z3R0 1-1"))
+        print(_format("var", name="Z3R0 1-1"))
 
     testLocale()

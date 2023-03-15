@@ -18,6 +18,7 @@ from ...core.bot import EXTS_DIR
 from ...core.context import Context
 from ...core.converter import BannedMember
 from ...core.embed import ZEmbed
+from ...core.i18n import _format as _
 from ...core.i18n import localization
 from ...core.menus import ZChoices, ZMenuPagesView, choice
 

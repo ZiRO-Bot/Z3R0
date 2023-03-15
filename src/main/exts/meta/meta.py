@@ -13,9 +13,10 @@ import discord
 import humanize
 from discord.ext import commands
 
-from ...core import checks, i18n
+from ...core import checks
 from ...core.context import Context
 from ...core.embed import ZEmbed
+from ...core.i18n import _format as _
 from ...core.menus import ZMenuPagesView
 from ...utils.format import cleanifyPrefix
 from ...utils.other import utcnow
