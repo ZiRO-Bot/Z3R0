@@ -14,8 +14,7 @@ from discord.ext import commands
 
 from ...core.embed import ZEmbed
 from ...core.menus import ZChoices, ZMenuPagesView, choice
-from ...utils import infoQuote
-from ...utils.format import formatDiscordDT
+from ...utils.format import formatDiscordDT, info
 from ._custom_command import CustomCommand
 from ._errors import CCommandNotFound
 from ._flags import HelpFlags
@@ -35,7 +34,7 @@ class CustomHelp(commands.HelpCommand):
         ctx = self.context
 
         e = ZEmbed(
-            description=infoQuote.info(
+            description=info(
                 (
                     "`( )` = Required Argument\n"
                     "`[ ]` = Optional Argument\n"
@@ -155,6 +154,7 @@ class CustomHelp(commands.HelpCommand):
         filterAliases = {
             "c": "custom",
             "b": "built-in",
+            "builtin": "built-in",
         }
 
         # get unique value from filters (also get "real value" if its an alias)
@@ -173,7 +173,7 @@ class CustomHelp(commands.HelpCommand):
         # TODO: Improve the output
         ctx = self.context
 
-        if not (guild := ctx.guild):
+        if not ctx.guild:
             return
 
         cmds = await CustomCommand.getAll(ctx)
