@@ -34,23 +34,34 @@ class Localization:
     """
 
     def __init__(self, defaultLocale: discord.Locale = discord.Locale.american_english):
+        self.root = Path("src/main/locale")
+
         self.defaultLocale: discord.Locale = defaultLocale
         self.currentLocale: discord.Locale | None = None
-        self.root = Path("src/main/locale")
-        self._defaultResource: Resource = self._getResource(defaultLocale)
+        self._locales: frozenset[str] = frozenset(p.name for p in self.root.iterdir() if p.name.endswith("ftl"))
+
+        try:
+            self._defaultResource: Resource = self._getResource(defaultLocale)
+        except FileNotFoundError:
+            raise RuntimeError("Default locale not found!")
         self.bundles: dict[discord.Locale, Any] = {}
 
-        self._bundle(defaultLocale)
+    @property
+    def locales(self) -> frozenset[str]:
+        return frozenset(i.rstrip(".ftl") for i in self._locales)
 
     def set(self, locale: discord.Locale | None = None):
         self.currentLocale = locale
 
     def _bundle(self, locale: discord.Locale):
+        if str(locale) not in self.locales:
+            return self._bundle(self.defaultLocale)
+
         if locale in self.bundles:
             return self.bundles[locale]
 
         bundle = FluentBundle([str(locale)])
-        with suppress(FileNotFoundError):
+        if locale != self.defaultLocale:
             bundle.add_resource(self._getResource(locale))
         bundle.add_resource(self._defaultResource)
         self.bundles[locale] = bundle
@@ -81,27 +92,39 @@ localization = Localization()
 builtins._ = localization.format  # type: ignore
 
 if __name__ == "__main__":
-    import threading
-    import time
 
-    def test1():
-        while time.time() <= start_time:
-            pass
+    def testParallel():
+        import threading
+        import time
 
-        localization.set(discord.Locale.american_english)
+        def test1():
+            while time.time() <= start_time:
+                pass
+
+            localization.set(discord.Locale.american_english)
+            print(localization.format("var", name="Z3R0 1-1"))
+            localization.set(discord.Locale.indonesian)
+            print(localization.format("var", name="Z3R0 1-2"))
+
+        def test2():
+            while time.time() <= start_time:
+                pass
+
+            localization.set(discord.Locale.indonesian)
+            print(localization.format("var", name="Z3R0 2-1"))
+            localization.set(discord.Locale.american_english)
+            print(localization.format("var", name="Z3R0 2-2"))
+
+        start_time = time.time() + 20
+        threading.Thread(target=test1).start()
+        threading.Thread(target=test2).start()
+
+    def testLocale():
+        print(localization.locales)
         print(localization.format("var", name="Z3R0 1-1"))
         localization.set(discord.Locale.indonesian)
-        print(localization.format("var", name="Z3R0 1-2"))
+        print(localization.format("var", name="Z3R0 1-1"))
+        localization.set(discord.Locale.japanese)  # Doesn't exists
+        print(localization.format("var", name="Z3R0 1-1"))
 
-    def test2():
-        while time.time() <= start_time:
-            pass
-
-        localization.set(discord.Locale.indonesian)
-        print(localization.format("var", name="Z3R0 2-1"))
-        localization.set(discord.Locale.american_english)
-        print(localization.format("var", name="Z3R0 2-2"))
-
-    start_time = time.time() + 20
-    threading.Thread(target=test1).start()
-    threading.Thread(target=test2).start()
+    testLocale()
