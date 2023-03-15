@@ -183,7 +183,7 @@ class Meta(MetaCustomCommands):
         ),
     )
     @checks.is_mod()
-    async def prefRm(self, ctx: Context, *, prefix: str):
+    async def prefRm(self, ctx: Context, *prefix: str):
         _prefix = " ".join(prefix).lstrip()
         if not _prefix:
             return await ctx.error("Prefix can't be empty!")
