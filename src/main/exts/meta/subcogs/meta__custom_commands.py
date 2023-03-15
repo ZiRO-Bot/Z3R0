@@ -22,7 +22,8 @@ from ....core.menus import ZChoices, choice
 from ....core.mixin import CogMixin
 from ....utils.format import formatCmdName
 from ....utils.other import utcnow
-from .._custom_command import CustomCommand
+from .._checks import hasCCPriviledge
+from .._custom_command import CustomCommand, ManagedCustomCommand
 from .._errors import CCommandAlreadyExists, CCommandNoPerm, CCommandNotFound
 from .._flags import CmdManagerFlags
 from .._utils import getDisabledCommands
@@ -53,15 +54,6 @@ class MetaCustomCommands(commands.Cog, CogMixin):
             unique=True,
         )
 
-    async def ccModeCheck(self, ctx):
-        """Check for custom command's modes."""
-        # 0: Only mods,
-        # 1: Partial (Can add but only able to manage their own command),
-        # 2: Full (Anarchy mode)
-        mode = await ctx.guild.getCCMode()
-        isMod = await checks.isMod(ctx)
-        return isMod if mode == CCMode.MOD_ONLY else True
-
     # TODO: Separate tags from custom command
     @commands.group(
         aliases=("cmd", "tag", "script"),
@@ -73,9 +65,10 @@ class MetaCustomCommands(commands.Cog, CogMixin):
         pass
 
     @command.command(aliases=("exec", "execute"), brief="Execute a custom command")
-    async def run(self, ctx, name: str, argument: str = ""):
-        cmd = await CustomCommand.get(ctx, name)
-        return await cmd.execute(ctx, argument)
+    async def run(self, ctx, command: CustomCommand | str, argument: str = ""):
+        if isinstance(command, str):
+            command = await CustomCommand.get(ctx, command)
+        return await command.execute(ctx, argument)
 
     @command.command(
         name="source",
@@ -83,9 +76,8 @@ class MetaCustomCommands(commands.Cog, CogMixin):
         brief="Get raw content of a custom command",
     )
     @commands.cooldown(1, 5, commands.BucketType.user)
-    async def _source(self, ctx, name: str):
-        cmd = await CustomCommand.get(ctx, name)
-        return await cmd.execute(ctx, raw=True)
+    async def _source(self, ctx, command: CustomCommand):
+        return await command.execute(ctx, raw=True)
 
     async def addCmd(self, ctx, name: str, content: str, **kwargs):
         """Add cmd to database"""
@@ -146,11 +138,8 @@ class MetaCustomCommands(commands.Cog, CogMixin):
             },
         ),
     )
+    @hasCCPriviledge()
     async def _import(self, ctx: Context, name: str, *, url: str):
-        perm = await self.ccModeCheck(ctx)
-        if not perm:
-            raise CCommandNoPerm
-
         # NOTE: This command will only support pastebin and gist.github,
         # maybe also hastebin.
         try:
@@ -192,11 +181,8 @@ class MetaCustomCommands(commands.Cog, CogMixin):
             },
         ),
     )
+    @hasCCPriviledge()
     async def _add(self, ctx, name: str, *, content: str):
-        perm = await self.ccModeCheck(ctx)
-        if not perm:
-            raise CCommandNoPerm
-
         # Check if command already exists
         await self.isCmdExist(ctx, name)
 
@@ -244,7 +230,7 @@ class MetaCustomCommands(commands.Cog, CogMixin):
             title="`{}` url has been set to <{}>".format(name, url),
         )
 
-    async def updateCommandContent(self, _: Context, command: CustomCommand, content):
+    async def updateCommandContent(self, _: Context, command: ManagedCustomCommand, content):
         """Update command's content"""
         update = await db.Commands.filter(id=command.id).update(content=content)
         if update:
@@ -260,22 +246,16 @@ class MetaCustomCommands(commands.Cog, CogMixin):
             },
         ),
     )
-    async def update(self, ctx: Context, name: str):
+    async def update(self, ctx: Context, command: ManagedCustomCommand):
         # NOTE: Can only be run by cmd owner or guild mods/owner
 
         # For both checking if command exists and
         # getting its content for comparation later on
-        command = await CustomCommand.get(ctx, name)
-
-        perm = await command.canManage(ctx)
-        if not perm:
-            raise CCommandNoPerm
-
         if not command.url:
             # Incase someone try to update `text` command
             return await ctx.error(
                 "Please use `{}command edit` instead!".format(ctx.clean_prefix),
-                title="`{}` is not imported command!".format(name),
+                title="`{}` is not imported command!".format(command.name),
             )
 
         content = None
@@ -301,7 +281,7 @@ class MetaCustomCommands(commands.Cog, CogMixin):
         if update:
             return await ctx.success(
                 ("`[+]` {} Additions\n".format(addition) + "`[-]` {} Deletions".format(deletion)),
-                title="Command `{}` has been update\n".format(name),
+                title="Command `{}` has been update\n".format(command.name),
             )
 
     @command.command(
@@ -318,13 +298,7 @@ class MetaCustomCommands(commands.Cog, CogMixin):
             },
         ),
     )
-    async def alias(self, ctx, commandName: str, alias: str):
-        command = await CustomCommand.get(ctx, commandName)
-
-        perm = await command.canManage(ctx)
-        if not perm:
-            raise CCommandNoPerm
-
+    async def alias(self, ctx, command: ManagedCustomCommand, alias: str):
         if alias == command.name:
             return await ctx.error("Alias can't be identical to original name!")
         if alias in command.aliases:
@@ -345,7 +319,7 @@ class MetaCustomCommands(commands.Cog, CogMixin):
             },
         ),
     )
-    async def cmdEdit(self, ctx, command: str, *, content):
+    async def cmdEdit(self, ctx, command: ManagedCustomCommand, *, content):
         await self.setContent(ctx, command, content=content)
 
     @command.group(
@@ -377,16 +351,10 @@ class MetaCustomCommands(commands.Cog, CogMixin):
             },
         ),
     )
-    async def setContent(self, ctx, name: str, *, content):
-        command = await CustomCommand.get(ctx, name)
-
-        perm = await command.canManage(ctx)
-        if not perm:
-            raise CCommandNoPerm
-
+    async def setContent(self, ctx, command: ManagedCustomCommand, *, content):
         update = await self.updateCommandContent(ctx, command, content)
         if update:
-            return await ctx.success(title="Command `{}` has been edited\n".format(name))
+            return await ctx.success(title="Command `{}` has been edited\n".format(command))
 
     @cmdSet.command(
         name="url",
@@ -400,7 +368,7 @@ class MetaCustomCommands(commands.Cog, CogMixin):
         name="alias",
         brief="Alias for `command alias`",
     )
-    async def setAlias(self, ctx, command: str, alias: str):
+    async def setAlias(self, ctx, command: ManagedCustomCommand, alias: str):
         await self.alias(ctx, command, alias)
 
     @cmdSet.command(
@@ -414,18 +382,12 @@ class MetaCustomCommands(commands.Cog, CogMixin):
             },
         ),
     )
-    async def setCategory(self, ctx, _command: str, category: str):
+    async def setCategory(self, ctx, command: ManagedCustomCommand, category: str):
         category = category.lower()
 
         availableCats = [cog.qualified_name.lower() for cog in ctx.bot.cogs.values() if getattr(cog, "cc", False)]
         if category not in availableCats:
             return await ctx.error(title="Invalid category")
-
-        command = await CustomCommand.get(ctx, _command)
-
-        perm = await command.canManage(ctx)
-        if not perm:
-            raise CCommandNoPerm
 
         if command.category == category:
             return await ctx.success(title="{} already in {}!".format(command, category))
@@ -477,21 +439,15 @@ class MetaCustomCommands(commands.Cog, CogMixin):
             },
         ),
     )
-    async def remove(self, ctx, name: str):
-        command = await CustomCommand.get(ctx, name)
-
-        perm = await command.canManage(ctx)
-        if not perm:
-            raise CCommandNoPerm
-
-        isAlias = name in command.aliases
+    async def remove(self, ctx, command: ManagedCustomCommand):
+        isAlias = command.invokedName in command.aliases
         if isAlias:
-            await db.CommandsLookup.filter(name=name, guild_id=ctx.guild.id).delete()
+            await db.CommandsLookup.filter(name=command.invokedName, guild_id=ctx.guild.id).delete()
         else:
             # NOTE: Aliases will be deleted automatically
             await db.Commands.filter(id=command.id).delete()
 
-        return await ctx.success(title="{} `{}` has been removed".format("Alias" if isAlias else "Command", name))
+        return await ctx.success(title="{} `{}` has been removed".format("Alias" if isAlias else "Command", command.name))
 
     async def disableEnableHelper(
         self,

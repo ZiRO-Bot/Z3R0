@@ -36,6 +36,8 @@
 - [**Improved**] Moved JSON (and Blacklist) and Cache (and its properties) into `core.data`
 - [**Changed**] Removed `CMDName`
 - [**Added**] Initial ZeroMQ support for Dashboard
+- [**Improved**] `ccModeCheck` is now an actual check (`hasCCPriviledge`)
+- [**Improved**] CustomCommand is now a converter
 
 # v3.5 (Overhaul an Overhaul?)
 

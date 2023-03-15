@@ -6,9 +6,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from __future__ import annotations
 
-from enum import Enum
-
 import discord
+from discord.ext import commands
 
 import tse
 
@@ -16,7 +15,12 @@ from ...core import checks, db
 from ...core.context import Context
 from ...core.guild import GuildWrapper
 from ...utils.other import reactsToMessage, utcnow
-from ._errors import CCommandDisabled, CCommandNotFound, CCommandNotInGuild
+from ._errors import (
+    CCommandDisabled,
+    CCommandNoPerm,
+    CCommandNotFound,
+    CCommandNotInGuild,
+)
 
 
 _blocks = [
@@ -33,7 +37,7 @@ _blocks = [
 ENGINE = tse.Interpreter(_blocks)
 
 
-class CustomCommand:
+class CustomCommand(commands.Converter):
     """Object for custom command."""
 
     __slots__ = (
@@ -245,3 +249,16 @@ class CustomCommand:
                     cmds[cmd.id]["aliases"] = [lookup.name]
 
         return [CustomCommand(id=k, **v) for k, v in cmds.items()]
+
+    @classmethod
+    async def convert(cls, ctx: Context, name: str) -> CustomCommand:
+        return await cls.get(ctx, name)
+
+
+class ManagedCustomCommand(CustomCommand):
+    @classmethod
+    async def convert(cls, ctx: Context, name: str) -> CustomCommand:
+        command = await super().convert(ctx, name)
+        if not await command.canManage(ctx):
+            raise CCommandNoPerm
+        return command
