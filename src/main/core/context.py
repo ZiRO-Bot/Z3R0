@@ -4,6 +4,8 @@ License, v. 2.0. If a copy of the MPL was not distributed with this
 file, You can obtain one at http://mozilla.org/MPL/2.0/.
 """
 
+from __future__ import annotations
+
 import io
 from contextlib import asynccontextmanager
 from typing import Union
@@ -119,8 +121,19 @@ class Context(commands.Context):
         return None
 
     @discord.utils.cached_property
-    def guild(self):
+    def guild(self) -> GuildWrapper | None:
         g = self.message.guild
         if g:
             return GuildWrapper(g, self.bot)
         return None
+
+    def requireGuild(self) -> GuildWrapper:
+        """
+        Inspired by Android's requireActivity()
+
+        Should only be used if the command has guild only check
+        """
+        g = self.guild
+        if not g:
+            raise commands.NoPrivateMessage
+        return g
