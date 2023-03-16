@@ -6,6 +6,11 @@
 > previously functions and constants are all over the place that it's starting
 > to get harder to find what I'm looking for.
 
+## 3.6.1 (Project Structure Refactor - Part 1.5 A.K.A Hotfix)
+
+- [**Fixed**] Fixed issues related to `import tse`
+- [**Fixed**] Aerich caused the bot to crash in production environment
+
 ## 3.6.0 (Project Structure Refactor - Part 1)
 
 ### Bugfixes
