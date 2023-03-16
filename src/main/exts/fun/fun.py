@@ -323,7 +323,7 @@ class Fun(commands.Cog, CogMixin):
             "**Support optional size**: d4, d8, d10, d00, d12, d20"
         ),
         usage="[dice size] (number of dice)",
-        extras=dict(example=("roll 5", "roll d20", "role d00 4")),
+        extras=dict(example=("roll 5", "roll d20", "roll d00 4")),
     )
     @commands.cooldown(1, 5, type=commands.BucketType.user)
     async def roll(self, ctx, *args):
