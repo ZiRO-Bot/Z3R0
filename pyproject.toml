@@ -89,4 +89,4 @@ location = "./src/main/migrations"
 src_folder = "./."
 
 [tool.pytest.ini_options]
-pythonpath = ["src"]
+pythonpath = ["."]
