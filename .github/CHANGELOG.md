@@ -1,6 +1,6 @@
 # v3.6 (Structure Refactor)
 
-> **Info**
+> **Note**
 >
 > Version 3.6.x is mostly about refactoring the project structure since
 > previously functions and constants are all over the place that it's starting

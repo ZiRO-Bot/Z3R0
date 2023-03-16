@@ -19,7 +19,7 @@
 
 ## About
 
-> **Info**
+> **Note**
 >
 > `dev` branch is used mostly for development and generally considered as unstable, to host the bot it's recommended to use `overhaul` branch or release tags instead!
 
