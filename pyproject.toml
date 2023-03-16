@@ -43,7 +43,7 @@ black = "^22.10.0"
 isort = "^5.10.1"
 pre-commit = "^2.13.0"
 pyproject-flake8 = "^0.0.1-alpha.2"
-aerich = "^0.6.2"
+aerich = "0.7.1"
 
 [tool.poetry.group.test]
 
@@ -84,8 +84,8 @@ multi_line_output = 3
 lines_after_imports = 2
 
 [tool.aerich]
-tortoise_orm = "config.TORTOISE_ORM"
-location = "./migrations"
+tortoise_orm = "aerichConfig.t"
+location = "./src/main/migrations"
 src_folder = "./."
 
 [tool.pytest.ini_options]

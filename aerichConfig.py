@@ -11,3 +11,4 @@ except ImportError:
     dbUrl = os.environ["ZIBOT_DB_URL"]
 
 cfg = Config("", dbUrl)
+t = cfg.tortoiseConfig
