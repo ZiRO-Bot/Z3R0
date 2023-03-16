@@ -185,9 +185,15 @@ class Fun(commands.Cog, CogMixin):
             "Ping random member\n" 'Also known as "Discord\'s mistake"\n' "**Note**: Only available on April Fools (UTC)!"
         ),
     )
+    @commands.cooldown(1, 5, commands.BucketType.user)
+    @commands.guild_only()
     @checks.isAprilFool()
-    async def someone(self, ctx):
-        await ctx.send(choice(ctx.guild.members).mention)
+    async def someone(self, ctx: Context):
+        allowPingGuilds = (793642143243173888,)
+        allowedMentions = discord.AllowedMentions.none()
+        if ctx.requireGuild().id in allowPingGuilds:
+            allowedMentions = discord.AllowedMentions(users=True)
+        await ctx.send(choice(ctx.requireGuild().members).mention, allowed_mentions=allowedMentions)
 
     @commands.hybrid_command(
         usage="(status code)",
