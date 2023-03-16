@@ -21,7 +21,7 @@
 
 > **Info**
 >
-> `dev` branch is used mostly for development and generally considered as unstable, to host the bot it's recommended to use `overhaul` branch instead!
+> `dev` branch is used mostly for development and generally considered as unstable, to host the bot it's recommended to use `overhaul` branch or release tags instead!
 
 **`Z3R0`** (codename **`ziBot`**) is a **free** and **open-source** multi-purpose discord bot, created for fun in the middle of quarantine. Used to be fork of [Steve-Bot](https://github.com/MCBE-Speedrunning/Steve-Bot) by MCBE Speedrunning Moderators.
 
