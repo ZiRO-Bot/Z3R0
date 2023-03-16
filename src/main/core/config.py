@@ -65,7 +65,8 @@ class Config:
             "connections": {"default": self.databaseUrl},
             "apps": {
                 "models": {
-                    "models": [mainModel, "aerich.models"],
+                    # "models": [mainModel, "aerich.models"],
+                    "models": [mainModel],
                     "default_connection": "default",
                 },
             },
