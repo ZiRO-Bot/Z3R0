@@ -4,6 +4,8 @@ License, v. 2.0. If a copy of the MPL was not distributed with this
 file, You can obtain one at http://mozilla.org/MPL/2.0/.
 """
 
+from __future__ import annotations
+
 import io
 from contextlib import asynccontextmanager
 from typing import Union
@@ -23,10 +25,6 @@ class Context(commands.Context):
     @property
     def session(self) -> aiohttp.ClientSession:
         return self.bot.session
-
-    # @property
-    # def db(self):
-    #     return self.bot.db
 
     @property
     def cache(self):
@@ -62,11 +60,19 @@ class Context(commands.Context):
                 kwargs["content"] = content
             return await action(**kwargs)
 
-    async def safe_send(self, content, *, escape_mentions=True, **kwargs):
+    async def safe_send(self, content, *, escape_mentions: bool = True, **kwargs):
+        # TODO: Deprecate
         return await self.safe_send_reply(content, escape_mentions=escape_mentions, type="send", **kwargs)
 
-    async def safe_reply(self, content, *, escape_mentions=True, **kwargs):
+    async def safeSend(self, content, *, escapeMentions: bool = True, **kwargs):
+        return await self.safe_send(content, escape_mentions=escapeMentions, **kwargs)
+
+    async def safe_reply(self, content, *, escape_mentions: bool = True, **kwargs):
+        # TODO: Deprecate
         return await self.safe_send_reply(content, escape_mentions=escape_mentions, type="reply", **kwargs)
+
+    async def safeReply(self, content, *, escapeMentions: bool = True, **kwargs):
+        return await self.safe_reply(content, escape_mentions=escapeMentions, **kwargs)
 
     async def error(self, error_message: str = None, title: str = "Something went wrong!"):
         e = ZEmbed.error(title="ERROR" + (f": {title}" if title else ""))
@@ -119,8 +125,19 @@ class Context(commands.Context):
         return None
 
     @discord.utils.cached_property
-    def guild(self):
+    def guild(self) -> GuildWrapper | None:
         g = self.message.guild
         if g:
             return GuildWrapper(g, self.bot)
         return None
+
+    def requireGuild(self) -> GuildWrapper:
+        """
+        Inspired by Android's requireActivity()
+
+        Should only be used if the command has guild only check
+        """
+        g = self.guild
+        if not g:
+            raise commands.NoPrivateMessage
+        return g

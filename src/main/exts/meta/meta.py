@@ -172,10 +172,10 @@ class Meta(MetaCustomCommands):
             return await ctx.error("Prefix can't be empty!")
 
         try:
-            await ctx.guild.addPrefix(_prefix)
+            await ctx.requireGuild().addPrefix(_prefix)
             await ctx.success(title="Prefix `{}` has been added".format(cleanifyPrefix(self.bot, _prefix)))
         except Exception as exc:
-            await ctx.error(exc)
+            await ctx.error(str(exc))
 
     @prefix.command(
         name="remove",
@@ -190,16 +190,16 @@ class Meta(MetaCustomCommands):
         ),
     )
     @checks.is_mod()
-    async def prefRm(self, ctx: Context, *, prefix: str):
+    async def prefRm(self, ctx: Context, *prefix: str):
         _prefix = " ".join(prefix).lstrip()
         if not _prefix:
             return await ctx.error("Prefix can't be empty!")
 
         try:
-            await ctx.guild.rmPrefix(_prefix.lstrip())
+            await ctx.requireGuild().rmPrefix(_prefix.lstrip())
             await ctx.success(title="Prefix `{}` has been removed".format(cleanifyPrefix(self.bot, _prefix)))
         except Exception as exc:
-            await ctx.error(exc)
+            await ctx.error(str(exc))
 
     @commands.hybrid_command(aliases=("p",), brief="Get bot's response time")
     async def ping(self, ctx):

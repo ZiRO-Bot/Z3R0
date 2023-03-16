@@ -25,6 +25,7 @@ class Config:
         "internalApiHost",
         "test",
         "zmqPorts",
+        "useAerich",
     )
 
     def __init__(
@@ -41,6 +42,7 @@ class Config:
         internalApiHost: str | None = None,
         test: bool = False,
         zmqPorts: dict[str, int] | None = None,
+        useAerich: bool = False,
     ):
         self.token = token
         self.defaultPrefix = defaultPrefix or ">"
@@ -54,6 +56,7 @@ class Config:
         self.internalApiHost = internalApiHost or "127.0.0.1:2264"
         self.test = test
         self.zmqPorts = zmqPorts or {}
+        self.useAerich = useAerich
 
     @property
     def tortoiseConfig(self):
@@ -61,11 +64,15 @@ class Config:
         if not self.test:
             mainModel = "src." + mainModel
 
+        models = [mainModel]
+        if self.useAerich:
+            models.append("aerich.models")
+
         return self._tortoiseConfig or {
             "connections": {"default": self.databaseUrl},
             "apps": {
                 "models": {
-                    "models": [mainModel, "aerich.models"],
+                    "models": models,
                     "default_connection": "default",
                 },
             },

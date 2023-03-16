@@ -92,7 +92,7 @@ class ZMenuView(ZView):
         timeout: float = 180.0,
         ownerOnly: bool = True,
     ) -> None:
-        owner: Union[discord.User, discord.Member] = ctx.author
+        owner: discord.User | discord.Member = ctx.author
         super().__init__(owner, timeout=timeout)
         self.context = ctx
         self._message: Optional[discord.Message] = None

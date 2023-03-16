@@ -18,7 +18,7 @@ from aiohttp.client_exceptions import ClientOSError
 from discord.app_commands import AppCommandError
 from discord.ext import commands
 
-import tse
+from src import tse
 
 from ...core import errors
 from ...core.embed import ZEmbed

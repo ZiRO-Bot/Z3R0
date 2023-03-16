@@ -41,6 +41,7 @@ ENV PATH="/venv/bin:${PATH}" \
     VIRTUAL_ENV="/venv"
 
 COPY --from=builder /venv /venv
+COPY --from=builder /app/pyproject.toml /app/
 COPY --from=builder /app/src/ /app/src
 COPY assets/ /app/assets
 COPY docker/__main__.py ./

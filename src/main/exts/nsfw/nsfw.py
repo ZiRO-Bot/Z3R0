@@ -6,8 +6,12 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from __future__ import annotations
 
+import typing
+from typing import Literal
+
 import aiohttp
 import discord
+from discord import app_commands
 from discord.ext import commands, menus
 
 from ...core.context import Context
@@ -74,7 +78,7 @@ class NekoPageSource(menus.PageSource):
         return not self.onlyOne
 
     async def getNeko(self):
-        for a in range(5):
+        for _ in range(5):
             try:
                 async with self.session.get(NEKO_API + self.endpoint) as req:
                     img = await req.json()
@@ -85,9 +89,20 @@ class NekoPageSource(menus.PageSource):
 
 
 DEFAULT_NEKO = "lewd"
+TAGS = Literal[
+    "pussy",
+    "feet",
+    "tits",
+    "boobs",
+    "yuri",
+    "lesbian",
+    "holo",
+    "ahegao",
+    "gasm",
+    "ass",
+]
 
 
-# TODO: Slash - Stupid discord took ages to add NSFW tag
 class NSFW(commands.Cog, CogMixin):
     """NSFW Commands."""
 
@@ -102,28 +117,7 @@ class NSFW(commands.Cog, CogMixin):
             raise NotNSFWChannel
         return True
 
-    @commands.command(
-        aliases=(
-            "pussy",
-            "feet",
-            "tits",
-            "boobs",
-            "yuri",
-            "lesbian",
-            "holo",
-            "ahegao",
-            "gasm",
-            "ass",
-        ),
-        brief="Get hentai images from nekos.fun",
-        description=(
-            "Get hentai images from nekos.fun\n\n"
-            "TIPS: Use different alias to get images from different hentai "
-            "category"
-        ),
-    )
-    async def hentai(self, ctx: Context):
-        aliases = {"tits": "boobs", "yuri": "lesbian", "ahegao": "gasm"}
+    async def showHentai(self, ctx, tag: str):
         endpoints = {
             "any": DEFAULT_NEKO,
             "pussy": "pussy",
@@ -135,15 +129,30 @@ class NSFW(commands.Cog, CogMixin):
             "ass": "ass",
         }
 
-        invokedWith = ctx.invoked_with or "any"
-
-        value = aliases.get(invokedWith, invokedWith)
-
         menus = NekoMenu(
             ctx,
             NekoPageSource(
                 self.bot.session,
-                endpoints.get(value, DEFAULT_NEKO),
+                endpoints.get(tag, DEFAULT_NEKO),
             ),
         )
         await menus.start()
+
+    commonDesc = "Get hentai images from nekos.fun"
+
+    @app_commands.command(name="hentai", nsfw=True, description=commonDesc)
+    async def hentaiSlash(self, inter: discord.Interaction, tag: TAGS):
+        ctx = await Context.from_interaction(inter)
+        return await self.showHentai(ctx, tag)
+
+    @commands.command(
+        aliases=typing.get_args(TAGS),
+        brief=commonDesc,
+        description=(commonDesc + "\n\n" "TIPS: Use different alias to get images from different hentai " "category"),
+    )
+    async def hentai(self, ctx: Context):
+        aliases = {"tits": "boobs", "yuri": "lesbian", "ahegao": "gasm"}
+        invokedWith = ctx.invoked_with or "any"
+
+        tag = aliases.get(invokedWith, invokedWith)
+        return await self.showHentai(ctx, tag)
