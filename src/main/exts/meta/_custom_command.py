@@ -9,7 +9,7 @@ from __future__ import annotations
 import discord
 from discord.ext import commands
 
-import tse
+from src import tse
 
 from ...core import checks, db
 from ...core.context import Context
