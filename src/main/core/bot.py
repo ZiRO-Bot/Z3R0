@@ -232,20 +232,25 @@ class ziBot(commands.Bot):
         self.logger.warning("Ready: {0} (ID: {0.id})".format(self.user))
 
     async def zmqBind(self):
-        context = zmq.asyncio.Context.instance()
         pubPort = self.config.zmqPorts.get("PUB")
+        subPort = self.config.zmqPorts.get("SUB")
+        repPort = self.config.zmqPorts.get("REP")
+
+        if not pubPort and not subPort and not repPort:
+            return
+
+        context = zmq.asyncio.Context.instance()
+
         if pubPort:
             self.pubSocket = context.socket(zmq.PUB)
             self.pubSocket.bind(f"tcp://*:{pubPort}")
 
-        subPort = self.config.zmqPorts.get("SUB")
         if subPort:
             self.subSocket = context.socket(zmq.SUB)
             self.subSocket.setsockopt(zmq.SUBSCRIBE, b"")
             self.subSocket.bind(f"tcp://*:{subPort}")
             self.socketTasks.append(asyncio.create_task(self.onZMQReceivePUBMessage()))
 
-        repPort = self.config.zmqPorts.get("REP")
         if repPort:
             self.repSocket = context.socket(zmq.REP)
             self.repSocket.bind(f"tcp://*:{repPort}")
