@@ -28,6 +28,7 @@ RUN apt-get update && apt-get upgrade -y \
 
 COPY poetry.lock pyproject.toml ./
 ADD src/ ./src
+ADD src/tse/ ./src/tse
 RUN poetry run pip install -U pip \
     && poetry install --without test,dev \
     --no-root -E postgresql -E mysql -E voice -E speedup
@@ -43,6 +44,7 @@ ENV PATH="/venv/bin:${PATH}" \
 COPY --from=builder /venv /venv
 COPY --from=builder /app/pyproject.toml /app/
 COPY --from=builder /app/src/ /app/src
+COPY --from=builder /app/src/tse/ /app/src/tse
 COPY assets/ /app/assets
 COPY docker/__main__.py ./
 
