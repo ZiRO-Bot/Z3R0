@@ -6,7 +6,7 @@
 > previously functions and constants are all over the place that it's starting
 > to get harder to find what I'm looking for.
 
-## 3.6.0 (Project Structure Refactor)
+## 3.6.0 (Project Structure Refactor - Part 1)
 
 ### Bugfixes
 - [**Fixed**] Fixed potential error related to user without avatar
