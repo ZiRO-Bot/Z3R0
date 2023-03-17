@@ -22,6 +22,7 @@ from src import tse
 
 from ...core import errors
 from ...core.embed import ZEmbed
+from ...core.guild import GuildWrapper
 from ...core.mixin import CogMixin
 from ...utils.format import formatMissingArgError, formatPerms, formatTraceback
 from ...utils.other import doCaselog, reactsToMessage, utcnow
@@ -617,16 +618,14 @@ class EventHandler(commands.Cog, CogMixin):
         data = {}
 
         match request:
-            case {"type": "guilds", "id": _}:
-                guild = self.bot.get_guild(request["id"])
+            case {"type": "guild-stats", "id": _, "userId": _}:
+                guild: GuildWrapper | None = GuildWrapper.fromContext(self.bot.get_guild(int(request["id"])), self.bot)
                 if guild:
                     data = {
-                        "id": guild.id,
-                        "name": guild.name,
-                        "icon": getattr(guild.icon, "url", None),
-                        "owner": False,  # TODO
-                        "features": [],
-                        "permissions": 0,
+                        "prefixes": await guild.getPrefixes(),
+                        "members": guild.member_count,
+                        "textChannels": len(guild.text_channels),
+                        "voiceChannels": len(guild.voice_channels),
                     }
             case {"type": "user", "id": _}:
                 user = self.bot.get_user(request["id"])
@@ -641,7 +640,7 @@ class EventHandler(commands.Cog, CogMixin):
                         "email": "email@example.org",
                         "verified": True,
                     }
-            case {"type": "managed-guilds"}:
+            case {"type": "bot-guilds"}:
                 data = [guild.id for guild in self.bot.guilds]
             case {"type": "bot-stats"}:
                 data = {
