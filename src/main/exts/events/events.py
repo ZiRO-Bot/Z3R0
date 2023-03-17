@@ -617,7 +617,7 @@ class EventHandler(commands.Cog, CogMixin):
         data = {}
 
         match request:
-            case {"type": "guilds"}:
+            case {"type": "guilds", "id": _}:
                 guild = self.bot.get_guild(request["id"])
                 if guild:
                     data = {
@@ -628,7 +628,7 @@ class EventHandler(commands.Cog, CogMixin):
                         "features": [],
                         "permissions": 0,
                     }
-            case {"type": "user"}:
+            case {"type": "user", "id": _}:
                 user = self.bot.get_user(request["id"])
                 data = {}
                 if user:
