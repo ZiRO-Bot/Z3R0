@@ -569,19 +569,16 @@ class ziBot(commands.Bot):
         if processed and not isinstance(processed, str):
             self.commandUsage[formatCmdName(processed)] += 1
 
-        # context = zmq.asyncio.Context.instance()
-        # socket = context.socket(zmq.PUB)
-        # socket.connect("tcp://127.0.0.1:5555")
-        # await asyncio.sleep(1)
-        # await socket.send_string("{}")
+    async def on_app_command_completion(self, _, command: discord.app_commands.Command | discord.app_commands.ContextMenu):
+        self.commandUsage[formatCmdName(command)] += 1
 
     async def on_message(self, message: discord.Message) -> None:
-        # dont accept commands from bot
         if (
             message.author.bot
             or message.author.id in self.blacklist.users
             or (message.guild and message.guild.id in self.blacklist.guilds)
         ) and message.author.id not in self.owner_ids:
+            # dont accept commands from bot
             return
 
         me: discord.ClientUser = self.user  # type: ignore
@@ -611,9 +608,6 @@ class ziBot(commands.Bot):
             return
 
         await self.process(message)
-
-    async def on_app_command_completion(self, _, command: discord.app_commands.Command | discord.app_commands.ContextMenu):
-        self.commandUsage[formatCmdName(command)] += 1
 
     async def waitUntilReady(self):
         if self.config.test:
