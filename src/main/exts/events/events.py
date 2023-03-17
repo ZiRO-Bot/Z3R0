@@ -24,6 +24,7 @@ from ...core import errors
 from ...core.embed import ZEmbed
 from ...core.guild import GuildWrapper
 from ...core.mixin import CogMixin
+from ...core.prefix import Prefix
 from ...utils.format import formatMissingArgError, formatPerms, formatTraceback
 from ...utils.other import doCaselog, reactsToMessage, utcnow
 from ..meta import _errors as ccErrors
@@ -607,8 +608,15 @@ class EventHandler(commands.Cog, CogMixin):
         ret["before"] = {"name": before.name, "id": before.id, "icon": getattr(before.icon, "url", None)}
         ret["after"] = {"name": after.name, "id": after.id, "icon": getattr(before.icon, "url", None)}
 
+        self.bot.dispatch("zmq_publish", b"guild.update", type="discord-update", data=ret, guildId=before.id)
+
+    @commands.Cog.listener("on_zmq_publish")
+    async def onZMQPublish(self, topic: bytes, **data):
+        if not self.bot.pubSocket:
+            return
+
         await asyncio.sleep(1)
-        await self.bot.pubSocket.send_multipart([b"guild.update", json.dumps(ret).encode()])
+        await self.bot.pubSocket.send_multipart([topic, json.dumps(data).encode()])
 
     @commands.Cog.listener("on_zmq_request")
     async def onZMQRequest(self, request: dict[str, Any]):
@@ -648,6 +656,16 @@ class EventHandler(commands.Cog, CogMixin):
                     "users": len(self.bot.users),
                     "commands": sum(self.bot.commandUsage.values()),
                 }
+            case {"type": "prefix-add", "guildId": _, "prefix": _}:
+                prefix = request["prefix"]
+                obj = Prefix(owner=discord.Object(id=int(request["guildId"])), bot=self.bot)
+                await obj.add(prefix)
+                data = {"prefix": prefix}
+            case {"type": "prefix-remove", "guildId": _, "prefix": _}:
+                prefix = request["prefix"]
+                obj = Prefix(owner=discord.Object(id=int(request["guildId"])), bot=self.bot)
+                await obj.remove(prefix)
+                data = {"prefix": prefix}
             case _:
                 data = {"test": str(request)}
 
