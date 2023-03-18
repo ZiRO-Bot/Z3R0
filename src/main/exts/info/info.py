@@ -21,7 +21,6 @@ from ...core.mixin import CogMixin
 from ...utils import pillow
 from ...utils.api.openweather import CityNotFound, OpenWeatherAPI
 from ...utils.format import formatDiscordDT, renderBar
-from ...utils.infoQuote import *  # noqa:  F403
 from ...utils.other import authorOrReferenced, utcnow
 
 

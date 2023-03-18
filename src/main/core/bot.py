@@ -115,7 +115,7 @@ class ziBot(commands.Bot):
 
         # Bot master(s)
         # self.master = (186713080841895936,)
-        self.owner_ids: tuple = self.config.botMasters
+        self.ownerIds: tuple = self.config.botMasters
         self.issueChannel: int = int(self.config.issueChannel or 0)
 
         self.blacklist: Blacklist = Blacklist("data/blacklist.json")
@@ -184,9 +184,15 @@ class ziBot(commands.Bot):
                     raise commands.DisabledCommand
             return True
 
+    @property
+    def owner_ids(self):
+        # TODO: Deprecate
+        self.logger.warning("Snake_Case functions such as 'owner_ids' is deprecated! Use camelCase ('ownerIds') instead.")
+        return self.ownerIds
+
     async def setup_hook(self) -> None:
         """`__init__` but async"""
-        if not self.owner_ids:
+        if not self.ownerIds:
             # If self.master not set, warn the hoster
             self.logger.warning(
                 "No master is set, you may not able to use certain commands! (Unless you own the Bot Application)"
@@ -214,8 +220,8 @@ class ziBot(commands.Bot):
             await self.waitUntilReady()
 
             owner: discord.User = (await self.application_info()).owner
-            if owner and owner.id not in self.owner_ids:
-                self.owner_ids += (owner.id,)
+            if owner and owner.id not in self.ownerIds:
+                self.ownerIds += (owner.id,)
 
             await self.manageGuildDeletion()
 
@@ -232,20 +238,25 @@ class ziBot(commands.Bot):
         self.logger.warning("Ready: {0} (ID: {0.id})".format(self.user))
 
     async def zmqBind(self):
-        context = zmq.asyncio.Context.instance()
         pubPort = self.config.zmqPorts.get("PUB")
+        subPort = self.config.zmqPorts.get("SUB")
+        repPort = self.config.zmqPorts.get("REP")
+
+        if not pubPort and not subPort and not repPort:
+            return
+
+        context = zmq.asyncio.Context.instance()
+
         if pubPort:
             self.pubSocket = context.socket(zmq.PUB)
             self.pubSocket.bind(f"tcp://*:{pubPort}")
 
-        subPort = self.config.zmqPorts.get("SUB")
         if subPort:
             self.subSocket = context.socket(zmq.SUB)
             self.subSocket.setsockopt(zmq.SUBSCRIBE, b"")
             self.subSocket.bind(f"tcp://*:{subPort}")
             self.socketTasks.append(asyncio.create_task(self.onZMQReceivePUBMessage()))
 
-        repPort = self.config.zmqPorts.get("REP")
         if repPort:
             self.repSocket = context.socket(zmq.REP)
             self.repSocket.bind(f"tcp://*:{repPort}")
@@ -564,19 +575,16 @@ class ziBot(commands.Bot):
         if processed and not isinstance(processed, str):
             self.commandUsage[formatCmdName(processed)] += 1
 
-        # context = zmq.asyncio.Context.instance()
-        # socket = context.socket(zmq.PUB)
-        # socket.connect("tcp://127.0.0.1:5555")
-        # await asyncio.sleep(1)
-        # await socket.send_string("{}")
+    async def on_app_command_completion(self, _, command: discord.app_commands.Command | discord.app_commands.ContextMenu):
+        self.commandUsage[formatCmdName(command)] += 1
 
     async def on_message(self, message: discord.Message) -> None:
-        # dont accept commands from bot
         if (
             message.author.bot
             or message.author.id in self.blacklist.users
             or (message.guild and message.guild.id in self.blacklist.guilds)
-        ) and message.author.id not in self.owner_ids:
+        ) and message.author.id not in self.ownerIds:
+            # dont accept commands from bot
             return
 
         me: discord.ClientUser = self.user  # type: ignore
@@ -602,13 +610,10 @@ class ziBot(commands.Bot):
             message.author.bot
             or message.author.id in self.blacklist.users
             or (message.guild and message.guild.id in self.blacklist.guilds)
-        ) and message.author.id not in self.owner_ids:
+        ) and message.author.id not in self.ownerIds:
             return
 
         await self.process(message)
-
-    async def on_app_command_completion(self, _, command: discord.app_commands.Command | discord.app_commands.ContextMenu):
-        self.commandUsage[formatCmdName(command)] += 1
 
     async def waitUntilReady(self):
         if self.config.test:

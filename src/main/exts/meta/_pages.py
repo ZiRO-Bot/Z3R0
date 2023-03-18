@@ -10,8 +10,7 @@ from discord.ext import commands, menus
 
 from ...core.embed import ZEmbed
 from ...core.menus import ZMenuView
-from ...utils import infoQuote
-from ...utils.format import cleanifyPrefix, formatCmd
+from ...utils.format import cleanifyPrefix, formatCmd, info
 from ._custom_command import CustomCommand
 from ._utils import getDisabledCommands
 from ._wrapper import GroupSplitWrapper
@@ -65,7 +64,7 @@ class HelpCogPage(menus.ListPageSource):
         elif not ctx.guild:
             self.disabled = []
 
-        desc = infoQuote.info(
+        desc = info(
             "` ᶜ ` = Custom Command\n"
             "` ᵍ ` = Group (have subcommand(s))\n"
             "` ˢ ` = Slash (integrated to Discord's `/` command handler)\n"

@@ -26,10 +26,6 @@ class Context(commands.Context):
     def session(self) -> aiohttp.ClientSession:
         return self.bot.session
 
-    # @property
-    # def db(self):
-    #     return self.bot.db
-
     @property
     def cache(self):
         return self.bot.cache
@@ -64,11 +60,19 @@ class Context(commands.Context):
                 kwargs["content"] = content
             return await action(**kwargs)
 
-    async def safe_send(self, content, *, escape_mentions=True, **kwargs):
+    async def safe_send(self, content, *, escape_mentions: bool = True, **kwargs):
+        # TODO: Deprecate
         return await self.safe_send_reply(content, escape_mentions=escape_mentions, type="send", **kwargs)
 
-    async def safe_reply(self, content, *, escape_mentions=True, **kwargs):
+    async def safeSend(self, content, *, escapeMentions: bool = True, **kwargs):
+        return await self.safe_send(content, escape_mentions=escapeMentions, **kwargs)
+
+    async def safe_reply(self, content, *, escape_mentions: bool = True, **kwargs):
+        # TODO: Deprecate
         return await self.safe_send_reply(content, escape_mentions=escape_mentions, type="reply", **kwargs)
+
+    async def safeReply(self, content, *, escapeMentions: bool = True, **kwargs):
+        return await self.safe_reply(content, escape_mentions=escapeMentions, **kwargs)
 
     async def error(self, error_message: str = None, title: str = "Something went wrong!"):
         e = ZEmbed.error(title="ERROR" + (f": {title}" if title else ""))

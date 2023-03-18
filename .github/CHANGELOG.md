@@ -1,12 +1,22 @@
 # v3.6 (Structure Refactor)
 
-> **Info**
+> **Note**
 >
 > Version 3.6.x is mostly about refactoring the project structure since
 > previously functions and constants are all over the place that it's starting
 > to get harder to find what I'm looking for.
 
-## 3.6.0 (Project Structure Refactor)
+## 3.6.2 (Project Structure Refactor - Part 2)
+
+### Internal Changes
+- [**Removed**] Flake8 no longer used for linting, pyright will handle this job instead
+
+## 3.6.1 (Project Structure Refactor - Part 1.5 A.K.A Hotfix)
+
+- [**Fixed**] Fixed issues related to `import tse`
+- [**Fixed**] Aerich caused the bot to crash in production environment
+
+## 3.6.0 (Project Structure Refactor - Part 1)
 
 ### Bugfixes
 - [**Fixed**] Fixed potential error related to user without avatar
@@ -36,6 +46,8 @@
 - [**Improved**] Moved JSON (and Blacklist) and Cache (and its properties) into `core.data`
 - [**Changed**] Removed `CMDName`
 - [**Added**] Initial ZeroMQ support for Dashboard
+- [**Improved**] `ccModeCheck` is now an actual check (`hasCCPriviledge`)
+- [**Improved**] CustomCommand is now a converter
 
 # v3.5 (Overhaul an Overhaul?)
 

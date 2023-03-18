@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "Z3R0"
-version = "3.6.0"
+version = "3.6.1"
 description = "A multi-purpose open source discord bot"
 authors = ["null2264"]
 license = "MPL-2.0"
@@ -44,8 +44,7 @@ fluent-runtime = "^0.3.1"
 black = "^22.10.0"
 isort = "^5.10.1"
 pre-commit = "^2.13.0"
-pyproject-flake8 = "^0.0.1-alpha.2"
-aerich = "^0.6.2"
+aerich = "0.7.1"
 
 [tool.poetry.group.test]
 
@@ -75,20 +74,22 @@ build-backend = "poetry.core.masonry.api"
 line-length = 125
 skip-string-normalization = true
 
-[tool.flake8]
-max-line-length = 125
-select = "C,E,F,W,B,B950"
-extend-ignore = "E203,E501"
-
 [tool.isort]
 profile = "black"
 multi_line_output = 3
 lines_after_imports = 2
 
 [tool.aerich]
-tortoise_orm = "config.TORTOISE_ORM"
-location = "./migrations"
+tortoise_orm = "aerichConfig.t"
+location = "./src/main/migrations"
 src_folder = "./."
 
+[tool.pyright]
+reportUnnecessaryTypeIgnoreComment = "warning"
+reportUnusedImport = "error"
+pythonVersion = "3.10"
+typeCheckingMode = "basic"
+
 [tool.pytest.ini_options]
-pythonpath = ["src"]
+pythonpath = ["."]
+asyncio_mode = "strict"
