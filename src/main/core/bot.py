@@ -117,7 +117,7 @@ class ziBot(commands.Bot):
 
         # Bot master(s)
         # self.master = (186713080841895936,)
-        self.ownerIds: tuple = self.config.botMasters
+        self.owner_ids: tuple = self.config.botMasters
         self.issueChannel: int = int(self.config.issueChannel or 0)
 
         self.blacklist: Blacklist = Blacklist("data/blacklist.json")
@@ -187,10 +187,12 @@ class ziBot(commands.Bot):
             return True
 
     @property
-    def owner_ids(self):
-        # TODO: Deprecate
-        self.logger.warning("Snake_Case functions such as 'owner_ids' is deprecated! Use camelCase ('ownerIds') instead.")
-        return self.ownerIds
+    def ownerIds(self):
+        return self.owner_ids
+
+    @ownerIds.setter
+    def setOwnerIds(self, newIds):
+        self.owner_ids = newIds
 
     async def setup_hook(self) -> None:
         """`__init__` but async"""
