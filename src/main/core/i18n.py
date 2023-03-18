@@ -6,10 +6,12 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from __future__ import annotations
 
+import asyncio
 from pathlib import Path
-from typing import Any, cast
+from typing import TYPE_CHECKING, Any, cast
 
-import discord
+from discord import Locale
+from discord.app_commands import locale_str
 from fluent.runtime import FluentBundle
 from fluent.syntax import FluentParser
 from fluent.syntax.ast import Resource
@@ -31,43 +33,67 @@ class Localization:
     Then either use _() or use localization.format() function.
     """
 
-    def __init__(self, defaultLocale: discord.Locale = discord.Locale.american_english, useIsolating: bool = False):
-        self.root: Path = Path("src/main/locale")
-        self.useIsolating: bool = useIsolating
+    __initialized: bool = False
 
-        self.defaultLocale: discord.Locale = defaultLocale
-        self.currentLocale: discord.Locale | None = None
-        self._locales: frozenset[str] = frozenset(p.name for p in self.root.iterdir() if p.name.endswith("ftl"))
+    root: Path = Path("src/main/locale")
+    useIsolating: bool = False
+    defaultLocale: Locale = Locale.american_english
+    currentLocale: Locale | None = None
+    _locales: frozenset[str] = frozenset(p.name for p in root.iterdir() if p.name.endswith("ftl"))
+    bundles: dict[Locale, FluentBundle] = {}
+
+    if TYPE_CHECKING:
+        _defaultResource: Resource
+
+    @classmethod
+    async def init(cls, defaultLocale: Locale = Locale.american_english, useIsolating: bool = False) -> Localization:
+        self = cls()
+
+        self.useIsolating = useIsolating
+
+        if self.defaultLocale != defaultLocale:
+            self.defaultLocale = defaultLocale
+
+        self.bundles = {}
 
         try:
-            self._defaultResource: Resource = self._getResource(defaultLocale)
+            self._defaultResource = await self._getResource(self.defaultLocale)
         except FileNotFoundError:
             raise RuntimeError("Default locale not found!")
-        self.bundles: dict[discord.Locale, Any] = {}
+
+        self.__initialized = True
+        return self
+
+    def __getattr__(self, name: str) -> Any:
+        if not self.__initialized:
+            raise RuntimeError("Localization is not initialized properly!")
+        return super().__getattribute__(name)
 
     @property
     def locales(self) -> frozenset[str]:
         return frozenset(i.rstrip(".ftl") for i in self._locales)
 
-    def set(self, locale: discord.Locale | None = None) -> None:
+    def set(self, locale: Locale | None = None) -> None:
         self.currentLocale = locale
 
-    def _bundle(self, locale: discord.Locale) -> FluentBundle:
+    async def _bundle(self, locale: Locale) -> FluentBundle:
         if str(locale) not in self.locales:
-            return self._bundle(self.defaultLocale)
+            return await self._bundle(self.defaultLocale)
 
         if locale in self.bundles:
             return self.bundles[locale]
 
         bundle = FluentBundle([str(locale)], use_isolating=self.useIsolating)
         if locale != self.defaultLocale:
-            bundle.add_resource(self._getResource(locale))
+            bundle.add_resource(await self._getResource(locale))
         bundle.add_resource(self._defaultResource)
         self.bundles[locale] = bundle
         return bundle
 
-    def get(self, msgId: str, locale: discord.Locale, args: dict[str, Any] = {}) -> str:
-        bundle = self._bundle(locale)
+    async def get(self, keyword: locale_str, locale: Locale) -> str:
+        msgId = keyword.message
+
+        bundle = await self._bundle(locale)
         if not bundle.has_message(msgId):
             return msgId
 
@@ -75,55 +101,58 @@ class Localization:
         if not msg.value:
             return msgId
 
-        val, _ = bundle.format_pattern(msg.value, args)
+        val, _ = bundle.format_pattern(msg.value, keyword.extras)
         return cast(str, val)
 
-    def format(self, msgId: str, locale: discord.Locale | None = None, **kwargs) -> str:
-        return self.get(msgId, locale or self.currentLocale or self.defaultLocale, kwargs)
+    async def format(self, msgId: locale_str, locale: Locale | None = None) -> str:
+        return await self.get(msgId, locale or self.currentLocale or self.defaultLocale)
 
-    def _getResource(self, locale: discord.Locale) -> Resource:
+    async def _getResource(self, locale: Locale) -> Resource:
         with Path(self.root, f"{locale.value}.ftl").open() as fp:
-            resource = FluentParser().parse(fp.read())
+            file = await asyncio.to_thread(fp.read)
+            resource = FluentParser().parse(file)
         return resource
 
 
-localization = Localization()
-_format = localization.format  # TIPS: import as _
-
 if __name__ == "__main__":
 
-    def testParallel():
-        import threading
+    async def testParallel():
         import time
 
-        def test1():
+        localization = await Localization.init()
+        _T = locale_str
+
+        async def test1():
             while time.time() <= start_time:
                 pass
 
-            localization.set(discord.Locale.american_english)
-            print(_format("var", name="Z3R0 1-1"))
-            localization.set(discord.Locale.indonesian)
-            print(_format("var", name="Z3R0 1-2"))
+            localization.set(Locale.american_english)
+            print(await localization.format(_T("var", name="Z3R0 1-1")))
+            localization.set(Locale.indonesian)
+            print(await localization.format(_T("var", name="Z3R0 1-2")))
 
-        def test2():
+        async def test2():
             while time.time() <= start_time:
                 pass
 
-            localization.set(discord.Locale.indonesian)
-            print(_format("var", name="Z3R0 2-1"))
-            localization.set(discord.Locale.american_english)
-            print(_format("var", name="Z3R0 2-2"))
+            localization.set(Locale.indonesian)
+            print(await localization.format(_T("var", name="Z3R0 2-1")))
+            localization.set(Locale.american_english)
+            print(await localization.format(_T("var", name="Z3R0 2-2")))
 
         start_time = time.time() + 20
-        threading.Thread(target=test1).start()
-        threading.Thread(target=test2).start()
+        await asyncio.gather(test1(), test2())
 
-    def testLocale():
-        print(localization.locales)
-        print(_format("var", name="Z3R0 1-1"))
-        localization.set(discord.Locale.indonesian)
-        print(_format("var", name="Z3R0 1-1"))
-        localization.set(discord.Locale.japanese)  # Doesn't exists
-        print(_format("var", name="Z3R0 1-1"))
+    async def testLocale():
+        localization = await Localization.init()
+        _T = locale_str
 
-    testLocale()
+        print(await localization.format(_T("var", name="Z3R0 1-1")))
+        localization.set(Locale.indonesian)
+        print(await localization.format(_T("var", name="Z3R0 1-1")))
+        localization.set(Locale.japanese)  # Doesn't exists
+        print(await localization.format(_T("var", name="Z3R0 1-1")))
+
+    asyncio.run(testParallel())
+    print()
+    asyncio.run(testLocale())

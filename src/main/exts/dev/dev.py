@@ -11,6 +11,7 @@ import os
 import time
 
 import discord
+from discord.app_commands import locale_str as _
 from jishaku.cog import OPTIONAL_FEATURES, STANDARD_FEATURES
 from jishaku.features.baseclass import Feature
 
@@ -18,8 +19,6 @@ from ...core.bot import EXTS_DIR
 from ...core.context import Context
 from ...core.converter import BannedMember
 from ...core.embed import ZEmbed
-from ...core.i18n import _format as _
-from ...core.i18n import localization
 from ...core.menus import ZChoices, ZMenuPagesView, choice
 
 
@@ -33,7 +32,7 @@ class Developer(*STANDARD_FEATURES, *OPTIONAL_FEATURES):
 
     icon = "<:verified_bot_developer:748090768237002792>"
 
-    async def cog_check(self, ctx):
+    async def cog_check(self, ctx: Context):
         """Only bot master able to use debug cogs."""
         return self.bot.owner_ids and ctx.author.id in self.bot.owner_ids
 
@@ -133,11 +132,13 @@ class Developer(*STANDARD_FEATURES, *OPTIONAL_FEATURES):
         return await ctx.try_reply(banned.user.id)
 
     @Feature.Command(parent="jsk", name="i18n")
-    async def jsk_i18n(self, ctx):
-        msg = await ctx.try_reply(localization.format("var", name=ctx.author.name))
-        await msg.edit(content=msg.content + "\n" + _("test", discord.Locale("id")))
+    async def jsk_i18n(self, ctx: Context):
+        translated = await ctx.translate(_("var", name=ctx.author.name))
+        msg = await ctx.try_reply(translated)
+        translated2 = await ctx.translate(_("test"), locale=discord.Locale("id"))
+        await msg.edit(content=msg.content + "\n" + translated2)
 
     @Feature.Command(parent="jsk", name="lang")
-    async def jsk_lang(self, ctx, language: str = "en-US"):
-        localization.set(discord.Locale(language))
+    async def jsk_lang(self, ctx: Context, language: str = "en-US"):
+        ctx.bot.i18n.set(discord.Locale(language))
         await ctx.try_reply("Language has been changed")

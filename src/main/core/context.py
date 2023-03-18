@@ -8,17 +8,27 @@ from __future__ import annotations
 
 import io
 from contextlib import asynccontextmanager
-from typing import Union
+from typing import TYPE_CHECKING, Union
 
 import aiohttp
 import discord
+from discord import Locale
+from discord.app_commands import locale_str
 from discord.ext import commands
+from discord.utils import MISSING
 
 from .embed import ZEmbed
 from .guild import GuildWrapper
 
 
+if TYPE_CHECKING:
+    from .bot import ziBot
+
+
 class Context(commands.Context):
+    if TYPE_CHECKING:
+        bot: ziBot
+
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
 
@@ -141,3 +151,12 @@ class Context(commands.Context):
         if not g:
             raise commands.NoPrivateMessage
         return g
+
+    async def translate(self, string: locale_str, *, locale: Locale | None = None) -> str:
+        """|coro|
+
+        Mimic Interaction.translate() behaviour
+        """
+        if self.interaction:
+            return await self.interaction.translate(string, locale=locale or MISSING) or string.message
+        return await self.bot.i18n.format(string, locale=locale)

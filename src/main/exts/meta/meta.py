@@ -11,12 +11,12 @@ from typing import TYPE_CHECKING
 
 import discord
 import humanize
+from discord.app_commands import locale_str as _
 from discord.ext import commands
 
 from ...core import checks
 from ...core.context import Context
 from ...core.embed import ZEmbed
-from ...core.i18n import _format as _
 from ...core.menus import ZMenuPagesView
 from ...utils.format import cleanifyPrefix
 from ...utils.other import utcnow
@@ -104,15 +104,22 @@ class Meta(MetaCustomCommands):
 
     @commands.hybrid_command(brief="Information about my stats")
     @commands.cooldown(1, 5, commands.BucketType.user)
-    async def stats(self, ctx):
+    async def stats(self, ctx: Context):
+        botUser: discord.ClientUser | None = ctx.bot.user
+        if not botUser:
+            return
         uptime = utcnow() - self.bot.uptime
         e = ZEmbed.default(ctx)
-        e.set_author(name=_("stats-title", bot=ctx.bot.user.name), icon_url=ctx.bot.user.display_avatar.url)
-        e.add_field(name=_("stats-uptime-title"), value=humanize.precisedelta(uptime), inline=False)
+        e.set_author(name=await ctx.translate(_("stats-title", bot=botUser.name)), icon_url=botUser.display_avatar.url)
+        e.add_field(name=await ctx.translate(_("stats-uptime-title")), value=humanize.precisedelta(uptime), inline=False)
         e.add_field(
-            name=_("stats-command-title"),
-            value=_(
-                "stats-command", commandCount=sum(self.bot.commandUsage.values()), customCommand=self.bot.customCommandUsage
+            name=await ctx.translate(_("stats-command-title")),
+            value=await ctx.translate(
+                _(
+                    "stats-command",
+                    commandCount=sum(self.bot.commandUsage.values()),
+                    customCommand=self.bot.customCommandUsage,
+                )
             ),
             inline=False,
         )
@@ -160,14 +167,16 @@ class Meta(MetaCustomCommands):
         ),
     )
     @checks.is_mod()
-    async def prefAdd(self, ctx, *prefix: str):
+    async def prefAdd(self, ctx: Context, *prefix: str):
         _prefix = " ".join(prefix).lstrip()
         if not _prefix:
-            return await ctx.error(_("prefix-empty"))
+            translated = await ctx.translate(_("prefix-empty"))
+            return await ctx.error(translated)
 
         try:
             await ctx.requireGuild().addPrefix(_prefix)
-            await ctx.success(title=_("prefix-added", prefix=cleanifyPrefix(self.bot, _prefix)))
+            translated = await ctx.translate(_("prefix-added", prefix=cleanifyPrefix(self.bot, _prefix)))
+            await ctx.success(title=translated)
         except Exception as exc:
             await ctx.error(str(exc))
 
@@ -187,11 +196,13 @@ class Meta(MetaCustomCommands):
     async def prefRm(self, ctx: Context, *prefix: str):
         _prefix = " ".join(prefix).lstrip()
         if not _prefix:
-            return await ctx.error(_("prefix-empty"))
+            translated = await ctx.translate(_("prefix-empty"))
+            return await ctx.error(translated)
 
         try:
             await ctx.requireGuild().rmPrefix(_prefix.lstrip())
-            await ctx.success(title=_("prefix-removed", prefix=cleanifyPrefix(self.bot, _prefix)))
+            translated = await ctx.translate(_("prefix-removed", prefix=cleanifyPrefix(self.bot, _prefix)))
+            await ctx.success(title=translated)
         except Exception as exc:
             await ctx.error(str(exc))
 

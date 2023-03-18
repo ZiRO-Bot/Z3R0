@@ -39,6 +39,7 @@ from .config import Config
 from .context import Context
 from .data import JSON, Blacklist, Cache, CacheDictProperty, CacheListProperty
 from .guild import GuildWrapper
+from .i18n import Localization
 
 
 EXTS = []
@@ -73,6 +74,7 @@ class ziBot(commands.Bot):
 
     if TYPE_CHECKING:
         session: aiohttp.ClientSession
+        i18n: Localization
 
     def __init__(self, config: Config) -> None:
         self.config: Config = config
@@ -205,6 +207,8 @@ class ziBot(commands.Bot):
             )
             with suppress(DBConnectionError, OperationalError):
                 await Tortoise._drop_databases()
+
+        self.i18n = await Localization.init()
 
         await Tortoise.init(
             config=self.config.tortoiseConfig,

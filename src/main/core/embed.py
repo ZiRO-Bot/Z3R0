@@ -47,9 +47,9 @@ class ZEmbed(discord.Embed):
     def error(
         cls,
         *,
-        emoji=Emojis.error,
-        title="Error",
-        color=None,
+        emoji: str = Emojis.error,
+        title: str = "Error",
+        color: discord.Color = None,
         **kwargs,
     ):
         return cls(
@@ -62,9 +62,9 @@ class ZEmbed(discord.Embed):
     def success(
         cls,
         *,
-        emoji=Emojis.ok,
-        title="Success",
-        color=None,
+        emoji: str = Emojis.ok,
+        title: str = "Success",
+        color: discord.Color = None,
         **kwargs,
     ):
         return cls(
@@ -77,8 +77,8 @@ class ZEmbed(discord.Embed):
     def loading(
         cls,
         *,
-        emoji=Emojis.loading,
-        title="Loading...",
+        emoji: str = Emojis.loading,
+        title: str = "Loading...",
         **kwargs,
     ):
         return cls(title="{} {}".format(emoji, title), **kwargs)
