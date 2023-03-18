@@ -1,6 +1,10 @@
-# --- For testing
+# --- Test
 test = Hello World!
 var = Hello, { $name }!
+
+# --- Slash
+stats-slash-name = stats
+stats-slash-desc = Information about my stats
 
 # --- Meta
 stats-title = { $bot }'s stats

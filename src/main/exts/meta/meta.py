@@ -102,7 +102,7 @@ class Meta(MetaCustomCommands):
                 view.add_item(discord.ui.Button(label=k, url=v))
         await ctx.try_reply(file=f, embed=e, view=view)
 
-    @commands.hybrid_command(brief="Information about my stats")
+    @commands.hybrid_command(name=_("stats-slash-name"), description=_("stats-slash-desc"))
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def stats(self, ctx: Context):
         botUser: discord.ClientUser | None = ctx.bot.user

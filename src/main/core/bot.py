@@ -39,7 +39,7 @@ from .config import Config
 from .context import Context
 from .data import JSON, Blacklist, Cache, CacheDictProperty, CacheListProperty
 from .guild import GuildWrapper
-from .i18n import Localization
+from .i18n import FluentTranslator, Localization
 
 
 EXTS = []
@@ -211,6 +211,7 @@ class ziBot(commands.Bot):
                 await Tortoise._drop_databases()
 
         self.i18n = await Localization.init()
+        await self.tree.set_translator(FluentTranslator(self))
 
         await Tortoise.init(
             config=self.config.tortoiseConfig,

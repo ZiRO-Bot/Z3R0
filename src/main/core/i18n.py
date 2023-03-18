@@ -11,10 +11,14 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any, cast
 
 from discord import Locale
-from discord.app_commands import locale_str
+from discord.app_commands import TranslationContext, Translator, locale_str
 from fluent.runtime import FluentBundle
 from fluent.syntax import FluentParser
 from fluent.syntax.ast import Resource
+
+
+if TYPE_CHECKING:
+    from .bot import ziBot
 
 
 class Localization:
@@ -112,6 +116,14 @@ class Localization:
             file = await asyncio.to_thread(fp.read)
             resource = FluentParser().parse(file)
         return resource
+
+
+class FluentTranslator(Translator):
+    def __init__(self, bot: ziBot):
+        self.bot: ziBot = bot
+
+    async def translate(self, string: locale_str, locale: Locale, context: TranslationContext) -> str:
+        return await self.bot.i18n.format(string, locale=locale)
 
 
 if __name__ == "__main__":
