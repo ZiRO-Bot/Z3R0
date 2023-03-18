@@ -10,7 +10,7 @@ import asyncio
 import json
 import re
 from contextlib import suppress
-from typing import TYPE_CHECKING, Any, Dict, Optional, Union
+from typing import TYPE_CHECKING, Any, Dict, Optional, Union, cast
 
 import discord
 import pytz
@@ -40,7 +40,7 @@ async def doModlog(
     bot: ziBot,
     guild: discord.Guild,
     member: discord.User,
-    moderator: discord.User,
+    moderator: discord.User | discord.Member | None,
     type: str,
     reason: str = None,
     caseNum: Optional[int] = None,
@@ -48,8 +48,13 @@ async def doModlog(
     """Basically handle formatting modlog events"""
 
     channel = bot.get_channel(await bot.getGuildConfig(guild.id, "modlogCh", "GuildChannels") or 0)
+    botUser: discord.User = cast(discord.User, bot.user)
 
-    if moderator.id == bot.user.id:  # type: ignore
+    if not moderator:
+        # Moderator is None, assume it's the bot
+        moderator = botUser
+
+    if moderator.id == botUser.id:
         # This usually True when mods use moderation commands
         # Or when bots doing automod stuff
         if reason and channel:
@@ -110,16 +115,19 @@ class EventHandler(commands.Cog, CogMixin):
         ]
         self.engine = tse.Interpreter(blocks)
 
-        bot.tree.error = self.appCommandError
+        bot.tree.error(self.appCommandError)
 
-    # TODO - Finish this handler
-    async def appCommandError(self, interaction: discord.Interaction, error: AppCommandError):
-        """Error handler for app commands
+    async def appCommandError(self, interaction: discord.Interaction, _: AppCommandError):
+        """|coro|
 
-        Untested, hybrid commands seems to be handled by on_command_error
+        Error handler for app commands
+
+        Untested and incomplete, hybrid commands seems to be handled by on_command_error
         """
-        await interaction.response.send_message("hmm")
-        # await self.onCommandError(await (await self.bot.get_context(None)).from_interaction(interaction), error)
+        # TODO - Finish this handler
+        await interaction.response.send_message(
+            f"Something went wrong, please use legacy command `>{interaction.command}` in the meantime"
+        )
 
     def getGreetSeed(self, member: discord.Member) -> Dict[str, Any]:
         """For welcome and farewell message"""
@@ -357,6 +365,9 @@ class EventHandler(commands.Cog, CogMixin):
             # TODO: Change the message
             return await ctx.error(title="Check failed!")
 
+        if error is None:
+            return await ctx.error(title="Unknown Error")
+
         # Give details about the error
         _traceback = formatTraceback("", error)
         self.bot.logger.error("Something went wrong! error: {}".format(_traceback))
@@ -366,8 +377,8 @@ class EventHandler(commands.Cog, CogMixin):
             # Send embed that when user react with greenTick bot will send it to bot owner or issue channel
             dest = (
                 self.bot.get_partial_messageable(self.bot.issueChannel)
-                or self.bot.get_user(self.bot.owner_id)
-                or (self.bot.get_user(self.bot.master[0]))
+                or self.bot.get_user(self.bot.owner_id or 0)
+                or (self.bot.get_user(self.bot.ownerIds[0]))
             )
             destName = dest if isinstance(dest, discord.User) else "the support server"
 

@@ -6,6 +6,11 @@
 > previously functions and constants are all over the place that it's starting
 > to get harder to find what I'm looking for.
 
+## 3.6.2 (Project Structure Refactor - Part 2)
+
+### Internal Changes
+- [**Removed**] Flake8 no longer used for linting, pyright will handle this job instead
+
 ## 3.6.1 (Project Structure Refactor - Part 1.5 A.K.A Hotfix)
 
 - [**Fixed**] Fixed issues related to `import tse`

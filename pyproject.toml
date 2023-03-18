@@ -42,7 +42,6 @@ pyzmq = "^25.0.0"
 black = "^22.10.0"
 isort = "^5.10.1"
 pre-commit = "^2.13.0"
-pyproject-flake8 = "^0.0.1-alpha.2"
 aerich = "0.7.1"
 
 [tool.poetry.group.test]
@@ -73,11 +72,6 @@ build-backend = "poetry.core.masonry.api"
 line-length = 125
 skip-string-normalization = true
 
-[tool.flake8]
-max-line-length = 125
-select = "C,E,F,W,B,B950"
-extend-ignore = "E203,E501"
-
 [tool.isort]
 profile = "black"
 multi_line_output = 3
@@ -88,5 +82,12 @@ tortoise_orm = "aerichConfig.t"
 location = "./src/main/migrations"
 src_folder = "./."
 
+[tool.pyright]
+reportUnnecessaryTypeIgnoreComment = "warning"
+reportUnusedImport = "error"
+pythonVersion = "3.10"
+typeCheckingMode = "basic"
+
 [tool.pytest.ini_options]
 pythonpath = ["."]
+asyncio_mode = "strict"
