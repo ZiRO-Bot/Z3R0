@@ -6,8 +6,10 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from typing import List, Optional, Tuple
 
+from discord.app_commands import locale_str
 from discord.ext import commands, menus
 
+from ...core.context import Context
 from ...core.embed import ZEmbed
 from ...core.menus import ZMenuView
 from ...utils.format import cleanifyPrefix, formatCmd, info
@@ -108,7 +110,7 @@ class HelpCommandPage(menus.ListPageSource):
         super().__init__(commands, per_page=1)
 
     async def format_page(self, menu: ZMenuView, command):
-        ctx = menu.context
+        ctx: Context = menu.context
         prefix = ctx.clean_prefix
 
         subcmds = None
@@ -116,10 +118,16 @@ class HelpCommandPage(menus.ListPageSource):
             subcmds = command.commands
             command = command.origin
 
+        description: locale_str | str = (
+            command.help or getattr(command, "_locale_description", command.description) or locale_str("description-empty")
+        )
+        if isinstance(description, locale_str):
+            description = await ctx.translate(description)
+
         e = ZEmbed(
             title=formatCmd(prefix, command),
             description="**Aliases**: `{}`\n".format(", ".join(command.aliases) if command.aliases else "No alias")
-            + (command.description or command.short_doc or "No description"),
+            + description,
         )
 
         if isinstance(command, (commands.HybridCommand, commands.HybridGroup)):
