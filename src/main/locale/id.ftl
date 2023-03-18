@@ -3,8 +3,8 @@ test = Halo Dunia!
 var = Halo, { $name }!
 
 # --- Slash
-stats-slash-name = stats
-stats-slash-desc = Informasi statistikku
+stats = stats
+stats-desc = Informasi statistikku
 
 # --- Meta
 stats-title = Statistik { $bot }

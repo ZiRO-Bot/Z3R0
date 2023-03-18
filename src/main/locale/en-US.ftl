@@ -3,8 +3,8 @@ test = Hello World!
 var = Hello, { $name }!
 
 # --- Slash
-stats-slash-name = stats
-stats-slash-desc = Information about my stats
+stats = stats
+stats-desc = Information about my stats
 
 # --- Meta
 stats-title = { $bot }'s stats
