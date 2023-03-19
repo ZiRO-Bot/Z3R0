@@ -14,6 +14,7 @@ from typing import TYPE_CHECKING, Optional
 
 import discord
 import pytz
+from discord.app_commands import locale_str as _
 from discord.ext import commands
 
 from ...core import db
@@ -25,7 +26,7 @@ from ._views import LinkView
 
 
 if TYPE_CHECKING:
-    from core.bot import ziBot
+    from ...core.bot import ziBot
 
 
 class TimerData:
@@ -99,7 +100,7 @@ class Timer(commands.Cog, CogMixin):
         self.task = self.bot.loop.create_task(self.dispatchTimers())
 
     async def getActiveTimer(self, days: int = 7) -> Optional[TimerData]:
-        data = await db.Timer.filter(expires__lt=utcnow() + dt.timedelta(days=days)).order_by("expires").values()
+        data = await db.Timer.filter(expires__lt=utcnow() + dt.timedelta(days=days)).order_by("expires").values()  # type: ignore
         return TimerData(data[0]) if data else None
 
     async def waitForActiveTimer(self, days: int = 7) -> Optional[TimerData]:
@@ -204,7 +205,7 @@ class Timer(commands.Cog, CogMixin):
             )
         )
 
-    @commands.hybrid_command(description="Get current time")
+    @commands.hybrid_command(name=_("time"), description=_("time-desc"))
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def time(self, ctx, timezone: str = None) -> None:
         tz = None

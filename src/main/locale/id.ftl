@@ -106,3 +106,7 @@ loading = Memuat...
 
 # - Error
 error-generic = Terjadi kesalahan!
+
+# --- Timer
+time = waktu
+time-desc = Dapatkan waktu terkini

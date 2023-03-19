@@ -130,3 +130,7 @@ error-generic = Something went wrong!
 # --- NSFW
 hentai = hentai
 hentai-desc = Get hentai images from nekos.fun
+
+# --- Timer
+time = time
+time-desc = Get current time
