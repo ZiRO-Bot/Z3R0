@@ -59,6 +59,26 @@ manga-search-arg-format = The manga's format
 manga-random = random
 manga-random-desc = Get a random manga
 
+# --- Fun
+meme = meme
+meme-desc = Get random meme from reddit
+findseed = findseed
+findseed-desc = Get your Minecraft seed's eye count
+httpcat = httpcat
+httpcat-desc = Get http status code with cat in it
+pp = pp
+pp-desc = Show your pp size
+isimpostor = isimpostor
+isimpostor-desc = Check if you're an impostor or a crewmate
+dadjokes = dadjokes
+dadjokes-desc = Get random dad jokes
+rps = rps
+rps-desc = Rock Paper Scissors with the bot
+flip = flip
+flip-desc = Flip a Coin
+barter = barter
+barter-desc = Barter with Minecraft's Piglins
+
 # --- Info
 color = color
 color-desc = Get color information from hex value

@@ -11,6 +11,7 @@ from typing import get_args
 import discord
 from discord import app_commands
 from discord.app_commands import Choice
+from discord.app_commands import locale_str as _
 from discord.ext import commands
 
 from ...core import checks
@@ -33,7 +34,10 @@ class Fun(commands.Cog, CogMixin):
         super().__init__(bot)
         self.reddit = reddit.Reddit(self.bot.session)
 
-    @commands.hybrid_command(description="Get random meme from reddit")
+    @commands.hybrid_command(
+        name=_("meme"),
+        description=_("meme-desc"),
+    )
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def meme(self, ctx):
         # TODO: Add more meme subreddits
@@ -72,7 +76,8 @@ class Fun(commands.Cog, CogMixin):
     @app_commands.choices(args=[Choice(name=i, value=i) for i in get_args(FINDSEED_MODES)])
     @app_commands.rename(args="mode")
     @commands.hybrid_command(
-        description="Get your minecraft seed's eye count",
+        name=_("findseed"),
+        description=_("findseed-desc"),
         aliases=("fs", "vfs"),
         usage="[options]",
         extras=dict(
@@ -194,8 +199,9 @@ class Fun(commands.Cog, CogMixin):
         await ctx.send(choice(ctx.requireGuild().members).mention, allowed_mentions=allowedMentions)
 
     @commands.hybrid_command(
+        name=_("httpcat"),
         usage="(status code)",
-        description="Get http status code with cat in it",
+        description=_("httpcat-desc"),
         extras=dict(example=("httpcat 404",)),
     )
     @commands.cooldown(1, 5, commands.BucketType.user)
@@ -205,7 +211,10 @@ class Fun(commands.Cog, CogMixin):
             img = discord.File(fp=image, filename="httpcat.jpg")
             await ctx.try_reply(file=img)
 
-    @commands.hybrid_command(description="Show your pp size")
+    @commands.hybrid_command(
+        name=_("pp"),
+        description=_("pp-desc"),
+    )
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def pp(self, ctx):
         pp = "8" + "=" * randint(1, 500) + "D"
@@ -218,8 +227,9 @@ class Fun(commands.Cog, CogMixin):
         await ctx.send(embed=e)
 
     @commands.hybrid_command(
+        name=_("isimpostor"),
         aliases=("isimposter",),
-        description="Check if you're an impostor or a crewmate",
+        description=_("isimpostor-desc"),
         usage="[impostor count] [player count]",
     )
     @commands.cooldown(3, 25, commands.BucketType.user)
@@ -235,7 +245,11 @@ class Fun(commands.Cog, CogMixin):
         else:
             await ctx.send(f"{ctx.author.mention}, you're a crewmate!")
 
-    @commands.hybrid_command(aliases=("badjokes",), description="Get random dad jokes")
+    @commands.hybrid_command(
+        name=_("dadjokes"),
+        aliases=("badjokes",),
+        description=_("dadjokes-desc"),
+    )
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def dadjokes(self, ctx):
         headers = {"accept": "application/json"}
@@ -249,8 +263,9 @@ class Fun(commands.Cog, CogMixin):
         await ctx.send(embed=e)
 
     @commands.hybrid_command(
+        name=_("rps"),
         usage="(choice)",
-        description="Rock Paper Scissors with the bot.",
+        description=_("rps-desc"),
         extras=dict(
             example=("rps rock",),
         ),
@@ -306,7 +321,10 @@ class Fun(commands.Cog, CogMixin):
         f = discord.File("./assets/img/rafaelAndHisWaifu.png", filename="img.png")
         return await ctx.try_reply(file=f)
 
-    @commands.hybrid_command(description="Simple coin flip")
+    @commands.hybrid_command(
+        name=_("flip"),
+        description=_("flip-desc"),
+    )
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def flip(self, ctx):
         await ctx.try_reply(f"You got {choice(['heads', 'tails'])}!")
@@ -350,6 +368,7 @@ class Fun(commands.Cog, CogMixin):
         return await ctx.try_reply("You rolled {}".format(", ".join(results)))
 
     @commands.hybrid_command(
+        name=_("clap"),
         aliases=("👏",),
         description="👏",
         extras=dict(example=("clap hell yea", "clap clap clap")),
@@ -359,7 +378,8 @@ class Fun(commands.Cog, CogMixin):
         return await ctx.try_reply(text.replace(" ", " 👏 ") or " 👏 ")
 
     @commands.hybrid_command(
-        description="Barter with Minecraft's Piglins",
+        name=_("barter"),
+        description=_("barter-desc"),
         help="\n**Note**: The loot table is based on JE 1.16.1 (before nerf)",
         aliases=("piglin",),
         usage="[amount of gold]",
