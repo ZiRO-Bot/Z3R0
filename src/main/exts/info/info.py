@@ -15,6 +15,7 @@ from discord.app_commands import locale_str as _
 from discord.ext import commands
 
 from ...core import checks
+from ...core import commands as cmds
 from ...core.context import Context
 from ...core.converter import MemberOrUser
 from ...core.embed import ZEmbed
@@ -65,10 +66,11 @@ class Info(commands.Cog, CogMixin):
         e.set_image(url=avatar.with_size(1024).url)
         await ctx.try_reply(embed=e)
 
-    @commands.hybrid_command(
+    @cmds.command(
         name=_("weather"),
         aliases=("w",),
         description=_("weather-desc"),
+        hybrid=True,
         extras=dict(example=("weather Palembang", "w London")),
     )
     @commands.cooldown(1, 5, commands.BucketType.user)
@@ -97,11 +99,12 @@ class Info(commands.Cog, CogMixin):
         e.set_thumbnail(url=weatherData.iconUrl)
         await ctx.try_reply(embed=e)
 
-    @commands.hybrid_command(
+    @cmds.command(
         name=_("color"),
         aliases=("clr", "colour"),
         description=_("color-desc"),
         help="\n\nCan use either `0x` or " "`#` prefix (`0xFFFFFF` or `#FFFFFF`)",
+        hybrid=True,
         extras=dict(example=("colour ffffff", "clr 0xffffff", "color #ffffff")),
     )
     @commands.cooldown(1, 5, commands.BucketType.user)
@@ -286,11 +289,12 @@ class Info(commands.Cog, CogMixin):
         )
         return await ctx.try_reply(embed=e)
 
-    @commands.hybrid_command(
+    @cmds.command(
         name=_("jisho"),
         aliases=("jsh",),
         description=_("jisho-desc"),
         help=" from english/japanese/romaji/text",
+        hybrid=True,
         extras=dict(
             example=(
                 "joshi こんにちは",
@@ -443,10 +447,11 @@ class Info(commands.Cog, CogMixin):
 
         await ctx.try_reply(embed=e)
 
-    @commands.hybrid_command(
+    @cmds.command(
         name=_("serverinfo"),
         aliases=("guild", "guildinfo", "gi", "server", "si"),
         description=_("serverinfo-desc"),
+        hybrid=True,
     )
     @commands.guild_only()
     @commands.cooldown(1, 5, commands.BucketType.user)
@@ -517,10 +522,11 @@ class Info(commands.Cog, CogMixin):
 
         await ctx.try_reply(embed=e)
 
-    @commands.hybrid_command(
+    @cmds.command(
         name="spotify",
         aliases=("spotifyinfo", "spot"),
         description=_("spotify-desc"),
+        hybrid=True,
     )
     @commands.cooldown(1, 5, commands.BucketType.user)
     @commands.guild_only()
@@ -603,8 +609,9 @@ class Info(commands.Cog, CogMixin):
 
         await ctx.try_reply(embed=e)
 
-    @commands.hybrid_command(
+    @cmds.command(
         description=_("pypi-desc"),
+        hybrid=True,
         usage="(project name)",
     )
     @commands.cooldown(1, 5, commands.BucketType.user)

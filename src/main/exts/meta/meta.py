@@ -15,6 +15,7 @@ from discord.app_commands import locale_str as _
 from discord.ext import commands
 
 from ...core import checks
+from ...core import commands as cmds
 from ...core.context import Context
 from ...core.embed import ZEmbed
 from ...core.menus import ZMenuPagesView
@@ -72,12 +73,12 @@ class Meta(MetaCustomCommands):
         self.bot.help_command = CustomHelp(command_attrs=attributes)
         self.bot.help_command.cog = self
 
-    @commands.hybrid_command(name=_("source"), description=_("source-desc"))
+    @cmds.command(name=_("source"), description=_("source-desc"), hybrid=True)
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def source(self, ctx):
         await ctx.try_reply("My source code: {}".format(self.bot.links["Source Code"]))
 
-    @commands.hybrid_command(name=_("about"), aliases=("botinfo", "bi"), description=_("about-desc"))
+    @cmds.command(name=_("about"), aliases=("botinfo", "bi"), description=_("about-desc"), hybrid=True)
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def about(self, ctx):
         # Z3R0 Banner
@@ -101,7 +102,7 @@ class Meta(MetaCustomCommands):
                 view.add_item(discord.ui.Button(label=k, url=v))
         await ctx.try_reply(file=f, embed=e, view=view)
 
-    @commands.hybrid_command(name=_("stats"), description=_("stats-desc"))
+    @cmds.command(name=_("stats"), description=_("stats-desc"), hybrid=True)
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def stats(self, ctx: Context):
         botUser: discord.ClientUser | None = ctx.bot.user
@@ -202,7 +203,7 @@ class Meta(MetaCustomCommands):
         except Exception as exc:
             await ctx.error(str(exc))
 
-    @commands.hybrid_command(name=_("ping"), aliases=("p",), description=_("ping-desc"))
+    @cmds.command(name=_("ping"), aliases=("p",), description=_("ping-desc"), hybrid=True)
     async def ping(self, ctx):
         start = time.perf_counter()
         msgPing = 0
@@ -229,7 +230,7 @@ class Meta(MetaCustomCommands):
         )
         await msg.edit(embed=e)
 
-    @commands.hybrid_command(name=_("invite"), description=_("invite-desc"))
+    @cmds.command(name=_("invite"), description=_("invite-desc"), hybrid=True)
     async def invite(self, ctx):
         botUser: discord.ClientUser = self.bot.user  # type: ignore
         clientId = botUser.id

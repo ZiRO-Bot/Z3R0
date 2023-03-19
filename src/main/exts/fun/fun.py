@@ -15,6 +15,7 @@ from discord.app_commands import locale_str as _
 from discord.ext import commands
 
 from ...core import checks
+from ...core import commands as cmds
 from ...core.context import Context
 from ...core.embed import ZEmbed
 from ...core.errors import ArgumentError
@@ -34,8 +35,9 @@ class Fun(commands.Cog, CogMixin):
         super().__init__(bot)
         self.reddit = reddit.Reddit(self.bot.session)
 
-    @commands.hybrid_command(
+    @cmds.command(
         name=_("meme"),
+        hybrid=True,
         description=_("meme-desc"),
     )
     @commands.cooldown(1, 5, commands.BucketType.user)
@@ -75,10 +77,11 @@ class Fun(commands.Cog, CogMixin):
 
     @app_commands.choices(args=[Choice(name=i, value=i) for i in get_args(FINDSEED_MODES)])
     @app_commands.rename(args="mode")
-    @commands.hybrid_command(
+    @cmds.command(
         name=_("findseed"),
         description=_("findseed-desc"),
         aliases=("fs", "vfs"),
+        hybrid=True,
         usage="[options]",
         extras=dict(
             example=("findseed", "findseed mode: classic", "fs mode: pipega"),
@@ -198,10 +201,11 @@ class Fun(commands.Cog, CogMixin):
             allowedMentions = discord.AllowedMentions(users=True)
         await ctx.send(choice(ctx.requireGuild().members).mention, allowed_mentions=allowedMentions)
 
-    @commands.hybrid_command(
+    @cmds.command(
         name=_("httpcat"),
         usage="(status code)",
         description=_("httpcat-desc"),
+        hybrid=True,
         extras=dict(example=("httpcat 404",)),
     )
     @commands.cooldown(1, 5, commands.BucketType.user)
@@ -211,9 +215,10 @@ class Fun(commands.Cog, CogMixin):
             img = discord.File(fp=image, filename="httpcat.jpg")
             await ctx.try_reply(file=img)
 
-    @commands.hybrid_command(
+    @cmds.command(
         name=_("pp"),
         description=_("pp-desc"),
+        hybrid=True,
     )
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def pp(self, ctx):
@@ -226,10 +231,11 @@ class Fun(commands.Cog, CogMixin):
         )
         await ctx.send(embed=e)
 
-    @commands.hybrid_command(
+    @cmds.command(
         name=_("isimpostor"),
         aliases=("isimposter",),
         description=_("isimpostor-desc"),
+        hybrid=True,
         usage="[impostor count] [player count]",
     )
     @commands.cooldown(3, 25, commands.BucketType.user)
@@ -245,10 +251,11 @@ class Fun(commands.Cog, CogMixin):
         else:
             await ctx.send(f"{ctx.author.mention}, you're a crewmate!")
 
-    @commands.hybrid_command(
+    @cmds.command(
         name=_("dadjokes"),
         aliases=("badjokes",),
         description=_("dadjokes-desc"),
+        hybrid=True,
     )
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def dadjokes(self, ctx):
@@ -262,10 +269,11 @@ class Fun(commands.Cog, CogMixin):
         )
         await ctx.send(embed=e)
 
-    @commands.hybrid_command(
+    @cmds.command(
         name=_("rps"),
         usage="(choice)",
         description=_("rps-desc"),
+        hybrid=True,
         extras=dict(
             example=("rps rock",),
         ),
@@ -321,9 +329,10 @@ class Fun(commands.Cog, CogMixin):
         f = discord.File("./assets/img/rafaelAndHisWaifu.png", filename="img.png")
         return await ctx.try_reply(file=f)
 
-    @commands.hybrid_command(
+    @cmds.command(
         name=_("flip"),
         description=_("flip-desc"),
+        hybrid=True,
     )
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def flip(self, ctx):
@@ -367,21 +376,23 @@ class Fun(commands.Cog, CogMixin):
         ]
         return await ctx.try_reply("You rolled {}".format(", ".join(results)))
 
-    @commands.hybrid_command(
+    @cmds.command(
         name=_("clap"),
         aliases=("👏",),
         description="👏",
+        hybrid=True,
         extras=dict(example=("clap hell yea", "clap clap clap")),
     )
     @commands.cooldown(1, 5, type=commands.BucketType.user)
     async def clap(self, ctx, *, text: str = ""):
         return await ctx.try_reply(text.replace(" ", " 👏 ") or " 👏 ")
 
-    @commands.hybrid_command(
+    @cmds.command(
         name=_("barter"),
         description=_("barter-desc"),
         help="\n**Note**: The loot table is based on JE 1.16.1 (before nerf)",
         aliases=("piglin",),
+        hybrid=True,
         usage="[amount of gold]",
         extras=dict(
             example=("barter 64", "piglin", "barter 262"),

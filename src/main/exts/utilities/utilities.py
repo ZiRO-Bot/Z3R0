@@ -18,6 +18,7 @@ from discord import app_commands
 from discord.app_commands import locale_str as _
 from discord.ext import commands
 
+from ...core import commands as cmds
 from ...core.context import Context
 from ...core.embed import ZEmbed
 from ...core.mixin import CogMixin
@@ -41,10 +42,11 @@ class Utilities(commands.Cog, CogMixin):
         self.piston = Piston(session=self.bot.session, loop=self.bot.loop)
         self.googletrans = GoogleTranslate(session=self.bot.session)
 
-    @commands.hybrid_command(
+    @cmds.command(
         name=_("calc"),
         aliases=["math", "c"],
         description=_("calc-desc"),
+        hybrid=True,
         extras=dict(
             example=(
                 "calc 12*6",
@@ -144,10 +146,7 @@ class Utilities(commands.Cog, CogMixin):
         e.add_field(name="Translated [{}]".format(translated.dest), value=str(translated))
         return await ctx.try_reply(embed=e)
 
-    @commands.hybrid_command(
-        name=_("morse"),
-        description=_("morse-desc"),
-    )
+    @cmds.command(name=_("morse"), description=_("morse-desc"), hybrid=True)
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def morse(self, ctx, *, text: str):
         try:
@@ -155,10 +154,11 @@ class Utilities(commands.Cog, CogMixin):
         except KeyError:
             await ctx.error("Symbols/accented letters is not supported (yet?)", title="Invalid text")
 
-    @commands.hybrid_command(
+    @cmds.command(
         name=_("unmorse"),
         aliases=("demorse",),
         description=_("unmorse-desc"),
+        hybrid=True,
         usage="(morse code)",
     )
     @commands.cooldown(1, 5, commands.BucketType.user)
@@ -168,10 +168,11 @@ class Utilities(commands.Cog, CogMixin):
         except ValueError:
             await ctx.error("Invalid morse code!")
 
-    @commands.hybrid_command(
+    @cmds.command(
         name=_("search"),
         aliases=("google", "g"),
         description=_("search-desc"),
+        hybrid=True,
     )
     @app_commands.rename(query="keyword")
     @commands.cooldown(1, 10, commands.BucketType.user)
@@ -259,10 +260,11 @@ class Utilities(commands.Cog, CogMixin):
                     await msg.delete()  # type: ignore
                 await ctx.try_reply(embed=e)
 
-    @commands.hybrid_command(
+    @cmds.command(
         name=_("realurl"),
         description=_("realurl-desc"),
         usage="(shorten url)",
+        hybrid=True,
     )
     @app_commands.rename(shortenUrl=_("realurl-arg-shorten-url"))
     @commands.cooldown(1, 10, commands.BucketType.user)

@@ -15,6 +15,7 @@ from discord.ext import commands
 from discord.utils import MISSING
 
 from ...core import checks
+from ...core import commands as cmds
 from ...core.context import Context
 from ...core.embed import ZEmbed
 from ...core.mixin import CogMixin
@@ -61,9 +62,9 @@ class Admin(commands.Cog, CogMixin):
         ctx = await Context.from_interaction(interaction)
         await handleGreetingConfig(ctx, "welcome", message=message, channel=channel, raw=raw, disable=disable)
 
-    @commands.command(
+    @cmds.command(
         aliases=("wel",),
-        description="Set welcome message and/or channel",  # TODO
+        description=welcomeDesc,
         usage="[message] [options]",
         extras=dict(
             example=(
@@ -115,9 +116,9 @@ class Admin(commands.Cog, CogMixin):
         ctx = await Context.from_interaction(interaction)
         await handleGreetingConfig(ctx, "farewell", message=message, channel=channel, raw=raw, disable=disable)
 
-    @commands.command(
+    @cmds.command(
         aliases=("fw",),
-        description="Set farewell message and/or channel",  # TODO
+        description=farewellDesc,
         usage="[message] [options]",
         extras=dict(
             example=(
@@ -174,10 +175,11 @@ class Admin(commands.Cog, CogMixin):
 
         return await ctx.try_reply(embed=e)
 
-    @commands.hybrid_command(
+    @cmds.command(
         name=_("modlog"),
         aliases=("ml",),
         description=_("modlog-desc"),
+        hybrid=True,
         usage="[channel] [options]",
         extras=dict(
             example=("modlog #modlog", "modlog ch: modlog", "ml disable: on"),
@@ -201,10 +203,11 @@ class Admin(commands.Cog, CogMixin):
     async def modlog(self, ctx, *, arguments: LogFlags):
         await self.handleLogConfig(ctx, arguments, "modlog")
 
-    @commands.hybrid_command(
+    @cmds.command(
         name=_("purgatory"),
         aliases=("purge", "userlog"),
         description=_("purgatory-desc"),
+        hybrid=True,
         usage="[channel] [options]",
         extras=dict(
             example=(
@@ -231,9 +234,10 @@ class Admin(commands.Cog, CogMixin):
     async def purgatory(self, ctx, *, arguments: LogFlags):
         await self.handleLogConfig(ctx, arguments, "purgatory")
 
-    @commands.hybrid_group(
+    @cmds.group(
         name=_("role"),
         description=_("role-desc"),
+        hybrid=True,
         extras=dict(
             example=(
                 "role set @Server Moderator type: moderator",
@@ -407,9 +411,10 @@ class Admin(commands.Cog, CogMixin):
             arguments=f"{getattr(name, 'id', name)} type: member",
         )
 
-    @commands.hybrid_command(
+    @cmds.command(
         name=_("announcement"),
         description=_("announcement-desc"),
+        hybrid=True,
         extras=dict(
             example=("announcement #announcement",),
             perms={

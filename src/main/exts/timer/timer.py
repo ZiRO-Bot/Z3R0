@@ -17,6 +17,7 @@ import pytz
 from discord.app_commands import locale_str as _
 from discord.ext import commands
 
+from ...core import commands as cmds
 from ...core import db
 from ...core.converter import TimeAndArgument
 from ...core.mixin import CogMixin
@@ -205,7 +206,7 @@ class Timer(commands.Cog, CogMixin):
             )
         )
 
-    @commands.hybrid_command(name=_("time"), description=_("time-desc"))
+    @cmds.command(name=_("time"), description=_("time-desc"), hybrid=True)
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def time(self, ctx, timezone: str = None) -> None:
         tz = None

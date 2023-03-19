@@ -14,6 +14,7 @@ from discord import app_commands
 from discord.app_commands import locale_str as _
 from discord.ext import commands
 
+from ...core import commands as cmds
 from ...core.embed import ZEmbed
 from ...core.enums import Emojis
 from ...core.menus import ZMenuPagesView
@@ -119,18 +120,17 @@ class AniList(commands.Cog, CogMixin):
 
         await ctx.try_reply(embed=e)
 
-    @commands.hybrid_group(
-        aliases=("ani",),
-        description=_("anime-desc"),
-    )
+    @cmds.group(name=_("anime"), aliases=("ani",), description=_("anime-desc"), hybrid=True)
     async def anime(self, _) -> None:
         pass
 
     @anime.command(
-        name="search",  # TODO
+        name="search",
+        localeName=_("anime-search"),
         aliases=("s", "find", "?", "info"),
         description=_("anime-search-desc"),
         usage="(name) [options]",
+        hybrid=True,
         extras=dict(
             flags={
                 "format": ("Anime's format (TV, TV SHORT, OVA, ONA, MOVIE, " "SPECIAL, MUSIC)"),
@@ -150,17 +150,22 @@ class AniList(commands.Cog, CogMixin):
         animeFormat = ("TV", "TV Short", "OVA", "ONA", "Movie", "Special", "Music")
         return [app_commands.Choice(name=i, value=i) for i in animeFormat]
 
-    @anime.command(name="random", description=_("anime-random-desc"))  # TODO
+    @anime.command(name="random", localeName=_("anime-random"), description=_("anime-random-desc"))
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def animeRandom(self, ctx) -> None:
         await self.anilistRandom(ctx)
 
-    @commands.hybrid_group(description=_("manga-desc"))
+    @cmds.group(
+        name=_("manga"),
+        description=_("manga-desc"),
+        hybrid=True,
+    )
     async def manga(self, _) -> None:
         pass
 
     @manga.command(
-        name="search",  # TODO
+        name="search",
+        localeName=_("manga-search"),
         aliases=("s", "find", "?", "info"),
         description=_("manga-search-desc"),
         usage="(name) [options]",
@@ -184,7 +189,8 @@ class AniList(commands.Cog, CogMixin):
         return [app_commands.Choice(name=i, value=i) for i in mangaFormat]
 
     @manga.command(
-        name="random",  # TODO
+        name="random",
+        localeName=_("manga-random"),
         description=_("manga-random-desc"),
     )
     @commands.cooldown(1, 5, commands.BucketType.user)
