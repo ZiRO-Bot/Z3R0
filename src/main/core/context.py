@@ -8,11 +8,11 @@ from __future__ import annotations
 
 import io
 from contextlib import asynccontextmanager
-from typing import TYPE_CHECKING, Union
+from typing import TYPE_CHECKING, Union, overload
 
 import aiohttp
 import discord
-from discord import Locale
+from discord import Locale, Message
 from discord.app_commands import locale_str
 from discord.ext import commands
 from discord.utils import MISSING
@@ -40,18 +40,54 @@ class Context(commands.Context):
     def cache(self):
         return self.bot.cache
 
-    async def try_reply(self, content=None, *, mention_author=False, **kwargs):
+    @overload
+    async def maybeTranslate(self, content: locale_str | None, fallback: None = ...) -> None:
+        ...
+
+    @overload
+    async def maybeTranslate(self, content: locale_str | None, fallback: str = ...) -> str:
+        ...
+
+    @overload
+    async def maybeTranslate(self, content: locale_str | str) -> str:
+        ...
+
+    @overload
+    async def maybeTranslate(self, content: locale_str | str | None, fallback: None = ...) -> None:
+        ...
+
+    @overload
+    async def maybeTranslate(self, content: locale_str | str | None, fallback: str = ...) -> str:
+        ...
+
+    async def maybeTranslate(self, content: locale_str | str | None, fallback: str | None = None) -> str | None:
+        if not content:
+            return content or fallback
+
+        if isinstance(content, locale_str):
+            content = await self.translate(content)
+        return content
+
+    async def send(self, content: locale_str | str | None = None, **kwargs) -> Message:
+        return await super().send(await self.maybeTranslate(content), **kwargs)
+
+    async def reply(self, content: locale_str | str | None = None, **kwargs) -> Message:
+        return await super().reply(await self.maybeTranslate(content), **kwargs)
+
+    async def try_reply(self, content: locale_str | str | None = None, *, mention_author=False, **kwargs):
         """Try reply, if failed do send instead"""
         if self.interaction is None or self.interaction.is_expired():
             try:
-                action = self.safe_reply
+                action = self.safeReply
                 return await action(content, mention_author=mention_author, **kwargs)
             except BaseException:
-                if mention_author:
-                    content = f"{self.author.mention} " + content if content else ""
+                content = await self.maybeTranslate(content, "")
 
-                action = self.safe_send
-                return await self.safe_send(content, **kwargs)
+                if mention_author:
+                    content = f"TAG: {self.author.mention}\n\n" + content
+
+                action = self.safeSend
+                return await action(content, **kwargs)
 
         return await self.send(content, **kwargs)
 
@@ -84,22 +120,26 @@ class Context(commands.Context):
     async def safeReply(self, content, *, escapeMentions: bool = True, **kwargs):
         return await self.safe_reply(content, escape_mentions=escapeMentions, **kwargs)
 
-    async def error(self, error_message: str = None, title: str = "Something went wrong!"):
-        e = ZEmbed.error(title="ERROR" + (f": {title}" if title else ""))
-        if error_message is not None:
-            e.description = str(error_message)
+    async def error(
+        self, errorMessage: locale_str | str | None = None, title: locale_str | str | None = locale_str("error-generic")
+    ):
+        e = ZEmbed.error(title="ERROR" + (f': {await self.maybeTranslate(title, "")}'))
+        if errorMessage is not None:
+            e.description = await self.maybeTranslate(errorMessage, fallback="")
         return await self.try_reply(embed=e)
 
-    async def success(self, success_message: str = None, title: str = None):
+    async def success(
+        self, success_message: locale_str | str | None = None, title: locale_str | str = locale_str("success")
+    ):
         e = ZEmbed.success(
-            title=title or "Success",
+            title=await self.maybeTranslate(title),
         )
         if success_message is not None:
             e.description = str(success_message)
         return await self.try_reply(embed=e)
 
     @asynccontextmanager
-    async def loading(self, title: str = None):
+    async def loading(self, title: locale_str | str = locale_str("loading")):
         """
         async with ctx.loading(title="This param is optional"):
             await asyncio.sleep(5) # or any long process stuff
@@ -109,7 +149,7 @@ class Context(commands.Context):
             yield await self.interaction.response.defer()
             return
 
-        e = ZEmbed.loading(title=title or "Loading...")
+        e = ZEmbed.loading(title=await self.maybeTranslate(title))
         msg = None
         try:
             msg = await self.try_reply(embed=e)

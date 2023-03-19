@@ -23,3 +23,10 @@ stats-command =
 prefix-empty = Prefix can't be empty!
 prefix-added = Prefix `{ $prefix }` has been added!
 prefix-removed = Prefix `{ $prefix }` has been removed!
+
+# - Other
+success = Success
+loading = Loading...
+
+# - Error
+error-generic = Something went wrong!

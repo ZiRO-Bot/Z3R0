@@ -169,13 +169,11 @@ class Meta(MetaCustomCommands):
     async def prefAdd(self, ctx: Context, *prefix: str):
         _prefix = " ".join(prefix).lstrip()
         if not _prefix:
-            translated = await ctx.translate(_("prefix-empty"))
-            return await ctx.error(translated)
+            return await ctx.error(_("prefix-empty"))
 
         try:
             await ctx.requireGuild().addPrefix(_prefix)
-            translated = await ctx.translate(_("prefix-added", prefix=cleanifyPrefix(self.bot, _prefix)))
-            await ctx.success(title=translated)
+            await ctx.success(title=_("prefix-added", prefix=cleanifyPrefix(self.bot, _prefix)))
         except Exception as exc:
             await ctx.error(str(exc))
 
@@ -196,13 +194,11 @@ class Meta(MetaCustomCommands):
     async def prefRm(self, ctx: Context, *prefix: str):
         _prefix = " ".join(prefix).lstrip()
         if not _prefix:
-            translated = await ctx.translate(_("prefix-empty"))
-            return await ctx.error(translated)
+            return await ctx.error(_("prefix-empty"))
 
         try:
             await ctx.requireGuild().rmPrefix(_prefix.lstrip())
-            translated = await ctx.translate(_("prefix-removed", prefix=cleanifyPrefix(self.bot, _prefix)))
-            await ctx.success(title=translated)
+            await ctx.success(title=_("prefix-removed", prefix=cleanifyPrefix(self.bot, _prefix)))
         except Exception as exc:
             await ctx.error(str(exc))
 
