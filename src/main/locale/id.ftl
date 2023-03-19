@@ -61,7 +61,7 @@ manga-random-desc = Dapatkan manga acak
 # --- Fun
 meme-desc = Dapatkan meme acak dari reddit
 findseed-desc = Dapatkan jumlah mata ender di benih Minecraftmu
-httpcat = Dapatkan kode status HTTP disertai gambar kucing
+httpcat-desc = Dapatkan kode status HTTP disertai gambar kucing
 pp-desc = Tunjukkan ukuran ( ͡° ͜ʖ ͡°) mu
 isimpostor-desc = Cek apakah kamu impostor atau crew
 dadjokes-desc = Dapatkan candaan acak bapak-bapak
