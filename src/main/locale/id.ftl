@@ -110,3 +110,14 @@ error-generic = Terjadi kesalahan!
 # --- Timer
 time = waktu
 time-desc = Dapatkan waktu terkini
+
+# Utilities
+calc = kalkulator
+calc-desc = Kalkulator Simpel
+morse-desc = Ubah teks menjadi kode morse
+unmorse = unmorse
+unmorse-desc = Terjemahkan kode morse
+search = cari
+search-desc = Cari sesuatu di Internet
+realurl-desc = Dapatkan URL asli dari sebuah URL yang disingkat
+realurl-arg-shorten-url = url-singkat

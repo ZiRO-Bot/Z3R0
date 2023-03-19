@@ -15,6 +15,7 @@ import aiohttp
 import discord
 import pyparsing as pyp
 from discord import app_commands
+from discord.app_commands import locale_str as _
 from discord.ext import commands
 
 from ...core.context import Context
@@ -41,8 +42,9 @@ class Utilities(commands.Cog, CogMixin):
         self.googletrans = GoogleTranslate(session=self.bot.session)
 
     @commands.hybrid_command(
+        name=_("calc"),
         aliases=["math", "c"],
-        description="Simple math evaluator",
+        description=_("calc-desc"),
         extras=dict(
             example=(
                 "calc 12*6",
@@ -143,7 +145,8 @@ class Utilities(commands.Cog, CogMixin):
         return await ctx.try_reply(embed=e)
 
     @commands.hybrid_command(
-        description="Encode a text into morse code",
+        name=_("morse"),
+        description=_("morse-desc"),
     )
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def morse(self, ctx, *, text: str):
@@ -153,8 +156,9 @@ class Utilities(commands.Cog, CogMixin):
             await ctx.error("Symbols/accented letters is not supported (yet?)", title="Invalid text")
 
     @commands.hybrid_command(
+        name=_("unmorse"),
         aliases=("demorse",),
-        description="Decode a morse code",
+        description=_("unmourse-desc"),
         usage="(morse code)",
     )
     @commands.cooldown(1, 5, commands.BucketType.user)
@@ -165,8 +169,9 @@ class Utilities(commands.Cog, CogMixin):
             await ctx.error("Invalid morse code!")
 
     @commands.hybrid_command(
+        name=_("search"),
         aliases=("google", "g"),
-        description="Search the Internet",
+        description=_("search-desc"),
     )
     @app_commands.rename(query="keyword")
     @commands.cooldown(1, 10, commands.BucketType.user)
@@ -255,10 +260,11 @@ class Utilities(commands.Cog, CogMixin):
                 await ctx.try_reply(embed=e)
 
     @commands.hybrid_command(
-        description="Get shorten url's real url. No more rick roll!",
+        name=_("realurl"),
+        description=_("realurl-desc"),
         usage="(shorten url)",
     )
-    @app_commands.rename(shortenUrl="shorten-url")
+    @app_commands.rename(shortenUrl=_("realurl-arg-shorten-url"))
     @commands.cooldown(1, 10, commands.BucketType.user)
     async def realurl(self, ctx, shortenUrl: str):
         async with ctx.loading():

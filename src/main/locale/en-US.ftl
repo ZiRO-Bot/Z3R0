@@ -134,3 +134,16 @@ hentai-desc = Get hentai images from nekos.fun
 # --- Timer
 time = time
 time-desc = Get current time
+
+# Utilities
+calc = calc
+calc-desc = Simple math evaluator
+morse = morse
+morse-desc = Encode a text into morse code
+unmorse = unmorse
+unmorse-desc = Decode a morse code
+search = search
+search-desc = Search the Internet
+realurl = realurl
+realurl-desc = Get shorten url's real url. No more rick roll!
+realurl-arg-shorten-url = shorten-url
