@@ -80,7 +80,11 @@ spotify-desc = Tampilkan lagu apa yang sedang didengar anggota di Spotify
 pypi-desc = Dapatkan informasi dari suatu projek python di pypi
 
 # --- Meta
-stats = stats
+source = sumber
+source-desc = Dapatkan link ke kode sumberku
+about = about
+about-desc = Informasi tentangku
+stats = statistik
 stats-desc = Informasi statistikku
 stats-title = Statistik { $bot }
 stats-uptime-title = 🕙 | Waktu Aktif
@@ -91,3 +95,14 @@ stats-command = { $commandCount } perintah ({ $customCommand } perintah buatan)
 prefix-empty = Awalan tidak boleh kosong!
 prefix-added = Awalan `{ $prefix }` telah ditambahkan!
 prefix-removed = Awalan `{ $prefix }` telah dihapus!
+
+ping-desc = Dapatkan waktu respon bot
+invite = undang
+invite-desc = Dapatkan link untuk mengundang bot
+
+# - Other
+success = Sukses
+loading = Memuat...
+
+# - Error
+error-generic = Terjadi kesalahan!

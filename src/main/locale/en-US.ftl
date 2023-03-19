@@ -92,6 +92,10 @@ spotify-desc = Show what song a member listening to in Spotify
 pypi-desc = Get information of a python project from pypi
 
 # --- Meta
+source = source
+source-desc = Get link to my source code
+about = about
+about-desc = Information about me
 stats = stats
 stats-desc = Information about my stats
 stats-title = { $bot }'s stats
@@ -110,6 +114,11 @@ stats-command =
 prefix-empty = Prefix can't be empty!
 prefix-added = Prefix `{ $prefix }` has been added!
 prefix-removed = Prefix `{ $prefix }` has been removed!
+
+ping = ping
+ping-desc = Get bot's response time
+invite = invite
+invite-desc = Get bot's invite link
 
 # - Other
 success = Success
