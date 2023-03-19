@@ -10,6 +10,7 @@ from typing import Optional, Union
 
 import discord
 from discord import app_commands
+from discord.app_commands import locale_str as _
 from discord.ext import commands
 from discord.utils import MISSING
 
@@ -38,9 +39,9 @@ class Admin(commands.Cog, CogMixin):
 
     greetingGroup = app_commands.Group(name="greeting", description="...")
 
-    welcomeDesc = "Set welcome message and/or channel"
+    welcomeDesc = _("welcome-desc")
 
-    @greetingGroup.command(name="welcome", description=welcomeDesc)
+    @greetingGroup.command(name=_("welcome"), description=welcomeDesc)
     @app_commands.describe(
         channel="Channel where welcome messages will be sent",
         raw="Get current welcome message in raw mode (Useful for editing, other options is ignored when used!)",
@@ -62,7 +63,7 @@ class Admin(commands.Cog, CogMixin):
 
     @commands.command(
         aliases=("wel",),
-        description=welcomeDesc,
+        description="Set welcome message and/or channel",  # TODO
         usage="[message] [options]",
         extras=dict(
             example=(
@@ -92,9 +93,9 @@ class Admin(commands.Cog, CogMixin):
     async def welcome(self, ctx, *, arguments: str):
         await handleGreetingConfig(ctx, "welcome", arguments=arguments)
 
-    farewellDesc = "Set farewell message and/or channel"
+    farewellDesc = _("farewell-desc")
 
-    @greetingGroup.command(name="farewell", description=farewellDesc)
+    @greetingGroup.command(name=_("farewell"), description=farewellDesc)
     @app_commands.describe(
         channel="Channel where farewell messages will be sent",
         raw="Get current farewell message in raw mode (Useful for editing, other options is ignored when used!)",
@@ -116,7 +117,7 @@ class Admin(commands.Cog, CogMixin):
 
     @commands.command(
         aliases=("fw",),
-        description=farewellDesc,
+        description="Set farewell message and/or channel",  # TODO
         usage="[message] [options]",
         extras=dict(
             example=(
@@ -174,8 +175,9 @@ class Admin(commands.Cog, CogMixin):
         return await ctx.try_reply(embed=e)
 
     @commands.hybrid_command(
+        name=_("modlog"),
         aliases=("ml",),
-        description="Set modlog channel",
+        description=_("modlog-desc"),
         usage="[channel] [options]",
         extras=dict(
             example=("modlog #modlog", "modlog ch: modlog", "ml disable: on"),
@@ -200,8 +202,9 @@ class Admin(commands.Cog, CogMixin):
         await self.handleLogConfig(ctx, arguments, "modlog")
 
     @commands.hybrid_command(
+        name=_("purgatory"),
         aliases=("purge", "userlog"),
-        description="Set purgatory channel",
+        description=_("purgatory-desc"),
         usage="[channel] [options]",
         extras=dict(
             example=(
@@ -229,8 +232,8 @@ class Admin(commands.Cog, CogMixin):
         await self.handleLogConfig(ctx, arguments, "purgatory")
 
     @commands.hybrid_group(
-        name="role",
-        description="Manage guild's role",
+        name=_("role"),
+        description=_("role-desc"),
         extras=dict(
             example=(
                 "role set @Server Moderator type: moderator",
@@ -279,9 +282,9 @@ class Admin(commands.Cog, CogMixin):
         self.bot.dispatch("muted_role_changed", guild, role)
 
     @_role.command(
-        name="create",
+        name="create",  # TODO
         aliases=("+", "make"),
-        description="Create new role",
+        description=_("role-create-desc"),
         usage="(role name) [type: role type]",
         extras=dict(
             perms={
@@ -329,9 +332,9 @@ class Admin(commands.Cog, CogMixin):
         )
 
     @_role.command(
-        name="set",
+        name="set",  # TODO
         aliases=("&",),
-        description="Turn regular role into special role",
+        description=_("role-set-desc"),
         usage="(role name) (type: role type)",
         extras=dict(
             perms={
@@ -370,7 +373,10 @@ class Admin(commands.Cog, CogMixin):
             title="Invalid role type!",
         )
 
-    @_role.command(name="types", description="Show all special role types")
+    @_role.command(
+        name="types",  # TODO
+        description=_("role-types-desc"),
+    )
     async def roleTypes(self, ctx):
         e = ZEmbed.minimal(
             title="Role Types",
@@ -395,13 +401,15 @@ class Admin(commands.Cog, CogMixin):
     @commands.bot_has_guild_permissions(manage_roles=True)
     @checks.is_admin()
     async def autorole(self, ctx, name: Union[discord.Role, str]):
+        # This is just an alias command, don't need to be added as slash
         await ctx.try_invoke(
             self.roleCreate if isinstance(name, str) else self.roleSet,
             arguments=f"{getattr(name, 'id', name)} type: member",
         )
 
     @commands.hybrid_command(
-        description="Set announcement channel",
+        name=_("announcement"),
+        description=_("announcement-desc"),
         extras=dict(
             example=("announcement #announcement",),
             perms={
