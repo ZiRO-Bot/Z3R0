@@ -66,8 +66,9 @@ class Info(commands.Cog, CogMixin):
         await ctx.try_reply(embed=e)
 
     @commands.hybrid_command(
+        name=_("weather"),
         aliases=("w",),
-        description="Get current weather for specific city",
+        description=_("weather-desc"),
         extras=dict(example=("weather Palembang", "w London")),
     )
     @commands.cooldown(1, 5, commands.BucketType.user)
@@ -286,8 +287,9 @@ class Info(commands.Cog, CogMixin):
         return await ctx.try_reply(embed=e)
 
     @commands.hybrid_command(
+        name=_("jisho"),
         aliases=("jsh",),
-        description="Get japanese word",
+        description=_("jisho-desc"),
         help=" from english/japanese/romaji/text",
         extras=dict(
             example=(
@@ -442,8 +444,9 @@ class Info(commands.Cog, CogMixin):
         await ctx.try_reply(embed=e)
 
     @commands.hybrid_command(
-        aliases=("guild", "guildinfo", "gi", "serverinfo", "si"),
-        description="Get guild's information",
+        name=_("serverinfo"),
+        aliases=("guild", "guildinfo", "gi", "server", "si"),
+        description=_("serverinfo-desc"),
     )
     @commands.guild_only()
     @commands.cooldown(1, 5, commands.BucketType.user)
@@ -515,8 +518,9 @@ class Info(commands.Cog, CogMixin):
         await ctx.try_reply(embed=e)
 
     @commands.hybrid_command(
+        name="spotify",
         aliases=("spotifyinfo", "spot"),
-        description="Show what song a member listening to in Spotify",
+        description=_("spotify-desc"),
     )
     @commands.cooldown(1, 5, commands.BucketType.user)
     @commands.guild_only()
@@ -600,7 +604,7 @@ class Info(commands.Cog, CogMixin):
         await ctx.try_reply(embed=e)
 
     @commands.hybrid_command(
-        description="Get information of a python project from pypi",
+        description=_("pypi-desc"),
         usage="(project name)",
     )
     @commands.cooldown(1, 5, commands.BucketType.user)

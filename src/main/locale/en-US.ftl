@@ -80,8 +80,16 @@ barter = barter
 barter-desc = Barter with Minecraft's Piglins
 
 # --- Info
+weather = weather
+weather-desc = Get current weather for specific city
 color = color
 color-desc = Get color information from hex value
+jisho = jisho
+jisho-desc = Get japanese text/word
+serverinfo = serverinfo
+serverinfo-desc = Get guild's information
+spotify-desc = Show what song a member listening to in Spotify
+pypi-desc = Get information of a python project from pypi
 
 # --- Meta
 stats = stats

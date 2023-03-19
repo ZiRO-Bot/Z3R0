@@ -70,8 +70,14 @@ flip-desc = Lempar Koin
 barter-desc = Barter dengan Minecraft Piglin
 
 # --- Info
+weather = cuaca
+weather-desc = Dapatkan cuaca terkini di suatu kota
 color = warna
 color-desc = Dapatkan informasi warna dari bilangan heksa
+jisho-desc = Dapatkan teks/kata bahasa jepang
+serverinfo-desc = Dapatkan informasi guild
+spotify-desc = Tampilkan lagu apa yang sedang didengar anggota di Spotify
+pypi-desc = Dapatkan informasi dari suatu projek python di pypi
 
 # --- Meta
 stats = stats

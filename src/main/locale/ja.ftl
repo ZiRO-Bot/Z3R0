@@ -2,5 +2,6 @@
 test = こんにちは世界！
 var = こんにちは、{ $name }！
 
-# --- Slash
+# --- Info
 stats = スタッツ
+jisho = 辞書
