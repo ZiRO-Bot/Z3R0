@@ -158,7 +158,7 @@ class Utilities(commands.Cog, CogMixin):
     @commands.hybrid_command(
         name=_("unmorse"),
         aliases=("demorse",),
-        description=_("unmourse-desc"),
+        description=_("unmorse-desc"),
         usage="(morse code)",
     )
     @commands.cooldown(1, 5, commands.BucketType.user)
