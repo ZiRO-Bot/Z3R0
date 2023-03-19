@@ -126,3 +126,7 @@ loading = Loading...
 
 # - Error
 error-generic = Something went wrong!
+
+# --- NSFW
+hentai = hentai
+hentai-desc = Get hentai images from nekos.fun

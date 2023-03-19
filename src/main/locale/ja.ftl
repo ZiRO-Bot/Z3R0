@@ -5,3 +5,6 @@ var = こんにちは、{ $name }！
 # --- Info
 stats = スタッツ
 jisho = 辞書
+
+# --- NSFW
+hentai = エロ

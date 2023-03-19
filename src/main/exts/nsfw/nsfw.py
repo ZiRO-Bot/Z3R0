@@ -12,6 +12,7 @@ from typing import Literal
 import aiohttp
 import discord
 from discord import app_commands
+from discord.app_commands import locale_str as _
 from discord.ext import commands, menus
 
 from ...core.context import Context
@@ -138,16 +139,14 @@ class NSFW(commands.Cog, CogMixin):
         )
         await menus.start()
 
-    commonDesc = "Get hentai images from nekos.fun"
-
-    @app_commands.command(name="hentai", nsfw=True, description=commonDesc)
+    @app_commands.command(name=_("hentai"), nsfw=True, description=_("hentai-desc"))
     async def hentaiSlash(self, inter: discord.Interaction, tag: TAGS):
         ctx = await Context.from_interaction(inter)
         return await self.showHentai(ctx, tag)
 
     @commands.command(
         aliases=typing.get_args(TAGS),
-        description=commonDesc,
+        description="Get hentai images from nekos.fun",
         help="\n\nTIPS: Use different alias to get images from different hentai category",
     )
     async def hentai(self, ctx: Context):
