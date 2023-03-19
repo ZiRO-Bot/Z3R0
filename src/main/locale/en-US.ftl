@@ -6,6 +6,9 @@ var = Hello, { $name }!
 stats = stats
 stats-desc = Information about my stats
 
+color = color
+color-desc = Get color information from hex value
+
 # --- Meta
 stats-title = { $bot }'s stats
 stats-uptime-title = 🕙 | Uptime

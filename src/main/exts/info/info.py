@@ -99,7 +99,7 @@ class Info(commands.Cog, CogMixin):
     @commands.hybrid_command(
         name=_("color"),
         aliases=("clr", "colour"),
-        description="Get colour information from hex value",
+        description=_("color-desc"),
         help="\n\nCan use either `0x` or " "`#` prefix (`0xFFFFFF` or `#FFFFFF`)",
         extras=dict(example=("colour ffffff", "clr 0xffffff", "color #ffffff")),
     )
