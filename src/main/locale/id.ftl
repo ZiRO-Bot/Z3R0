@@ -3,12 +3,31 @@ test = Halo Dunia!
 var = Halo, { $name }!
 
 # --- Admin
+# - Welcome
 welcome = sambutan
 welcome-desc = Setel pesan dan/atau kanal sambutan
-farewell = pamit
-farewell-desc = Setel pesan dan/atau kanal pamit
+welcome-arg-channel = Kanal dimana pesan sambutan akan dikirim
+# Some info is lost because of discord's stupid 100 char limit
+welcome-arg-raw = Dapatkan pesan sambutan saat ini dalam mode raw (Semua opsi akan diabaikan)
+welcome-arg-disable = Nonaktifkan sambutan
+welcome-arg-message = Pesan yang akan dikirim ke kanal sambutan
+# - Farewell
+farewell = perpisahan
+farewell-desc = Setel pesan dan/atau kanal perpisahan
+farewell-arg-channel = Kanal dimana pesan perpisahan
+# Some info is lost because of discord's stupid 100 char limit
+farewell-arg-raw = Dapatkan pesan perpisahan saat ini dalam mode raw (Semua opsi akan diabaikan)
+farewell-arg-disable = Nonaktifkan perpisahan
+farewell-arg-message = Pesan yang akan dikirim ke kanal perpisahan
+# - Modlog
 modlog-desc = Setel kanal modlog
+modlog-arg-channel = Kanal dimana modlog akan dikirim
+modlog-arg-disable = Nonaktifkan modlog
+# - Purgatory
 purgatory-desc = Setel kanal purgatory
+purgatory-arg-channel = Kanal dimana pesan yang dihapus/diubah akan dirim
+purgatory-arg-disable = Nonaktifkan purgatory
+# - Role
 role = peran
 role-desc = Mengatur peran guild
 role-create = buat
@@ -16,8 +35,10 @@ role-create-desc = Membuat peran baru
 role-set-desc = Mengubah peran biasa mejadi peran spesial
 role-types = tipe
 role-types-desc = Menampilkan semua tipe peran spesial
+# - Announcement
 announcement = pengumuman
 announcement-desc = Setel kanal pengumuman
+announcement-arg-channel = Kanal dimana pengumuman akan dikirim
 
 # --- AniList
 # - Anime

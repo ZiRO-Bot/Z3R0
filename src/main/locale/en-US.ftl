@@ -3,14 +3,31 @@ test = Hello World!
 var = Hello, { $name }!
 
 # --- Admin
+# - Welcome
 welcome = welcome
 welcome-desc = Set welcome message and/or channel
+welcome-arg-channel = Channel where welcome messages will be sent
+welcome-arg-raw = Get current welcome message in raw mode (Useful for editing, other options is ignored when used!)
+welcome-arg-disable = Disable welcome event
+welcome-arg-message = Message that will be sent to the welcome channel
+# - Farewell
 farewell = farewell
 farewell-desc = Set farewell message and/or channel
+farewell-arg-channel = Channel where farewell messages will be sent
+farewell-arg-raw = Get current farewell message in raw mode (Useful for editing, other options is ignored when used!)
+farewell-arg-disable = Disable farewell event
+farewell-arg-message = Message that will be sent to the farewell channel
+# - Modlog
 modlog = modlog
 modlog-desc = Set modlog channel
+modlog-arg-channel = Channel where modlogs will be sent
+modlog-arg-disable = Disable modlog
+# - Purgatory
 purgatory = purgatory
 purgatory-desc = Set purgatory channel
+purgatory-arg-channel = Channel where deleted/edited messages will be sent
+purgatory-arg-disable = Disable purgatory
+# - Role
 role = role
 role-desc = Manage guild's role
 role-create = create
@@ -19,8 +36,10 @@ role-set = set
 role-set-desc = Turn regular role into special role
 role-types = types
 role-types-desc = Show all special role types
+# - Announcement
 announcement = announcement
 announcement-desc = Set announcement channel
+announcement-arg-channel = Channel where announcements will be sent
 
 # --- AniList
 # - Anime

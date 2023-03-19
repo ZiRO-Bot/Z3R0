@@ -43,10 +43,10 @@ class Admin(commands.Cog, CogMixin):
 
     @greetingGroup.command(name=_("welcome"), description=welcomeDesc)
     @app_commands.describe(
-        channel="Channel where welcome messages will be sent",
-        raw="Get current welcome message in raw mode (Useful for editing, other options is ignored when used!)",
-        disable="Disable welcome event",
-        message="Message that will be sent to the welcome channel",
+        channel=_("welcome-arg-channel"),
+        raw=_("welcome-arg-raw"),
+        disable=_("welcome-arg-disable"),
+        message=_("welcome-arg-message"),
     )
     @app_commands.guild_only()
     @checks.mod_or_permissions(manage_channels=True)
@@ -97,10 +97,10 @@ class Admin(commands.Cog, CogMixin):
 
     @greetingGroup.command(name=_("farewell"), description=farewellDesc)
     @app_commands.describe(
-        channel="Channel where farewell messages will be sent",
-        raw="Get current farewell message in raw mode (Useful for editing, other options is ignored when used!)",
-        disable="Disable farewell event",
-        message="Message that will be sent to the farewell channel",
+        channel=_("farewell-arg-channel"),
+        raw=_("farewell-arg-raw"),
+        disable=_("farewell-arg-disable"),
+        message=_("farewell-arg-message"),
     )
     @app_commands.guild_only()
     @checks.mod_or_permissions(manage_channels=True)
@@ -192,8 +192,8 @@ class Admin(commands.Cog, CogMixin):
         ),
     )
     @app_commands.describe(
-        channel="Channel where modlogs will be sent",
-        disable="Disable modlog",
+        channel=_("modlog-arg-channel"),
+        disable=_("modlog-arg-disable"),
     )
     @commands.guild_only()
     @commands.bot_has_guild_permissions(view_audit_log=True, manage_channels=True)
@@ -223,8 +223,8 @@ class Admin(commands.Cog, CogMixin):
         ),
     )
     @app_commands.describe(
-        channel="Channel where deleted/edited messages will be sent",
-        disable="Disable purgatory",
+        channel=_("purgatory-arg-channel"),
+        disable=_("purgatory-arg-channel"),
     )
     @commands.guild_only()
     @checks.mod_or_permissions(manage_channels=True)
@@ -418,7 +418,7 @@ class Admin(commands.Cog, CogMixin):
             },
         ),
     )
-    @app_commands.describe(channel="Channel where announcements will be sent")
+    @app_commands.describe(channel=_("announcement-arg-channel"))
     @commands.guild_only()
     @checks.is_mod()
     async def announcement(self, ctx, channel: discord.TextChannel):
