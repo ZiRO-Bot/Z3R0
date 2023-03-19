@@ -33,7 +33,7 @@ class Fun(commands.Cog, CogMixin):
         super().__init__(bot)
         self.reddit = reddit.Reddit(self.bot.session)
 
-    @commands.hybrid_command(brief="Get random meme from reddit")
+    @commands.hybrid_command(description="Get random meme from reddit")
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def meme(self, ctx):
         # TODO: Add more meme subreddits
@@ -72,7 +72,7 @@ class Fun(commands.Cog, CogMixin):
     @app_commands.choices(args=[Choice(name=i, value=i) for i in get_args(FINDSEED_MODES)])
     @app_commands.rename(args="mode")
     @commands.hybrid_command(
-        brief="Get your minecraft seed's eye count",
+        description="Get your minecraft seed's eye count",
         aliases=("fs", "vfs"),
         usage="[options]",
         extras=dict(
@@ -180,10 +180,8 @@ class Fun(commands.Cog, CogMixin):
         await ctx.try_reply(embed=e)
 
     @commands.command(
-        brief="Ping random member",
-        description=(
-            "Ping random member\n" 'Also known as "Discord\'s mistake"\n' "**Note**: Only available on April Fools (UTC)!"
-        ),
+        description="Ping random member",
+        help='\nAlso known as "Discord\'s mistake"\n **Note**: Only available on April Fools (UTC)!',
     )
     @commands.cooldown(1, 5, commands.BucketType.user)
     @commands.guild_only()
@@ -197,7 +195,7 @@ class Fun(commands.Cog, CogMixin):
 
     @commands.hybrid_command(
         usage="(status code)",
-        brief="Get http status code with cat in it",
+        description="Get http status code with cat in it",
         extras=dict(example=("httpcat 404",)),
     )
     @commands.cooldown(1, 5, commands.BucketType.user)
@@ -207,7 +205,7 @@ class Fun(commands.Cog, CogMixin):
             img = discord.File(fp=image, filename="httpcat.jpg")
             await ctx.try_reply(file=img)
 
-    @commands.hybrid_command(brief="Show your pp size")
+    @commands.hybrid_command(description="Show your pp size")
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def pp(self, ctx):
         pp = "8" + "=" * randint(1, 500) + "D"
@@ -221,7 +219,7 @@ class Fun(commands.Cog, CogMixin):
 
     @commands.hybrid_command(
         aliases=("isimposter",),
-        brief="Check if you're an impostor or a crewmate",
+        description="Check if you're an impostor or a crewmate",
         usage="[impostor count] [player count]",
     )
     @commands.cooldown(3, 25, commands.BucketType.user)
@@ -237,7 +235,7 @@ class Fun(commands.Cog, CogMixin):
         else:
             await ctx.send(f"{ctx.author.mention}, you're a crewmate!")
 
-    @commands.hybrid_command(aliases=("badjokes",), brief="Get random dad jokes")
+    @commands.hybrid_command(aliases=("badjokes",), description="Get random dad jokes")
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def dadjokes(self, ctx):
         headers = {"accept": "application/json"}
@@ -252,7 +250,7 @@ class Fun(commands.Cog, CogMixin):
 
     @commands.hybrid_command(
         usage="(choice)",
-        brief="Rock Paper Scissors with the bot.",
+        description="Rock Paper Scissors with the bot.",
         extras=dict(
             example=("rps rock",),
         ),
@@ -302,26 +300,21 @@ class Fun(commands.Cog, CogMixin):
         rps = ("rock", "paper", "scissors")
         return [app_commands.Choice(name=i, value=i) for i in rps]
 
-    @commands.command(aliases=("find-waifu",))
+    @commands.command(aliases=("find-waifu",), description="Just Rafael and his waifu")
     @checks.isRafael()
     async def findwaifu(self, ctx):
-        """Rafael and his waifu."""
         f = discord.File("./assets/img/rafaelAndHisWaifu.png", filename="img.png")
         return await ctx.try_reply(file=f)
 
-    @commands.hybrid_command(brief="Simple coin flip")
+    @commands.hybrid_command(description="Simple coin flip")
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def flip(self, ctx):
         await ctx.try_reply(f"You got {choice(['heads', 'tails'])}!")
 
     # TODO: Slash
     @commands.command(
-        brief="Simple dice roller",
-        description=(
-            "Simple dice roller\n"
-            "Number of dices are capped at 5!\n"
-            "**Support optional size**: d4, d8, d10, d00, d12, d20"
-        ),
+        description="Simple dice roller",
+        help=("\nNumber of dices are capped at 5!\n" "**Support optional size**: d4, d8, d10, d00, d12, d20"),
         usage="[dice size] (number of dice)",
         extras=dict(example=("roll 5", "roll d20", "roll d00 4")),
     )
@@ -358,7 +351,7 @@ class Fun(commands.Cog, CogMixin):
 
     @commands.hybrid_command(
         aliases=("👏",),
-        brief="👏",
+        description="👏",
         extras=dict(example=("clap hell yea", "clap clap clap")),
     )
     @commands.cooldown(1, 5, type=commands.BucketType.user)
@@ -366,6 +359,8 @@ class Fun(commands.Cog, CogMixin):
         return await ctx.try_reply(text.replace(" ", " 👏 ") or " 👏 ")
 
     @commands.hybrid_command(
+        description="Barter with Minecraft's Piglins",
+        help="\n**Note**: The loot table is based on JE 1.16.1 (before nerf)",
         aliases=("piglin",),
         usage="[amount of gold]",
         extras=dict(
@@ -374,9 +369,6 @@ class Fun(commands.Cog, CogMixin):
     )
     @commands.cooldown(5, 25, type=commands.BucketType.user)
     async def barter(self, ctx, gold: commands.Range[int, 1, 2240] = 64):
-        """Barter with Minecraft's Piglin
-        **Note**: The loot table is based on JE 1.16.1, before nerf
-        """
         # limit gold amount up to 2240 (Minecraft inventory limit)
         if gold > 2240:
             gold = 2240

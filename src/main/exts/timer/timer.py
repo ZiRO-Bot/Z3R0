@@ -177,7 +177,7 @@ class Timer(commands.Cog, CogMixin):
 
     @commands.command(
         aliases=["timer", "remind"],
-        brief="Reminds you about something after certain amount of time",
+        description="Reminds you about something after certain amount of time",
     )
     @commands.cooldown(2, 5, commands.BucketType.user)
     async def reminder(self, ctx, *, argument: TimeAndArgument) -> discord.Message:
@@ -204,7 +204,7 @@ class Timer(commands.Cog, CogMixin):
             )
         )
 
-    @commands.hybrid_command(brief="Get current time")
+    @commands.hybrid_command(description="Get current time")
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def time(self, ctx, timezone: str = None) -> None:
         tz = None

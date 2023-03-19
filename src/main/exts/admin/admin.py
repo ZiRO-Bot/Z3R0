@@ -38,7 +38,7 @@ class Admin(commands.Cog, CogMixin):
 
     greetingGroup = app_commands.Group(name="greeting", description="...")
 
-    welcomeDesc = "Set welcome message and/or channel\n`TagScript` is supported!"
+    welcomeDesc = "Set welcome message and/or channel"
 
     @greetingGroup.command(name="welcome", description=welcomeDesc)
     @app_commands.describe(
@@ -62,7 +62,7 @@ class Admin(commands.Cog, CogMixin):
 
     @commands.command(
         aliases=("wel",),
-        brief="Set welcome message and/or channel",
+        description=welcomeDesc,
         usage="[message] [options]",
         extras=dict(
             example=(
@@ -85,14 +85,14 @@ class Admin(commands.Cog, CogMixin):
                 "user": "Moderator Role or Manage Channels",
             },
         ),
-        description="Set welcome message and/or channel\n`TagScript` is supported!",
+        help="\n`TagScript` is supported!",
     )
     @commands.guild_only()
     @checks.mod_or_permissions(manage_channels=True)
     async def welcome(self, ctx, *, arguments: str):
         await handleGreetingConfig(ctx, "welcome", arguments=arguments)
 
-    farewellDesc = "Set farewell message and/or channel\n`TagScript` is supported!"
+    farewellDesc = "Set farewell message and/or channel"
 
     @greetingGroup.command(name="farewell", description=farewellDesc)
     @app_commands.describe(
@@ -116,7 +116,7 @@ class Admin(commands.Cog, CogMixin):
 
     @commands.command(
         aliases=("fw",),
-        brief="Set farewell message and/or channel",
+        description=farewellDesc,
         usage="[message] [options]",
         extras=dict(
             example=(
@@ -139,6 +139,7 @@ class Admin(commands.Cog, CogMixin):
                 "user": "Moderator Role or Manage Channels",
             },
         ),
+        help="\n`TagScript` is supported!",
     )
     @commands.guild_only()
     @checks.mod_or_permissions(manage_channels=True)
@@ -174,7 +175,6 @@ class Admin(commands.Cog, CogMixin):
 
     @commands.hybrid_command(
         aliases=("ml",),
-        brief="Set modlog channel",
         description="Set modlog channel",
         usage="[channel] [options]",
         extras=dict(
@@ -201,7 +201,6 @@ class Admin(commands.Cog, CogMixin):
 
     @commands.hybrid_command(
         aliases=("purge", "userlog"),
-        brief="Set purgatory channel",
         description="Set purgatory channel",
         usage="[channel] [options]",
         extras=dict(
@@ -231,7 +230,7 @@ class Admin(commands.Cog, CogMixin):
 
     @commands.hybrid_group(
         name="role",
-        brief="Manage guild's role",
+        description="Manage guild's role",
         extras=dict(
             example=(
                 "role set @Server Moderator type: moderator",
@@ -282,7 +281,7 @@ class Admin(commands.Cog, CogMixin):
     @_role.command(
         name="create",
         aliases=("+", "make"),
-        brief="Create new role",
+        description="Create new role",
         usage="(role name) [type: role type]",
         extras=dict(
             perms={
@@ -332,7 +331,7 @@ class Admin(commands.Cog, CogMixin):
     @_role.command(
         name="set",
         aliases=("&",),
-        brief="Turn regular role into special role",
+        description="Turn regular role into special role",
         usage="(role name) (type: role type)",
         extras=dict(
             perms={
@@ -371,7 +370,7 @@ class Admin(commands.Cog, CogMixin):
             title="Invalid role type!",
         )
 
-    @_role.command(name="types", brief="Show all special role types")
+    @_role.command(name="types", description="Show all special role types")
     async def roleTypes(self, ctx):
         e = ZEmbed.minimal(
             title="Role Types",
@@ -381,8 +380,8 @@ class Admin(commands.Cog, CogMixin):
         return await ctx.try_reply(embed=e)
 
     @commands.command(
-        brief="Set auto role",
-        description=("Set auto role.\n" "A role that will be given to a new member upon joining"),
+        description="Set auto role",
+        help=".\nA role that will be given to a new member upon joining",
         usage="(role name)",
         extras=dict(
             example=("autorole @Member",),
@@ -402,7 +401,7 @@ class Admin(commands.Cog, CogMixin):
         )
 
     @commands.hybrid_command(
-        brief="Set announcement channel",
+        description="Set announcement channel",
         extras=dict(
             example=("announcement #announcement",),
             perms={

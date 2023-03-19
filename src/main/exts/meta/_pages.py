@@ -118,16 +118,17 @@ class HelpCommandPage(menus.ListPageSource):
             subcmds = command.commands
             command = command.origin
 
-        description: locale_str | str = (
-            command.help or getattr(command, "_locale_description", command.description) or locale_str("description-empty")
+        description: locale_str | str = getattr(command, "_locale_description", command.description) or locale_str(
+            "description-empty"
         )
         if isinstance(description, locale_str):
             description = await ctx.translate(description)
+        description += command.help or ""
 
+        aliases: str = ", ".join(command.aliases) if command.aliases else "No alias"
         e = ZEmbed(
             title=formatCmd(prefix, command),
-            description="**Aliases**: `{}`\n".format(", ".join(command.aliases) if command.aliases else "No alias")
-            + description,
+            description=f"**Aliases**: `{aliases}`\n{description}",
         )
 
         if isinstance(command, (commands.HybridCommand, commands.HybridGroup)):

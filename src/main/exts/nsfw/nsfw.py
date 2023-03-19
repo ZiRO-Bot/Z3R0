@@ -147,8 +147,8 @@ class NSFW(commands.Cog, CogMixin):
 
     @commands.command(
         aliases=typing.get_args(TAGS),
-        brief=commonDesc,
-        description=(commonDesc + "\n\n" "TIPS: Use different alias to get images from different hentai " "category"),
+        description=commonDesc,
+        help="\n\nTIPS: Use different alias to get images from different hentai category",
     )
     async def hentai(self, ctx: Context):
         aliases = {"tits": "boobs", "yuri": "lesbian", "ahegao": "gasm"}

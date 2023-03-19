@@ -35,7 +35,7 @@ class Info(commands.Cog, CogMixin):
         self.openweather = OpenWeatherAPI(key=bot.config.openWeatherToken, session=self.bot.session)
 
     # TODO: Slash
-    @commands.command(aliases=("av", "userpfp", "pfp"), brief="Get member's avatar image")
+    @commands.command(aliases=("av", "userpfp", "pfp"), description="Get member's avatar image")
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def avatar(self, ctx: Context, user: MemberOrUser = None):
         user = user or await authorOrReferenced(ctx)  # type: ignore
@@ -66,7 +66,7 @@ class Info(commands.Cog, CogMixin):
 
     @commands.hybrid_command(
         aliases=("w",),
-        brief="Get current weather for specific city",
+        description="Get current weather for specific city",
         extras=dict(example=("weather Palembang", "w London")),
     )
     @commands.cooldown(1, 5, commands.BucketType.user)
@@ -97,10 +97,8 @@ class Info(commands.Cog, CogMixin):
 
     @commands.hybrid_command(
         aliases=("clr", "color"),
-        brief="Get colour information from hex value",
-        description=(
-            "Get colour information from hex value\n\nCan use either `0x` or " "`#` prefix (`0xFFFFFF` or `#FFFFFF`)"
-        ),
+        description="Get colour information from hex value",
+        help="\n\nCan use either `0x` or " "`#` prefix (`0xFFFFFF` or `#FFFFFF`)",
         extras=dict(example=("colour ffffff", "clr 0xffffff", "color #ffffff")),
     )
     @commands.cooldown(1, 5, commands.BucketType.user)
@@ -131,7 +129,7 @@ class Info(commands.Cog, CogMixin):
         e.add_field(name="RGB", value=", ".join([str(x) for x in RGB]))
         return await ctx.try_reply(file=f, embed=e)
 
-    @commands.command(aliases=("lvl", "rank"), hidden=True, brief="Level")
+    @commands.command(aliases=("lvl", "rank"), hidden=True, description="Level")
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def level(self, ctx):
         return await ctx.try_reply("https://tenor.com/view/stop-it-get-some-help-gif-7929301")
@@ -139,10 +137,8 @@ class Info(commands.Cog, CogMixin):
     # TODO: Slash
     @commands.group(
         aliases=("em", "emote"),
-        brief="Get an emoji's information",
-        description=(
-            "Get an emoji's information\n\nWill execute `emoji info` by " "default when there's no any subcommands used"
-        ),
+        description="Get an emoji's information",
+        help="\n\nWill execute `emoji info` by " "default when there's no any subcommands used",
         extras=dict(
             example=(
                 "emoji info :thonk:",
@@ -160,8 +156,8 @@ class Info(commands.Cog, CogMixin):
     @emoji.command(
         name="info",
         aliases=("?",),
-        brief="Get an emoji's information",
-        description="Get an emoji's information\n\nSupports Unicode/built-in emojis",
+        description="Get an emoji's information",
+        help="\n\nSupports Unicode/built-in emojis",
         extras=dict(
             example=(
                 "emoji info :pog:",
@@ -200,8 +196,8 @@ class Info(commands.Cog, CogMixin):
 
     @emoji.command(
         name="steal",
-        brief="Steal a custom emoji",
-        description="Steal a custom emoji\n\nUnicode emojis are not supported!",
+        description="Steal a custom emoji",
+        help="\n\nUnicode emojis are not supported!",
         extras=dict(
             example=("emoji steal :shuba:", "em steal :thonk:", "emoji steal :LULW:"),
             perms={
@@ -228,8 +224,8 @@ class Info(commands.Cog, CogMixin):
 
     @emoji.command(
         name="add",
-        brief="Add a custom emoji",
-        description="Add a custom emoji\n\nUnicode emojis are not supported (yet)!",
+        description="Add a custom emoji",
+        help="\n\nUnicode emojis are not supported (yet)!",
         extras=dict(
             example=(
                 "emoji add shuba https://cdn.discordapp.com/emojis/855604899743793152.gif",
@@ -289,8 +285,8 @@ class Info(commands.Cog, CogMixin):
 
     @commands.hybrid_command(
         aliases=("jsh",),
-        brief="Get japanese word",
-        description="Get japanese word from english/japanese/romaji/text",
+        description="Get japanese word",
+        help=" from english/japanese/romaji/text",
         extras=dict(
             example=(
                 "joshi こんにちは",
@@ -330,7 +326,7 @@ class Info(commands.Cog, CogMixin):
     # TODO: Slash
     @commands.command(
         aliases=("userinfo", "ui", "whois"),
-        brief="Get user's information",
+        description="Get user's information",
     )
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def user(self, ctx: Context, *, _user: MemberOrUser = None):
@@ -445,7 +441,7 @@ class Info(commands.Cog, CogMixin):
 
     @commands.hybrid_command(
         aliases=("guild", "guildinfo", "gi", "serverinfo", "si"),
-        brief="Get guild's information",
+        description="Get guild's information",
     )
     @commands.guild_only()
     @commands.cooldown(1, 5, commands.BucketType.user)
@@ -518,7 +514,7 @@ class Info(commands.Cog, CogMixin):
 
     @commands.hybrid_command(
         aliases=("spotifyinfo", "spot"),
-        brief="Show what song a member listening to in Spotify",
+        description="Show what song a member listening to in Spotify",
     )
     @commands.cooldown(1, 5, commands.BucketType.user)
     @commands.guild_only()
@@ -573,7 +569,7 @@ class Info(commands.Cog, CogMixin):
     # TODO: Slash
     @commands.command(
         aliases=("perms",),
-        brief="Show what permissions a member/role has",
+        description="Show what permissions a member/role has",
         usage="[member / role]",
     )
     @commands.cooldown(1, 5, commands.BucketType.user)
@@ -602,7 +598,7 @@ class Info(commands.Cog, CogMixin):
         await ctx.try_reply(embed=e)
 
     @commands.hybrid_command(
-        brief="Get information of a python project from pypi",
+        description="Get information of a python project from pypi",
         usage="(project name)",
     )
     @commands.cooldown(1, 5, commands.BucketType.user)

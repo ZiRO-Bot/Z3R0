@@ -120,7 +120,7 @@ class AniList(commands.Cog, CogMixin):
 
     @commands.hybrid_group(
         aliases=("ani",),
-        brief="Get anime's information",
+        description="Get anime's information",
     )
     async def anime(self, _) -> None:
         pass
@@ -128,7 +128,7 @@ class AniList(commands.Cog, CogMixin):
     @anime.command(
         name="search",
         aliases=("s", "find", "?", "info"),
-        brief="Search for an anime with AniList",
+        description="Search for an anime with AniList",
         usage="(name) [options]",
         extras=dict(
             flags={
@@ -149,19 +149,19 @@ class AniList(commands.Cog, CogMixin):
         animeFormat = ("TV", "TV Short", "OVA", "ONA", "Movie", "Special", "Music")
         return [app_commands.Choice(name=i, value=i) for i in animeFormat]
 
-    @anime.command(name="random", brief="Get random anime")
+    @anime.command(name="random", description="Get random anime")
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def animeRandom(self, ctx) -> None:
         await self.anilistRandom(ctx)
 
-    @commands.hybrid_group(brief="Get manga's information")
+    @commands.hybrid_group(description="Get manga's information")
     async def manga(self, _) -> None:
         pass
 
     @manga.command(
         name="search",
         aliases=("s", "find", "?", "info"),
-        brief="Search for a manga with AniList",
+        description="Search for a manga with AniList",
         usage="(name) [options]",
         extras=dict(
             flags={
@@ -182,7 +182,7 @@ class AniList(commands.Cog, CogMixin):
         mangaFormat = ("Manga", "Novel", "One Shot")
         return [app_commands.Choice(name=i, value=i) for i in mangaFormat]
 
-    @manga.command(name="random", brief="Get random manga")
+    @manga.command(name="random", description="Get random manga")
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def mangaRandom(self, ctx) -> None:
         await self.anilistRandom(ctx, type="MANGA")

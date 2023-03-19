@@ -44,10 +44,9 @@ class Meta(MetaCustomCommands):
             name="help",
             aliases=("?",),
             usage="[category / command]",
-            brief="Get information of a command or category",
-            description=(
-                "Get information of a command or category.\n\n"
-                "You can use `filters` flag to set priority.\n"
+            description="Get information of a command or category",
+            help=(
+                "\n\nYou can use `filters` flag to set priority.\n"
                 "For example:\n`>help info filters: custom built-in`, "
                 "will show custom commands first then built-in commands "
                 "in **info** category\n`>help info filters: custom`, "
@@ -73,12 +72,12 @@ class Meta(MetaCustomCommands):
         self.bot.help_command = CustomHelp(command_attrs=attributes)
         self.bot.help_command.cog = self
 
-    @commands.hybrid_command(brief="Get link to my source code")
+    @commands.hybrid_command(description="Get link to my source code")
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def source(self, ctx):
         await ctx.try_reply("My source code: {}".format(self.bot.links["Source Code"]))
 
-    @commands.hybrid_command(aliases=("botinfo", "bi"), brief="Information about me")
+    @commands.hybrid_command(aliases=("botinfo", "bi"), description="Information about me")
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def about(self, ctx):
         # Z3R0 Banner
@@ -127,7 +126,7 @@ class Meta(MetaCustomCommands):
 
     @commands.group(
         aliases=("pref",),
-        brief="Manages bot's custom prefix",
+        description="Manages bot's custom prefix",
         extras=dict(
             example=(
                 "prefix add ?",
@@ -144,7 +143,7 @@ class Meta(MetaCustomCommands):
     @prefix.command(
         name="list",
         aliases=("ls",),
-        brief="Get all prefixes",
+        description="Get all prefixes",
         exemple=("prefix ls", "pref list"),
     )
     @commands.cooldown(1, 5, commands.BucketType.user)
@@ -156,8 +155,8 @@ class Meta(MetaCustomCommands):
     @prefix.command(
         name="add",
         aliases=("+",),
-        brief="Add a custom prefix",
-        description=('Add a custom prefix.\n\n Tips: Use quotation mark (`""`) to add ' "spaces to your prefix."),
+        description="Add a custom prefix",
+        help='\n\nTips: Wrap prefix with quotation mark (`" "`) to add spaces to your prefix.',
         extras=dict(
             example=("prefix add ?", 'prefix + "please do "', "pref + z!"),
             perms={
@@ -183,7 +182,8 @@ class Meta(MetaCustomCommands):
     @prefix.command(
         name="remove",
         aliases=("-", "rm"),
-        brief="Remove a custom prefix",
+        description="Remove a custom prefix",
+        help='\n\nTips: Wrap prefix with quotation mark (`" "`) if the prefix has spaces.',
         extras=dict(
             example=("prefix rm ?", 'prefix - "please do "', "pref remove z!"),
             perms={
@@ -206,7 +206,7 @@ class Meta(MetaCustomCommands):
         except Exception as exc:
             await ctx.error(str(exc))
 
-    @commands.hybrid_command(aliases=("p",), brief="Get bot's response time")
+    @commands.hybrid_command(aliases=("p",), description="Get bot's response time")
     async def ping(self, ctx):
         start = time.perf_counter()
         msgPing = 0
@@ -233,7 +233,7 @@ class Meta(MetaCustomCommands):
         )
         await msg.edit(embed=e)
 
-    @commands.hybrid_command(brief="Get bot's invite link")
+    @commands.hybrid_command(description="Get bot's invite link")
     async def invite(self, ctx):
         botUser: discord.ClientUser = self.bot.user  # type: ignore
         clientId = botUser.id

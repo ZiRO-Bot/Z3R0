@@ -42,7 +42,7 @@ class Utilities(commands.Cog, CogMixin):
 
     @commands.hybrid_command(
         aliases=["math", "c"],
-        brief="Simple math evaluator",
+        description="Simple math evaluator",
         extras=dict(
             example=(
                 "calc 12*6",
@@ -80,10 +80,9 @@ class Utilities(commands.Cog, CogMixin):
     # TODO: Slash - Multiline sucks with slash
     @commands.command(
         aliases=("exec", "run"),
-        brief="Execute a code",
-        description=(
-            "Execute a code\n"
-            "Will executes python code by default if there's no language specified\n\n"
+        description="Execute a code",
+        help=(
+            "\nWill executes python code by default if there's no language specified\n\n"
             "**Usage**:\n"
             ">execute \`\`\`language\ncodes\n\`\`\`\n"  # type: ignore # noqa: W605
             ">execute \`python code\`\n"  # type: ignore # noqa: W605
@@ -116,7 +115,7 @@ class Utilities(commands.Cog, CogMixin):
     # TODO: Slash, need to adapt the args
     @commands.command(
         aliases=("tr", "trans"),
-        brief="Translate a text",
+        description="Translate a text",
         extras=dict(example=("translate fr->en Bonjour", "trans id Hola", "tr en<-ja こんにちは")),
     )
     @commands.cooldown(1, 5, commands.BucketType.user)
@@ -144,7 +143,7 @@ class Utilities(commands.Cog, CogMixin):
         return await ctx.try_reply(embed=e)
 
     @commands.hybrid_command(
-        brief="Encode a text into morse code",
+        description="Encode a text into morse code",
     )
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def morse(self, ctx, *, text: str):
@@ -155,7 +154,7 @@ class Utilities(commands.Cog, CogMixin):
 
     @commands.hybrid_command(
         aliases=("demorse",),
-        brief="Decode a morse code",
+        description="Decode a morse code",
         usage="(morse code)",
     )
     @commands.cooldown(1, 5, commands.BucketType.user)
@@ -256,7 +255,7 @@ class Utilities(commands.Cog, CogMixin):
                 await ctx.try_reply(embed=e)
 
     @commands.hybrid_command(
-        brief="Get shorten url's real url. No more rick roll!",
+        description="Get shorten url's real url. No more rick roll!",
         usage="(shorten url)",
     )
     @app_commands.rename(shortenUrl="shorten-url")
