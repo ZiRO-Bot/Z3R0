@@ -19,6 +19,24 @@ role-types-desc = Menampilkan semua tipe peran spesial
 announcement = pengumuman
 announcement-desc = Setel kanal pengumuman
 
+# --- AniList
+# - Anime
+anime-desc = Dapatkan informasi tentang suatu anime
+anime-search = cari
+anime-search-desc = Cari suatu anime di AniList
+anime-search-arg-name = Nama anime
+anime-search-arg-format = Format anime
+anime-random = acak
+anime-random-desc = Dapatkan anime acak
+# - Manga
+manga-desc = Dapatkan informasi tentang suatu manga
+manga-search = cari
+manga-search-desc = Cari suatu manga di AniList
+manga-search-arg-name = Nama manga
+manga-search-arg-format = Format manga
+manga-random = acak
+manga-random-desc = Dapatkan manga acak
+
 # --- Info
 color = warna
 color-desc = Dapatkan informasi warna dari bilangan heksa

@@ -22,6 +22,24 @@ role-types-desc = Show all special role types
 announcement = announcement
 announcement-desc = Set announcement channel
 
+# --- AniList
+# - Anime
+anime-desc = Get an anime's information
+anime-search = search
+anime-search-desc = Search for an anime on AniList
+anime-search-arg-name = The anime's name
+anime-search-arg-format = The anime's format
+anime-random = random
+anime-random-desc = Get a random anime
+# - Manga
+manga-desc = Get a manga's information
+manga-search = search
+manga-search-desc = Search for a manga on AniList
+manga-search-arg-name = The manga's name
+manga-search-arg-format = The manga's format
+manga-random = random
+manga-random-desc = Get a random manga
+
 # --- Info
 color = color
 color-desc = Get color information from hex value
