@@ -4,6 +4,7 @@ var = こんにちは、{ $name }！
 
 # --- AniList
 anime = アニメ
+manga = 漫画
 
 # --- Info
 stats = スタッツ
