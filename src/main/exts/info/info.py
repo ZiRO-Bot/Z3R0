@@ -11,6 +11,7 @@ from typing import Union
 
 import discord
 from aiohttp import InvalidURL, client_exceptions
+from discord.app_commands import locale_str as _
 from discord.ext import commands
 
 from ...core import checks
@@ -96,7 +97,8 @@ class Info(commands.Cog, CogMixin):
         await ctx.try_reply(embed=e)
 
     @commands.hybrid_command(
-        aliases=("clr", "color"),
+        name=_("color"),
+        aliases=("clr", "colour"),
         description="Get colour information from hex value",
         help="\n\nCan use either `0x` or " "`#` prefix (`0xFFFFFF` or `#FFFFFF`)",
         extras=dict(example=("colour ffffff", "clr 0xffffff", "color #ffffff")),

@@ -1,0 +1,2 @@
+# --- Slash
+color = colour
