@@ -148,30 +148,40 @@ class Admin(commands.Cog, CogMixin):
     async def farewell(self, ctx, *, arguments: str):
         await handleGreetingConfig(ctx, "farewell", arguments=arguments)
 
-    async def handleLogConfig(self, ctx, arguments: LogFlags, type: str):
+    async def handleLogConfig(self, ctx: Context, arguments: LogFlags, type: str):
         """Handle configuration for logs (modlog, purgatory)"""
         # Parsing arguments
         channel = arguments.channel
         disable = arguments.disable
 
-        e = ZEmbed.success(title=("Modlog" if type == "modlog" else "Purgatory") + " config has been updated")
-
         channelId = MISSING
-        if channel is not None and not disable:
-            channelId = channel.id
-            e.add_field(name="Channel", value=channel.mention)
-        elif disable is True:
-            channelId = None
-            e.add_field(name="Status", value="`Disabled`")
-
         if channelId is not MISSING:
-            await self.bot.setGuildConfig(ctx.guild.id, f"{type}Ch", channelId, "GuildChannels")
+            _translated = await ctx.translate(_("log-updated-title", type=type))
+            e = ZEmbed.success(title=_translated)
+
+            if channel is not None and not disable:
+                channelId = channel.id
+                _translated = await ctx.translate(_("log-updated-field-channel"))
+                e.add_field(name=_translated, value=channel.mention)
+            elif disable is True:
+                channelId = None
+                _translated = await ctx.translate(_("log-updated-field-status"))
+                _translatedDisabled = await ctx.translate(_("log-updated-field-status-disabled"))
+                e.add_field(name=_translated, value=f"`{_translatedDisabled}`")
+
+            await self.bot.setGuildConfig(ctx.requireGuild().id, f"{type}Ch", channelId, "GuildChannels")
+
         else:
-            channelId = await self.bot.getGuildConfig(ctx.guild.id, f"{type}Ch", "GuildChannels")
+            _translated = await ctx.translate(_("log-config-title", guildName=ctx.requireGuild().name, type=type))
+            e = ZEmbed.default(ctx, title=_translated)
+            channelId = await self.bot.getGuildConfig(ctx.requireGuild().id, f"{type}Ch", "GuildChannels")
             if channelId:
-                e.add_field(name="Channel", value=f"<#{channelId}>")
+                _translated = await ctx.translate(_("log-config-field-channel"))
+                e.add_field(name=_translated, value=f"<#{channelId}>")
             else:
-                e.add_field(name="Status", value="`Disabled`")
+                _translated = await ctx.translate(_("log-config-field-status"))
+                _translatedDisabled = await ctx.translate(_("log-config-field-status-disabled"))
+                e.add_field(name=_translated, value=f"`{_translatedDisabled}`")
 
         return await ctx.try_reply(embed=e)
 

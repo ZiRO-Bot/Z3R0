@@ -2,31 +2,76 @@
 test = Hello World!
 var = Hello, { $name }!
 
+# --- Terms
+-channel =
+    { $case ->
+        [uppercase] Channel
+        *[lowercase] channel
+    }
+-status =
+    { $case ->
+        [uppercase] Status
+        *[lowercase] status
+    }
+-disabled =
+    { $case ->
+        [uppercase] Disabled
+        *[lowercase] disabled
+    }
+-modlog =
+    { $case ->
+        [uppercase] Modlog
+        *[lowercase] modlog
+    }
+-purgatory =
+    { $case ->
+        [uppercase] Purgatory
+        *[lowercase] purgatory
+    }
+
 # --- Admin
 # - Welcome
 welcome = welcome
-welcome-desc = Set welcome message and/or channel
-welcome-arg-channel = Channel where welcome messages will be sent
+welcome-desc = Set welcome message and/or { -channel }
+welcome-arg-channel = { -channel(case: "uppercase") } where welcome messages will be sent
 welcome-arg-raw = Get current welcome message in raw mode (Useful for editing, other options is ignored when used!)
 welcome-arg-disable = Disable welcome event
-welcome-arg-message = Message that will be sent to the welcome channel
+welcome-arg-message = Message that will be sent to the welcome { -channel }
 # - Farewell
 farewell = farewell
-farewell-desc = Set farewell message and/or channel
-farewell-arg-channel = Channel where farewell messages will be sent
+farewell-desc = Set farewell message and/or { -channel }
+farewell-arg-channel = { -channel(case: "uppercase") } where farewell messages will be sent
 farewell-arg-raw = Get current farewell message in raw mode (Useful for editing, other options is ignored when used!)
 farewell-arg-disable = Disable farewell event
-farewell-arg-message = Message that will be sent to the farewell channel
+farewell-arg-message = Message that will be sent to the farewell { -channel }
 # - Modlog
 modlog = modlog
-modlog-desc = Set modlog channel
-modlog-arg-channel = Channel where modlogs will be sent
+modlog-desc = Set modlog { -channel }
+modlog-arg-channel = { -channel(case: "uppercase") } where modlogs will be sent
 modlog-arg-disable = Disable modlog
 # - Purgatory
 purgatory = purgatory
-purgatory-desc = Set purgatory channel
-purgatory-arg-channel = Channel where deleted/edited messages will be sent
+purgatory-desc = Set purgatory { -channel }
+purgatory-arg-channel = { -channel(case: "uppercase") } where deleted/edited messages will be sent
 purgatory-arg-disable = Disable purgatory
+# - Log (Modlog and Purgatory)
+log-updated-title =
+    { $type ->
+        [modlog] { -modlog(case: "uppercase" }
+        *[other] { -purgatory(case: "uppercase") }
+    } config has been updated
+log-updated-field-channel = { -channel(case: "uppercase") }
+log-updated-field-status = { -status(case: "uppercase") }
+log-updated-field-status-disabled = { -disabled(case: "uppercase") }
+# config
+log-config-title =
+    { $guildName }'s { $type ->
+        [modlog] { -modlog }
+        *[other] { -purgatory }
+    } current configuration
+log-config-field-channel = { -channel(case: "uppercase") }
+log-config-field-status = { -status(case: "uppercase") }
+log-config-field-status-disabled = { -disabled(case: "uppercase") }
 # - Role
 role = role
 role-desc = Manage guild's role
@@ -38,8 +83,8 @@ role-types = types
 role-types-desc = Show all special role types
 # - Announcement
 announcement = announcement
-announcement-desc = Set announcement channel
-announcement-arg-channel = Channel where announcements will be sent
+announcement-desc = Set announcement { -channel }
+announcement-arg-channel = { -channel(case: "uppercase") } where announcements will be sent
 
 # --- AniList
 # - Anime
@@ -135,7 +180,7 @@ hentai-desc = Get hentai images from nekos.fun
 time = time
 time-desc = Get current time
 
-# Utilities
+# --- Utilities
 calc = calc
 calc-desc = Simple math evaluator
 morse = morse
