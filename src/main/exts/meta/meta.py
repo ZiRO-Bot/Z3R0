@@ -195,9 +195,13 @@ class Meta(MetaCustomCommands):
             await ctx.error(str(exc))
 
     @commands.hybrid_command(aliases=("p",), brief="Get bot's response time")
-    async def ping(self, ctx):
+    async def ping(self, ctx: Context):
         start = time.perf_counter()
         msgPing = 0
+        if not ctx.bot.config.test:
+            await ctx.typing()
+            end = time.perf_counter()
+            msgPing = (end - start) * 1000
 
         e = ZEmbed.default(ctx, title="Pong!")
 
@@ -208,18 +212,13 @@ class Meta(MetaCustomCommands):
             value=botLatency,
         )
 
-        msg = await ctx.try_reply(embed=e)
-
-        if not ctx.bot.config.test:
-            end = time.perf_counter()
-            msgPing = (end - start) * 1000
-
         e.add_field(
             name="<a:typing:785053882664878100> | Typing",
             value=f"{round(msgPing)}ms",
             inline=False,
         )
-        await msg.edit(embed=e)
+
+        await ctx.try_reply(embed=e)
 
     @commands.hybrid_command(brief="Get bot's invite link")
     async def invite(self, ctx):
