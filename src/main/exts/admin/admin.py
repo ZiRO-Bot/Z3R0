@@ -383,7 +383,7 @@ class Admin(commands.Cog, CogMixin):
                         await self.updateMutedRoles(ctx, role)
 
                 e = ZEmbed.success(
-                    title=await ctx.translate(_("role-created")),
+                    title=await ctx.translate(_("role-modified")),
                     description=await ctx.translate(
                         _("role-properties", roleName=role.name, roleType=type, roleId=str(role.id))
                     ),
