@@ -289,7 +289,7 @@ class Fun(commands.Cog, CogMixin):
         elif botChoice == rps[0]:  # rock vs x
             result = choice_
             if choice_ != "paper":
-                return "rock"
+                result = "rock"
 
         elif botChoice == rps[1]:  # paper vs x
             result = choice_
