@@ -18,7 +18,7 @@ class AnimeSearchFlags(StringAndFlags, case_insensitive=True):
     async def convert(cls, ctx, arguments: str):
         try:
             self = await super().convert(ctx, arguments)
-        except commands.MissingFlagArgument:
+        except (commands.MissingFlagArgument, commands.MissingRequiredFlag):
             string, args = separateStringFlags(arguments)
             args += f" name:{string}"
             return await super().convert(ctx, args)
