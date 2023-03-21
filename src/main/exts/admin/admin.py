@@ -18,6 +18,7 @@ from ...core import checks
 from ...core import commands as cmds
 from ...core.context import Context
 from ...core.embed import ZEmbed
+from ...core.guild import GuildWrapper
 from ...core.mixin import CogMixin
 from ...utils.other import setGuildRole
 from ._common import handleGreetingConfig
@@ -268,11 +269,14 @@ class Admin(commands.Cog, CogMixin):
 
     async def updateMutedRoles(
         self,
-        guild: discord.Guild,
+        ctx: Context,
         role: discord.Role,
-        creator: Optional[discord.Member] = None,
     ) -> None:
         """Just loop through channels and overwriting muted role's perm"""
+        guild: GuildWrapper
+        creator: discord.Member | discord.User
+        guild, creator = ctx.requireGuild(), ctx.author
+
         for channel in guild.channels:
             perms = channel.permissions_for(guild.me)
             if perms.manage_roles:
@@ -283,9 +287,13 @@ class Admin(commands.Cog, CogMixin):
                     send_messages=False,
                 )
 
-                reason = "Mute role set to {}".format(role.name)
+                localeKey = "role-mute-updated"
+                localeData = {"roleName": role.name}
                 if creator:
-                    reason += " by {}".format(creator)
+                    localeKey += "-with-reason"
+                    localeData["creatorName"] = creator.name
+
+                reason = await ctx.translate(_(localeKey, **localeData))
 
                 await channel.set_permissions(
                     target=role,
@@ -296,7 +304,8 @@ class Admin(commands.Cog, CogMixin):
         self.bot.dispatch("muted_role_changed", guild, role)
 
     @_role.command(
-        name="create",  # TODO
+        name="create",
+        localeName=_("role-create"),
         aliases=("+", "make"),
         description=_("role-create-desc"),
         usage="(role name) [type: role type]",
@@ -310,43 +319,41 @@ class Admin(commands.Cog, CogMixin):
     @commands.guild_only()
     @commands.bot_has_guild_permissions(manage_roles=True)
     @checks.is_admin()
-    async def roleCreate(self, ctx, *, arguments: RoleCreateFlags):
+    async def roleCreate(self, ctx: Context, *, arguments: RoleCreateFlags):
         name = arguments.name
         if not name:
             return await ctx.error("Name can't be empty!")
 
-        type = arguments.type_ or "regular"
+        type = (arguments.type_ or "regular").lower()
 
-        if (type := type.lower()) in ROLE_TYPES:
-            msg = await ctx.try_reply(
-                embed=ZEmbed.loading(),
-            )
+        if type in ROLE_TYPES:
+            async with ctx.loading():
+                role = await ctx.requireGuild().create_role(name=name)
 
-            role = await ctx.guild.create_role(name=name)
+                if not role:
+                    # TODO: Maybe return a message to tell user that the command fail
+                    return
 
-            if not role:
-                # TODO: Maybe return a message to tell user that the command fail
-                return
+                if type != "regular":
+                    await setGuildRole(self.bot, ctx.requireGuild().id, ROLE_TYPES[type], role.id)
 
-            if type != "regular":
-                await setGuildRole(self.bot, ctx.guild.id, ROLE_TYPES[type], role.id)
+                    if any([type == "mute", type == "muted"]):
+                        await self.updateMutedRoles(ctx, role)
 
-                if any([type == "mute", type == "muted"]):
-                    await self.updateMutedRoles(ctx.guild, role, ctx.author)
-
-            e = ZEmbed.success(
-                title="SUCCESS: Role has been created",
-                description="**Name**: {}\n**Type**: `{}`\n**ID**: `{}`".format(role.name, type, role.id),
-            )
-            return await msg.edit(embed=e)
+                e = ZEmbed.success(
+                    title=await ctx.translate(_("role-created")),
+                    description=await ctx.translate(_("role-properties", roleName=role.name, roleType=type, roleId=role.id)),
+                )
+                return await ctx.try_reply(embed=e)
 
         return await ctx.error(
-            "Available role type: {}".format(", ".join([f"`{type}`" for type in ROLE_TYPES])),
-            title="Invalid role type!",
+            await ctx.translate(_("role-types-list", roleTypes=", ".join([f"`{type}`" for type in ROLE_TYPES]))),
+            title=await ctx.translate(_("role-manage-failed-reason")),
         )
 
     @_role.command(
-        name="set",  # TODO
+        name="set",
+        localeName=_("role-set"),
         aliases=("&",),
         description=_("role-set-desc"),
         usage="(role name) (type: role type)",
@@ -360,43 +367,43 @@ class Admin(commands.Cog, CogMixin):
     @commands.guild_only()
     @commands.bot_has_guild_permissions(manage_roles=True)
     @checks.is_admin()
-    async def roleSet(self, ctx, *, arguments: RoleSetFlags):
+    async def roleSet(self, ctx: Context, *, arguments: RoleSetFlags):
         role = arguments.role
-        type = arguments.type_
+        type = (arguments.type_ or "regular").lower()
         disallowed = ("regular",)
 
-        if (type := type.lower()) in ROLE_TYPES and type not in disallowed:
-            msg = await ctx.try_reply(
-                embed=ZEmbed.loading(),
-            )
+        if type in ROLE_TYPES and type not in disallowed:
+            async with ctx.loading():
+                if type != "regular":
+                    await setGuildRole(self.bot, ctx.requireGuild().id, ROLE_TYPES[type], role.id)
 
-            if type != "regular":
-                await setGuildRole(self.bot, ctx.guild.id, ROLE_TYPES[type], role.id)
+                    if any([type == "mute", type == "muted"]):
+                        await self.updateMutedRoles(ctx, role)
 
-                if any([type == "mute", type == "muted"]):
-                    await self.updateMutedRoles(ctx.guild, role, ctx.author)
-
-            e = ZEmbed.success(
-                title="SUCCESS: Role has been modified",
-                description="**Name**: {}\n**Type**: `{}`\n**ID**: `{}`".format(role.name, type, role.id),
-            )
-            return await msg.edit(embed=e)
+                e = ZEmbed.success(
+                    title=await ctx.translate(_("role-created")),
+                    description=await ctx.translate(_("role-properties", roleName=role.name, roleType=type, roleId=role.id)),
+                )
+                return await ctx.try_reply(embed=e)
 
         return await ctx.error(
-            "Available role type: {}".format(", ".join([f"`{type}`" for type in ROLE_TYPES if type not in disallowed])),
-            title="Invalid role type!",
+            await ctx.translate(
+                _("role-types-list", roleTypes=", ".join([f"`{type}`" for type in ROLE_TYPES if type not in disallowed]))
+            ),
+            title=await ctx.translate(_("role-manage-failed-reason")),
         )
 
     @_role.command(
-        name="types",  # TODO
+        name="types",
+        localeName=_("role-types"),
         description=_("role-types-desc"),
     )
-    async def roleTypes(self, ctx):
+    async def roleTypes(self, ctx: Context):
         e = ZEmbed.minimal(
-            title="Role Types",
+            title=await ctx.translate(_("role-types-title")),
             description="\n".join("- `{}`".format(role) for role in ROLE_TYPES),
         )
-        e.set_footer(text="This list includes aliases (mod -> moderator)")
+        e.set_footer(text=await ctx.translate(_("role-types-footer")))
         return await ctx.try_reply(embed=e)
 
     @commands.command(
@@ -439,6 +446,6 @@ class Admin(commands.Cog, CogMixin):
     async def announcement(self, ctx, channel: discord.TextChannel):
         await self.bot.setGuildConfig(ctx.guild.id, "announcementCh", channel.id, "GuildChannels")
         return await ctx.success(
-            f"**Channel**: {channel.mention}",
-            title="Announcement channel has been updated",
+            await ctx.translate(_("announcement-updated-channel", channelMention=channel.mention)),
+            title=await ctx.translate(_("announcement-updated")),
         )

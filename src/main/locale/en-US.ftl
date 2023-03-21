@@ -28,6 +28,11 @@ var = Hello, { $name }!
         [uppercase] Purgatory
         *[lowercase] purgatory
     }
+-success =
+    { $case ->
+        *[uppercase] Success
+        [lowercase] success
+        [capital] SUCCESS
 
 # --- Admin
 # - Welcome
@@ -80,11 +85,23 @@ role-create-desc = Create a new role
 role-set = set
 role-set-desc = Turn regular role into special role
 role-types = types
+role-types-title = Role Types
 role-types-desc = Show all special role types
+role-types-list = Available role type: { $roleTypes }
+role-types-footer = This list also includes aliases! (e.g. 'mod' -> 'moderator')
+# role action
+role-mute-updated = Mute role has been set to { $roleName }
+role-mute-updated-with-reason = Mute role has been set to { $roleName } by { $creatorName }
+role-created = { -success(case: "capital") }: Role has been created
+role-modified = { -success(case: "capital") }: Role has been modified
+role-properties = **Name**: { $roleName }\n**Type**: `{ $roleType }`\n**ID**: `{ $roleId }`
+role-manage-failed-reason = Invalid role type!
 # - Announcement
 announcement = announcement
 announcement-desc = Set announcement { -channel }
 announcement-arg-channel = { -channel(case: "uppercase") } where announcements will be sent
+announcement-updated = Announcement { -channel } has been updated
+announcement-updated-channel = **{ -channel(case: "uppercase") }**: { $channelMention }
 
 # --- AniList
 # - Anime
@@ -166,7 +183,7 @@ invite = invite
 invite-desc = Get bot's invite link
 
 # - Other
-success = Success
+success = { -success }
 loading = Loading...
 
 # - Error
