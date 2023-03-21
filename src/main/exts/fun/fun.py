@@ -42,11 +42,11 @@ class Fun(commands.Cog, CogMixin):
     )
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def meme(self, ctx: Context):
-        async with ctx.loading():
+        redditColour = discord.Colour(0xFF4500)
+
+        async with ctx.loading(colour=redditColour):
             # TODO: Add more meme subreddits
             memeSubreddits = ("memes", "funny")
-
-            redditColour = discord.Colour(0xFF4500)
 
             subreddit = await self.reddit.hot(choice(memeSubreddits))
 
