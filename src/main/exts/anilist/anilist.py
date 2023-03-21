@@ -15,6 +15,7 @@ from discord.app_commands import locale_str as _
 from discord.ext import commands
 
 from ...core import commands as cmds
+from ...core.context import Context
 from ...core.embed import ZEmbed
 from ...core.enums import Emojis
 from ...core.menus import ZMenuPagesView
@@ -43,12 +44,14 @@ class AniList(commands.Cog, CogMixin):
         super().__init__(bot)
         self.anilist: GraphQL = GraphQL("https://graphql.anilist.co", session=self.bot.session)
 
-    async def anilistSearch(self, ctx, name: str, format: str | None, type: str = "ANIME") -> Optional[discord.Message]:
+    async def anilistSearch(
+        self, ctx: Context, name: str, format: str | None, type: str = "ANIME"
+    ) -> Optional[discord.Message]:
         """Function for 'manga search' and 'anime search' command"""
         type = type.upper().replace(" ", "_")
 
         if not name:
-            return await ctx.error("You need to specify the name!")
+            return await ctx.error(_("anilist-search-name-empty", type=type))
 
         kwargs = {
             "name": name,
@@ -66,8 +69,8 @@ class AniList(commands.Cog, CogMixin):
         aniData = req["data"]["Page"]["media"]
         if not aniData:
             return await ctx.error(
-                f"No {type.lower().replace('_', '')} called `{name}` found.",
-                title="No result",
+                _("anilist-search-no-result", type=type.lower().replace('_', ''), name=name),
+                title=_("anilist-search-no-result-title"),
             )
 
         menu = ZMenuPagesView(ctx, source=AnimeSearchPageSource(aniData))

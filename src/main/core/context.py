@@ -123,7 +123,12 @@ class Context(commands.Context):
     async def error(
         self, errorMessage: locale_str | str | None = None, title: locale_str | str | None = locale_str("error-generic")
     ):
-        e = ZEmbed.error(title="ERROR" + (f': {await self.maybeTranslate(title, "")}'))
+        if isinstance(title, str):
+            title = "ERROR: " + title
+        else:
+            title = await self.maybeTranslate(title, "")
+
+        e = ZEmbed.error(title=title)
         if errorMessage is not None:
             e.description = await self.maybeTranslate(errorMessage, fallback="")
         return await self.try_reply(embed=e)

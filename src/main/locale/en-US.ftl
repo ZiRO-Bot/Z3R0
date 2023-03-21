@@ -28,12 +28,20 @@ var = Hello, { $name }!
         [uppercase] Purgatory
         *[lowercase] purgatory
     }
+-error =
+    { $case ->
+        *[uppercase] Error
+        [lowercase] error
+        [capital] ERROR
+    }
+-error-title-prefix = { -error(case: "capital") }:
 -success =
     { $case ->
         *[uppercase] Success
         [lowercase] success
         [capital] SUCCESS
     }
+-success-title-prefix = { -success(case: "capital") }:
 
 # --- Admin
 # - Welcome
@@ -93,8 +101,8 @@ role-types-footer = This list also includes aliases! (e.g. 'mod' -> 'moderator')
 # role action
 role-mute-updated = Mute role has been set to { $roleName }
 role-mute-updated-with-reason = Mute role has been set to { $roleName } by { $creatorName }
-role-created = { -success(case: "capital") }: Role has been created
-role-modified = { -success(case: "capital") }: Role has been modified
+role-created = { -success-title-prefix } Role has been created
+role-modified = { -success-title-prefix } Role has been modified
 role-properties =
     {"**"}Name{"**"}: { $roleName }
     {"**"}Type{"**"}: `{ $roleType }`
@@ -124,6 +132,26 @@ manga-search-arg-name = The manga's name
 manga-search-arg-format = The manga's format
 manga-random = random
 manga-random-desc = Get a random manga
+anilist-search-name-empty =
+    You need to specify the name of the { $type ->
+        *[ANIME] anime
+        [MANGA] manga
+    }!
+anilist-search-no-result = No { $type } called `{ $name }` found.
+anilist-search-no-result-title = { -error-title-prefix } No result
+anilist-hidden-description =
+    {"... **"}+{ $count }{"**"} hidden
+    (click { $emoji } to read more)
+anilist-format = Format
+anilist-duration = Duration
+anilist-episodes = Episode
+anilist-chapters = Chapters
+anilist-status = Status
+anilist-date-start = Start Date
+anilist-date-end = End Date
+anilist-genres = Genres
+anilist-unknown = Unknown
+anilist-streaming-sites = Streaming Sites
 
 # --- Fun
 meme = meme
@@ -189,9 +217,10 @@ invite-desc = Get bot's invite link
 # - Other
 success = { -success }
 loading = Loading...
+no-description = No description
 
 # - Error
-error-generic = Something went wrong!
+error-generic = { -error-title-prefix } Something went wrong!
 
 # --- NSFW
 hentai = hentai
