@@ -191,6 +191,7 @@ rps-result =
     { $result }
 flip = flip
 flip-desc = Flip a Coin
+flip-result = You got { $side }!
 barter = barter
 barter-desc = Barter with Minecraft's Piglins
 barter-result-title = Bartering with { $goldCount ->

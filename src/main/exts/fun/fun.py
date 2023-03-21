@@ -342,7 +342,7 @@ class Fun(commands.Cog, CogMixin):
     )
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def flip(self, ctx):
-        await ctx.try_reply(f"You got {choice(['heads', 'tails'])}!")
+        await ctx.try_reply(_("flip-result", side=choice(["heads", "tails"])))
 
     # TODO: Slash
     @commands.command(
