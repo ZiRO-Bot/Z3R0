@@ -155,6 +155,7 @@ class ZEmbed(discord.Embed):
         *,
         emoji: str = Emojis.loading,
         title: str = "Loading...",
+        colour: discord.Colour | int = None,
         **kwargs,
     ):
-        return cls(title="{} {}".format(emoji, title), **kwargs)
+        return cls(title="{} {}".format(emoji, title), color=colour, **kwargs)

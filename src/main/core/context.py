@@ -144,7 +144,7 @@ class Context(commands.Context):
         return await self.try_reply(embed=e)
 
     @asynccontextmanager
-    async def loading(self, title: locale_str | str = locale_str("loading")):
+    async def loading(self, title: locale_str | str = locale_str("loading"), *, colour: discord.Colour | int = None):
         """
         async with ctx.loading(title="This param is optional"):
             await asyncio.sleep(5) # or any long process stuff
@@ -154,7 +154,7 @@ class Context(commands.Context):
             yield await self.interaction.response.defer()
             return
 
-        e = ZEmbed.loading(title=await self.maybeTranslate(title))
+        e = ZEmbed.loading(title=await self.maybeTranslate(title), colour=colour)
         msg = None
         try:
             msg = await self.try_reply(embed=e)

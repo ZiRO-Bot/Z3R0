@@ -11,33 +11,33 @@ var = Hello, { $name }!
 -status =
     { $case ->
         [uppercase] Status
-        *[lowercase] status
+       *[lowercase] status
     }
 -disabled =
     { $case ->
         [uppercase] Disabled
-        *[lowercase] disabled
+       *[lowercase] disabled
     }
 -modlog =
     { $case ->
         [uppercase] Modlog
-        *[lowercase] modlog
+       *[lowercase] modlog
     }
 -purgatory =
     { $case ->
         [uppercase] Purgatory
-        *[lowercase] purgatory
+       *[lowercase] purgatory
     }
 -error =
     { $case ->
-        *[uppercase] Error
+       *[uppercase] Error
         [lowercase] error
         [capital] ERROR
     }
 -error-title-prefix = { -error(case: "capital") }:
 -success =
     { $case ->
-        *[uppercase] Success
+       *[uppercase] Success
         [lowercase] success
         [capital] SUCCESS
     }
@@ -72,7 +72,7 @@ purgatory-arg-disable = Disable purgatory
 log-updated-title =
     { $type ->
         [modlog] { -modlog(case: "uppercase" }
-        *[other] { -purgatory(case: "uppercase") }
+       *[other] { -purgatory(case: "uppercase") }
     } config has been updated
 log-updated-field-channel = { -channel(case: "uppercase") }
 log-updated-field-status = { -status(case: "uppercase") }
@@ -81,7 +81,7 @@ log-updated-field-status-disabled = { -disabled(case: "uppercase") }
 log-config-title =
     { $guildName }'s { $type ->
         [modlog] { -modlog }
-        *[other] { -purgatory }
+       *[other] { -purgatory }
     } current configuration
 log-config-field-channel = { -channel(case: "uppercase") }
 log-config-field-status = { -status(case: "uppercase") }
@@ -134,7 +134,7 @@ manga-random = random
 manga-random-desc = Get a random manga
 anilist-search-name-empty =
     You need to specify the name of the { $type ->
-        *[ANIME] anime
+       *[ANIME] anime
         [MANGA] manga
     }!
 anilist-search-no-result = No { $type } called `{ $name }` found.
@@ -156,22 +156,50 @@ anilist-streaming-sites = Streaming Sites
 # --- Fun
 meme = meme
 meme-desc = Get random meme from reddit
+meme-score = Score
+meme-comments = Comments
 findseed = findseed
 findseed-desc = Get your Minecraft seed's eye count
+findseed-result = findseed - Your seed is a { $eyeCount ->
+        [one] **{ $eyeCount }** eye
+       *[other] **{ $eyeCount }** eyes
+    }
+findseed-result-classic = <@{ $userId }> -> Your seed is a { $eyeCount ->
+        [one] **{ $eyeCount }** eye
+       *[other] **{ $eyeCount }** eyes
+    }
 httpcat = httpcat
 httpcat-desc = Get http status code with cat in it
 pp = pp
 pp-desc = Show your pp size
+pp-result = Your pp looks like this:
 isimpostor = isimpostor
 isimpostor-desc = Check if you're an impostor or a crewmate
+isimpostor-impostor-count-set = Impostor count has been set to `1`
+isimpostor-result-impostor = { $user }, you're an impostor!
+isimpostor-result-crewmate = { $user }, you're a crewmate!
 dadjokes = dadjokes
 dadjokes-desc = Get random dad jokes
 rps = rps
 rps-desc = Rock Paper Scissors with the bot
+rps-rock = Rock wins!
+rps-paper = Paper wins!
+rps-scissors = Scissors wins!
+rps-noob = Noob wins!
+rps-result =
+    You choose ***{ $userChoice }***. I chose ***{ $botChoice }***.
+    { $result }
 flip = flip
 flip-desc = Flip a Coin
 barter = barter
 barter-desc = Barter with Minecraft's Piglins
+barter-result-title = Bartering with { $goldCount ->
+        [one] { $goldCount } gold
+       *[other] { $goldCount } golds
+    }
+barter-result = You got:
+
+    { $barterResult }
 
 # --- Info
 weather = weather

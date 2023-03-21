@@ -41,39 +41,38 @@ class Fun(commands.Cog, CogMixin):
         description=_("meme-desc"),
     )
     @commands.cooldown(1, 5, commands.BucketType.user)
-    async def meme(self, ctx):
-        # TODO: Add more meme subreddits
-        memeSubreddits = ("memes", "funny")
+    async def meme(self, ctx: Context):
+        async with ctx.loading():
+            # TODO: Add more meme subreddits
+            memeSubreddits = ("memes", "funny")
 
-        redditColour = discord.Colour(0xFF4500)
+            redditColour = discord.Colour(0xFF4500)
 
-        msg = await ctx.try_reply(embed=ZEmbed.loading(color=redditColour))
+            subreddit = await self.reddit.hot(choice(memeSubreddits))
 
-        subreddit = await self.reddit.hot(choice(memeSubreddits))
+            # Exclude videos since discord embed don't support video
+            posts = [post for post in subreddit.posts if not post.isVideo]
+            if getattr(ctx.channel, "is_nsfw", True):
+                submission = choice(posts)
+            else:
+                submission = choice([post for post in posts if not post.is18])
 
-        # Exclude videos since discord embed don't support video
-        posts = [post for post in subreddit.posts if not post.isVideo]
-        if ctx.channel.is_nsfw:
-            submission = choice(posts)
-        else:
-            submission = choice([post for post in posts if not post.is18])
+            e = ZEmbed.default(
+                ctx,
+                title=f"{subreddit} - {submission.title}",
+                color=redditColour,
+            )
+            e.set_author(
+                name="Reddit",
+                icon_url="https://www.redditstatic.com/desktop2x/" + "img/favicon/android-icon-192x192.png",
+            )
+            e.add_field(name=await ctx.translate(_("meme-score")), value=submission.score)
+            e.add_field(name=await ctx.translate(_("meme-comments")), value=submission.commentCount)
 
-        e = ZEmbed.default(
-            ctx,
-            title=f"{subreddit} - {submission.title}",
-            color=redditColour,
-        )
-        e.set_author(
-            name="Reddit",
-            icon_url="https://www.redditstatic.com/desktop2x/" + "img/favicon/android-icon-192x192.png",
-        )
-        e.add_field(name="Score", value=submission.score)
-        e.add_field(name="Comments", value=submission.commentCount)
+            if submission.url:
+                e.set_image(url=submission.url)
 
-        if submission.url:
-            e.set_image(url=submission.url)
-
-        await msg.edit(embed=e)
+            await ctx.try_reply(embed=e)
 
     @app_commands.choices(args=[Choice(name=i, value=i) for i in get_args(FINDSEED_MODES)])
     @app_commands.rename(args="mode")
@@ -89,7 +88,7 @@ class Fun(commands.Cog, CogMixin):
         ),
     )
     @commands.cooldown(5, 25, commands.BucketType.user)
-    async def findseed(self, ctx, *, args: FindseedFlags = None):
+    async def findseed(self, ctx: Context, *, args: FindseedFlags = None):
         availableMode = get_args(FINDSEED_MODES)
         aliasesMode = {"pepiga": "pipega"}
 
@@ -147,13 +146,7 @@ class Fun(commands.Cog, CogMixin):
                     shuffle(eyes)
 
         if mode == "classic":
-            return await ctx.try_reply(
-                "<@{}> -> your seed is a {} eye{}".format(
-                    executorId,
-                    eyeCount,
-                    "s" if eyeCount > 1 or eyeCount == 0 else "",
-                )
-            )
+            return await ctx.try_reply(_("findseed-result-classic", userId=str(executorId), eyeCount=eyeCount))
 
         # "render" portal
         selEye = 0
@@ -181,7 +174,7 @@ class Fun(commands.Cog, CogMixin):
 
         e = ZEmbed.default(
             ctx,
-            title=f"findseed - Your seed is a **{eyeCount}** eye",
+            title=await ctx.translate(_("findseed-result", eyeCount=eyeCount)),
             description=portalFrame,
             color=discord.Colour(0x38665E),
         )
@@ -221,11 +214,11 @@ class Fun(commands.Cog, CogMixin):
         hybrid=True,
     )
     @commands.cooldown(1, 5, commands.BucketType.user)
-    async def pp(self, ctx):
+    async def pp(self, ctx: Context):
         pp = "8" + "=" * randint(1, 500) + "D"
         e = ZEmbed.default(
             ctx,
-            title="Your pp looks like this:",
+            title=await ctx.translate(_("pp-result")),
             description="`{}`".format(pp),
             colour=discord.Colour.random(),
         )
@@ -239,17 +232,21 @@ class Fun(commands.Cog, CogMixin):
         usage="[impostor count] [player count]",
     )
     @commands.cooldown(3, 25, commands.BucketType.user)
-    async def isimpostor(self, ctx, impostor: commands.Range[int, 1, 3] = 1, player: commands.Range[int, 4, 15] = 10):
+    async def isimpostor(
+        self, ctx: Context, impostor: commands.Range[int, 1, 3] = 1, player: commands.Range[int, 4, 15] = 10
+    ):
         if impostor < 1:
             impostor = 1
-            await ctx.send("Impostor count has been set to `1`")
+            await ctx.send(_("isimpostor-impostor-count-set"))
         if impostor > player:
             impostor = player
 
+        localeKey = "isimpostor-result-"
+        kwargs = {"user": ctx.author.mention}
         if random() < impostor / player:
-            await ctx.send(f"{ctx.author.mention}, you're an impostor!")
+            await ctx.send(_(localeKey + "impostor", **kwargs))
         else:
-            await ctx.send(f"{ctx.author.mention}, you're a crewmate!")
+            await ctx.send(_(localeKey + "crewmate", **kwargs))
 
     @cmds.command(
         name=_("dadjokes"),
@@ -284,38 +281,47 @@ class Fun(commands.Cog, CogMixin):
         rps = ("rock", "paper", "scissors")
         botChoice = choice(rps)
 
+        localeKey = "rps-"
+
         if botChoice == choice_:
             result = "It's a Tie!"
 
-        elif botChoice == rps[0]:
+        elif botChoice == rps[0]:  # rock vs x
+            result = choice_
+            if choice_ != "paper":
+                return "rock"
 
-            def f(x):  # type: ignore
-                return {"paper": "Paper wins!", "scissors": "Rock wins!"}.get(x, "Rock wins!")
-
-            result = f(choice_)
-
-        elif botChoice == rps[1]:
-
-            def f(x):  # type: ignore
-                return {"rock": "Paper wins!", "scissors": "Scissors wins!"}.get(x, "Paper wins!")
-
-            result = f(choice_)
+        elif botChoice == rps[1]:  # paper vs x
+            result = choice_
+            if choice_ != "scissors":
+                result = "paper"
 
         elif botChoice == rps[2]:
-
-            def f(x):
-                return {"paper": "Scissors wins!", "rock": "Rock wins!"}.get(x, "Scissors wins!")
-
-            result = f(choice_)
+            result = choice_
+            if choice_ != "rock":
+                result = "scissors"
 
         else:
             return
 
         if choice_ == "noob":
-            result = "Noob wins!"
+            result = "noob"
 
         await ctx.try_reply(
-            f"You chose ***{choice_.capitalize()}***." + f" I chose ***{botChoice.capitalize()}***.\n{result}"
+            _(
+                localeKey + "result",
+                userChoice=choice_.capitalize(),
+                botChoice=botChoice.capitalize(),
+                # FIXME
+                # Ideally we want to reference terms instead for result:
+                #   result = FluentReference(localeKey + result)
+                #
+                # But it's not yet possible to do this, so instead we translate
+                # it early before handing it back over to fluent.runtime.
+                #
+                # REF: https://github.com/projectfluent/fluent/issues/80
+                result=await ctx.translate(localeKey + result),
+            )
         )
 
     @rps.autocomplete("choice_")
@@ -438,8 +444,10 @@ class Fun(commands.Cog, CogMixin):
 
         e = ZEmbed(
             ctx,
-            title="Bartering with {} gold{}".format(gold, "s" if gold > 1 else ""),
-            description="You got:\n\n{}".format("\n".join(["{} → {}".format(emoji(v[0]), v[1]) for v in items.values()])),
+            title=await ctx.translate(_("barter-result-title", goldCount=gold)),
+            description=await ctx.translate(
+                _("barter-result", barterResult="\n".join(["{} → {}".format(emoji(v[0]), v[1]) for v in items.values()]))
+            ),
             colour=discord.Colour.gold(),
         )
         await ctx.try_reply(embed=e)
