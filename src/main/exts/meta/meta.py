@@ -207,6 +207,10 @@ class Meta(MetaCustomCommands):
     async def ping(self, ctx):
         start = time.perf_counter()
         msgPing = 0
+        if not ctx.bot.config.test:
+            await ctx.typing()
+            end = time.perf_counter()
+            msgPing = (end - start) * 1000
 
         e = ZEmbed.default(ctx, title="Pong!")
 
@@ -217,18 +221,13 @@ class Meta(MetaCustomCommands):
             value=botLatency,
         )
 
-        msg = await ctx.try_reply(embed=e)
-
-        if not ctx.bot.config.test:
-            end = time.perf_counter()
-            msgPing = (end - start) * 1000
-
         e.add_field(
             name="<a:typing:785053882664878100> | Typing",
             value=f"{round(msgPing)}ms",
             inline=False,
         )
-        await msg.edit(embed=e)
+
+        await ctx.try_reply(embed=e)
 
     @cmds.command(name=_("invite"), description=_("invite-desc"), hybrid=True)
     async def invite(self, ctx):
