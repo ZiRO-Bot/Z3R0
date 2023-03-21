@@ -206,14 +206,68 @@ barter-result = You got:
 # --- Info
 weather = weather
 weather-desc = Get current weather for specific city
+weather-api-error = { -error-title-prefix } OpenWeather's API Key is not set! Please contact the bot owner to solve this issue.
+weather-temperature = Temperature
+weather-temperature-feel = Feels like { $tempFeels }°C, { $detail }
+weather-humidity = Humidity
+weather-wind = Wind
 color = color
 color-desc = Get color information from hex value
+color-error = { -error-title-prefix } Invalid color value!
+color-title = Information on #{ $hexValue }
+color-hex = Hex
+color-rgb = RGB
 jisho = jisho
 jisho-desc = Get japanese text/word
+jisho-error = { -error-title-prefix } Sorry, couldn't find any words matching `{ $words }`
 serverinfo = serverinfo
 serverinfo-desc = Get guild's information
+serverinfo-properties-title = General
+serverinfo-properties =
+    {"**"}Name{"**"}: { $guildName }
+    {"**"}ID{"**"}: `{ $guildId }`
+    {"**"}Created At{"**"}: { $createdAt } ({ $createdAtRelative })
+    {"**"}Owner{"**"}: { $guildOwner } / { $ownerMention }
+    {"**"}Owner ID{"**"}: { $ownerId }
+serverinfo-stats-title = Stats
+serverinfo-stats =
+    {"**"}Categories{"**"}: { $categoryCount }
+    {"**"}Channels{"**"}: { $channelCount }
+    { $otherChannels }
+    {"**"}Member Count{"**"}: { $memberCount } ({ $humanCount } humans | { $botCount} bots)
+    { $memberStatus }
+    {"**"}Boosts{"**"}: { $boostCount } (Lv. { $boostLevel })
+    {"**"}Role Count{"**"}: { $roleCount }
+serverinfo-settings-title = Settings
+serverinfo-settings =
+    {"**"}Verification Level{"**"}: `{ $verificationLevel }`
+    {"**"}Two-Factor Auth{"**"}: { $mfaLevel ->
+        [one] On
+       *[other] Off
+    }
 spotify-desc = Show what song a member listening to in Spotify
+spotify-error = { $user } is not listening to Spotify!
+spotify-artist = Artist
+spotify-album = Album
+spotify-duration = Duration
 pypi-desc = Get information of a python project from pypi
+pypi-error-title = 404 - Page Not Found
+pypi-error = We looked everywhere but couldn't find that project
+pypi-author-title = Author Info
+pypi-author =
+    {"**"}Name{"**"}: { $author }
+    {"**"}Email{"**"}: { $authorEmail }
+pypi-package-title = Package Info
+pypi-package =
+    {"**"}Version{"**"}: `{ $version }`
+    {"**"}License{"**"}: { $license }
+    {"**"}Keywords{"**"}: { $keywords }
+pypi-links-title = Links
+pypi-links =
+    {"["}Home Page{"]"}({ $homePage })
+    {"["}Project Link{"]"}({ $projectUrl })
+    {"["}Release Link{"]"}({ $releaseUrl })
+    {"["}Download Link{"]"}({ $downloadUrl })
 
 # --- Meta
 source = source
@@ -248,6 +302,9 @@ invite-desc = Get bot's invite link
 success = { -success }
 loading = Loading...
 no-description = No description
+unknown = Unknown
+not-provided = Not provided
+not-specified = Not specified
 
 # - Error
 error-generic = { -error-title-prefix } Something went wrong!
