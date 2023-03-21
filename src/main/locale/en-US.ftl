@@ -33,6 +33,7 @@ var = Hello, { $name }!
         *[uppercase] Success
         [lowercase] success
         [capital] SUCCESS
+    }
 
 # --- Admin
 # - Welcome
@@ -94,7 +95,10 @@ role-mute-updated = Mute role has been set to { $roleName }
 role-mute-updated-with-reason = Mute role has been set to { $roleName } by { $creatorName }
 role-created = { -success(case: "capital") }: Role has been created
 role-modified = { -success(case: "capital") }: Role has been modified
-role-properties = **Name**: { $roleName }\n**Type**: `{ $roleType }`\n**ID**: `{ $roleId }`
+role-properties =
+    {"**"}Name{"**"}: { $roleName }
+    {"**"}Type{"**"}: `{ $roleType }`
+    {"**"}ID{"**"}: `{ $roleId }`
 role-manage-failed-reason = Invalid role type!
 # - Announcement
 announcement = announcement

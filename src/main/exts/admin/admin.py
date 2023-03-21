@@ -342,7 +342,9 @@ class Admin(commands.Cog, CogMixin):
 
                 e = ZEmbed.success(
                     title=await ctx.translate(_("role-created")),
-                    description=await ctx.translate(_("role-properties", roleName=role.name, roleType=type, roleId=role.id)),
+                    description=await ctx.translate(
+                        _("role-properties", roleName=role.name, roleType=type, roleId=str(role.id))
+                    ),
                 )
                 return await ctx.try_reply(embed=e)
 
@@ -382,7 +384,9 @@ class Admin(commands.Cog, CogMixin):
 
                 e = ZEmbed.success(
                     title=await ctx.translate(_("role-created")),
-                    description=await ctx.translate(_("role-properties", roleName=role.name, roleType=type, roleId=role.id)),
+                    description=await ctx.translate(
+                        _("role-properties", roleName=role.name, roleType=type, roleId=str(role.id))
+                    ),
                 )
                 return await ctx.try_reply(embed=e)
 
