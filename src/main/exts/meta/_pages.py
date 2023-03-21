@@ -58,7 +58,7 @@ class HelpCogPage(menus.ListPageSource):
         super().__init__(commands, per_page=6)
 
     async def format_page(self, menu: ZMenuView, _commands):
-        ctx = menu.context
+        ctx: Context = menu.context
         cog = self.cog
 
         if ctx.guild and self.disabled is None:
@@ -100,7 +100,7 @@ class HelpCogPage(menus.ListPageSource):
 
             e.add_field(
                 name=name,
-                value="> " + (cmd.short_doc or "No description"),
+                value="> " + await ctx.maybeTranslate(cmd.description, "No description"),
             )
         return e
 
