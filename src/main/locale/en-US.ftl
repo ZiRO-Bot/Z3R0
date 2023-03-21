@@ -186,6 +186,7 @@ rps-rock = Rock wins!
 rps-paper = Paper wins!
 rps-scissors = Scissors wins!
 rps-noob = Noob wins!
+rps-tie = It's a Tie!
 rps-result =
     You choose ***{ $userChoice }***. I chose ***{ $botChoice }***.
     { $result }

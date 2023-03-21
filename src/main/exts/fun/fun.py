@@ -284,7 +284,7 @@ class Fun(commands.Cog, CogMixin):
         localeKey = "rps-"
 
         if botChoice == choice_:
-            result = "It's a Tie!"
+            result = "tie"
 
         elif botChoice == rps[0]:  # rock vs x
             result = choice_
@@ -320,7 +320,7 @@ class Fun(commands.Cog, CogMixin):
                 # it early before handing it back over to fluent.runtime.
                 #
                 # REF: https://github.com/projectfluent/fluent/issues/80
-                result=await ctx.translate(localeKey + result),
+                result=await ctx.translate(_(localeKey + result)),
             )
         )
 
