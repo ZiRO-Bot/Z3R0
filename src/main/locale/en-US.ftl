@@ -206,14 +206,14 @@ barter-result = You got:
 # --- Info
 weather = weather
 weather-desc = Get current weather for specific city
-weather-api-error = { -error-title-prefix } OpenWeather's API Key is not set! Please contact the bot owner to solve this issue.
+weather-api-error = OpenWeather's API Key is not set! Please contact the bot owner to solve this issue.
 weather-temperature = Temperature
 weather-temperature-feel = Feels like { $tempFeels }°C, { $detail }
 weather-humidity = Humidity
 weather-wind = Wind
 color = color
 color-desc = Get color information from hex value
-color-error = { -error-title-prefix } Invalid color value!
+color-error = Invalid color value!
 color-title = Information on #{ $hexValue }
 color-hex = Hex
 color-rgb = RGB
