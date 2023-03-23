@@ -20,7 +20,7 @@ from discord.ext import commands
 
 from ...core import commands as cmds
 from ...core.context import Context
-from ...core.embed import ZEmbed
+from ...core.embed import Field, ZEmbed
 from ...core.mixin import CogMixin
 from ...utils.api.googletrans import GoogleTranslate
 from ...utils.api.piston import Piston
@@ -73,9 +73,9 @@ class Utilities(commands.Cog, CogMixin):
         e = ZEmbed.default(
             ctx,
             fields=[
-                ("Equation", discord.utils.escape_markdown(equation)),
-                ("Result", formattedResult),
-                ("Raw Result", result),
+                Field("Equation", discord.utils.escape_markdown(equation)),
+                Field("Result", formattedResult),
+                Field("Raw Result", str(result)),
             ],
         )
         e.set_author(name="Simple Math Evaluator", icon_url=ctx.bot.user.avatar.url)
