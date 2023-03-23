@@ -97,9 +97,7 @@ class ziBot(commands.Bot):
 
         super().__init__(
             command_prefix=_callablePrefix,
-            description=(
-                "A **free and open source** multi-purpose **discord bot** " "created by ZiRO2264, formerly called `ziBot`."
-            ),
+            description="bot-description",
             case_insensitive=True,
             intents=intents,
             heartbeat_timeout=150.0,
@@ -627,6 +625,12 @@ class ziBot(commands.Bot):
             return
 
         await super().wait_until_ready()
+
+    def requireUser(self) -> discord.ClientUser:
+        u = self.user
+        if not u:
+            raise RuntimeError("Bot not ready")
+        return u
 
     async def close(self) -> None:
         """Properly close/turn off bot"""

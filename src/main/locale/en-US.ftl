@@ -272,13 +272,16 @@ pypi-links =
 # --- Meta
 source = source
 source-desc = Get link to my source code
+source-message = My source code: { $link }
 about = about
 about-desc = Information about me
+about-author-title = Author
+about-library-title = Library
+about-version-title = Version
 stats = stats
 stats-desc = Information about my stats
 stats-title = { $bot }'s stats
 stats-uptime-title = 🕙 | Uptime
-
 stats-command-title = <:terminal:852787866554859591> | Command Usage (This session)
 stats-command =
     { $commandCount ->
@@ -292,11 +295,73 @@ stats-command =
 prefix-empty = Prefix can't be empty!
 prefix-added = Prefix `{ $prefix }` has been added!
 prefix-removed = Prefix `{ $prefix }` has been removed!
+prefix-list-title = { $guildName }'s Prefixes
+-custom-prefix = **Custom Prefixes**:
+-default-prefix = **Default Prefixes**:
+prefix-list-desc =
+    { -custom-prefix }
+    {""}
+prefix-list-desc-default =
+    { -default-prefix } `{ $defaultPrefix }` or `{ $mentionPrefix } `
+    
+    { -custom-prefix }
+    {""}
+prefix-list-desc-empty =
+    { -default-prefix } `{ $defaultPrefix }` or `{ $mentionPrefix } `
+    
+    
+    { -custom-prefix }
+    No custom prefix.
 
 ping = ping
 ping-desc = Get bot's response time
+ping-title = Pong!
+ping-websocket-title = <a:discordLoading:857138980192911381> | Websocket
+ping-typing-title = <a:typing:785053882664878100> | Typing
 invite = invite
 invite-desc = Get bot's invite link
+invite-embed-title = Want to invite { $botUser }?
+invite-embed-desc =
+    {"["}Invite with administrator permission{"]"}({ $urlAdmin })
+    {"["}Invite with necessary premissions (**recommended**){"]"}({ $urlRec })
+help-cog-info = 
+    ` ᶜ ` = Custom Command
+    ` ᵍ ` = Group (have subcommand(s))
+    ` ˢ ` = Slash (integrated to Discord's `/` command handler)
+    ~~` C `~~ = Disabled"
+help-cog-no-command =
+    {""}
+    No usable commands
+help-cog-title = { $icon } | Category: { $category }
+help-command-no-alias = No alias
+help-command-desc =
+    {"**"}Aliases{"**"}: `{ $aliases }`
+    { $description }
+help-command-cc-info-title = Info/Stats
+help-command-cc-info =
+    {"**"}Owner{"**"}: <@{ $ownerMention }>
+    {"**"}Uses{"**"}: `{ $uses }`
+    {"**"}Enabled{"**"}: `{ $enabled }`
+help-command-cc-tips-title = Tips
+help-command-cc-tips =
+    > Add extra `>`, `!`, or `./` after prefix to prioritize custom command.
+    > Example `{ $prefix }>example`, `{ $prefix }./example`, or `{ $prefix }!example`
+help-command-options-title = Options
+help-command-example-title = Example
+help-command-perms-title = Required Permissions
+help-command-perms =
+    > Bot: `{ $botPerms }`
+    > User: `{ $userPerms }`
+help-command-cooldown-title = Cooldown
+help-command-cooldown =
+    > { $rate ->
+        [one] { $rate } command
+       *[other] { $rate } commands
+    } per { $per ->
+        [one] { $per } second
+       *[other] { $per } seconds
+    }, per { $type }
+help-command-subcommands-title = Subcommands
 
 # - Other
 success = { -success }
@@ -305,6 +370,12 @@ no-description = No description
 unknown = Unknown
 not-provided = Not provided
 not-specified = Not specified
+bot-description = A **free and open source** multi-purpose **discord bot** created by ZiRO2264, formerly called `ziBot`.
+bot-description-extended =
+    A **free and open source** multi-purpose **discord bot** created by ZiRO2264, formerly called `ziBot`.
+    
+    This bot is licensed under **{ $license }**.
+requested-by = Requested By { $user }
 
 # - Error
 error-generic = { -error-title-prefix } Something went wrong!

@@ -4,13 +4,16 @@ License, v. 2.0. If a copy of the MPL was not distributed with this
 file, You can obtain one at http://mozilla.org/MPL/2.0/.
 """
 
+from __future__ import annotations
+
 from typing import List, Optional, Tuple
 
+import discord
 from discord.app_commands import locale_str
 from discord.ext import commands, menus
 
 from ...core.context import Context
-from ...core.embed import ZEmbed
+from ...core.embed import Field, ZEmbed, ZEmbedBuilder
 from ...core.menus import ZMenuView
 from ...utils.format import cleanifyPrefix, formatCmd, info
 from ._custom_command import CustomCommand
@@ -26,16 +29,18 @@ class PrefixesPageSource(menus.ListPageSource):
         super().__init__(prefixes, per_page=6)
 
     async def format_page(self, menu: ZMenuView, _prefixes: list):
-        ctx = self.ctx
+        ctx: Context = self.ctx
 
-        e = ZEmbed(title="{} Prefixes".format(ctx.guild), description="**Custom Prefixes**:\n")
+        e = ZEmbedBuilder(title=locale_str("prefix-list-title", guildName=ctx.requireGuild().name))
+
+        kwargs = {"defaultPrefix": ctx.bot.defPrefix, "mentionPrefix": cleanifyPrefix(ctx.bot, ctx.me.mention)}
 
         if menu.currentPage == 0:
             _prefixes.pop(0)
             _prefixes.pop(0)
-            e.description = "**Default Prefixes**: `{}` or `{} `\n\n**Custom Prefixes**:\n".format(
-                ctx.bot.defPrefix, cleanifyPrefix(ctx.bot, ctx.me.mention)
-            )
+            e.description = locale_str("prefix-list-desc-default", **kwargs)
+        else:
+            e.description = locale_str("prefix-list-desc")
 
         prefixes = []
         for prefix in _prefixes:
@@ -47,8 +52,10 @@ class PrefixesPageSource(menus.ListPageSource):
             else:
                 fmt += "`{}`"
             prefixes.append(fmt.format(cleanifyPrefix(ctx.bot, prefix)))
-        e.description = str(e.description) + ("\n".join(prefixes) or "No custom prefix.")
-        return e
+        if not prefixes:
+            e.description = locale_str("prefix-list-empty", **kwargs)
+        e.description = await ctx.translate(e.description) + "\n".join(prefixes)
+        return await e.build(ctx)
 
 
 class HelpCogPage(menus.ListPageSource):
@@ -66,21 +73,20 @@ class HelpCogPage(menus.ListPageSource):
         elif not ctx.guild:
             self.disabled = []
 
-        desc = info(
-            "` ᶜ ` = Custom Command\n"
-            "` ᵍ ` = Group (have subcommand(s))\n"
-            "` ˢ ` = Slash (integrated to Discord's `/` command handler)\n"
-            "~~` C `~~ = Disabled",
-        )
+        desc = info(await ctx.translate(locale_str("help-cog-info")))
 
-        e = ZEmbed(
-            title=f"{getattr(cog, 'icon', '❓')} | Category: {cog.qualified_name}",
+        e = ZEmbedBuilder(
+            title=locale_str(
+                "help-cog-title",
+                icon=getattr(cog, 'icon', '❓'),
+                category=cog.qualified_name,
+            ),
             description=desc,
         )
 
         if not _commands:
-            e.description = str(e.description) + "\nNo usable commands."
-            return e
+            e.description = str(e.description) + await ctx.translate(locale_str("help-cog-no-command"))
+            return await e.build(ctx)
 
         for cmd in _commands:
             name = cmd.name
@@ -98,18 +104,15 @@ class HelpCogPage(menus.ListPageSource):
             if isinstance(cmd, commands.Group):
                 name += "ᵍ"
 
-            e.add_field(
-                name=name,
-                value="> " + await ctx.maybeTranslate(cmd.description, "No description"),
-            )
-        return e
+            e.addField(name=name, value="> " + await ctx.maybeTranslate(cmd.description, "No description"), inline=True)
+        return await e.build(ctx)
 
 
 class HelpCommandPage(menus.ListPageSource):
     def __init__(self, commands) -> None:
         super().__init__(commands, per_page=1)
 
-    async def format_page(self, menu: ZMenuView, command):
+    async def format_page(self, menu: ZMenuView, command) -> discord.Embed:
         ctx: Context = menu.context
         prefix = ctx.clean_prefix
 
@@ -118,17 +121,17 @@ class HelpCommandPage(menus.ListPageSource):
             subcmds = command.commands
             command = command.origin
 
-        description: locale_str | str = getattr(command, "_locale_description", command.description) or locale_str(
-            "description-empty"
-        )
+        description: locale_str | str = command.description or locale_str("no-description")
         if isinstance(description, locale_str):
             description = await ctx.translate(description)
-        description += command.help or ""
+        description += await ctx.maybeTranslate(command.help, "")
 
-        aliases: str = ", ".join(command.aliases) if command.aliases else "No alias"
-        e = ZEmbed(
+        aliases: str = (
+            ", ".join(command.aliases) if command.aliases else await ctx.translate(locale_str("help-command-no-alias"))
+        )
+        e = ZEmbedBuilder(
             title=formatCmd(prefix, command),
-            description=f"**Aliases**: `{aliases}`\n{description}",
+            description=locale_str("help-command-desc", aliases=aliases, description=description),
         )
 
         if isinstance(command, (commands.HybridCommand, commands.HybridGroup)):
@@ -136,17 +139,15 @@ class HelpCommandPage(menus.ListPageSource):
 
         if isinstance(command, CustomCommand):
             e.title = str(e.title).strip() + "ᶜ"
-            e.add_field(
-                name="Info/Stats",
-                value=("**Owner**: <@{0.owner}>\n" "**Uses**: `{0.uses}`\n" "**Enabled**: `{0.enabled}`".format(command)),
-                inline=False,
-            )
-            e.add_field(
-                name="Tips",
-                value=(
-                    "> Add extra `>` or `!` after prefix to prioritize custom "
-                    f"command.\n> Example: `{prefix}>example` or `{prefix}!example`"
+            e.addField(
+                name=locale_str("help-command-cc-info-title"),
+                value=locale_str(
+                    "help-command-cc-info", ownerMention=str(command.owner), uses=command.uses, enabled=command.enabled
                 ),
+            )
+            e.addField(
+                name=locale_str("help-command-cc-tips-title"),
+                value=locale_str("help-command-cc-tips", prefix=prefix),
             )
 
         if isinstance(command, (commands.Command, commands.Group)):
@@ -158,41 +159,44 @@ class HelpCommandPage(menus.ListPageSource):
                 for key, value in optionDict.items():
                     name = " | ".join([f"`{i}`" for i in key]) if isinstance(key, tuple) else f"`{key}`"
                     optionStr.append(f"> {name}: {value}")
-                e.add_field(name="Options", value="\n".join(optionStr), inline=False)
+                e.addField(name=locale_str("help-command-options-title"), value="\n".join(optionStr))
 
             examples = extras.get("example")
             if examples:
-                e.add_field(
-                    name="Example",
+                e.addField(
+                    name=locale_str("help-command-example-title"),
                     value="\n".join([f"> `{prefix}{x}`" for x in examples]),
-                    inline=False,
                 )
 
             perms = extras.get("perms", {})
             botPerm = perms.get("bot")
             userPerm = perms.get("user")
             if botPerm is not None or userPerm is not None:
-                e.add_field(
-                    name="Required Permissions",
-                    value="> Bot: `{}`\n> User: `{}`".format(botPerm, userPerm),
-                    inline=False,
+                e.addField(
+                    name=locale_str("help-command-perms-title"),
+                    value=locale_str("help-command-perms", botPerms=botPerm, userPerms=userPerm),
                 )
 
             cooldown = command._buckets  # type: ignore
             if cooldown._cooldown:
-                e.add_field(
-                    name="Cooldown",
-                    value=(
-                        "> {0._cooldown.rate} command per " "{0._cooldown.per} seconds, per {0.type[0]}".format(cooldown)
+                e.addField(
+                    name=locale_str("help-command-cooldown-title"),
+                    value=locale_str(
+                        "help-command-cooldown",
+                        rate=cooldown._cooldown.rate,
+                        per=cooldown._cooldown.per,
+                        type=str(cooldown.type[0]),  # type: ignore
                     ),
+                    inline=True,
                 )
 
         if subcmds:
-            e.add_field(
-                name="Subcommands",
+            e.addField(
+                name=locale_str("help-command-subcommands-title"),
                 value="\n".join([f"> `{formatCmd(prefix, cmd)}`" for cmd in subcmds]),
+                inline=True,
             )
-        return e
+        return await e.build(ctx)
 
 
 class CustomCommandsListSource(menus.ListPageSource):
@@ -204,12 +208,12 @@ class CustomCommandsListSource(menus.ListPageSource):
         e = ZEmbed(
             title=f"Custom Commands in {ctx.guild}",
             fields=[
-                (
+                Field(
                     f"**`{count+1}`** {command} (**`{command.uses}`** uses)",
                     command.description or "No description",
                 )
                 for count, command in list_
             ],
-            field_inline=False,
+            fieldInline=False,
         )
         return e

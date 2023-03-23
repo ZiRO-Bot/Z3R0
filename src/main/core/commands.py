@@ -25,12 +25,14 @@ class ZCommand(commands.Command):
         self,
         func: Callable,
         /,
+        # I use desc instead of description to avoid the content being casted as String
+        desc: locale_str | str | None = None,
         **kwargs: Any,
     ) -> None:
-        description: locale_str | str = kwargs.pop("description", "")
         super().__init__(func, **kwargs)
         self.localeName: locale_str | None = kwargs.get("localeName")
-        self.description: locale_str | str = description
+        if not self.description and desc is not None:
+            self.description: locale_str | str = desc or ""
 
     def autocomplete(self, name: str) -> Callable[[AutocompleteCallbackType], AutocompleteCallbackType]:
         def decorator(callback: AutocompleteCallbackType) -> AutocompleteCallbackType:
@@ -107,7 +109,7 @@ def command(
         if localeName is not MISSING:
             kwargs["localeName"] = localeName
         if description is not MISSING:
-            kwargs["description"] = description
+            kwargs["desc"] = description
         if help is not MISSING:
             kwargs["help"] = help
         if aliases is not MISSING:
