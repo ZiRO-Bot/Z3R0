@@ -387,16 +387,46 @@ hentai-desc = Get hentai images from nekos.fun
 # --- Timer
 time = time
 time-desc = Get current time
+time-result-title = Current Time
+time-result-disclaimer = Timezone is coming soon{"\u2122"}!
 
 # --- Utilities
 calc = calc
 calc-desc = Simple math evaluator
+calc-equation-title = Equation
+calc-result-title = Result
+calc-result = { NUMBER($number, maximumFractionDigits: 1) }
+calc-result-too-large = HUGE NUMBER
+calc-result-infinite = Infinity
+calc-result-error = ERR
+calc-raw-result-title = Raw Result
+calc-author = Simple Math Evaluator
 morse = morse
 morse-desc = Encode a text into morse code
+morse-error-title = { -error-title-prefix } Invalid Text
+morse-error = Symbols/accented letters is not supported (yet?)
 unmorse = unmorse
 unmorse-desc = Decode a morse code
+unmorse-error = Invalid morse code!
 search = search
 search-desc = Search the Internet
+search-error-title = { -error-title-prefix } Not Found!
+search-error = Your search - { $query } - did not match any documents.
+search-result-title = Search result for '{ $query }'
+search-result-stats = About { $count } results ({ $duration } { $unit })
+search-rich-card-title = Rich Card Info: `{ $title }`
+search-currency =
+    `{ $value } { $currency }` equals
+    {"**"}`{ $resValue }` { $resCurrency }{"**"}
+    Last updated: `{ $lastUpdated }`
 realurl = realurl
 realurl-desc = Get shorten url's real url. No more rick roll!
 realurl-arg-shorten-url = shorten-url
+realurl-title = Real URL
+realurl-result =
+    {"**"}Shorten URL{"**"}: { $query }
+    {"**"}Real URL{"**"}: { $result }
+realurl-error-url = '{ $url }' is not a valid url!
+realurl-error-url-title = { -error-title-prefix } Invalid URL
+realurl-error-connection = Cannot connect to '{ $url }'. Please try again later!
+realurl-error-connection-title = { -error-title-prefix } Failed to connect

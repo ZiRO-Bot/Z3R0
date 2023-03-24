@@ -20,6 +20,7 @@ from discord.ext import commands
 from ...core import commands as cmds
 from ...core import db
 from ...core.converter import TimeAndArgument
+from ...core.embed import ZEmbedBuilder
 from ...core.mixin import CogMixin
 from ...utils.format import formatDateTime, formatDiscordDT
 from ...utils.other import utcnow
@@ -219,13 +220,13 @@ class Timer(commands.Cog, CogMixin):
             dt = dt.astimezone(tz)
 
         # TODO: Add timezone
-        e = discord.Embed(
-            title="Current Time",
+        e = ZEmbedBuilder(
+            title=_("time-result-title"),
             description=formatDateTime(dt),
             colour=self.bot.colour,
         )
-        e.set_footer(text="Timezone coming soon\u2122!")
-        await ctx.try_reply(embed=e)
+        e.setFooter(text=_("time-result-disclaimer"))
+        await ctx.try_reply(embed=await e.build(ctx))
 
     @commands.Cog.listener("on_reminder_timer_complete")
     async def onReminderTimerComplete(self, timer: TimerData) -> None:

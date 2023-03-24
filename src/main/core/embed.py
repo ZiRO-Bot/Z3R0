@@ -42,6 +42,7 @@ class ZEmbedBuilder:
         description: locale_str | str | None = None,
         colour: discord.Colour | int = 0x3DB4FF,
         timestamp: dt.datetime | None = None,
+        fields: list[Field] = [],
         fieldInline: bool = False,
     ):
         self.author: locale_str | str | None = None
@@ -51,6 +52,7 @@ class ZEmbedBuilder:
         self.description: locale_str | str | None = description
         self.colour: discord.Colour | int = colour
         self.timestamp: dt.datetime | None = timestamp
+        self.setFields(fields)
         self.fieldInline: bool = fieldInline
         self.imageUrl: str | None = None
         self.footer: Footer | None = None
@@ -72,13 +74,17 @@ class ZEmbedBuilder:
         self.footer = Footer(text, iconUrl)
         return self
 
+    def setFields(self, fields: list[Field]) -> ZEmbedBuilder:
+        self.fields = fields
+        return self
+
     def addField(self, name: locale_str | str, value: locale_str | str, inline: bool = False) -> ZEmbedBuilder:
         field = Field(name, value, inline)
 
         try:  # avoid ZEmbedBuilder.fields from being singleton
             self.fields.append(field)
         except AttributeError:
-            self.fields: list[Field] = [field]
+            self.setFields([field])
         return self
 
     async def build(
