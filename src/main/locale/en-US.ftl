@@ -309,7 +309,6 @@ prefix-list-desc-default =
 prefix-list-desc-empty =
     { -default-prefix } `{ $defaultPrefix }` or `{ $mentionPrefix } `
     
-    
     { -custom-prefix }
     No custom prefix.
 

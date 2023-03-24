@@ -53,7 +53,7 @@ class PrefixesPageSource(menus.ListPageSource):
                 fmt += "`{}`"
             prefixes.append(fmt.format(cleanifyPrefix(ctx.bot, prefix)))
         if not prefixes:
-            e.description = locale_str("prefix-list-empty", **kwargs)
+            e.description = locale_str("prefix-list-desc-empty", **kwargs)
         e.description = await ctx.translate(e.description) + "\n".join(prefixes)
         return await e.build(ctx)
 
