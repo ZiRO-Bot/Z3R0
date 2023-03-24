@@ -112,7 +112,7 @@ class Localization:
         return await self.get(msgId, locale or self.currentLocale or self.defaultLocale)
 
     async def _getResource(self, locale: Locale) -> Resource:
-        with Path(self.root, f"{locale.value}.ftl").open() as fp:
+        with Path(self.root, f"{locale.value}.ftl").open(encoding="utf8") as fp:
             file = await asyncio.to_thread(fp.read)
             resource = FluentParser().parse(file)
         return resource
