@@ -17,7 +17,7 @@ from discord.utils import MISSING
 from ...core import checks
 from ...core import commands as cmds
 from ...core.context import Context
-from ...core.embed import ZEmbed
+from ...core.embed import ZEmbedBuilder
 from ...core.guild import GuildWrapper
 from ...core.mixin import CogMixin
 from ...utils.other import setGuildRole
@@ -157,34 +157,26 @@ class Admin(commands.Cog, CogMixin):
 
         channelId = MISSING
         if channelId is not MISSING:
-            _translated = await ctx.translate(_("log-updated-title", type=type))
-            e = ZEmbed.success(title=_translated)
+            e = ZEmbedBuilder.success(title=_("log-updated-title", type=type))
 
             if channel is not None and not disable:
                 channelId = channel.id
-                _translated = await ctx.translate(_("log-updated-field-channel"))
-                e.add_field(name=_translated, value=channel.mention)
+                e.addField(name=_("log-updated-field-channel"), value=channel.mention, inline=True)
             elif disable is True:
                 channelId = None
-                _translated = await ctx.translate(_("log-updated-field-status"))
-                _translatedDisabled = await ctx.translate(_("log-updated-field-status-disabled"))
-                e.add_field(name=_translated, value=f"`{_translatedDisabled}`")
+                e.addField(name=_("log-updated-field-status"), value=_("log-updated-field-status-disabled"), inline=True)
 
             await self.bot.setGuildConfig(ctx.requireGuild().id, f"{type}Ch", channelId, "GuildChannels")
 
         else:
-            _translated = await ctx.translate(_("log-config-title", guildName=ctx.requireGuild().name, type=type))
-            e = ZEmbed.default(ctx, title=_translated)
+            e = ZEmbedBuilder.default(ctx, title=_("log-config-title", guildName=ctx.requireGuild().name, type=type))
             channelId = await self.bot.getGuildConfig(ctx.requireGuild().id, f"{type}Ch", "GuildChannels")
             if channelId:
-                _translated = await ctx.translate(_("log-config-field-channel"))
-                e.add_field(name=_translated, value=f"<#{channelId}>")
+                e.addField(name=_("log-config-field-channel"), value=f"<#{channelId}>", inline=True)
             else:
-                _translated = await ctx.translate(_("log-config-field-status"))
-                _translatedDisabled = await ctx.translate(_("log-config-field-status-disabled"))
-                e.add_field(name=_translated, value=f"`{_translatedDisabled}`")
+                e.addField(name=_("log-updated-field-status"), value=_("log-updated-field-status-disabled"), inline=True)
 
-        return await ctx.try_reply(embed=e)
+        return await ctx.tryReply(embed=e)
 
     @cmds.command(
         name=_("modlog"),
@@ -340,13 +332,11 @@ class Admin(commands.Cog, CogMixin):
                     if any([type == "mute", type == "muted"]):
                         await self.updateMutedRoles(ctx, role)
 
-                e = ZEmbed.success(
-                    title=await ctx.translate(_("role-created")),
-                    description=await ctx.translate(
-                        _("role-properties", roleName=role.name, roleType=type, roleId=str(role.id))
-                    ),
+                e = ZEmbedBuilder.success(
+                    title=_("role-created"),
+                    description=_("role-properties", roleName=role.name, roleType=type, roleId=str(role.id)),
                 )
-                return await ctx.try_reply(embed=e)
+                return await ctx.tryReply(embed=e)
 
         return await ctx.error(
             await ctx.translate(_("role-types-list", roleTypes=", ".join([f"`{type}`" for type in ROLE_TYPES]))),
@@ -382,19 +372,15 @@ class Admin(commands.Cog, CogMixin):
                     if any([type == "mute", type == "muted"]):
                         await self.updateMutedRoles(ctx, role)
 
-                e = ZEmbed.success(
-                    title=await ctx.translate(_("role-modified")),
-                    description=await ctx.translate(
-                        _("role-properties", roleName=role.name, roleType=type, roleId=str(role.id))
-                    ),
+                e = ZEmbedBuilder.success(
+                    title=_("role-modified"),
+                    description=_("role-properties", roleName=role.name, roleType=type, roleId=str(role.id)),
                 )
                 return await ctx.try_reply(embed=e)
 
         return await ctx.error(
-            await ctx.translate(
-                _("role-types-list", roleTypes=", ".join([f"`{type}`" for type in ROLE_TYPES if type not in disallowed]))
-            ),
-            title=await ctx.translate(_("role-manage-failed-reason")),
+            _("role-types-list", roleTypes=", ".join([f"`{type}`" for type in ROLE_TYPES if type not in disallowed])),
+            title=_("role-manage-failed-reason"),
         )
 
     @_role.command(
@@ -403,12 +389,12 @@ class Admin(commands.Cog, CogMixin):
         description=_("role-types-desc"),
     )
     async def roleTypes(self, ctx: Context):
-        e = ZEmbed.minimal(
-            title=await ctx.translate(_("role-types-title")),
+        e = ZEmbedBuilder(
+            title=_("role-types-title"),
             description="\n".join("- `{}`".format(role) for role in ROLE_TYPES),
         )
-        e.set_footer(text=await ctx.translate(_("role-types-footer")))
-        return await ctx.try_reply(embed=e)
+        e.setFooter(text=_("role-types-footer"))
+        return await ctx.tryReply(embed=e)
 
     @commands.command(
         description="Set auto role",

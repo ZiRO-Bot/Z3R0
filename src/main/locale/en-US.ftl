@@ -76,7 +76,7 @@ log-updated-title =
     } config has been updated
 log-updated-field-channel = { -channel(case: "uppercase") }
 log-updated-field-status = { -status(case: "uppercase") }
-log-updated-field-status-disabled = { -disabled(case: "uppercase") }
+log-updated-field-status-disabled = `{ -disabled(case: "uppercase") }`
 # config
 log-config-title =
     { $guildName }'s { $type ->
