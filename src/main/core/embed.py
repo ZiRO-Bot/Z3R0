@@ -18,6 +18,9 @@ from ..utils.other import utcnow
 from .enums import Emojis
 
 
+_ = locale_str
+
+
 if TYPE_CHECKING:
     from ..core.context import Context
 
@@ -36,27 +39,94 @@ class Footer:
 
 
 class ZEmbedBuilder:
+    """Async-first Embed Builder"""
+
     def __init__(
         self,
         title: locale_str | str | None = None,
         description: locale_str | str | None = None,
-        colour: discord.Colour | int = 0x3DB4FF,
+        colour: discord.Colour | int | None = None,
         timestamp: dt.datetime | None = None,
         fields: list[Field] = None,
         fieldInline: bool = False,
+        emoji: str | None = None,
     ):
         self.author: locale_str | str | None = None
         self.authorUrl: str | None = None
         self.authorIcon: str | None = None
         self.title: locale_str | str | None = title
+        self.emoji: str | None = emoji
         self.description: locale_str | str | None = description
-        self.colour: discord.Colour | int = colour
+        self.colour: discord.Colour | int = colour or 0x3DB4FF
         self.timestamp: dt.datetime | None = timestamp
         if fields:  # avoid ZEmbedBuilder.fields from being singleton
             self.setFields(fields)
         self.fieldInline: bool = fieldInline
         self.imageUrl: str | None = None
         self.footer: Footer | None = None
+
+    @classmethod
+    def default(cls, context: Context | discord.Interaction, timestamp: dt.datetime | None = None, **kwargs):
+        """Default template"""
+        if isinstance(context, Context):
+            author = context.author
+        else:
+            author = context.user
+
+        instance = cls(timestamp=timestamp or utcnow(), **kwargs)
+        instance.requesterToFooter(author)
+        return instance
+
+    @classmethod
+    def error(
+        cls,
+        *,
+        emoji: str = Emojis.error,
+        title: locale_str | str = _("error"),
+        colour: discord.Colour = None,
+        **kwargs,
+    ):
+        """Embed Template for Error Message"""
+        return cls(
+            title=title,
+            colour=colour or discord.Colour.red(),
+            emoji=emoji,
+            **kwargs,
+        )
+
+    @classmethod
+    def success(
+        cls,
+        *,
+        emoji: str = Emojis.ok,
+        title: locale_str | str = _("success"),
+        colour: discord.Colour = None,
+        **kwargs,
+    ):
+        """Embed Template for Success Message"""
+        return cls(
+            title=title,
+            colour=colour or discord.Colour.green(),
+            emoji=emoji,
+            **kwargs,
+        )
+
+    @classmethod
+    def loading(
+        cls,
+        *,
+        emoji: str = Emojis.loading,
+        title: locale_str | str = _("loading"),
+        colour: discord.Colour | int = None,
+        **kwargs,
+    ):
+        """Embed Template for Loading"""
+        return cls(
+            title=title,
+            colour=colour or discord.Colour.green(),
+            emoji=emoji,
+            **kwargs,
+        )
 
     def setAuthor(self, *, name: locale_str | str, url: str | None = None, iconUrl: str | None = None) -> ZEmbedBuilder:
         self.author = name
@@ -94,7 +164,10 @@ class ZEmbedBuilder:
         kwargs = {}
 
         if self.title:
-            kwargs["title"] = await context.maybeTranslate(self.title)
+            title = await context.maybeTranslate(self.title)
+            if self.emoji:
+                title = f"{self.emoji} {title}"
+            kwargs["title"] = title
 
         if self.description:
             kwargs["description"] = await context.maybeTranslate(self.description)

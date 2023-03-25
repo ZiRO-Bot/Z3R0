@@ -17,7 +17,7 @@ from discord.app_commands import locale_str
 from discord.ext import commands
 from discord.utils import MISSING
 
-from .embed import ZEmbed
+from .embed import ZEmbed, ZEmbedBuilder
 from .guild import GuildWrapper
 
 
@@ -74,8 +74,31 @@ class Context(commands.Context):
     async def reply(self, content: locale_str | str | None = None, **kwargs) -> Message:
         return await super().reply(await self.maybeTranslate(content), **kwargs)
 
-    async def try_reply(self, content: locale_str | str | None = None, *, mention_author=False, **kwargs):
+    async def tryReply(
+        self,
+        content: locale_str | str | None = None,
+        *,
+        mention_author=False,
+        embed: discord.Embed | ZEmbedBuilder | None = None,
+        embeds: list[discord.Embed | ZEmbedBuilder] = [],
+        **kwargs,
+    ):
         """Try reply, if failed do send instead"""
+        if isinstance(embed, ZEmbedBuilder):
+            embed = await embed.build(self)
+
+        _embeds: list[discord.Embed] = []
+        if embeds:
+            for embed in embeds:
+                if isinstance(embed, ZEmbedBuilder):
+                    embed = await embed.build(self)
+                _embeds.append(embed)
+
+        if embed:
+            kwargs["embed"] = embed
+        if _embeds:
+            kwargs["embeds"] = _embeds
+
         if self.interaction is None or self.interaction.is_expired():
             try:
                 action = self.safeReply
@@ -90,6 +113,8 @@ class Context(commands.Context):
                 return await action(content, **kwargs)
 
         return await self.send(content, **kwargs)
+
+    try_reply = tryReply  # Deprecate
 
     async def safe_send_reply(self, content, *, escape_mentions=True, type="send", **kwargs):
         action = getattr(self, type)

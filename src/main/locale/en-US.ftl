@@ -362,23 +362,6 @@ help-command-cooldown =
     }, per { $type }
 help-command-subcommands-title = Subcommands
 
-# - Other
-success = { -success }
-loading = Loading...
-no-description = No description
-unknown = Unknown
-not-provided = Not provided
-not-specified = Not specified
-bot-description = A **free and open source** multi-purpose **discord bot** created by ZiRO2264, formerly called `ziBot`.
-bot-description-extended =
-    A **free and open source** multi-purpose **discord bot** created by ZiRO2264, formerly called `ziBot`.
-    
-    This bot is licensed under **{ $license }**.
-requested-by = Requested By { $user }
-
-# - Error
-error-generic = { -error-title-prefix } Something went wrong!
-
 # --- NSFW
 hentai = hentai
 hentai-desc = Get hentai images from nekos.fun
@@ -429,3 +412,21 @@ realurl-error-url = '{ $url }' is not a valid url!
 realurl-error-url-title = { -error-title-prefix } Invalid URL
 realurl-error-connection = Cannot connect to '{ $url }'. Please try again later!
 realurl-error-connection-title = { -error-title-prefix } Failed to connect
+
+# - Other
+success = { -success }
+loading = Loading...
+no-description = No description
+unknown = Unknown
+not-provided = Not provided
+not-specified = Not specified
+bot-description = A **free and open source** multi-purpose **discord bot** created by ZiRO2264, formerly called `ziBot`.
+bot-description-extended =
+    A **free and open source** multi-purpose **discord bot** created by ZiRO2264, formerly called `ziBot`.
+    
+    This bot is licensed under **{ $license }**.
+requested-by = Requested By { $user }
+
+# - Error
+error = { -error }
+error-generic = { -error-title-prefix } Something went wrong!
