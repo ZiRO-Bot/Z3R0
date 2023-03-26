@@ -6,6 +6,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from __future__ import annotations
 
+import datetime as dt
 import difflib
 import re
 from typing import TYPE_CHECKING, Any, Iterable

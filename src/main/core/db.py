@@ -135,3 +135,11 @@ class CaseLog(ContainsGuildId, Model):
 
     class Meta:
         table = "caseLog"
+
+
+class Highlight(ContainsGuildId, Model):
+    text = fields.TextField()
+    ownerId = fields.BigIntField(pk=False, generated=False)
+
+    class Meta:
+        table = "highlight"
