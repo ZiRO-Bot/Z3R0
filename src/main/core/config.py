@@ -83,6 +83,5 @@ class Config:
 
         if self.migrateUrl and not self.test:
             ret["connections"]["dest"] = self.migrateUrl
-            ret["router"] = "main.core.migration.Router"
 
         return ret
