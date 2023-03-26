@@ -26,6 +26,7 @@ class Config:
         "test",
         "zmqPorts",
         "useAerich",
+        "migrateUrl",
     )
 
     def __init__(
@@ -42,6 +43,7 @@ class Config:
         internalApiHost: str | None = None,
         test: bool = False,
         zmqPorts: dict[str, int] | None = None,
+        migrateUrl: str | None = None,
     ):
         self.token = token
         self.defaultPrefix = defaultPrefix or ">"
@@ -51,6 +53,7 @@ class Config:
         self.author = author
         self.links = links
         self.databaseUrl = databaseUrl or "sqlite://data/database.db"
+        self.migrateUrl = migrateUrl
         self._tortoiseConfig = tortoiseConfig
         self.internalApiHost = internalApiHost or "127.0.0.1:2264"
         self.test = test
@@ -62,14 +65,24 @@ class Config:
         if not self.test:
             mainModel = "src." + mainModel
 
-        return self._tortoiseConfig or {
-            "connections": {"default": self.databaseUrl},
-            "apps": {
-                "models": {
-                    "models": [mainModel, "aerich.models"],
-                    "default_connection": "default",
+        ret = self._tortoiseConfig
+        if not ret:
+            ret = {
+                "connections": {
+                    "default": self.databaseUrl,
                 },
-            },
-            "use_tz": True,  # d.py 2.0 is tz-aware
-            "timezone": "UTC",
-        }
+                "apps": {
+                    "models": {
+                        "models": [mainModel, "aerich.models"],
+                        "default_connection": "default",
+                    },
+                },
+                "use_tz": True,  # d.py 2.0 is tz-aware
+                "timezone": "UTC",
+            }
+
+        if self.migrateUrl and not self.test:
+            ret["connections"]["dest"] = self.migrateUrl
+            ret["router"] = "main.core.migration.Router"
+
+        return ret
