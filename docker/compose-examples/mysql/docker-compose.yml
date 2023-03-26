@@ -8,6 +8,9 @@ services:
     environment:
       ZIBOT_TOKEN: 'YOUR_TOKEN'
       ZIBOT_DB_URL: 'mysql://mysql:pass@db:3306/zibot'
+    volumes:
+      - "./data:/app/data"
+      - "./migrations:/app/migrations"
     depends_on:
       - db
   

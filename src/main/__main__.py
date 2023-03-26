@@ -93,7 +93,6 @@ def run():
                 getattr(_config, "internalApiHost", None),
                 getattr(_config, "test", False),
                 getattr(_config, "zmqPorts", None),
-                getattr(_config, "useAerich", False),
             )
         except ImportError as e:
             if e.name == "config":
@@ -128,7 +127,6 @@ def run():
                     os.environ.get("ZIBOT_INTERNAL_API_HOST"),
                     False,  # Can't test inside docker
                     zmqPorts,
-                    False,  # No need to use Aerich (probably)
                 )
 
         if not config:

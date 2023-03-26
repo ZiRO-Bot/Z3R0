@@ -72,6 +72,7 @@ More feature coming soon!
         image: ghcr.io/ziro-bot/z3r0:latest
         volumes:
           - "./data:/app/data"
+          - "./migrations:/app/migrations"
           - "./config.py:/app/config.py"
     ```
 
