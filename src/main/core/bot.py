@@ -248,6 +248,16 @@ class ziBot(commands.Bot):
         self.loop.create_task(self.afterReady())
 
     async def migrateData(self) -> None:
+        try:
+            with open("data/migrated", "r") as fp:
+                if fp.read() == self.config.migrateUrl:
+                    self.logger.warning(
+                        "Please remove migrateSql/ZIBOT_MIGRATION_DB_URL from the config before running the bot!"
+                    )
+                    return await self.close()
+        except FileNotFoundError:
+            pass
+
         models = [
             db.Guilds,
             db.Timer,
@@ -272,7 +282,10 @@ class ziBot(commands.Bot):
                     newList.append(data)
                 current = newList
             await model.bulk_create(current, ignore_conflicts=True, using_db=Tortoise.get_connection("dest"))
+
         await asyncio.sleep(5)
+        with open("data/migrated", "w") as fp:
+            fp.write(str(self.config.migrateUrl))
         self.logger.warning("Data has been migrated, please remove migrateSql/ZIBOT_MIGRATION_DB_URL from the config!")
         return await self.close()
 
