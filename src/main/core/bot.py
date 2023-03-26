@@ -248,15 +248,13 @@ class ziBot(commands.Bot):
         self.loop.create_task(self.afterReady())
 
     async def migrateData(self) -> None:
-        try:
+        with suppress(FileNotFoundError):
             with open("data/migrated", "r") as fp:
                 if fp.read() == self.config.migrateUrl:
                     self.logger.warning(
                         "Please remove migrateSql/ZIBOT_MIGRATION_DB_URL from the config before running the bot!"
                     )
                     return await self.close()
-        except FileNotFoundError:
-            pass
 
         models = [
             db.Guilds,
