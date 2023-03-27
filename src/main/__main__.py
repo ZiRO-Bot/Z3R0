@@ -93,7 +93,7 @@ def run():
                 getattr(_config, "internalApiHost", None),
                 getattr(_config, "test", False),
                 getattr(_config, "zmqPorts", None),
-                getattr(_config, "migrateSql", None),
+                getattr(_config, "sourceSql", None),
             )
         except ImportError as e:
             if e.name == "config":
@@ -128,7 +128,7 @@ def run():
                     os.environ.get("ZIBOT_INTERNAL_API_HOST"),
                     False,  # Can't test inside docker
                     zmqPorts,
-                    os.environ.get("ZIBOT_MIGRATION_DB_URL"),
+                    os.environ.get("ZIBOT_SOURCE_DB_URL"),
                 )
 
         if not config:

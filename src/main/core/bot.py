@@ -242,7 +242,7 @@ class ziBot(commands.Bot):
 
         await Tortoise.generate_schemas(safe=True)
 
-        if self.config.migrateUrl:
+        if self.config.sourceUrl:
             return await self.migrateData()
 
         self.loop.create_task(self.afterReady())
@@ -250,11 +250,11 @@ class ziBot(commands.Bot):
     async def migrateData(self) -> None:
         with suppress(FileNotFoundError):
             with open("data/migrated", "r") as fp:
-                if fp.read() == self.config.migrateUrl:
+                if fp.read() == self.config.sourceUrl:
                     self.logger.warning(
-                        "Please remove migrateSql/ZIBOT_MIGRATION_DB_URL from the config before running the bot!"
+                        "Data already migrated. Please remove sourceUrl/ZIBOT_SOURCE_DB_URL from the config!"
                     )
-                    return await self.close()
+                    return await Tortoise.get_connection("source").close()
 
         models = [
             db.Guilds,
@@ -270,7 +270,7 @@ class ziBot(commands.Bot):
             db.CaseLog,
         ]
         for model in models:
-            current = await model.all(using_db=Tortoise.get_connection("default"))
+            current = await model.all(using_db=Tortoise.get_connection("source"))
 
             if model is db.Commands:
                 newList = []
@@ -279,13 +279,13 @@ class ziBot(commands.Bot):
                     data._custom_generated_pk = True
                     newList.append(data)
                 current = newList
-            await model.bulk_create(current, ignore_conflicts=True, using_db=Tortoise.get_connection("dest"))
+            await model.bulk_create(current, ignore_conflicts=True, using_db=Tortoise.get_connection("default"))
 
         await asyncio.sleep(5)
         with open("data/migrated", "w") as fp:
-            fp.write(str(self.config.migrateUrl))
-        self.logger.warning("Data has been migrated, please remove migrateSql/ZIBOT_MIGRATION_DB_URL from the config!")
-        return await self.close()
+            fp.write(str(self.config.sourceUrl))
+        self.logger.warning("Data has been migrated, you can now remove migrateSql/ZIBOT_MIGRATION_DB_URL from the config!")
+        return await Tortoise.get_connection("source").close()
 
     async def afterReady(self) -> None:
         """`setup_hook` but wait until ready"""

@@ -101,7 +101,7 @@ More feature coming soon!
 | ZIBOT\_ZMQ\_PUB | zmqPorts | Port for ZeroMQ's Publish |
 | ZIBOT\_ZMQ\_SUB | zmqPorts | Port for ZeroMQ's Subscribe |
 | ZIBOT\_ZMQ\_REP | zmqPorts | Port for ZeroMQ's Reply |
-| ZIBOT\_MIGRATION\_DB\_URL | migrateSql | The migration destination database's url |
+| ZIBOT\_SOURCE\_DB\_URL | sourceSql | The migration source database's url |
 
 #### Manual
 

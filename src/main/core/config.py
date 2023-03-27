@@ -26,7 +26,7 @@ class Config:
         "test",
         "zmqPorts",
         "useAerich",
-        "migrateUrl",
+        "sourceUrl",
     )
 
     def __init__(
@@ -43,7 +43,7 @@ class Config:
         internalApiHost: str | None = None,
         test: bool = False,
         zmqPorts: dict[str, int] | None = None,
-        migrateUrl: str | None = None,
+        sourceUrl: str | None = None,
     ):
         self.token = token
         self.defaultPrefix = defaultPrefix or ">"
@@ -53,7 +53,7 @@ class Config:
         self.author = author
         self.links = links
         self.databaseUrl = databaseUrl or "sqlite://data/database.db"
-        self.migrateUrl = migrateUrl
+        self.sourceUrl = sourceUrl
         self._tortoiseConfig = tortoiseConfig
         self.internalApiHost = internalApiHost or "127.0.0.1:2264"
         self.test = test
@@ -81,7 +81,7 @@ class Config:
                 "timezone": "UTC",
             }
 
-        if self.migrateUrl and not self.test:
-            ret["connections"]["dest"] = self.migrateUrl
+        if self.sourceUrl and not self.test:
+            ret["connections"]["source"] = self.sourceUrl
 
         return ret
