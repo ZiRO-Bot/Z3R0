@@ -7,34 +7,34 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 from __future__ import annotations
 
 import discord
-from discord.utils import MISSING
 
-from ...core import flags
 from ...core.context import Context
 from ...core.embed import ZEmbed
 from ...core.guild import GuildWrapper
-from ...utils.format import separateStringFlags
 from . import _views
+from ._flags import GreetingFlags
 
 
 async def handleGreetingConfig(
     ctx: Context,
     type: str,
     *,
-    arguments: str = MISSING,
-    message: str = None,
-    raw: bool = False,
-    disable: bool = False,
-    channel: discord.TextChannel = None,
+    arguments: GreetingFlags | None = None,
 ):
     """Handle welcome and farewell configuration."""
     guild: GuildWrapper | None = ctx.guild
     if not guild:
         raise RuntimeError
 
+    # App commands doesn't turn arguments into None for some reason
+    try:
+        arguments.string  # type: ignore
+    except AttributeError:
+        arguments = None
+
     changeMsg = False
 
-    if arguments is None:
+    if not arguments:
         # TODO - Revisit once more input introduced to modals
         defMsg = await guild.getConfig(f"{type}Msg") or "No message is set"
         currentChannel = await guild.getConfig(f"{type}Ch")
@@ -46,21 +46,18 @@ async def handleGreetingConfig(
         e.add_field(name="Raw Message", value=discord.utils.escape_markdown(defMsg), inline=False)
 
         v = _views.OpenGreetingModal(ctx, type, owner=ctx.author)
-        v.message = await ctx.try_reply(
+        v.message = await ctx.tryReply(
             view=v,
-            embeds=(e,),
+            embed=e,
         )
         return
-    elif arguments is not MISSING:
-        message, args = separateStringFlags(arguments)
+    else:
+        parsed = arguments
 
-        parsed = await flags.GreetingFlags.convert(ctx, args)
-
-        # Parsed value from flags
         disable = parsed.disable
         raw = parsed.raw
         channel = parsed.channel
-        message = " ".join([message.strip()] + parsed.messages).strip()
+        message = (str(parsed.string).strip() + parsed.message.strip()).strip()
 
     if not raw and not disable and message:
         changeMsg = True

@@ -6,7 +6,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from __future__ import annotations
 
-from typing import Optional, Union
+from typing import TYPE_CHECKING, Union
 
 import discord
 from discord import app_commands
@@ -22,7 +22,11 @@ from ...core.guild import GuildWrapper
 from ...core.mixin import CogMixin
 from ...utils.other import setGuildRole
 from ._common import handleGreetingConfig
-from ._flags import ROLE_TYPES, LogFlags, RoleCreateFlags, RoleSetFlags
+from ._flags import ROLE_TYPES, GreetingFlags, LogFlags, RoleCreateFlags, RoleSetFlags
+
+
+if TYPE_CHECKING:
+    from ...core.bot import ziBot
 
 
 class Admin(commands.Cog, CogMixin):
@@ -33,40 +37,21 @@ class Admin(commands.Cog, CogMixin):
 
     icon = "\u2699"
 
-    def __init__(self, bot) -> None:
+    greetingGroup = app_commands.Group(name="greeting", description="...")
+
+    def __init__(self, bot: ziBot) -> None:
         super().__init__(bot)
 
     async def cog_check(self, ctx):
         return ctx.guild is not None
 
-    greetingGroup = app_commands.Group(name="greeting", description="...")
-
-    welcomeDesc = _("welcome-desc")
-
-    @greetingGroup.command(name=_("welcome"), description=welcomeDesc)
-    @app_commands.describe(
-        channel=_("welcome-arg-channel"),
-        raw=_("welcome-arg-raw"),
-        disable=_("welcome-arg-disable"),
-        message=_("welcome-arg-message"),
-    )
-    @app_commands.guild_only()
-    @checks.mod_or_permissions(manage_channels=True)
-    async def welcomeSlash(
-        self,
-        interaction,
-        message: str = None,
-        channel: Optional[discord.TextChannel] = None,
-        raw: bool = False,
-        disable: bool = False,
-    ):
-        ctx = await Context.from_interaction(interaction)
-        await handleGreetingConfig(ctx, "welcome", message=message, channel=channel, raw=raw, disable=disable)
-
     @cmds.command(
+        name=_("welcome"),
         aliases=("wel",),
-        description=welcomeDesc,
+        description=_("welcome-desc"),
         usage="[message] [options]",
+        hybrid=True,
+        mergeTo=greetingGroup,
         extras=dict(
             example=(
                 "welcome Welcome to {guild}, {user(name)}! ch: #userlog",
@@ -90,37 +75,24 @@ class Admin(commands.Cog, CogMixin):
         ),
         help="\n`TagScript` is supported!",
     )
+    @app_commands.describe(
+        channel=_("welcome-arg-channel"),
+        raw=_("welcome-arg-raw"),
+        disable=_("welcome-arg-disable"),
+        message=_("welcome-arg-message"),
+    )
     @commands.guild_only()
     @checks.mod_or_permissions(manage_channels=True)
-    async def welcome(self, ctx, *, arguments: str):
+    async def welcome(self, ctx, *, arguments: GreetingFlags = None):
         await handleGreetingConfig(ctx, "welcome", arguments=arguments)
 
-    farewellDesc = _("farewell-desc")
-
-    @greetingGroup.command(name=_("farewell"), description=farewellDesc)
-    @app_commands.describe(
-        channel=_("farewell-arg-channel"),
-        raw=_("farewell-arg-raw"),
-        disable=_("farewell-arg-disable"),
-        message=_("farewell-arg-message"),
-    )
-    @app_commands.guild_only()
-    @checks.mod_or_permissions(manage_channels=True)
-    async def farewellSlash(
-        self,
-        interaction,
-        message: str = None,
-        channel: Optional[discord.TextChannel] = None,
-        raw: bool = False,
-        disable: bool = False,
-    ):
-        ctx = await Context.from_interaction(interaction)
-        await handleGreetingConfig(ctx, "farewell", message=message, channel=channel, raw=raw, disable=disable)
-
     @cmds.command(
+        name=_("farewell"),
         aliases=("fw",),
-        description=farewellDesc,
+        description=_("farewell-desc"),
         usage="[message] [options]",
+        hybrid=True,
+        mergeTo=greetingGroup,
         extras=dict(
             example=(
                 "farewell Bye ch: #userlog",
@@ -144,9 +116,15 @@ class Admin(commands.Cog, CogMixin):
         ),
         help="\n`TagScript` is supported!",
     )
+    @app_commands.describe(
+        channel=_("farewell-arg-channel"),
+        raw=_("farewell-arg-raw"),
+        disable=_("farewell-arg-disable"),
+        message=_("farewell-arg-message"),
+    )
     @commands.guild_only()
     @checks.mod_or_permissions(manage_channels=True)
-    async def farewell(self, ctx, *, arguments: str):
+    async def farewell(self, ctx, *, arguments: GreetingFlags = None):
         await handleGreetingConfig(ctx, "farewell", arguments=arguments)
 
     async def handleLogConfig(self, ctx: Context, arguments: LogFlags, type: str):

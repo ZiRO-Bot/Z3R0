@@ -236,6 +236,11 @@ class ziBot(commands.Bot):
         for extension in EXTS:
             await self.load_extension(f"src.{extension}" if not self.config.test else extension)
 
+        for command in self.commands:
+            if merge := getattr(command, "__merge_group__", None):
+                self.tree.get_command(merge.name).add_command(command.app_command)  # type: ignore
+                self.tree.remove_command(command.name)
+
         if not hasattr(self, "uptime"):
             self.uptime: datetime.datetime = utcnow()
 

@@ -17,6 +17,14 @@ from ...core.flags import StringAndFlags
 from ...utils.format import separateStringFlags
 
 
+# TODO: Ditch flags for greetings, it breaks TagScript handler
+class GreetingFlags(StringAndFlags, case_insensitive=True):
+    message: str = commands.flag(name="message", aliases=["msg"], default="")
+    channel: discord.TextChannel | None = commands.flag(name="channel", aliases=["ch"], default=None)
+    raw: bool = False
+    disable: bool = False
+
+
 class LogFlags(StringAndFlags):
     channel: discord.TextChannel | None = commands.flag(name="channel", aliases=["ch"], default=None)
     disable: bool | None = None

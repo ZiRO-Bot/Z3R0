@@ -9,6 +9,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, Awaitable, Callable, Iterable
 
 import discord
+from discord.app_commands import Group as AppGroup
 from discord.app_commands import locale_str
 from discord.ext import commands
 from discord.utils import MISSING
@@ -44,13 +45,17 @@ class ZCommand(commands.Command):
 
 @discord.utils.copy_doc(commands.HybridCommand)
 class ZHybridCommand(commands.HybridCommand, ZCommand):
+    __merge_group__: AppGroup | None = None
+
     def __init__(
         self,
         func: Callable,
         /,
         **kwargs: Any,
     ) -> None:
+        mergeTo = kwargs.pop("mergeTo", None)
         super().__init__(func, **kwargs)
+        self.__merge_group__ = mergeTo
         if self.localeName:
             self._locale_name = self.localeName
 
@@ -89,6 +94,7 @@ def command(
     help: str = MISSING,
     aliases: Iterable[str] = MISSING,
     hybrid: bool = False,
+    mergeTo: AppGroup = MISSING,
     **attrs: Any,
 ) -> Callable[..., ZCommand | ZHybridCommand]:
     """
@@ -114,6 +120,8 @@ def command(
             kwargs["help"] = help
         if aliases is not MISSING:
             kwargs["aliases"] = aliases
+        if mergeTo is not MISSING:
+            kwargs["mergeTo"] = mergeTo
 
         return cls(func, **kwargs)
 

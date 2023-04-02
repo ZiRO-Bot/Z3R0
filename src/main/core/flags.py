@@ -35,11 +35,3 @@ class StringAndFlags(commands.FlagConverter):
         self: Self = await super().convert(ctx, arguments)
         self.string = string
         return self
-
-
-# TODO: Ditch flags for greetings, it breaks TagScript handler
-class GreetingFlags(commands.FlagConverter, case_insensitive=True):
-    channel: discord.TextChannel | None = commands.flag(name="channel", aliases=["ch"], default=None)
-    raw: bool = False
-    disable: bool = False
-    messages: list[str] = commands.flag(name="message", aliases=["msg"], default=[])
