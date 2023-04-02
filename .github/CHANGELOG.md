@@ -10,6 +10,8 @@
 
 ### Internal Changes
 - [**Removed**] Flake8 no longer used for linting, pyright will handle this job instead
+- [**Added**] Database Migration with `aerich`
+- [**Added**] Database Data Migration
 
 ## 3.6.1 (Project Structure Refactor - Part 1.5 A.K.A Hotfix)
 
