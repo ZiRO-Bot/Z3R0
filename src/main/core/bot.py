@@ -189,7 +189,7 @@ class ziBot(commands.Bot):
         return self.owner_ids
 
     @ownerIds.setter
-    def setOwnerIds(self, newIds):
+    def ownerIds(self, newIds):
         self.owner_ids = newIds
 
     async def setup_hook(self) -> None:
