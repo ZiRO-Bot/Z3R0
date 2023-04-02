@@ -13,14 +13,17 @@ import json
 import logging
 import os
 import re
+import shutil
 from collections import Counter
 from contextlib import suppress
+from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 import aiohttp
 import discord
 import zmq
 import zmq.asyncio
+from aerich import Command as AerichCommand
 from discord.ext import commands, tasks
 from tortoise import Tortoise, connections
 from tortoise.exceptions import DBConnectionError, OperationalError
@@ -208,10 +211,35 @@ class ziBot(commands.Bot):
             with suppress(DBConnectionError, OperationalError):
                 await Tortoise._drop_databases()
 
-        await Tortoise.init(
-            config=self.config.tortoiseConfig,
-            use_tz=True,  # d.py 2.0 is tz-aware
+        migrationDir = Path("migrations")
+
+        aerichCmd = AerichCommand(
+            tortoise_config=self.config.tortoiseConfig,
+            location=str(migrationDir),
         )
+
+        if migrationDir.exists():
+            await aerichCmd.init()
+
+            try:
+                update = await aerichCmd.migrate()
+
+                if update:
+                    upgrades = await aerichCmd.upgrade()
+                    if len(upgrades) > 0:
+                        self.logger.warning(f"DB Upgrades done ({len(upgrades)}): {', '.join(upgrades)}")
+
+            except AttributeError:
+                self.logger.warning(
+                    "Unable to retrieve model history from the database! " "Creating model history from scratch..."
+                )
+
+                shutil.rmtree(migrationDir)
+
+                await aerichCmd.init_db(True)
+        else:
+            await aerichCmd.init_db(True)
+
         await Tortoise.generate_schemas(safe=True)
 
         self.loop.create_task(self.afterReady())

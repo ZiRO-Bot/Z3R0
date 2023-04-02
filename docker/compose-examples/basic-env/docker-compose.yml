@@ -8,3 +8,6 @@ services:
     environment:
       ZIBOT_TOKEN: 'YOUR_TOKEN'
       ZIBOT_DB_URL: 'DB_TYPE://PATH_OR_CREDENTIALS/DB_NAME?PARAM1=value&PARAM2=value'
+    volumes:
+      - "./data:/app/data"
+      - "./migrations:/app/migrations"

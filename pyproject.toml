@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "Z3R0"
-version = "3.6.1"
+version = "3.6.2"
 description = "A multi-purpose open source discord bot"
 authors = ["null2264"]
 license = "MPL-2.0"
@@ -11,6 +11,7 @@ packages = [
 
 [tool.poetry.scripts]
 bot = "main.__main__:run"
+datamigration = "main.__main__:datamigration"
 
 [tool.poetry.dependencies]
 python = "^3.10"
@@ -37,12 +38,12 @@ tortoise-orm = "0.19.3"
 orjson = {version = "3.8.3", optional = true}
 single-source = "0.3.0"
 pyzmq = "^25.0.0"
+aerich = "0.7.1"
 
 [tool.poetry.group.dev.dependencies]
 black = "^22.10.0"
 isort = "^5.10.1"
 pre-commit = "^2.13.0"
-aerich = "0.7.1"
 
 [tool.poetry.group.test]
 

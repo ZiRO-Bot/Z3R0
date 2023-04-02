@@ -9,6 +9,9 @@ services:
       ZIBOT_TOKEN: 'YOUR_TOKEN'
       ZIBOT_DB_URL: 'postgres://postgres:pass@db:5432/zibot'
       ZIBOT_INTERNAL_API_HOST: 'api:2264'
+    volumes:
+      - "./data:/app/data"
+      - "./migrations:/app/migrations"
     depends_on:
       - db
       - api

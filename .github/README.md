@@ -72,6 +72,7 @@ More feature coming soon!
         image: ghcr.io/ziro-bot/z3r0:latest
         volumes:
           - "./data:/app/data"
+          - "./migrations:/app/migrations"
           - "./config.py:/app/config.py"
     ```
 
@@ -145,6 +146,11 @@ More feature coming soon!
 - It is recommended to setup a test unit inside `src/test` when you added a new
   command, you can run the test by running `poetry run pytest -v`  
   Read [dpytest](https://dpytest.readthedocs.io/) documentation for more information
+
+### Data Migration
+
+<!-- TODO -->
+`poetry run datamigration --source "sqlite://data/databaseMigration.db" --dest "postgres://user:pass@host:port/z3r0"`
 
 ## Changelog
 
