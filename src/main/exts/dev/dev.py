@@ -48,7 +48,9 @@ class Developer(*STANDARD_FEATURES, *OPTIONAL_FEATURES):
     async def tryLoadReload(self, extension: str):
         reloadFailMessage = "Failed to reload {}:"
         actionType = (
-            "reload" if extension in self.bot.extensions or f"{EXTS_DIR}.{extension}" in self.bot.extensions else "load"
+            "reload"
+            if extension in self.bot.extensions or f"src.main.{EXTS_DIR}.{extension}" in self.bot.extensions
+            else "load"
         )
         action = getattr(
             self.bot,
@@ -58,7 +60,7 @@ class Developer(*STANDARD_FEATURES, *OPTIONAL_FEATURES):
             try:
                 await action(extension)
             except BaseException:
-                await action(f"{EXTS_DIR}.{extension}")
+                await action(f"src.main.{EXTS_DIR}.{extension}")
         except Exception as exc:
             self.bot.logger.exception(reloadFailMessage.format(extension))
             raise exc
@@ -91,7 +93,7 @@ class Developer(*STANDARD_FEATURES, *OPTIONAL_FEATURES):
                 "has been loaded/reloaded" if status[extension] == OK else "failed to load/reload",
             )
 
-        return await ctx.try_reply(embed=e)
+        return await ctx.tryReply(embed=e)
 
     @Feature.Command(parent="jsk", name="restart")
     async def jsk_restart(self, ctx):
