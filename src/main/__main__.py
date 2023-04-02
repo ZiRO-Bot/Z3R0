@@ -61,7 +61,7 @@ def setup_logging():
             logger.removeHandler(handler)  # type: ignore
 
 
-async def runBot(config: Config):
+async def _run(config: Config):
     """Launch the bot."""
     # jishaku env stuff
     os.environ["JISHAKU_NO_UNDERSCORE"] = "True"
@@ -143,21 +143,78 @@ def run():
         try:
             import uvloop  # type: ignore - error is handled
         except ImportError:
-            asyncio.run(runBot(config))
+            asyncio.run(_run(config))
         else:
             if sys.version_info >= (3, 11):
                 with asyncio.Runner(loop_factory=uvloop.new_event_loop) as runner:
-                    runner.run(runBot(config))
+                    runner.run(_run(config))
             else:
                 uvloop.install()
-                asyncio.run(runBot(config))
+                asyncio.run(_run(config))
 
 
-async def datamigration():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--source", required=True)
+async def _datamigration(config: Config):
+    """|coro|
+
+    The actual data migration. Should only be ran once, running it again may
+    cause some issue.
+
+    Usage
+    -----
+    %> poetry run datamigration --dest "postgres://user:pass@host:port/db" --source "sqlite:///data/database.db"
+    %> poetry run datamigration --dest "mysql://user@host/db" --source "sqlite:///database.db"
+    """
+    logger = logging.getLogger("discord")
+    await Tortoise.init(config=config.tortoiseConfig)
+    logger.warn("Trying to generate scheme...")
+    await Tortoise.generate_schemas(True)
+
+    models = [
+        db.Guilds,
+        db.Timer,
+        db.Commands,
+        db.CommandsLookup,
+        db.Disabled,
+        db.Prefixes,
+        db.GuildConfigs,
+        db.GuildChannels,
+        db.GuildRoles,
+        db.GuildMutes,
+        db.CaseLog,
+    ]
+    for index, model in enumerate(models):
+        current = await model.all(using_db=Tortoise.get_connection("default"))
+
+        if model is db.Commands:
+            newList = []
+            for data in current:
+                # Internal API, as far as I know this is the only way to force TortoiseORM to NOT generate new ID
+                data._custom_generated_pk = True
+                newList.append(data)
+            current = newList
+        logger.warn(f"Migrating {model.__name__} [{index + 1}/{len(models)}]...")
+        await model.bulk_create(current, ignore_conflicts=True, using_db=Tortoise.get_connection("dest"))
+
+    logger.warning("Data has been migrated!")
+    return await connection.connections.close_all()
+
+
+def datamigration():
+    """
+    Config and Args handler before actually doing the data migration
+    """
+    source = None
+    try:
+        import config
+
+        source = config.sql
+    except:
+        pass
+
+    parser = argparse.ArgumentParser(add_help=False)
+    parser.add_argument("--source", default=source)
     parser.add_argument("--dest", required=True)
-    parsed = parser.parse_args(sys.argv[2:])
+    parsed = parser.parse_args(sys.argv[1:])
 
     config = Config(
         "",
@@ -166,51 +223,27 @@ async def datamigration():
         isDataMigration=True,
     )
 
-    await Tortoise.init(config=config.tortoiseConfig)
-
     with setup_logging():
-        logger = logging.getLogger("discord")
-        models = [
-            db.Guilds,
-            db.Timer,
-            db.Commands,
-            db.CommandsLookup,
-            db.Disabled,
-            db.Prefixes,
-            db.GuildConfigs,
-            db.GuildChannels,
-            db.GuildRoles,
-            db.GuildMutes,
-            db.CaseLog,
-        ]
-        for model in models:
-            current = await model.all()
-
-            if model is db.Commands:
-                newList = []
-                for data in current:
-                    # Internal API, as far as I know this is the only way to force TortoiseORM to NOT generate new ID
-                    data._custom_generated_pk = True
-                    newList.append(data)
-                current = newList
-            await model.bulk_create(current, ignore_conflicts=True, using_db=Tortoise.get_connection("dest"))
-
-        logger.warning("Data has been migrated!")
-        return await connection.connections.close_all()
+        asyncio.run(_datamigration(config))
 
 
 def main():
+    """
+    CLI Command Handler
+
+    Will run the bot by default if no command is specified
+    """
     command = None
     try:
         command = sys.argv[1]
     except IndexError:
         pass
 
-    if not command:
-        run()
-    else:
+    if command:
         if command == "datamigration":
-            asyncio.run(datamigration())
+            return datamigration()
+    # Since no valid command is detected we fallback to running the bot
+    return run()
 
 
 if __name__ == "__main__":

@@ -86,5 +86,9 @@ class Config:
 
         if self.destUrl and not self.test and self.isDataMigration:
             ret["connections"]["dest"] = self.destUrl
+            # Default connection need to be changed for data migration to
+            # attach destination db as models' meta db in order for
+            # Tortoise.generate_schemas() to work.
+            ret["apps"]["models"]["default_connection"] = "dest"
 
         return ret

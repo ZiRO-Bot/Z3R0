@@ -11,6 +11,7 @@ packages = [
 
 [tool.poetry.scripts]
 bot = "main.__main__:run"
+datamigration = "main.__main__:datamigration"
 
 [tool.poetry.dependencies]
 python = "^3.10"

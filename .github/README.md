@@ -150,7 +150,7 @@ More feature coming soon!
 ### Data Migration
 
 <!-- TODO -->
-`poetry run datamigration --source "" --dest ""`
+`poetry run datamigration --source "sqlite://data/databaseMigration.db" --dest "postgres://user:pass@host:port/z3r0"`
 
 ## Changelog
 
