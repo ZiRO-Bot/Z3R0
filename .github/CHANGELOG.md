@@ -8,8 +8,17 @@
 
 ## 3.6.2 (Project Structure Refactor - Part 2)
 
+> **Note**
+>
+> Starting at v3.6.2, `aerich` will be handled automatically. It's recommended
+> to drop `aerich` table from your database before running the bot.
+>
+> For Docker users it's recommended to add `./migrations:/app/migrations` to
+> your docker-compose's volumes list.
+
 ### Internal Changes
-- [**Removed**] Flake8 no longer used for linting, pyright will handle this job instead
+- [**Removed**] Flake8 no longer used for linting, pyright will handle this job
+  instead
 - [**Added**] Database Migration with `aerich`
 - [**Added**] Database Data Migration
 
@@ -45,7 +54,8 @@
 - [**Changed**] Merge TagScript into Z3R0 repository
 - [**Improved**] Split `_model` into `_wrapper` and `_custom_command`
 - [**Improved**] Moved Custom Command related errors into `exts.meta._errors`
-- [**Improved**] Moved JSON (and Blacklist) and Cache (and its properties) into `core.data`
+- [**Improved**] Moved JSON (and Blacklist) and Cache (and its properties) into
+  `core.data`
 - [**Changed**] Removed `CMDName`
 - [**Added**] Initial ZeroMQ support for Dashboard
 - [**Improved**] `ccModeCheck` is now an actual check (`hasCCPriviledge`)
