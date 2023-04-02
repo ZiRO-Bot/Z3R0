@@ -101,7 +101,6 @@ More feature coming soon!
 | ZIBOT\_ZMQ\_PUB | zmqPorts | Port for ZeroMQ's Publish |
 | ZIBOT\_ZMQ\_SUB | zmqPorts | Port for ZeroMQ's Subscribe |
 | ZIBOT\_ZMQ\_REP | zmqPorts | Port for ZeroMQ's Reply |
-| ZIBOT\_SOURCE\_DB\_URL | sourceSql | The migration source database's url |
 
 #### Manual
 
@@ -147,6 +146,11 @@ More feature coming soon!
 - It is recommended to setup a test unit inside `src/test` when you added a new
   command, you can run the test by running `poetry run pytest -v`  
   Read [dpytest](https://dpytest.readthedocs.io/) documentation for more information
+
+### Data Migration
+
+<!-- TODO -->
+`poetry run datamigration --source "" --dest ""`
 
 ## Changelog
 

@@ -242,50 +242,7 @@ class ziBot(commands.Bot):
 
         await Tortoise.generate_schemas(safe=True)
 
-        if self.config.sourceUrl:
-            return await self.migrateData()
-
         self.loop.create_task(self.afterReady())
-
-    async def migrateData(self) -> None:
-        with suppress(FileNotFoundError):
-            with open("data/migrated", "r") as fp:
-                if fp.read() == self.config.sourceUrl:
-                    self.logger.warning(
-                        "Data already migrated. Please remove sourceUrl/ZIBOT_SOURCE_DB_URL from the config!"
-                    )
-                    return await Tortoise.get_connection("source").close()
-
-        models = [
-            db.Guilds,
-            db.Timer,
-            db.Commands,
-            db.CommandsLookup,
-            db.Disabled,
-            db.Prefixes,
-            db.GuildConfigs,
-            db.GuildChannels,
-            db.GuildRoles,
-            db.GuildMutes,
-            db.CaseLog,
-        ]
-        for model in models:
-            current = await model.all(using_db=Tortoise.get_connection("source"))
-
-            if model is db.Commands:
-                newList = []
-                for data in current:
-                    # Internal API, as far as I know this is the only way to force TortoiseORM to NOT generate new ID
-                    data._custom_generated_pk = True
-                    newList.append(data)
-                current = newList
-            await model.bulk_create(current, ignore_conflicts=True, using_db=Tortoise.get_connection("default"))
-
-        await asyncio.sleep(5)
-        with open("data/migrated", "w") as fp:
-            fp.write(str(self.config.sourceUrl))
-        self.logger.warning("Data has been migrated, you can now remove migrateSql/ZIBOT_MIGRATION_DB_URL from the config!")
-        return await Tortoise.get_connection("source").close()
 
     async def afterReady(self) -> None:
         """`setup_hook` but wait until ready"""

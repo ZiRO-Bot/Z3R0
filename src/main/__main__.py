@@ -4,6 +4,7 @@ License, v. 2.0. If a copy of the MPL was not distributed with this
 file, You can obtain one at http://mozilla.org/MPL/2.0/.
 """
 
+import argparse
 import asyncio
 import contextlib
 import logging
@@ -12,8 +13,10 @@ import sys
 from logging.handlers import RotatingFileHandler
 
 import aiohttp
+from tortoise import Tortoise, connection
 
 from src.main.core import bot as _bot
+from src.main.core import db
 from src.main.core.config import Config
 from src.main.utils.other import utcnow
 
@@ -58,7 +61,7 @@ def setup_logging():
             logger.removeHandler(handler)  # type: ignore
 
 
-async def main(config: Config):
+async def runBot(config: Config):
     """Launch the bot."""
     # jishaku env stuff
     os.environ["JISHAKU_NO_UNDERSCORE"] = "True"
@@ -93,7 +96,8 @@ def run():
                 getattr(_config, "internalApiHost", None),
                 getattr(_config, "test", False),
                 getattr(_config, "zmqPorts", None),
-                getattr(_config, "sourceSql", None),
+                None,
+                False,
             )
         except ImportError as e:
             if e.name == "config":
@@ -128,7 +132,8 @@ def run():
                     os.environ.get("ZIBOT_INTERNAL_API_HOST"),
                     False,  # Can't test inside docker
                     zmqPorts,
-                    os.environ.get("ZIBOT_SOURCE_DB_URL"),
+                    None,
+                    False,
                 )
 
         if not config:
@@ -138,15 +143,75 @@ def run():
         try:
             import uvloop  # type: ignore - error is handled
         except ImportError:
-            asyncio.run(main(config))
+            asyncio.run(runBot(config))
         else:
             if sys.version_info >= (3, 11):
                 with asyncio.Runner(loop_factory=uvloop.new_event_loop) as runner:
-                    runner.run(main(config))
+                    runner.run(runBot(config))
             else:
                 uvloop.install()
-                asyncio.run(main(config))
+                asyncio.run(runBot(config))
+
+
+async def datamigration():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--source", required=True)
+    parser.add_argument("--dest", required=True)
+    parsed = parser.parse_args(sys.argv[2:])
+
+    config = Config(
+        "",
+        databaseUrl=parsed.source,
+        destUrl=parsed.dest,
+        isDataMigration=True,
+    )
+
+    await Tortoise.init(config=config.tortoiseConfig)
+
+    with setup_logging():
+        logger = logging.getLogger("discord")
+        models = [
+            db.Guilds,
+            db.Timer,
+            db.Commands,
+            db.CommandsLookup,
+            db.Disabled,
+            db.Prefixes,
+            db.GuildConfigs,
+            db.GuildChannels,
+            db.GuildRoles,
+            db.GuildMutes,
+            db.CaseLog,
+        ]
+        for model in models:
+            current = await model.all()
+
+            if model is db.Commands:
+                newList = []
+                for data in current:
+                    # Internal API, as far as I know this is the only way to force TortoiseORM to NOT generate new ID
+                    data._custom_generated_pk = True
+                    newList.append(data)
+                current = newList
+            await model.bulk_create(current, ignore_conflicts=True, using_db=Tortoise.get_connection("dest"))
+
+        logger.warning("Data has been migrated!")
+        return await connection.connections.close_all()
+
+
+def main():
+    command = None
+    try:
+        command = sys.argv[1]
+    except IndexError:
+        pass
+
+    if not command:
+        run()
+    else:
+        if command == "datamigration":
+            asyncio.run(datamigration())
 
 
 if __name__ == "__main__":
-    run()
+    main()
