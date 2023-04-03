@@ -98,7 +98,7 @@ class Developer(*STANDARD_FEATURES, *OPTIONAL_FEATURES):
         # For docker-compose you MUST set restart policy to on-failure
         await ctx.send("Restarting...")
         ctx.bot.exitCode = 1
-        await ctx.bot.close()
+        await ctx.bot.exit()
 
     @Feature.Command(parent="jsk", name="test_menu")
     async def jsk_test_menu(self, ctx):

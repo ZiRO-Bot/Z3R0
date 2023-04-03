@@ -677,6 +677,9 @@ class ziBot(commands.Bot):
 
         # Close aiohttp session
         await self.session.close()
+
+    async def exit(self) -> None:
+        await self.close()
         sys.exit(self.exitCode)
 
     async def run(self) -> None:
