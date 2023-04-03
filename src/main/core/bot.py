@@ -14,6 +14,7 @@ import logging
 import os
 import re
 import shutil
+import sys
 from collections import Counter
 from contextlib import suppress
 from pathlib import Path
@@ -174,6 +175,8 @@ class ziBot(commands.Bot):
         self.subSocket: zmq.asyncio.Socket | None = None
         self.repSocket: zmq.asyncio.Socket | None = None
         self.socketTasks: list[asyncio.Task] = []
+
+        self.exitCode: int = 0
 
         @self.check
         async def _(ctx):
@@ -674,6 +677,7 @@ class ziBot(commands.Bot):
 
         # Close aiohttp session
         await self.session.close()
+        sys.exit(self.exitCode)
 
     async def run(self) -> None:
 

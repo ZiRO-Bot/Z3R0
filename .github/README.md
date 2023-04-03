@@ -70,6 +70,7 @@ More feature coming soon!
       bot:
         container_name: zibot
         image: ghcr.io/ziro-bot/z3r0:latest
+        restart: on-failure
         volumes:
           - "./data:/app/data"
           - "./migrations:/app/migrations"

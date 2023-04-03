@@ -4,7 +4,7 @@ services:
   bot:
     container_name: zibot
     image: ghcr.io/ziro-bot/z3r0:latest
-    restart: unless-stopped
+    restart: on-failure
     environment:
       ZIBOT_TOKEN: 'YOUR_TOKEN'
       ZIBOT_DB_URL: 'postgres://postgres:pass@db:5432/zibot'
