@@ -25,8 +25,8 @@ __all__ = ("Prefix",)
 
 
 class Prefix:
-    def __init__(self, *, owner: discord.Guild | discord.User, bot: ziBot):
-        self.owner: discord.Guild | discord.User = owner
+    def __init__(self, *, owner: discord.Guild | discord.User | discord.Object, bot: ziBot):
+        self.owner: discord.Guild | discord.User | discord.Object = owner
         self.bot: ziBot = bot
 
     async def fetch(self) -> list[db.Prefixes]:
@@ -83,6 +83,9 @@ class Prefix:
                 )
             )
 
+        self.bot.dispatch(
+            "zmq_publish", b"guild.update", type="prefix-update", prefixes=await self.get(), guildId=self.owner.id
+        )
         return prefix
 
     async def remove(self, prefix: str) -> str:
@@ -95,6 +98,9 @@ class Prefix:
         except IndexError:
             raise commands.BadArgument("Prefix `{}` is not exists".format(self.cleanify(prefix)))
 
+        self.bot.dispatch(
+            "zmq_publish", b"guild.update", type="prefix-update", prefixes=await self.get(), guildId=self.owner.id
+        )
         return prefix
 
     def cleanify(self, prefix: str) -> str:
