@@ -9,12 +9,11 @@ from __future__ import annotations
 import discord
 from discord.utils import MISSING
 
-from ...core import flags
 from ...core.context import Context
 from ...core.embed import ZEmbed
 from ...core.guild import GuildWrapper
 from ...utils.format import separateStringFlags
-from . import _views
+from . import _flags, _views
 
 
 async def handleGreetingConfig(
@@ -54,7 +53,7 @@ async def handleGreetingConfig(
     elif arguments is not MISSING:
         message, args = separateStringFlags(arguments)
 
-        parsed = await flags.GreetingFlags.convert(ctx, args)
+        parsed = await _flags.GreetingFlags.convert(ctx, args)
 
         # Parsed value from flags
         disable = parsed.disable
