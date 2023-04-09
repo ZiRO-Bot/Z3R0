@@ -26,6 +26,7 @@ import zmq
 import zmq.asyncio
 from aerich import Command as AerichCommand
 from discord.ext import commands, tasks
+from discord.ui import Button
 from tortoise import Tortoise, connections
 from tortoise.exceptions import DBConnectionError, OperationalError
 from tortoise.models import Model
@@ -79,6 +80,8 @@ class ziBot(commands.Bot):
         session: aiohttp.ClientSession
 
     def __init__(self, config: Config) -> None:
+        self.monkeyPatch()
+
         self.config: Config = config
 
         # --- NOTE: Information about the bot
@@ -197,6 +200,21 @@ class ziBot(commands.Bot):
     @ownerIds.setter
     def setOwnerIds(self, newIds):
         self.owner_ids = newIds
+
+    def monkeyPatch(self):
+        oldInit = Button.__init__
+
+        def newInit(*args, **kwargs):
+            """
+            MonkeyPatch to make Enum values work in Buttons
+            """
+            emoji = kwargs.pop("emoji", None)
+            if emoji.__class__.__name__.startswith("_EnumValue"):
+                emoji = str(emoji)
+            kwargs["emoji"] = emoji
+            oldInit(*args, **kwargs)
+
+        Button.__init__ = newInit  # type: ignore
 
     async def setup_hook(self) -> None:
         """`__init__` but async"""
