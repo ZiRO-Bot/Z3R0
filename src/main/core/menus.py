@@ -19,7 +19,7 @@ from .views import ZView
 
 
 if TYPE_CHECKING:
-    from core.context import Context
+    from .context import Context
 
 
 class ZMenu(menus.MenuPages):

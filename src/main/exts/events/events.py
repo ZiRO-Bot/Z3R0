@@ -23,8 +23,8 @@ from src import tse
 from ...core import errors
 from ...core.embed import ZEmbed
 from ...core.mixin import CogMixin
+from ...utils import doCaselog, reactsToMessage, utcnow
 from ...utils.format import formatMissingArgError, formatPerms, formatTraceback
-from ...utils.other import doCaselog, reactsToMessage, utcnow
 from ..meta import _errors as ccErrors
 from ._views import Report
 

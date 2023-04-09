@@ -18,10 +18,9 @@ from ...core.context import Context
 from ...core.converter import MemberOrUser
 from ...core.embed import ZEmbed
 from ...core.mixin import CogMixin
-from ...utils import pillow
+from ...utils import authorOrReferenced, pillow, utcnow
 from ...utils.api.openweather import CityNotFound, OpenWeatherAPI
 from ...utils.format import formatDiscordDT, renderBar
-from ...utils.other import authorOrReferenced, utcnow
 
 
 class Info(commands.Cog, CogMixin):

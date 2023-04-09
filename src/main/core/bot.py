@@ -35,8 +35,8 @@ from ..exts.meta._custom_command import CustomCommand
 from ..exts.meta._errors import CCommandDisabled, CCommandNotFound, CCommandNotInGuild
 from ..exts.meta._utils import getDisabledCommands
 from ..exts.timer.timer import Timer, TimerData
+from ..utils import utcnow
 from ..utils.format import formatCmdName
-from ..utils.other import utcnow
 from . import db
 from .colour import ZColour
 from .config import Config

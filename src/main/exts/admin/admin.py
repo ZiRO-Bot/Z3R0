@@ -17,7 +17,7 @@ from ...core import checks
 from ...core.context import Context
 from ...core.embed import ZEmbed
 from ...core.mixin import CogMixin
-from ...utils.other import setGuildRole
+from ...utils import setGuildRole
 from ._common import handleGreetingConfig
 from ._flags import ROLE_TYPES, LogFlags, RoleCreateFlags, RoleSetFlags
 

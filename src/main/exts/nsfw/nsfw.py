@@ -19,7 +19,7 @@ from ...core.embed import ZEmbed
 from ...core.errors import DefaultError, NotNSFWChannel
 from ...core.menus import ZMenuView
 from ...core.mixin import CogMixin
-from ...utils.other import isNsfw
+from ...utils import isNsfw
 
 
 NEKO_API = "http://api.nekos.fun:8080/api/"

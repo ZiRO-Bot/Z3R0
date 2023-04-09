@@ -19,13 +19,13 @@ from discord.ext import commands
 from ...core import db
 from ...core.converter import TimeAndArgument
 from ...core.mixin import CogMixin
+from ...utils import utcnow
 from ...utils.format import formatDateTime, formatDiscordDT
-from ...utils.other import utcnow
 from ._views import LinkView
 
 
 if TYPE_CHECKING:
-    from core.bot import ziBot
+    from ...core.bot import ziBot
 
 
 class TimerData:

@@ -20,8 +20,8 @@ from ....core.embed import ZEmbed
 from ....core.guild import CCMode, GuildWrapper
 from ....core.menus import ZChoices, choice
 from ....core.mixin import CogMixin
+from ....utils import utcnow
 from ....utils.format import formatCmdName
-from ....utils.other import utcnow
 from .._checks import hasCCPriviledge
 from .._custom_command import CustomCommand, ManagedCustomCommand
 from .._errors import CCommandAlreadyExists, CCommandNoPerm, CCommandNotFound

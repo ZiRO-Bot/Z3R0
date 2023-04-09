@@ -20,9 +20,9 @@ from discord.ext import commands
 from ...core.context import Context
 from ...core.embed import ZEmbed
 from ...core.mixin import CogMixin
+from ...utils import NumericStringParser, decodeMorse, encodeMorse, parseCodeBlock
 from ...utils.api.googletrans import GoogleTranslate
 from ...utils.api.piston import Piston
-from ...utils.other import NumericStringParser, decodeMorse, encodeMorse, parseCodeBlock
 
 
 if TYPE_CHECKING:

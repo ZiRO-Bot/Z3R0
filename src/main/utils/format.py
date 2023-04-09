@@ -13,7 +13,6 @@ import traceback
 from typing import TYPE_CHECKING, Tuple, Union
 
 import discord
-from discord.ext import commands
 
 from ..core.embed import ZEmbed
 

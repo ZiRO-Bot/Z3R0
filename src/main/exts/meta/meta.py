@@ -17,8 +17,8 @@ from ...core import checks
 from ...core.context import Context
 from ...core.embed import ZEmbed
 from ...core.menus import ZMenuPagesView
+from ...utils import utcnow
 from ...utils.format import cleanifyPrefix
-from ...utils.other import utcnow
 from ._help import CustomHelp
 from ._pages import PrefixesPageSource
 from .subcogs import MetaCustomCommands

@@ -10,7 +10,7 @@ from contextlib import suppress
 
 from discord.ext import commands
 
-from ..utils.other import getGuildRole, utcnow
+from ..utils import getGuildRole, utcnow
 from .errors import (
     DefaultError,
     MissingAdminPrivilege,

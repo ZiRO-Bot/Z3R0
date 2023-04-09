@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING, Union
 
 import discord
 
-from ..utils.other import utcnow
+from ..utils import utcnow
 from .enums import Emojis
 
 

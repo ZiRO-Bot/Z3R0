@@ -18,7 +18,7 @@ from tortoise import Tortoise, connection
 from src.main.core import bot as _bot
 from src.main.core import db
 from src.main.core.config import Config
-from src.main.utils.other import utcnow
+from src.main.utils import utcnow
 
 
 # Create data directory if its not exist

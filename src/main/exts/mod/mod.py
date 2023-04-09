@@ -19,8 +19,8 @@ from ...core.menus import ZMenuPagesView
 from ...core.mixin import CogMixin
 from ...exts.admin._flags import RoleCreateFlags, RoleSetFlags
 from ...exts.timer.timer import Timer, TimerData
+from ...utils import doCaselog, getGuildRole, setGuildRole, utcnow
 from ...utils.format import formatDateTime
-from ...utils.other import doCaselog, getGuildRole, setGuildRole, utcnow
 from ._flags import AnnouncementFlags
 from ._pages import CaseListSource
 
