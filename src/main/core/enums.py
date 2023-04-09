@@ -7,6 +7,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 from __future__ import annotations
 
 from discord.enums import Enum
+from discord.partial_emoji import PartialEmoji
 
 
 class Emojis(Enum):
@@ -21,4 +22,4 @@ class Emojis(Enum):
     info = "<:info:783206485051441192>"
 
     def __str__(self) -> str:
-        return self.value
+        return str(PartialEmoji.from_str(self.value))
