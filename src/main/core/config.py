@@ -26,6 +26,8 @@ class Config:
         "test",
         "zmqPorts",
         "useAerich",
+        "destUrl",
+        "isDataMigration",
     )
 
     def __init__(
@@ -42,7 +44,8 @@ class Config:
         internalApiHost: str | None = None,
         test: bool = False,
         zmqPorts: dict[str, int] | None = None,
-        useAerich: bool = False,
+        destUrl: str | None = None,
+        isDataMigration: bool = False,
     ):
         self.token = token
         self.defaultPrefix = defaultPrefix or ">"
@@ -52,11 +55,12 @@ class Config:
         self.author = author
         self.links = links
         self.databaseUrl = databaseUrl or "sqlite://data/database.db"
+        self.destUrl = destUrl
+        self.isDataMigration = isDataMigration
         self._tortoiseConfig = tortoiseConfig
         self.internalApiHost = internalApiHost or "127.0.0.1:2264"
         self.test = test
         self.zmqPorts = zmqPorts or {}
-        self.useAerich = useAerich
 
     @property
     def tortoiseConfig(self):
@@ -64,16 +68,27 @@ class Config:
         if not self.test:
             mainModel = "src." + mainModel
 
-        models = [mainModel]
-        if self.useAerich:
-            models.append("aerich.models")
-
-        return self._tortoiseConfig or {
-            "connections": {"default": self.databaseUrl},
-            "apps": {
-                "models": {
-                    "models": models,
-                    "default_connection": "default",
+        ret = self._tortoiseConfig
+        if not ret:
+            ret = {
+                "connections": {
+                    "default": self.databaseUrl,
                 },
-            },
-        }
+                "apps": {
+                    "models": {
+                        "models": [mainModel, "aerich.models"],
+                        "default_connection": "default",
+                    },
+                },
+                "use_tz": True,  # d.py 2.0 is tz-aware
+                "timezone": "UTC",
+            }
+
+        if self.destUrl and not self.test and self.isDataMigration:
+            ret["connections"]["dest"] = self.destUrl
+            # Default connection need to be changed for data migration to
+            # attach destination db as models' meta db in order for
+            # Tortoise.generate_schemas() to work.
+            ret["apps"]["models"]["default_connection"] = "dest"
+
+        return ret

@@ -22,8 +22,8 @@ from ...core import db
 from ...core.converter import TimeAndArgument
 from ...core.embed import ZEmbedBuilder
 from ...core.mixin import CogMixin
+from ...utils import utcnow
 from ...utils.format import formatDateTime, formatDiscordDT
-from ...utils.other import utcnow
 from ._views import LinkView
 
 

@@ -4,7 +4,7 @@
 # Obtained from https://discord.com/developers/applications
 token = "YOUR_BOT_TOKEN_GOES_HERE"
 
-# To change default prefix, can be done in source code # but for easier
+# To change default prefix, can be done in source code but for easier
 # access you can change it here
 prefix = ">"
 

@@ -14,7 +14,7 @@ from dateutil.relativedelta import relativedelta
 from discord.ext import commands
 from humanize import naturaldelta
 
-from ..utils.other import utcnow
+from ..utils import utcnow
 from .context import Context
 from .errors import DefaultError, HierarchyError
 

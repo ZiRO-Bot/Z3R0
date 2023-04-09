@@ -4,11 +4,14 @@ services:
   bot:
     container_name: zibot
     image: ghcr.io/ziro-bot/z3r0:latest
-    restart: unless-stopped
+    restart: on-failure
     environment:
       ZIBOT_TOKEN: 'YOUR_TOKEN'
       ZIBOT_DB_URL: 'postgres://postgres:pass@db:5432/zibot'
       ZIBOT_INTERNAL_API_HOST: 'api:2264'
+    volumes:
+      - "./data:/app/data"
+      - "./migrations:/app/migrations"
     depends_on:
       - db
       - api

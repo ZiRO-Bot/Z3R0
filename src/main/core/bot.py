@@ -13,14 +13,18 @@ import json
 import logging
 import os
 import re
+import shutil
+import sys
 from collections import Counter
 from contextlib import suppress
+from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 import aiohttp
 import discord
 import zmq
 import zmq.asyncio
+from aerich import Command as AerichCommand
 from discord.ext import commands, tasks
 from tortoise import Tortoise, connections
 from tortoise.exceptions import DBConnectionError, OperationalError
@@ -31,8 +35,8 @@ from ..exts.meta._custom_command import CustomCommand
 from ..exts.meta._errors import CCommandDisabled, CCommandNotFound, CCommandNotInGuild
 from ..exts.meta._utils import getDisabledCommands
 from ..exts.timer.timer import Timer, TimerData
+from ..utils import utcnow
 from ..utils.format import formatCmdName
-from ..utils.other import utcnow
 from . import db
 from .colour import ZColour
 from .config import Config
@@ -172,6 +176,8 @@ class ziBot(commands.Bot):
         self.repSocket: zmq.asyncio.Socket | None = None
         self.socketTasks: list[asyncio.Task] = []
 
+        self.exitCode: int = 0
+
         @self.check
         async def _(ctx):
             """Global check"""
@@ -211,10 +217,35 @@ class ziBot(commands.Bot):
         self.i18n = await Localization.init()
         await self.tree.set_translator(FluentTranslator(self))
 
-        await Tortoise.init(
-            config=self.config.tortoiseConfig,
-            use_tz=True,  # d.py 2.0 is tz-aware
+        migrationDir = Path("migrations")
+
+        aerichCmd = AerichCommand(
+            tortoise_config=self.config.tortoiseConfig,
+            location=str(migrationDir),
         )
+
+        if migrationDir.exists():
+            await aerichCmd.init()
+
+            try:
+                update = await aerichCmd.migrate()
+
+                if update:
+                    upgrades = await aerichCmd.upgrade()
+                    if len(upgrades) > 0:
+                        self.logger.warning(f"DB Upgrades done ({len(upgrades)}): {', '.join(upgrades)}")
+
+            except AttributeError:
+                self.logger.warning(
+                    "Unable to retrieve model history from the database! " "Creating model history from scratch..."
+                )
+
+                shutil.rmtree(migrationDir)
+
+                await aerichCmd.init_db(True)
+        else:
+            await aerichCmd.init_db(True)
+
         await Tortoise.generate_schemas(safe=True)
 
         self.loop.create_task(self.afterReady())
@@ -660,6 +691,10 @@ class ziBot(commands.Bot):
 
         # Close aiohttp session
         await self.session.close()
+
+    async def exit(self) -> None:
+        await self.close()
+        sys.exit(self.exitCode)
 
     async def run(self) -> None:
 

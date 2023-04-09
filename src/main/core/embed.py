@@ -14,7 +14,7 @@ from typing import TYPE_CHECKING, Collection
 import discord
 from discord.app_commands import locale_str
 
-from ..utils.other import utcnow
+from ..utils import utcnow
 from .enums import Emojis
 
 

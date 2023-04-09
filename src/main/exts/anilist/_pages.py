@@ -13,7 +13,7 @@ from discord.ext import menus
 from ...core.context import Context
 from ...core.embed import ZEmbed
 from ...core.enums import Emojis
-from ...utils.other import Markdownify, isNsfw
+from ...utils import Markdownify, isNsfw
 
 
 STREAM_SITES = (

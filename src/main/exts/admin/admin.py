@@ -20,7 +20,7 @@ from ...core.context import Context
 from ...core.embed import ZEmbedBuilder
 from ...core.guild import GuildWrapper
 from ...core.mixin import CogMixin
-from ...utils.other import setGuildRole
+from ...utils import setGuildRole
 from ._common import handleGreetingConfig
 from ._flags import ROLE_TYPES, GreetingFlags, LogFlags, RoleCreateFlags, RoleSetFlags
 

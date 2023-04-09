@@ -22,9 +22,9 @@ from ...core import commands as cmds
 from ...core.context import Context
 from ...core.embed import Field, ZEmbed, ZEmbedBuilder
 from ...core.mixin import CogMixin
+from ...utils import NumericStringParser, decodeMorse, encodeMorse, parseCodeBlock
 from ...utils.api.googletrans import GoogleTranslate
 from ...utils.api.piston import Piston
-from ...utils.other import NumericStringParser, decodeMorse, encodeMorse, parseCodeBlock
 
 
 if TYPE_CHECKING:
