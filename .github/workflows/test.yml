@@ -84,7 +84,7 @@ jobs:
         run: poetry lock --check
 
       - name: Install dependencies
-        run: poetry install --with github-actions test
+        run: poetry install --with github-actions,test
 
       - name: Run pytest
         env:
