@@ -21,6 +21,8 @@
   instead
 - [**Added**] Database Migration with `aerich`
 - [**Added**] Database Data Migration
+- [**Changed**] Rename `utils/other.py` to `utils/__init__.py`
+- [**Changed**] Move `GreetingFlag` into `admin._flags`
 
 ## 3.6.1 (Project Structure Refactor - Part 1.5 A.K.A Hotfix)
 
