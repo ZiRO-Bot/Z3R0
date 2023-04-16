@@ -3,9 +3,10 @@ Please try to follow these guidelines when contributing/making pull requests to 
 - To contribute, fork the repo, edit the fork, and create a pull requests.
 - Naming guidelines:
   * Classes: `CamelCase`
-  * Functions: `snake_case` or `lowerCamelCase` (Always use `lowerCamelCase` if possible)
-  * Variables **inside** a function/class: `lowerCamelCase`
-  * Variables **outside** a function/class: `UPPERCASE`
+  * Functions: `lowerCamelCase` for new functions
+  * Variables **INSIDE** of a function/class: `lowerCamelCase`
+  * Variables **OUTSIDE** of a function/class: `UPPERCASE`
 - New functions should include informative docstring/comments.
-- Use `str.format()` instead of f-string unless there's no words in it (For i18n, maybe in the future)
-- Format your code with [`black`](https://github.com/psf/black) before creating a pull request.
+- Always use 4-spaces indentation.
+- Add at least one unit test for every newly added commands.
+- Format your code with [`black`](https://github.com/psf/black) AND [`isort`](https://github.com/pycqa/isort) before creating a pull request.

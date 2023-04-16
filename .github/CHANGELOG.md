@@ -1,3 +1,7 @@
+# v3.7 ()
+
+## 3.7.0 ()
+
 # v3.6 (Structure Refactor)
 
 > **Note**
@@ -5,6 +9,10 @@
 > Version 3.6.x is mostly about refactoring the project structure since
 > previously functions and constants are all over the place that it's starting
 > to get harder to find what I'm looking for.
+
+## 3.6.3 (Docker Hotfix)
+
+- [**Fixed**] `shutil.rmtree` cause OSError in Docker environment
 
 ## 3.6.2 (Project Structure Refactor - Part 2)
 
@@ -21,6 +29,8 @@
   instead
 - [**Added**] Database Migration with `aerich`
 - [**Added**] Database Data Migration
+- [**Changed**] Rename `utils/other.py` to `utils/__init__.py`
+- [**Changed**] Move `GreetingFlag` into `admin._flags`
 
 ## 3.6.1 (Project Structure Refactor - Part 1.5 A.K.A Hotfix)
 

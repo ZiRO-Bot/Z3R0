@@ -26,6 +26,7 @@ import zmq
 import zmq.asyncio
 from aerich import Command as AerichCommand
 from discord.ext import commands, tasks
+from discord.ui import Button
 from tortoise import Tortoise, connections
 from tortoise.exceptions import DBConnectionError, OperationalError
 from tortoise.models import Model
@@ -81,6 +82,8 @@ class ziBot(commands.Bot):
         i18n: Localization
 
     def __init__(self, config: Config) -> None:
+        self.monkeyPatch()
+
         self.config: Config = config
 
         # --- NOTE: Information about the bot
@@ -198,6 +201,21 @@ class ziBot(commands.Bot):
     def ownerIds(self, newIds):
         self.owner_ids = newIds
 
+    def monkeyPatch(self):
+        oldInit = Button.__init__
+
+        def newInit(*args, **kwargs):
+            """
+            MonkeyPatch to make Enum values work in Buttons
+            """
+            emoji = kwargs.pop("emoji", None)
+            if emoji.__class__.__name__.startswith("_EnumValue"):
+                emoji = str(emoji)
+            kwargs["emoji"] = emoji
+            oldInit(*args, **kwargs)
+
+        Button.__init__ = newInit  # type: ignore
+
     async def setup_hook(self) -> None:
         """`__init__` but async"""
         if not self.ownerIds:
@@ -240,7 +258,7 @@ class ziBot(commands.Bot):
                     "Unable to retrieve model history from the database! " "Creating model history from scratch..."
                 )
 
-                shutil.rmtree(migrationDir)
+                self._cleanMigrationDir(migrationDir)
 
                 await aerichCmd.init_db(True)
         else:
@@ -249,6 +267,17 @@ class ziBot(commands.Bot):
         await Tortoise.generate_schemas(safe=True)
 
         self.loop.create_task(self.afterReady())
+
+    def _cleanMigrationDir(self, directory: Path):
+        for filename in os.listdir(directory):
+            filePath = directory / filename
+            try:
+                if os.path.isfile(filePath) or os.path.islink(filePath):
+                    os.unlink(filePath)
+                elif os.path.isdir(filePath):
+                    shutil.rmtree(filePath)
+            except Exception as err:
+                print(f"Failed to delete {filePath}. Reason: {err}")
 
     async def afterReady(self) -> None:
         """`setup_hook` but wait until ready"""
