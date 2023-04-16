@@ -255,7 +255,7 @@ class ziBot(commands.Bot):
                     "Unable to retrieve model history from the database! " "Creating model history from scratch..."
                 )
 
-                shutil.rmtree(migrationDir)
+                self._cleanMigrationDir(migrationDir)
 
                 await aerichCmd.init_db(True)
         else:
@@ -264,6 +264,17 @@ class ziBot(commands.Bot):
         await Tortoise.generate_schemas(safe=True)
 
         self.loop.create_task(self.afterReady())
+
+    def _cleanMigrationDir(self, directory: Path):
+        for filename in os.listdir(directory):
+            filePath = directory / filename
+            try:
+                if os.path.isfile(filePath) or os.path.islink(filePath):
+                    os.unlink(filePath)
+                elif os.path.isdir(filePath):
+                    shutil.rmtree(filePath)
+            except Exception as err:
+                print(f"Failed to delete {filePath}. Reason: {err}")
 
     async def afterReady(self) -> None:
         """`setup_hook` but wait until ready"""
