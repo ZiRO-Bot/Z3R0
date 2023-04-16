@@ -1,3 +1,7 @@
+# v3.7 ()
+
+## 3.7.0 ()
+
 # v3.6 (Structure Refactor)
 
 > **Note**
