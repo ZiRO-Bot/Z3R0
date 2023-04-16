@@ -38,6 +38,8 @@ tortoise-orm = "0.19.3"
 orjson = {version = "3.8.3", optional = true}
 single-source = "0.3.0"
 pyzmq = "^25.0.0"
+fluent-syntax = "^0.19.0"
+fluent-runtime = "^0.4.0"
 aerich = "0.7.1"
 
 [tool.poetry.group.dev.dependencies]

@@ -137,13 +137,12 @@ class Moderation(commands.Cog, CogMixin):
         await ctx.send(embed=e)
 
     @commands.group(
-        usage="(user) [limit] [reason]",
-        brief="Ban a user, with optional time limit",
-        description=(
-            "Ban a user, with optional time limit.\n\n Will delete user's "
-            "message, use `save` subcommand to ban a user without deleting their "
-            "message. So instead of `>ban @User#0000` you do `>ban save "
-            "@User#0000`"
+        usage="(member) [limit] [reason]",
+        description="Ban a member, with optional time limit",
+        help=(
+            ".\n\nWill delete the member's messages! Use `save` subcommand to ban a user without deleting their "
+            "message. So instead of `>ban @User#0000` you do `>ban save @User#0000`"
+            "\nNo unit time limit is no longer supported, you must specify the unit! e.g. 30min, 3s, 3 years, etc"
         ),
         extras=dict(
             example=(
@@ -170,9 +169,12 @@ class Moderation(commands.Cog, CogMixin):
         await self.doModeration(ctx, user, time, "ban")
 
     @ban.command(
-        usage="(user) [limit] [reason]",
-        brief="Ban a user, with time limit without deleting their message",
-        description=("Ban a user, with optional time limit without deleting their message"),
+        usage="(member) [limit] [reason]",
+        description="Ban a member, with optional time limit without deleting their message",
+        help=(
+            "\n\nJust like ban, but doesn't delete the member's messages"
+            "\nNo unit time limit is no longer supported, you **MUST** specify the unit! e.g. 30min, 3s, 3 years, etc"
+        ),
         extras=dict(
             example=(
                 "ban save @User#0000 30m bye",
@@ -195,7 +197,7 @@ class Moderation(commands.Cog, CogMixin):
         await self.doModeration(ctx, user, time, "ban", saveMsg=True)
 
     @commands.command(
-        brief="Unban a member",
+        description="Unban a user",
         extras=dict(
             example=("unban @Someone Wrong person", "unban @Someone"),
             perms={
@@ -217,7 +219,7 @@ class Moderation(commands.Cog, CogMixin):
             delete_message_days=0 if saveMsg else 1,
         )
 
-    async def doUnban(self, ctx, user: discord.User, /, reason: str, **kwargs):
+    async def doUnban(self, ctx, user: discord.User, /, reason: str, **_):
         await ctx.guild.unban(user, reason=reason)
 
     @commands.Cog.listener("on_ban_timer_complete")
@@ -254,7 +256,7 @@ class Moderation(commands.Cog, CogMixin):
             return
 
     @commands.group(
-        brief="Mute a member",
+        description="Mute a member",
         invoke_without_command=True,
         extras=dict(
             example=(
@@ -296,7 +298,7 @@ class Moderation(commands.Cog, CogMixin):
     @mute.command(
         name="create",
         aliases=("set",),
-        brief="Create or set muted role for mute command",
+        description="Create or set muted role for mute command",
         extras=dict(
             example=(
                 "mute create",
@@ -325,7 +327,7 @@ class Moderation(commands.Cog, CogMixin):
         )
 
     @commands.command(
-        brief="Unmute a member",
+        description="Unmute a member",
         extras=dict(
             perms={
                 "bot": "Ban Members",
@@ -559,7 +561,7 @@ class Moderation(commands.Cog, CogMixin):
                         pass
 
     @commands.command(
-        brief="Kick a member",
+        description="Kick a member",
         extras=dict(
             example=(
                 "kick @Someone seeking attention",
@@ -586,7 +588,7 @@ class Moderation(commands.Cog, CogMixin):
         await member.kick(reason=reason)
 
     @commands.command(
-        brief="Announce something",
+        description="Announce something",
         extras=dict(
             example=(
                 "announce Hello World!",
@@ -627,7 +629,7 @@ class Moderation(commands.Cog, CogMixin):
         await dest.send(content)
 
     @commands.command(
-        brief="Clear the chat",
+        description="Clear the chat",
         usage="(amount of message)",
         extras=dict(
             perms={

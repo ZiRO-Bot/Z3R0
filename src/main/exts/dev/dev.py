@@ -11,6 +11,8 @@ import os
 import sys
 import time
 
+import discord
+from discord.app_commands import locale_str as _
 from jishaku.cog import OPTIONAL_FEATURES, STANDARD_FEATURES
 from jishaku.features.baseclass import Feature
 
@@ -31,7 +33,7 @@ class Developer(*STANDARD_FEATURES, *OPTIONAL_FEATURES):
 
     icon = "<:verified_bot_developer:748090768237002792>"
 
-    async def cog_check(self, ctx):
+    async def cog_check(self, ctx: Context):
         """Only bot master able to use debug cogs."""
         return self.bot.owner_ids and ctx.author.id in self.bot.owner_ids
 
@@ -47,7 +49,9 @@ class Developer(*STANDARD_FEATURES, *OPTIONAL_FEATURES):
     async def tryLoadReload(self, extension: str):
         reloadFailMessage = "Failed to reload {}:"
         actionType = (
-            "reload" if extension in self.bot.extensions or f"{EXTS_DIR}.{extension}" in self.bot.extensions else "load"
+            "reload"
+            if extension in self.bot.extensions or f"src.main.{EXTS_DIR}.{extension}" in self.bot.extensions
+            else "load"
         )
         action = getattr(
             self.bot,
@@ -57,7 +61,7 @@ class Developer(*STANDARD_FEATURES, *OPTIONAL_FEATURES):
             try:
                 await action(extension)
             except BaseException:
-                await action(f"{EXTS_DIR}.{extension}")
+                await action(f"src.main.{EXTS_DIR}.{extension}")
         except Exception as exc:
             self.bot.logger.exception(reloadFailMessage.format(extension))
             raise exc
@@ -90,7 +94,7 @@ class Developer(*STANDARD_FEATURES, *OPTIONAL_FEATURES):
                 "has been loaded/reloaded" if status[extension] == OK else "failed to load/reload",
             )
 
-        return await ctx.try_reply(embed=e)
+        return await ctx.tryReply(embed=e)
 
     @Feature.Command(parent="jsk", name="restart")
     async def jsk_restart(self, ctx):
@@ -131,3 +135,15 @@ class Developer(*STANDARD_FEATURES, *OPTIONAL_FEATURES):
         """Testing BannedMember converter after Discord paginate ban list"""
         # TODO
         return await ctx.try_reply(banned.user.id)
+
+    @Feature.Command(parent="jsk", name="i18n")
+    async def jsk_i18n(self, ctx: Context):
+        translated = await ctx.translate(_("var", name=ctx.author.name))
+        msg = await ctx.try_reply(translated)
+        translated2 = await ctx.translate(_("test"), locale=discord.Locale("id"))
+        await msg.edit(content=msg.content + "\n" + translated2)
+
+    @Feature.Command(parent="jsk", name="lang")
+    async def jsk_lang(self, ctx: Context, language: str = "en-US"):
+        ctx.bot.i18n.set(discord.Locale(language))
+        await ctx.try_reply("Language has been changed")

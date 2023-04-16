@@ -57,14 +57,14 @@ class MetaCustomCommands(commands.Cog, CogMixin):
     # TODO: Separate tags from custom command
     @commands.group(
         aliases=("cmd", "tag", "script"),
-        brief="Manage commands",
-        description=("Manage commands\n\n**NOTE**: Custom Commands only available for " "guilds/servers!"),
+        description="Manage commands",
+        help="\n\n**NOTE**: Custom Commands only available for guilds/servers!",
     )
     @commands.guild_only()
     async def command(self, _):
         pass
 
-    @command.command(aliases=("exec", "execute"), brief="Execute a custom command")
+    @command.command(aliases=("exec", "execute"), description="Execute a custom command")
     async def run(self, ctx, command: CustomCommand | str, argument: str = ""):
         if isinstance(command, str):
             command = await CustomCommand.get(ctx, command)
@@ -73,7 +73,7 @@ class MetaCustomCommands(commands.Cog, CogMixin):
     @command.command(
         name="source",
         aliases=("src", "raw"),
-        brief="Get raw content of a custom command",
+        description="Get raw content of a custom command",
     )
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def _source(self, ctx, command: CustomCommand):
@@ -127,7 +127,7 @@ class MetaCustomCommands(commands.Cog, CogMixin):
     @command.command(
         name="import",
         aliases=("++",),
-        brief="Import a custom command from pastebin/gist.github",
+        description="Import a custom command from pastebin/gist.github",
         extras=dict(
             example=(
                 "command import pastebin-cmd https://pastebin.com/ZxvGqEAs",
@@ -170,7 +170,7 @@ class MetaCustomCommands(commands.Cog, CogMixin):
     @command.command(
         name="add",
         aliases=("+", "create"),
-        brief="Create a new custom command",
+        description="Create a new custom command",
         extras=dict(
             example=(
                 "command add example-cmd Just an example",
@@ -194,7 +194,7 @@ class MetaCustomCommands(commands.Cog, CogMixin):
     @command.command(
         name="update-url",
         aliases=("&u", "set-url"),
-        brief="Update imported command's source url",
+        description="Update imported command's source url",
         extras=dict(
             perms={
                 "user": "Depends on custom command mode",
@@ -239,7 +239,7 @@ class MetaCustomCommands(commands.Cog, CogMixin):
 
     @command.command(
         aliases=("&&", "pull"),
-        brief="Update imported command's content",
+        description="Update imported command's content",
         extras=dict(
             perms={
                 "user": "Depends on custom command mode",
@@ -286,7 +286,7 @@ class MetaCustomCommands(commands.Cog, CogMixin):
 
     @command.command(
         aliases=("/",),
-        brief="Add an alias to a custom command",
+        description="Add an alias to a custom command",
         usage="(command name) (alias)",
         extras=dict(
             example=(
@@ -311,8 +311,8 @@ class MetaCustomCommands(commands.Cog, CogMixin):
 
     @command.command(
         name="edit",
-        brief="Edit custom command's content",
-        description=("Edit custom command's content.\n\n" "Alias for `command set content`"),
+        description="Edit custom command's content",
+        help="\n\nAlias for `command set content`",
         extras=dict(
             perms={
                 "user": "Depends on custom command mode",
@@ -324,11 +324,8 @@ class MetaCustomCommands(commands.Cog, CogMixin):
 
     @command.group(
         name="set",
-        brief="Edit custom command's property",
-        description=(
-            "Edit custom command's property\n\nBy default, will edit command's "
-            "content when there is no subcommand specified"
-        ),
+        description="Edit custom command's property",
+        help="\n\nBy default, will edit command's content when there is no subcommand specified",
         extras=dict(
             example=(
                 "cmd set category example-cmd info",
@@ -344,7 +341,7 @@ class MetaCustomCommands(commands.Cog, CogMixin):
     @cmdSet.command(
         name="content",
         aliases=("cont",),
-        brief="Edit custom command's content",
+        description="Edit custom command's content",
         extras=dict(
             perms={
                 "user": "Depends on custom command mode",
@@ -359,14 +356,14 @@ class MetaCustomCommands(commands.Cog, CogMixin):
     @cmdSet.command(
         name="url",
         aliases=("u",),
-        brief="Alias for `command update-url`",
+        description="Alias for `command update-url`",
     )
     async def setUrl(self, ctx, name: str, url: str):
         await self.update_url(ctx, name, url)
 
     @cmdSet.command(
         name="alias",
-        brief="Alias for `command alias`",
+        description="Alias for `command alias`",
     )
     async def setAlias(self, ctx, command: ManagedCustomCommand, alias: str):
         await self.alias(ctx, command, alias)
@@ -375,7 +372,7 @@ class MetaCustomCommands(commands.Cog, CogMixin):
         name="category",
         aliases=("cat", "mv"),
         usage="(command) (category)",
-        brief="Move a custom command to a category",
+        description="Move a custom command to a category",
         extras=dict(
             perms={
                 "user": "Depends on custom command mode",
@@ -399,9 +396,9 @@ class MetaCustomCommands(commands.Cog, CogMixin):
 
     @cmdSet.command(
         name="mode",
-        brief="Set custom command 'mode'",
-        description=(
-            "Set custom command 'mode'\n\n__**Modes:**__\n> `0`: Mods-only\n> "
+        description="Set custom command 'mode'",
+        help=(
+            "\n\n__**Modes:**__\n> `0`: Mods-only\n> "
             "`1`: Member can add command but only able to manage their own "
             "command\n> `2`: Member can add AND manage custom command (Anarchy "
             "mode)"
@@ -432,7 +429,7 @@ class MetaCustomCommands(commands.Cog, CogMixin):
 
     @command.command(
         aliases=("-", "rm"),
-        brief="Remove a custom command",
+        description="Remove a custom command",
         extras=dict(
             perms={
                 "user": "Depends on custom command mode",
@@ -517,10 +514,9 @@ class MetaCustomCommands(commands.Cog, CogMixin):
         return chosen
 
     @command.command(
-        brief="Disable a command",
-        description=(
-            "Disable a command.\n\n"
-            "Support both custom and built-in command.\n\n"
+        description="Disable a command",
+        help=(
+            "\n\nSupport both custom and built-in command.\n\n"
             "**New in `3.3.0`**: Removed options/flags. You'll get choices "
             "when you can disable more than 1 type of command (or category)."
         ),
@@ -598,10 +594,9 @@ class MetaCustomCommands(commands.Cog, CogMixin):
             return await ctx.success(title=successMsg.format(cmdName))
 
     @command.command(
-        brief="Enable a command",
-        description=(
-            "Enable a command.\n\n"
-            "Support both custom and built-in command.\n\n"
+        description="Enable a command",
+        help=(
+            "\n\nSupport both custom and built-in command.\n\n"
             "**New in `3.3.0`**: Removed options/flags. You'll get choices "
             "when you can enable more than 1 type of command (or category)."
         ),
@@ -682,8 +677,8 @@ class MetaCustomCommands(commands.Cog, CogMixin):
 
     @command.command(
         aliases=("?",),
-        brief="Show command's information",
-        description=("Show command's information.\n\nAlias for `help`"),
+        description="Show command's information",
+        help=".\n\nAlias for `help`",
         extras=dict(
             example=(
                 "command info help",
@@ -699,23 +694,22 @@ class MetaCustomCommands(commands.Cog, CogMixin):
         cmd.context = ctx
         await cmd.command_callback(ctx, arguments=name)
 
-    @command.command(name="list", aliases=("ls",), brief="Show all custom commands")
+    @command.command(name="list", aliases=("ls",), description="Show all custom commands")
     async def cmdList(self, ctx: Context):
         cmd: CustomHelp = ctx.bot.help_command
         cmd = cmd.copy()
         cmd.context = ctx
         await cmd.command_callback(ctx, arguments="filter: custom")
 
-    @command.command(name="mode", brief="Show current custom command mode")
+    @command.command(name="mode", description="Show current custom command mode")
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def cmdMode(self, ctx: Context):
-        guild: GuildWrapper = ctx.guild  # type: ignore
-        mode = await guild.getCCMode()
+        mode = await ctx.requireGuild().getCCMode()
 
         e = ZEmbed.minimal(title="Current Mode: `{}`".format(str(mode.value)), description=mode)
         return await ctx.try_reply(embed=e)
 
-    @command.command(name="modes", brief="Show all different custom command modes")
+    @command.command(name="modes", description="Show all different custom command modes")
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def cmdModes(self, ctx):
         e = ZEmbed.minimal(
@@ -728,7 +722,7 @@ class MetaCustomCommands(commands.Cog, CogMixin):
     @commands.command(
         name="commands",
         aliases=("cmds",),
-        brief="Show all custom commands. Alias for `command list`",
+        description="Show all custom commands. Alias for `command list`",
     )
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def _commands(self, ctx):

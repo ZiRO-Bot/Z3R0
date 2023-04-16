@@ -1,6 +1,18 @@
-# v3.7 ()
+# v3.7 (Multilingual)
 
-## 3.7.0 ()
+> **Warning**
+>
+> This update contains DB changes, it's recommended to update to version 3.6.x first,
+> drop table `aerich` from your database, delete `migrations` folder, run the
+> bot to initialize aerich, then you can finally update to version 3.7.x.
+
+## 3.7.0 (Into the Multilingual Era)
+
+- [**Added**] Implemented i18n using [Project Fluent](https://github.com/projectfluent/python-fluent)
+
+### Internal Changes
+- [**Added**] `Users` table model
+- [**Added**] Add `locale` column/field to `GuildConfigs` table model
 
 # v3.6 (Structure Refactor)
 

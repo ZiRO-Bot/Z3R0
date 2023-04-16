@@ -11,9 +11,11 @@ from typing import get_args
 import discord
 from discord import app_commands
 from discord.app_commands import Choice
+from discord.app_commands import locale_str as _
 from discord.ext import commands
 
 from ...core import checks
+from ...core import commands as cmds
 from ...core.context import Context
 from ...core.embed import ZEmbed
 from ...core.errors import ArgumentError
@@ -33,47 +35,52 @@ class Fun(commands.Cog, CogMixin):
         super().__init__(bot)
         self.reddit = reddit.Reddit(self.bot.session)
 
-    @commands.hybrid_command(brief="Get random meme from reddit")
+    @cmds.command(
+        name=_("meme"),
+        hybrid=True,
+        description=_("meme-desc"),
+    )
     @commands.cooldown(1, 5, commands.BucketType.user)
-    async def meme(self, ctx):
-        # TODO: Add more meme subreddits
-        memeSubreddits = ("memes", "funny")
-
+    async def meme(self, ctx: Context):
         redditColour = discord.Colour(0xFF4500)
 
-        msg = await ctx.try_reply(embed=ZEmbed.loading(color=redditColour))
+        async with ctx.loading(colour=redditColour):
+            # TODO: Add more meme subreddits
+            memeSubreddits = ("memes", "funny")
 
-        subreddit = await self.reddit.hot(choice(memeSubreddits))
+            subreddit = await self.reddit.hot(choice(memeSubreddits))
 
-        # Exclude videos since discord embed don't support video
-        posts = [post for post in subreddit.posts if not post.isVideo]
-        if ctx.channel.is_nsfw:
-            submission = choice(posts)
-        else:
-            submission = choice([post for post in posts if not post.is18])
+            # Exclude videos since discord embed don't support video
+            posts = [post for post in subreddit.posts if not post.isVideo]
+            if getattr(ctx.channel, "is_nsfw", True):
+                submission = choice(posts)
+            else:
+                submission = choice([post for post in posts if not post.is18])
 
-        e = ZEmbed.default(
-            ctx,
-            title=f"{subreddit} - {submission.title}",
-            color=redditColour,
-        )
-        e.set_author(
-            name="Reddit",
-            icon_url="https://www.redditstatic.com/desktop2x/" + "img/favicon/android-icon-192x192.png",
-        )
-        e.add_field(name="Score", value=submission.score)
-        e.add_field(name="Comments", value=submission.commentCount)
+            e = ZEmbed.default(
+                ctx,
+                title=f"{subreddit} - {submission.title}",
+                color=redditColour,
+            )
+            e.set_author(
+                name="Reddit",
+                icon_url="https://www.redditstatic.com/desktop2x/" + "img/favicon/android-icon-192x192.png",
+            )
+            e.add_field(name=await ctx.translate(_("meme-score")), value=submission.score)
+            e.add_field(name=await ctx.translate(_("meme-comments")), value=submission.commentCount)
 
-        if submission.url:
-            e.set_image(url=submission.url)
+            if submission.url:
+                e.set_image(url=submission.url)
 
-        await msg.edit(embed=e)
+            await ctx.try_reply(embed=e)
 
     @app_commands.choices(args=[Choice(name=i, value=i) for i in get_args(FINDSEED_MODES)])
     @app_commands.rename(args="mode")
-    @commands.hybrid_command(
-        brief="Get your minecraft seed's eye count",
+    @cmds.command(
+        name=_("findseed"),
+        description=_("findseed-desc"),
         aliases=("fs", "vfs"),
+        hybrid=True,
         usage="[options]",
         extras=dict(
             example=("findseed", "findseed mode: classic", "fs mode: pipega"),
@@ -81,7 +88,7 @@ class Fun(commands.Cog, CogMixin):
         ),
     )
     @commands.cooldown(5, 25, commands.BucketType.user)
-    async def findseed(self, ctx, *, args: FindseedFlags = None):
+    async def findseed(self, ctx: Context, *, args: FindseedFlags = None):
         availableMode = get_args(FINDSEED_MODES)
         aliasesMode = {"pepiga": "pipega"}
 
@@ -139,13 +146,7 @@ class Fun(commands.Cog, CogMixin):
                     shuffle(eyes)
 
         if mode == "classic":
-            return await ctx.try_reply(
-                "<@{}> -> your seed is a {} eye{}".format(
-                    executorId,
-                    eyeCount,
-                    "s" if eyeCount > 1 or eyeCount == 0 else "",
-                )
-            )
+            return await ctx.try_reply(_("findseed-result-classic", userId=str(executorId), eyeCount=eyeCount))
 
         # "render" portal
         selEye = 0
@@ -173,17 +174,15 @@ class Fun(commands.Cog, CogMixin):
 
         e = ZEmbed.default(
             ctx,
-            title=f"findseed - Your seed is a **{eyeCount}** eye",
+            title=await ctx.translate(_("findseed-result", eyeCount=eyeCount)),
             description=portalFrame,
             color=discord.Colour(0x38665E),
         )
         await ctx.try_reply(embed=e)
 
     @commands.command(
-        brief="Ping random member",
-        description=(
-            "Ping random member\n" 'Also known as "Discord\'s mistake"\n' "**Note**: Only available on April Fools (UTC)!"
-        ),
+        description="Ping random member",
+        help='\nAlso known as "Discord\'s mistake"\n **Note**: Only available on April Fools (UTC)!',
     )
     @commands.cooldown(1, 5, commands.BucketType.user)
     @commands.guild_only()
@@ -195,9 +194,11 @@ class Fun(commands.Cog, CogMixin):
             allowedMentions = discord.AllowedMentions(users=True)
         await ctx.send(choice(ctx.requireGuild().members).mention, allowed_mentions=allowedMentions)
 
-    @commands.hybrid_command(
+    @cmds.command(
+        name=_("httpcat"),
         usage="(status code)",
-        brief="Get http status code with cat in it",
+        description=_("httpcat-desc"),
+        hybrid=True,
         extras=dict(example=("httpcat 404",)),
     )
     @commands.cooldown(1, 5, commands.BucketType.user)
@@ -207,37 +208,52 @@ class Fun(commands.Cog, CogMixin):
             img = discord.File(fp=image, filename="httpcat.jpg")
             await ctx.try_reply(file=img)
 
-    @commands.hybrid_command(brief="Show your pp size")
+    @cmds.command(
+        name=_("pp"),
+        description=_("pp-desc"),
+        hybrid=True,
+    )
     @commands.cooldown(1, 5, commands.BucketType.user)
-    async def pp(self, ctx):
+    async def pp(self, ctx: Context):
         pp = "8" + "=" * randint(1, 500) + "D"
         e = ZEmbed.default(
             ctx,
-            title="Your pp looks like this:",
+            title=await ctx.translate(_("pp-result")),
             description="`{}`".format(pp),
             colour=discord.Colour.random(),
         )
         await ctx.send(embed=e)
 
-    @commands.hybrid_command(
+    @cmds.command(
+        name=_("isimpostor"),
         aliases=("isimposter",),
-        brief="Check if you're an impostor or a crewmate",
+        description=_("isimpostor-desc"),
+        hybrid=True,
         usage="[impostor count] [player count]",
     )
     @commands.cooldown(3, 25, commands.BucketType.user)
-    async def isimpostor(self, ctx, impostor: commands.Range[int, 1, 3] = 1, player: commands.Range[int, 4, 15] = 10):
+    async def isimpostor(
+        self, ctx: Context, impostor: commands.Range[int, 1, 3] = 1, player: commands.Range[int, 4, 15] = 10
+    ):
         if impostor < 1:
             impostor = 1
-            await ctx.send("Impostor count has been set to `1`")
+            await ctx.send(_("isimpostor-impostor-count-set"))
         if impostor > player:
             impostor = player
 
+        localeKey = "isimpostor-result-"
+        kwargs = {"user": ctx.author.mention}
         if random() < impostor / player:
-            await ctx.send(f"{ctx.author.mention}, you're an impostor!")
+            await ctx.send(_(localeKey + "impostor", **kwargs))
         else:
-            await ctx.send(f"{ctx.author.mention}, you're a crewmate!")
+            await ctx.send(_(localeKey + "crewmate", **kwargs))
 
-    @commands.hybrid_command(aliases=("badjokes",), brief="Get random dad jokes")
+    @cmds.command(
+        name=_("dadjokes"),
+        aliases=("badjokes",),
+        description=_("dadjokes-desc"),
+        hybrid=True,
+    )
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def dadjokes(self, ctx):
         headers = {"accept": "application/json"}
@@ -250,9 +266,11 @@ class Fun(commands.Cog, CogMixin):
         )
         await ctx.send(embed=e)
 
-    @commands.hybrid_command(
+    @cmds.command(
+        name=_("rps"),
         usage="(choice)",
-        brief="Rock Paper Scissors with the bot.",
+        description=_("rps-desc"),
+        hybrid=True,
         extras=dict(
             example=("rps rock",),
         ),
@@ -263,38 +281,47 @@ class Fun(commands.Cog, CogMixin):
         rps = ("rock", "paper", "scissors")
         botChoice = choice(rps)
 
+        localeKey = "rps-"
+
         if botChoice == choice_:
-            result = "It's a Tie!"
+            result = "tie"
 
-        elif botChoice == rps[0]:
+        elif botChoice == rps[0]:  # rock vs x
+            result = choice_
+            if choice_ != "paper":
+                result = "rock"
 
-            def f(x):  # type: ignore
-                return {"paper": "Paper wins!", "scissors": "Rock wins!"}.get(x, "Rock wins!")
-
-            result = f(choice_)
-
-        elif botChoice == rps[1]:
-
-            def f(x):  # type: ignore
-                return {"rock": "Paper wins!", "scissors": "Scissors wins!"}.get(x, "Paper wins!")
-
-            result = f(choice_)
+        elif botChoice == rps[1]:  # paper vs x
+            result = choice_
+            if choice_ != "scissors":
+                result = "paper"
 
         elif botChoice == rps[2]:
-
-            def f(x):
-                return {"paper": "Scissors wins!", "rock": "Rock wins!"}.get(x, "Scissors wins!")
-
-            result = f(choice_)
+            result = choice_
+            if choice_ != "rock":
+                result = "scissors"
 
         else:
             return
 
         if choice_ == "noob":
-            result = "Noob wins!"
+            result = "noob"
 
         await ctx.try_reply(
-            f"You chose ***{choice_.capitalize()}***." + f" I chose ***{botChoice.capitalize()}***.\n{result}"
+            _(
+                localeKey + "result",
+                userChoice=choice_.capitalize(),
+                botChoice=botChoice.capitalize(),
+                # FIXME
+                # Ideally we want to reference terms instead for result:
+                #   result = FluentReference(localeKey + result)
+                #
+                # But it's not yet possible to do this, so instead we translate
+                # it early before handing it back over to fluent.runtime.
+                #
+                # REF: https://github.com/projectfluent/fluent/issues/80
+                result=await ctx.translate(_(localeKey + result)),
+            )
         )
 
     @rps.autocomplete("choice_")
@@ -302,26 +329,25 @@ class Fun(commands.Cog, CogMixin):
         rps = ("rock", "paper", "scissors")
         return [app_commands.Choice(name=i, value=i) for i in rps]
 
-    @commands.command(aliases=("find-waifu",))
+    @commands.command(aliases=("find-waifu",), description="Just Rafael and his waifu")
     @checks.isRafael()
     async def findwaifu(self, ctx):
-        """Rafael and his waifu."""
         f = discord.File("./assets/img/rafaelAndHisWaifu.png", filename="img.png")
         return await ctx.try_reply(file=f)
 
-    @commands.hybrid_command(brief="Simple coin flip")
+    @cmds.command(
+        name=_("flip"),
+        description=_("flip-desc"),
+        hybrid=True,
+    )
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def flip(self, ctx):
-        await ctx.try_reply(f"You got {choice(['heads', 'tails'])}!")
+        await ctx.try_reply(_("flip-result", side=choice(["heads", "tails"])))
 
     # TODO: Slash
     @commands.command(
-        brief="Simple dice roller",
-        description=(
-            "Simple dice roller\n"
-            "Number of dices are capped at 5!\n"
-            "**Support optional size**: d4, d8, d10, d00, d12, d20"
-        ),
+        description="Simple dice roller",
+        help=("\nNumber of dices are capped at 5!\n" "**Support optional size**: d4, d8, d10, d00, d12, d20"),
         usage="[dice size] (number of dice)",
         extras=dict(example=("roll 5", "roll d20", "roll d00 4")),
     )
@@ -356,17 +382,23 @@ class Fun(commands.Cog, CogMixin):
         ]
         return await ctx.try_reply("You rolled {}".format(", ".join(results)))
 
-    @commands.hybrid_command(
+    @cmds.command(
+        name=_("clap"),
         aliases=("👏",),
-        brief="👏",
+        description="👏",
+        hybrid=True,
         extras=dict(example=("clap hell yea", "clap clap clap")),
     )
     @commands.cooldown(1, 5, type=commands.BucketType.user)
     async def clap(self, ctx, *, text: str = ""):
         return await ctx.try_reply(text.replace(" ", " 👏 ") or " 👏 ")
 
-    @commands.hybrid_command(
+    @cmds.command(
+        name=_("barter"),
+        description=_("barter-desc"),
+        help="\n**Note**: The loot table is based on JE 1.16.1 (before nerf)",
         aliases=("piglin",),
+        hybrid=True,
         usage="[amount of gold]",
         extras=dict(
             example=("barter 64", "piglin", "barter 262"),
@@ -374,9 +406,6 @@ class Fun(commands.Cog, CogMixin):
     )
     @commands.cooldown(5, 25, type=commands.BucketType.user)
     async def barter(self, ctx, gold: commands.Range[int, 1, 2240] = 64):
-        """Barter with Minecraft's Piglin
-        **Note**: The loot table is based on JE 1.16.1, before nerf
-        """
         # limit gold amount up to 2240 (Minecraft inventory limit)
         if gold > 2240:
             gold = 2240
@@ -415,8 +444,10 @@ class Fun(commands.Cog, CogMixin):
 
         e = ZEmbed(
             ctx,
-            title="Bartering with {} gold{}".format(gold, "s" if gold > 1 else ""),
-            description="You got:\n\n{}".format("\n".join(["{} → {}".format(emoji(v[0]), v[1]) for v in items.values()])),
+            title=await ctx.translate(_("barter-result-title", goldCount=gold)),
+            description=await ctx.translate(
+                _("barter-result", barterResult="\n".join(["{} → {}".format(emoji(v[0]), v[1]) for v in items.values()]))
+            ),
             colour=discord.Colour.gold(),
         )
         await ctx.try_reply(embed=e)

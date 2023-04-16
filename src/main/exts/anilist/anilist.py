@@ -11,8 +11,11 @@ from typing import Optional
 
 import discord
 from discord import app_commands
+from discord.app_commands import locale_str as _
 from discord.ext import commands
 
+from ...core import commands as cmds
+from ...core.context import Context
 from ...core.embed import ZEmbed
 from ...core.enums import Emojis
 from ...core.menus import ZMenuPagesView
@@ -41,12 +44,14 @@ class AniList(commands.Cog, CogMixin):
         super().__init__(bot)
         self.anilist: GraphQL = GraphQL("https://graphql.anilist.co", session=self.bot.session)
 
-    async def anilistSearch(self, ctx, name: str, format: str | None, type: str = "ANIME") -> Optional[discord.Message]:
+    async def anilistSearch(
+        self, ctx: Context, name: str, format: str | None, type: str = "ANIME"
+    ) -> Optional[discord.Message]:
         """Function for 'manga search' and 'anime search' command"""
         type = type.upper().replace(" ", "_")
 
         if not name:
-            return await ctx.error("You need to specify the name!")
+            return await ctx.error(_("anilist-search-name-empty", type=type))
 
         kwargs = {
             "name": name,
@@ -64,8 +69,8 @@ class AniList(commands.Cog, CogMixin):
         aniData = req["data"]["Page"]["media"]
         if not aniData:
             return await ctx.error(
-                f"No {type.lower().replace('_', '')} called `{name}` found.",
-                title="No result",
+                _("anilist-search-no-result", type=type.lower().replace('_', ''), name=name),
+                title=_("anilist-search-no-result-title"),
             )
 
         menu = ZMenuPagesView(ctx, source=AnimeSearchPageSource(aniData))
@@ -118,18 +123,17 @@ class AniList(commands.Cog, CogMixin):
 
         await ctx.try_reply(embed=e)
 
-    @commands.hybrid_group(
-        aliases=("ani",),
-        brief="Get anime's information",
-    )
+    @cmds.group(name=_("anime"), aliases=("ani",), description=_("anime-desc"), hybrid=True)
     async def anime(self, _) -> None:
         pass
 
     @anime.command(
         name="search",
+        localeName=_("anime-search"),
         aliases=("s", "find", "?", "info"),
-        brief="Search for an anime with AniList",
+        description=_("anime-search-desc"),
         usage="(name) [options]",
+        hybrid=True,
         extras=dict(
             flags={
                 "format": ("Anime's format (TV, TV SHORT, OVA, ONA, MOVIE, " "SPECIAL, MUSIC)"),
@@ -137,8 +141,8 @@ class AniList(commands.Cog, CogMixin):
         ),
     )
     @app_commands.describe(
-        name="The anime's name",
-        format_="The anime's format",
+        name=_("anime-search-arg-name"),
+        format_=_("anime-search-arg-format"),
     )
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def animeSearch(self, ctx, *, arguments: AnimeSearchFlags) -> None:
@@ -149,19 +153,24 @@ class AniList(commands.Cog, CogMixin):
         animeFormat = ("TV", "TV Short", "OVA", "ONA", "Movie", "Special", "Music")
         return [app_commands.Choice(name=i, value=i) for i in animeFormat]
 
-    @anime.command(name="random", brief="Get random anime")
+    @anime.command(name="random", localeName=_("anime-random"), description=_("anime-random-desc"))
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def animeRandom(self, ctx) -> None:
         await self.anilistRandom(ctx)
 
-    @commands.hybrid_group(brief="Get manga's information")
+    @cmds.group(
+        name=_("manga"),
+        description=_("manga-desc"),
+        hybrid=True,
+    )
     async def manga(self, _) -> None:
         pass
 
     @manga.command(
         name="search",
+        localeName=_("manga-search"),
         aliases=("s", "find", "?", "info"),
-        brief="Search for a manga with AniList",
+        description=_("manga-search-desc"),
         usage="(name) [options]",
         extras=dict(
             flags={
@@ -170,8 +179,8 @@ class AniList(commands.Cog, CogMixin):
         ),
     )
     @app_commands.describe(
-        name="The manga's name",
-        format_="The manga's format",
+        name=_("manga-search-arg-name"),
+        format_=_("manga-search-arg-format"),
     )
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def mangaSearch(self, ctx, *, arguments: AnimeSearchFlags) -> None:
@@ -182,7 +191,11 @@ class AniList(commands.Cog, CogMixin):
         mangaFormat = ("Manga", "Novel", "One Shot")
         return [app_commands.Choice(name=i, value=i) for i in mangaFormat]
 
-    @manga.command(name="random", brief="Get random manga")
+    @manga.command(
+        name="random",
+        localeName=_("manga-random"),
+        description=_("manga-random-desc"),
+    )
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def mangaRandom(self, ctx) -> None:
         await self.anilistRandom(ctx, type="MANGA")

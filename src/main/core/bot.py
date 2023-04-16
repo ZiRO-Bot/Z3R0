@@ -44,6 +44,7 @@ from .config import Config
 from .context import Context
 from .data import JSON, Blacklist, Cache, CacheDictProperty, CacheListProperty
 from .guild import GuildWrapper
+from .i18n import FluentTranslator, Localization
 
 
 EXTS = []
@@ -78,6 +79,7 @@ class ziBot(commands.Bot):
 
     if TYPE_CHECKING:
         session: aiohttp.ClientSession
+        i18n: Localization
 
     def __init__(self, config: Config) -> None:
         self.monkeyPatch()
@@ -102,9 +104,7 @@ class ziBot(commands.Bot):
 
         super().__init__(
             command_prefix=_callablePrefix,
-            description=(
-                "A **free and open source** multi-purpose **discord bot** " "created by ZiRO2264, formerly called `ziBot`."
-            ),
+            description="bot-description",
             case_insensitive=True,
             intents=intents,
             heartbeat_timeout=150.0,
@@ -198,7 +198,7 @@ class ziBot(commands.Bot):
         return self.owner_ids
 
     @ownerIds.setter
-    def setOwnerIds(self, newIds):
+    def ownerIds(self, newIds):
         self.owner_ids = newIds
 
     def monkeyPatch(self):
@@ -231,6 +231,9 @@ class ziBot(commands.Bot):
             )
             with suppress(DBConnectionError, OperationalError):
                 await Tortoise._drop_databases()
+
+        self.i18n = await Localization.init()
+        await self.tree.set_translator(FluentTranslator(self))
 
         migrationDir = Path("migrations")
 
@@ -292,6 +295,11 @@ class ziBot(commands.Bot):
 
         for extension in EXTS:
             await self.load_extension(f"src.{extension}" if not self.config.test else extension)
+
+        for command in self.commands:
+            if merge := getattr(command, "__merge_group__", None):
+                self.tree.get_command(merge.name).add_command(command.app_command)  # type: ignore
+                self.tree.remove_command(command.name)
 
         if not hasattr(self, "uptime"):
             self.uptime: datetime.datetime = utcnow()
@@ -682,6 +690,12 @@ class ziBot(commands.Bot):
             return
 
         await super().wait_until_ready()
+
+    def requireUser(self) -> discord.ClientUser:
+        u = self.user
+        if not u:
+            raise RuntimeError("Bot not ready")
+        return u
 
     async def close(self) -> None:
         """Properly close/turn off bot"""

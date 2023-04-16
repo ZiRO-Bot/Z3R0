@@ -11,9 +11,11 @@ from typing import Union
 
 import discord
 from aiohttp import InvalidURL, client_exceptions
+from discord.app_commands import locale_str as _
 from discord.ext import commands
 
 from ...core import checks
+from ...core import commands as cmds
 from ...core.context import Context
 from ...core.converter import MemberOrUser
 from ...core.embed import ZEmbed
@@ -34,7 +36,7 @@ class Info(commands.Cog, CogMixin):
         self.openweather = OpenWeatherAPI(key=bot.config.openWeatherToken, session=self.bot.session)
 
     # TODO: Slash
-    @commands.command(aliases=("av", "userpfp", "pfp"), brief="Get member's avatar image")
+    @commands.command(aliases=("av", "userpfp", "pfp"), description="Get member's avatar image")
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def avatar(self, ctx: Context, user: MemberOrUser = None):
         user = user or await authorOrReferenced(ctx)  # type: ignore
@@ -63,15 +65,17 @@ class Info(commands.Cog, CogMixin):
         e.set_image(url=avatar.with_size(1024).url)
         await ctx.try_reply(embed=e)
 
-    @commands.hybrid_command(
+    @cmds.command(
+        name=_("weather"),
         aliases=("w",),
-        brief="Get current weather for specific city",
+        description=_("weather-desc"),
+        hybrid=True,
         extras=dict(example=("weather Palembang", "w London")),
     )
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def weather(self, ctx: Context, *, city: str):
         if not self.openweather.apiKey:
-            return await ctx.error("OpenWeather's API Key is not set! Please contact the bot owner to solve this issue.")
+            return await ctx.error(_("weather-api-error"))
 
         try:
             weatherData = await self.openweather.get_from_city(city)
@@ -80,26 +84,32 @@ class Info(commands.Cog, CogMixin):
 
         e = ZEmbed(
             ctx,
-            title="{}, {}".format(weatherData.city, weatherData.country),
-            description="Feels like {}°C, {}".format(weatherData.tempFeels.celcius, weatherData.weatherDetail),
+            title="{0.city}, {0.country}".format(weatherData),
+            description=await ctx.translate(
+                _(
+                    "weather-temperature-feel",
+                    tempFeels=weatherData.tempFeels.celcius,
+                    detail=weatherData.weatherDetail,
+                )
+            ),
             colour=discord.Colour(0xEA6D4A),
         )
         e.set_author(
             name="OpenWeather",
             icon_url="https://openweathermap.org/themes/openweathermap/assets/vendor/owm/img/icons/logo_60x60.png",
         )
-        e.add_field(name="Temperature", value="{}°C".format(weatherData.temp.celcius))
-        e.add_field(name="Humidity", value=weatherData.humidity)
-        e.add_field(name="Wind", value=str(weatherData.wind))
+        e.add_field(name=await ctx.translate(_("weather-temperature")), value="{}°C".format(weatherData.temp.celcius))
+        e.add_field(name=await ctx.translate(_("weather-humidity")), value=weatherData.humidity)
+        e.add_field(name=await ctx.translate(_("weather-wind")), value=str(weatherData.wind))
         e.set_thumbnail(url=weatherData.iconUrl)
         await ctx.try_reply(embed=e)
 
-    @commands.hybrid_command(
-        aliases=("clr", "color"),
-        brief="Get colour information from hex value",
-        description=(
-            "Get colour information from hex value\n\nCan use either `0x` or " "`#` prefix (`0xFFFFFF` or `#FFFFFF`)"
-        ),
+    @cmds.command(
+        name=_("color"),
+        aliases=("clr", "colour"),
+        description=_("color-desc"),
+        help="\n\nCan use either `0x` or " "`#` prefix (`0xFFFFFF` or `#FFFFFF`)",
+        hybrid=True,
         extras=dict(example=("colour ffffff", "clr 0xffffff", "color #ffffff")),
     )
     @commands.cooldown(1, 5, commands.BucketType.user)
@@ -113,7 +123,7 @@ class Info(commands.Cog, CogMixin):
             h = h.lstrip("0x")
             h = "0x" + h.rjust(6, "0")
         except ValueError:
-            return await ctx.error("Invalid colour value!")
+            return await ctx.error(_("color-error"))
 
         # Convert HEX into RGB
         RGB = tuple(int(h[i : i + 2], 16) for i in (0, 2, 4))
@@ -123,15 +133,15 @@ class Info(commands.Cog, CogMixin):
 
         e = ZEmbed.default(
             ctx,
-            title="Information on #{}".format(h),
+            title=await ctx.translate(_("color-title", hexValue=h)),
             colour=discord.Colour(int(h, 16) if h != "ffffff" else 0xFFFFF0),
         )
         e.set_thumbnail(url="attachment://rect.png")
-        e.add_field(name="Hex", value=f"#{h}")
-        e.add_field(name="RGB", value=", ".join([str(x) for x in RGB]))
+        e.add_field(name=await ctx.translate(_("color-hex")), value=f"#{h}")
+        e.add_field(name=await ctx.translate(_("color-rgb")), value=", ".join([str(x) for x in RGB]))
         return await ctx.try_reply(file=f, embed=e)
 
-    @commands.command(aliases=("lvl", "rank"), hidden=True, brief="Level")
+    @commands.command(aliases=("lvl", "rank"), hidden=True, description="Level")
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def level(self, ctx):
         return await ctx.try_reply("https://tenor.com/view/stop-it-get-some-help-gif-7929301")
@@ -139,10 +149,8 @@ class Info(commands.Cog, CogMixin):
     # TODO: Slash
     @commands.group(
         aliases=("em", "emote"),
-        brief="Get an emoji's information",
-        description=(
-            "Get an emoji's information\n\nWill execute `emoji info` by " "default when there's no any subcommands used"
-        ),
+        description="Get an emoji's information",
+        help="\n\nWill execute `emoji info` by " "default when there's no any subcommands used",
         extras=dict(
             example=(
                 "emoji info :thonk:",
@@ -160,8 +168,8 @@ class Info(commands.Cog, CogMixin):
     @emoji.command(
         name="info",
         aliases=("?",),
-        brief="Get an emoji's information",
-        description="Get an emoji's information\n\nSupports Unicode/built-in emojis",
+        description="Get an emoji's information",
+        help="\n\nSupports Unicode/built-in emojis",
         extras=dict(
             example=(
                 "emoji info :pog:",
@@ -200,8 +208,8 @@ class Info(commands.Cog, CogMixin):
 
     @emoji.command(
         name="steal",
-        brief="Steal a custom emoji",
-        description="Steal a custom emoji\n\nUnicode emojis are not supported!",
+        description="Steal a custom emoji",
+        help="\n\nUnicode emojis are not supported!",
         extras=dict(
             example=("emoji steal :shuba:", "em steal :thonk:", "emoji steal :LULW:"),
             perms={
@@ -228,8 +236,8 @@ class Info(commands.Cog, CogMixin):
 
     @emoji.command(
         name="add",
-        brief="Add a custom emoji",
-        description="Add a custom emoji\n\nUnicode emojis are not supported (yet)!",
+        description="Add a custom emoji",
+        help="\n\nUnicode emojis are not supported (yet)!",
         extras=dict(
             example=(
                 "emoji add shuba https://cdn.discordapp.com/emojis/855604899743793152.gif",
@@ -287,10 +295,12 @@ class Info(commands.Cog, CogMixin):
         )
         return await ctx.try_reply(embed=e)
 
-    @commands.hybrid_command(
+    @cmds.command(
+        name=_("jisho"),
         aliases=("jsh",),
-        brief="Get japanese word",
-        description="Get japanese word from english/japanese/romaji/text",
+        description=_("jisho-desc"),
+        help=" from english/japanese/romaji/text",
+        hybrid=True,
         extras=dict(
             example=(
                 "joshi こんにちは",
@@ -307,7 +317,7 @@ class Info(commands.Cog, CogMixin):
             try:
                 result = result["data"][0]
             except BaseException:
-                return await ctx.error("Sorry, couldn't find any words matching `{}`".format(words))
+                return await ctx.error(_("jisho-error", words=words))
 
             e = ZEmbed.default(ctx, title=f"{result['slug']}「 {result['japanese'][0]['reading']} 」")
             e.set_author(
@@ -330,7 +340,7 @@ class Info(commands.Cog, CogMixin):
     # TODO: Slash
     @commands.command(
         aliases=("userinfo", "ui", "whois"),
-        brief="Get user's information",
+        description="Get user's information",
     )
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def user(self, ctx: Context, *, _user: MemberOrUser = None):
@@ -443,9 +453,11 @@ class Info(commands.Cog, CogMixin):
 
         await ctx.try_reply(embed=e)
 
-    @commands.hybrid_command(
-        aliases=("guild", "guildinfo", "gi", "serverinfo", "si"),
-        brief="Get guild's information",
+    @cmds.command(
+        name=_("serverinfo"),
+        aliases=("guild", "guildinfo", "gi", "server", "si"),
+        description=_("serverinfo-desc"),
+        hybrid=True,
     )
     @commands.guild_only()
     @commands.cooldown(1, 5, commands.BucketType.user)
@@ -476,49 +488,66 @@ class Info(commands.Cog, CogMixin):
             e.set_author(name=guild, icon_url=icon.url).set_thumbnail(url=icon.url)
 
         e.add_field(
-            name="General",
-            value=(
-                "**Name**: {}\n".format(guild.name)
-                + "**ID**: `{}`\n".format(guild.id)
-                + "**Created At**: {} ({})\n".format(formatDiscordDT(createdAt, "F"), formatDiscordDT(createdAt, "R"))
-                + "**Owner**: {0} / {0.mention}\n".format(guild.owner)
-                + "**Owner ID**: `{}`".format(guild.owner.id)  # type: ignore
+            name=await ctx.translate(_("serverinfo-properties-title")),
+            value=await ctx.translate(
+                _(
+                    "serverinfo-properties",
+                    guildName=guild.name,
+                    guildId=str(guild.id),
+                    createdAt=formatDiscordDT(createdAt, "F"),
+                    createdAtRelative=formatDiscordDT(createdAt, "R"),
+                    guildOwner=str(guild.owner),
+                    ownerMention=guild.owner.mention,  # type: ignore
+                    ownerId=str(guild.owner_id),
+                )
             ),
             inline=False,
         )
 
         e.add_field(
-            name="Stats",
-            value=(
-                "**Categories**: {}\n".format(len(guild.categories))
-                + "**Channels**: {}\n{}\n".format(
-                    len(guild.channels),
-                    "<:text_channel:747744994101690408> {} ".format(len(guild.text_channels))
+            name=await ctx.translate(_("serverinfo-stats-title")),
+            value=await ctx.translate(
+                _(
+                    "serverinfo-stats",
+                    categoryCount=len(guild.categories),
+                    channelCount=len(guild.channels),
+                    textChannelCount=len(guild.text_channels),
+                    voiceChannelCount=len(guild.voice_channels),
+                    stageChannelCount=len(guild.stage_channels),
+                    otherChannels="<:text_channel:747744994101690408> {} ".format(len(guild.text_channels))
                     + "<:voice_channel:747745006697185333> {} ".format(len(guild.voice_channels))
                     + "<:stagechannel:867970076475813908> {} ".format(len(guild.stage_channels)),
+                    memberCount=bots + humans,
+                    humanCount=humans,
+                    botCount=bots,
+                    memberStatus=" ".join([f"{emoji}{count}" for count, emoji in status.values()]),
+                    boostCount=guild.premium_subscription_count,
+                    boostLevel=guild.premium_tier,
+                    roleCount=len(guild.roles),
                 )
-                + "**Member Count**: {} ({} humans | {} bots)\n".format(bots + humans, humans, bots)
-                + " ".join([f"{emoji}{count}" for count, emoji in status.values()])
-                + "\n**Boosts**: {} (Lv. {})\n".format(guild.premium_subscription_count, guild.premium_tier)
-                + "**Role Count**: {}".format(len(guild.roles))
             ),
             inline=False,
         )
 
         e.add_field(
-            name="Settings",
-            value=(
-                "**Verification Level**: `{}`\n".format(guild.verification_level)
-                + "**Two-Factor Auth**: {}".format("On" if guild.mfa_level == 1 else "Off")
+            name=await ctx.translate(_("serverinfo-settings-title")),
+            value=await ctx.translate(
+                _(
+                    "serverinfo-settings",
+                    verificationLevel=str(guild.verification_level),
+                    mfaLevel=guild.mfa_level,
+                )
             ),
             inline=False,
         )
 
         await ctx.try_reply(embed=e)
 
-    @commands.hybrid_command(
+    @cmds.command(
+        name="spotify",
         aliases=("spotifyinfo", "spot"),
-        brief="Show what song a member listening to in Spotify",
+        description=_("spotify-desc"),
+        hybrid=True,
     )
     @commands.cooldown(1, 5, commands.BucketType.user)
     @commands.guild_only()
@@ -529,7 +558,7 @@ class Info(commands.Cog, CogMixin):
             lambda s: isinstance(s, discord.Spotify), user.activities  # type: ignore
         )  # discord.Spotify is ActivityTypes
         if not spotify:
-            return await ctx.error("{} is not listening to Spotify!".format(user.mention))
+            return await ctx.error(_("spotify-error", user=user.mention))
 
         e = (
             ZEmbed(
@@ -557,12 +586,12 @@ class Info(commands.Cog, CogMixin):
             length=barLength,
         )
 
-        e.add_field(name="Artist", value=", ".join(spotify.artists))
+        e.add_field(name=await ctx.translate(_("spotify-artist")), value=", ".join(spotify.artists))
 
-        e.add_field(name="Album", value=spotify.album)
+        e.add_field(name=await ctx.translate(_("spotify-album")), value=spotify.album)
 
         e.add_field(
-            name="Duration",
+            name=await ctx.translate(_("spotify-duration")),
             value=(
                 f"{cur.seconds//60:02}:{cur.seconds%60:02}" + f" {bar} " + f"{dur.seconds//60:02}:" + f"{dur.seconds%60:02}"
             ),
@@ -573,7 +602,7 @@ class Info(commands.Cog, CogMixin):
     # TODO: Slash
     @commands.command(
         aliases=("perms",),
-        brief="Show what permissions a member/role has",
+        description="Show what permissions a member/role has",
         usage="[member / role]",
     )
     @commands.cooldown(1, 5, commands.BucketType.user)
@@ -601,8 +630,9 @@ class Info(commands.Cog, CogMixin):
 
         await ctx.try_reply(embed=e)
 
-    @commands.hybrid_command(
-        brief="Get information of a python project from pypi",
+    @cmds.command(
+        description=_("pypi-desc"),
+        hybrid=True,
         usage="(project name)",
     )
     @commands.cooldown(1, 5, commands.BucketType.user)
@@ -612,8 +642,8 @@ class Info(commands.Cog, CogMixin):
                 res = await res.json()
             except client_exceptions.ContentTypeError:
                 e = discord.Embed(
-                    title="404 - Page Not Found",
-                    description="We looked everywhere but couldn't find that project",
+                    title=await ctx.translate(_("pypi-error-title")),
+                    description=await ctx.translate(_("pypi-error")),
                     colour=discord.Colour(0x0073B7),
                 )
                 e.set_thumbnail(url="https://cdn-images-1.medium.com/max/1200/1%2A2FrV8q6rPdz6w2ShV6y7bw.png")
@@ -626,29 +656,38 @@ class Info(commands.Cog, CogMixin):
                 colour=discord.Colour(0x0073B7),
             ).set_thumbnail(url="https://cdn-images-1.medium.com/max/1200/1%2A2FrV8q6rPdz6w2ShV6y7bw.png")
             e.add_field(
-                name="Author Info",
-                value=(
-                    "**Name**: {}\n".format(info["author"] or "`Unknown`")
-                    + "**Email**: {}".format(info["author_email"] or "`Not provided.`")
+                name=await ctx.translate(_("pypi-author-title")),
+                value=await ctx.translate(
+                    _(
+                        "pypi-author",
+                        author=info["author"] or await ctx.translate(_("unknown")),
+                        authorEmail=info["author_email"] or await ctx.translate(_("not-provided")),
+                    )
                 ),
                 inline=False,
             )
             e.add_field(
-                name="Package Info",
-                value=(
-                    "**Version**: `{}`\n".format(info["version"])
-                    + "**License**: {}\n".format(info["license"] or "`Not speficied.`")
-                    + "**Keywords**: {}".format(info["keywords"] or "`Not speficied.`")
+                name=await ctx.translate(_("pypi-package-title")),
+                value=await ctx.translate(
+                    _(
+                        "pypi-package",
+                        version=info["version"],
+                        license=info["license"] or await ctx.translate(_("not-specified")),
+                        keywords=info["keywords"] or await ctx.translate(_("not-specified")),
+                    )
                 ),
                 inline=False,
             )
             e.add_field(
-                name="Links",
-                value=(
-                    "[Home Page]({})\n".format(info["home_page"])
-                    + "[Project Link]({})\n".format(info["project_url"])
-                    + "[Release Link]({})\n".format(info["release_url"])
-                    + "[Download Link]({})".format(info["download_url"])
+                name=await ctx.translate(_("pypi-links-title")),
+                value=await ctx.translate(
+                    _(
+                        "pypi-links",
+                        homePage=info["home_page"],
+                        projectUrl=info["project_url"],
+                        releaseUrl=info["release_url"],
+                        downloadUrl=info["download_url"],
+                    )
                 ),
                 inline=False,
             )

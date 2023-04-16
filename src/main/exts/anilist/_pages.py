@@ -7,8 +7,10 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 import datetime as dt
 
 import humanize
+from discord.app_commands import locale_str as _
 from discord.ext import menus
 
+from ...core.context import Context
 from ...core.embed import ZEmbed
 from ...core.enums import Emojis
 from ...utils import Markdownify, isNsfw
@@ -33,19 +35,21 @@ HTML_PARSER = Markdownify()
 class AnimeSearchPageSource(menus.ListPageSource):
     def __init__(self, dataList):
         super().__init__(dataList, per_page=1)
+        self.__noDescription = "No description"
 
     async def format_page(self, menu: menus.MenuPages, data):
-        ctx = menu.context
+        ctx: Context = menu.context
 
         isAdult = data["isAdult"]
 
-        desc = HTML_PARSER.feed((data["description"] or "No description").replace("\n", ""))
+        self.__noDescription = await ctx.translate(_("no-description"))
+        desc = HTML_PARSER.feed((data["description"] or self.__noDescription).replace("\n", ""))
 
         maxLen = 250
         if len(desc) > maxLen:
             origLen = len(desc)
             desc = desc[:maxLen]
-            hidden = "... **+{}** hidden\n(click {} to read more)".format(origLen - len(desc), Emojis.info)
+            hidden = await ctx.translate(_("anilist-hidden-description", count=origLen - len(desc), emoji=Emojis.info))
             desc += hidden
 
         e = ZEmbed.default(
@@ -94,7 +98,7 @@ class AnimeSearchPageSource(menus.ListPageSource):
             inline=False,
         )
 
-        e.add_field(name="Format", value=data["format"].replace("_", " "))
+        e.add_field(name=await ctx.translate(_("anilist-format")), value=data["format"].replace("_", " "))
 
         if data["type"] == "ANIME":
             if data["format"] in ["MOVIE", "MUSIC"]:
@@ -102,37 +106,43 @@ class AnimeSearchPageSource(menus.ListPageSource):
                     duration = humanize.precisedelta(dt.timedelta(seconds=data["duration"] * 60))
                 else:
                     duration = "?"
-                e.add_field(name="Duration", value=duration)
+                e.add_field(name=await ctx.translate(_("anilist-duration")), value=duration)
             else:
-                e.add_field(name="Episodes", value=data["episodes"] or "0")
+                e.add_field(name=await ctx.translate(_("anilist-episodes")), value=data["episodes"] or "0")
         else:
-            e.add_field(name="Chapters", value=data["chapters"] or "0")
+            e.add_field(name=await ctx.translate(_("anilist-chapters")), value=data["chapters"] or "0")
 
         status = str(data["status"])
-        e.add_field(name="Status", value=status.title())
+        e.add_field(name=await ctx.translate(_("anilist-status")), value=status.title())
 
         startDate = data["startDate"]
         if startDate["day"]:
+            startDate = dt.date(**startDate)
             e.add_field(
-                name="Start Date",
-                value="{0[day]}/{0[month]}/{0[year]}".format(startDate),
+                name=await ctx.translate(_("anilist-date-start")),
+                value=startDate.isoformat(),
             )
 
         if status == "FINISHED":
             endDate = data["endDate"]
             if endDate["day"]:
+                endDate = dt.date(**endDate)
                 e.add_field(
-                    name="End Date",
-                    value="{0[day]}/{0[month]}/{0[year]}".format(endDate),
+                    name=await ctx.translate(_("anilist-date-end")),
+                    value=endDate.isoformat(),
                 )
 
-        e.add_field(name="Genres", value=", ".join(data["genres"]) or "Unknown", inline=False)
+        e.add_field(
+            name=await ctx.translate(_("anilist-genres")),
+            value=", ".join(data["genres"]) or await ctx.translate(_("anilist-unknown")),
+            inline=False,
+        )
 
         sites = ["[{0['site']}]({0['url']})".format(site) for site in data["externalLinks"] if site in STREAM_SITES]
         if sites:
-            e.add_field(name="Streaming Sites", value=", ".join(sites), inline=False)
+            e.add_field(name=await ctx.translate(_("anilist-streaming-sites")), value=", ".join(sites), inline=False)
 
         return e
 
     def sendSynopsis(self, data):
-        return HTML_PARSER.feed((data["description"] or "No description").replace("\n", ""))
+        return HTML_PARSER.feed((data["description"] or self.__noDescription).replace("\n", ""))

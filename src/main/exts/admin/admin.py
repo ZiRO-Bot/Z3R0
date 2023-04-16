@@ -6,20 +6,27 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from __future__ import annotations
 
-from typing import Optional, Union
+from typing import TYPE_CHECKING, Union
 
 import discord
 from discord import app_commands
+from discord.app_commands import locale_str as _
 from discord.ext import commands
 from discord.utils import MISSING
 
 from ...core import checks
+from ...core import commands as cmds
 from ...core.context import Context
-from ...core.embed import ZEmbed
+from ...core.embed import ZEmbedBuilder
+from ...core.guild import GuildWrapper
 from ...core.mixin import CogMixin
 from ...utils import setGuildRole
 from ._common import handleGreetingConfig
-from ._flags import ROLE_TYPES, LogFlags, RoleCreateFlags, RoleSetFlags
+from ._flags import ROLE_TYPES, GreetingFlags, LogFlags, RoleCreateFlags, RoleSetFlags
+
+
+if TYPE_CHECKING:
+    from ...core.bot import ziBot
 
 
 class Admin(commands.Cog, CogMixin):
@@ -30,40 +37,21 @@ class Admin(commands.Cog, CogMixin):
 
     icon = "\u2699"
 
-    def __init__(self, bot) -> None:
+    greetingGroup = app_commands.Group(name="greeting", description="...")
+
+    def __init__(self, bot: ziBot) -> None:
         super().__init__(bot)
 
     async def cog_check(self, ctx):
         return ctx.guild is not None
 
-    greetingGroup = app_commands.Group(name="greeting", description="...")
-
-    welcomeDesc = "Set welcome message and/or channel\n`TagScript` is supported!"
-
-    @greetingGroup.command(name="welcome", description=welcomeDesc)
-    @app_commands.describe(
-        channel="Channel where welcome messages will be sent",
-        raw="Get current welcome message in raw mode (Useful for editing, other options is ignored when used!)",
-        disable="Disable welcome event",
-        message="Message that will be sent to the welcome channel",
-    )
-    @app_commands.guild_only()
-    @checks.mod_or_permissions(manage_channels=True)
-    async def welcomeSlash(
-        self,
-        interaction,
-        message: str = None,
-        channel: Optional[discord.TextChannel] = None,
-        raw: bool = False,
-        disable: bool = False,
-    ):
-        ctx = await Context.from_interaction(interaction)
-        await handleGreetingConfig(ctx, "welcome", message=message, channel=channel, raw=raw, disable=disable)
-
-    @commands.command(
+    @cmds.command(
+        name=_("welcome"),
         aliases=("wel",),
-        brief="Set welcome message and/or channel",
+        description=_("welcome-desc"),
         usage="[message] [options]",
+        hybrid=True,
+        mergeTo=greetingGroup,
         extras=dict(
             example=(
                 "welcome Welcome to {guild}, {user(name)}! ch: #userlog",
@@ -85,39 +73,26 @@ class Admin(commands.Cog, CogMixin):
                 "user": "Moderator Role or Manage Channels",
             },
         ),
-        description="Set welcome message and/or channel\n`TagScript` is supported!",
+        help="\n`TagScript` is supported!",
+    )
+    @app_commands.describe(
+        channel=_("welcome-arg-channel"),
+        raw=_("welcome-arg-raw"),
+        disable=_("welcome-arg-disable"),
+        message=_("welcome-arg-message"),
     )
     @commands.guild_only()
     @checks.mod_or_permissions(manage_channels=True)
-    async def welcome(self, ctx, *, arguments: str):
+    async def welcome(self, ctx, *, arguments: GreetingFlags = None):
         await handleGreetingConfig(ctx, "welcome", arguments=arguments)
 
-    farewellDesc = "Set farewell message and/or channel\n`TagScript` is supported!"
-
-    @greetingGroup.command(name="farewell", description=farewellDesc)
-    @app_commands.describe(
-        channel="Channel where farewell messages will be sent",
-        raw="Get current farewell message in raw mode (Useful for editing, other options is ignored when used!)",
-        disable="Disable farewell event",
-        message="Message that will be sent to the farewell channel",
-    )
-    @app_commands.guild_only()
-    @checks.mod_or_permissions(manage_channels=True)
-    async def farewellSlash(
-        self,
-        interaction,
-        message: str = None,
-        channel: Optional[discord.TextChannel] = None,
-        raw: bool = False,
-        disable: bool = False,
-    ):
-        ctx = await Context.from_interaction(interaction)
-        await handleGreetingConfig(ctx, "farewell", message=message, channel=channel, raw=raw, disable=disable)
-
-    @commands.command(
+    @cmds.command(
+        name=_("farewell"),
         aliases=("fw",),
-        brief="Set farewell message and/or channel",
+        description=_("farewell-desc"),
         usage="[message] [options]",
+        hybrid=True,
+        mergeTo=greetingGroup,
         extras=dict(
             example=(
                 "farewell Bye ch: #userlog",
@@ -139,43 +114,53 @@ class Admin(commands.Cog, CogMixin):
                 "user": "Moderator Role or Manage Channels",
             },
         ),
+        help="\n`TagScript` is supported!",
+    )
+    @app_commands.describe(
+        channel=_("farewell-arg-channel"),
+        raw=_("farewell-arg-raw"),
+        disable=_("farewell-arg-disable"),
+        message=_("farewell-arg-message"),
     )
     @commands.guild_only()
     @checks.mod_or_permissions(manage_channels=True)
-    async def farewell(self, ctx, *, arguments: str):
+    async def farewell(self, ctx, *, arguments: GreetingFlags = None):
         await handleGreetingConfig(ctx, "farewell", arguments=arguments)
 
-    async def handleLogConfig(self, ctx, arguments: LogFlags, type: str):
+    async def handleLogConfig(self, ctx: Context, arguments: LogFlags, type: str):
         """Handle configuration for logs (modlog, purgatory)"""
         # Parsing arguments
         channel = arguments.channel
         disable = arguments.disable
 
-        e = ZEmbed.success(title=("Modlog" if type == "modlog" else "Purgatory") + " config has been updated")
-
         channelId = MISSING
-        if channel is not None and not disable:
-            channelId = channel.id
-            e.add_field(name="Channel", value=channel.mention)
-        elif disable is True:
-            channelId = None
-            e.add_field(name="Status", value="`Disabled`")
-
         if channelId is not MISSING:
-            await self.bot.setGuildConfig(ctx.guild.id, f"{type}Ch", channelId, "GuildChannels")
+            e = ZEmbedBuilder.success(title=_("log-updated-title", type=type))
+
+            if channel is not None and not disable:
+                channelId = channel.id
+                e.addField(name=_("log-updated-field-channel"), value=channel.mention, inline=True)
+            elif disable is True:
+                channelId = None
+                e.addField(name=_("log-updated-field-status"), value=_("log-updated-field-status-disabled"), inline=True)
+
+            await self.bot.setGuildConfig(ctx.requireGuild().id, f"{type}Ch", channelId, "GuildChannels")
+
         else:
-            channelId = await self.bot.getGuildConfig(ctx.guild.id, f"{type}Ch", "GuildChannels")
+            e = ZEmbedBuilder.default(ctx, title=_("log-config-title", guildName=ctx.requireGuild().name, type=type))
+            channelId = await self.bot.getGuildConfig(ctx.requireGuild().id, f"{type}Ch", "GuildChannels")
             if channelId:
-                e.add_field(name="Channel", value=f"<#{channelId}>")
+                e.addField(name=_("log-config-field-channel"), value=f"<#{channelId}>", inline=True)
             else:
-                e.add_field(name="Status", value="`Disabled`")
+                e.addField(name=_("log-updated-field-status"), value=_("log-updated-field-status-disabled"), inline=True)
 
-        return await ctx.try_reply(embed=e)
+        return await ctx.tryReply(embed=e)
 
-    @commands.hybrid_command(
+    @cmds.command(
+        name=_("modlog"),
         aliases=("ml",),
-        brief="Set modlog channel",
-        description="Set modlog channel",
+        description=_("modlog-desc"),
+        hybrid=True,
         usage="[channel] [options]",
         extras=dict(
             example=("modlog #modlog", "modlog ch: modlog", "ml disable: on"),
@@ -190,8 +175,8 @@ class Admin(commands.Cog, CogMixin):
         ),
     )
     @app_commands.describe(
-        channel="Channel where modlogs will be sent",
-        disable="Disable modlog",
+        channel=_("modlog-arg-channel"),
+        disable=_("modlog-arg-disable"),
     )
     @commands.guild_only()
     @commands.bot_has_guild_permissions(view_audit_log=True, manage_channels=True)
@@ -199,10 +184,11 @@ class Admin(commands.Cog, CogMixin):
     async def modlog(self, ctx, *, arguments: LogFlags):
         await self.handleLogConfig(ctx, arguments, "modlog")
 
-    @commands.hybrid_command(
+    @cmds.command(
+        name=_("purgatory"),
         aliases=("purge", "userlog"),
-        brief="Set purgatory channel",
-        description="Set purgatory channel",
+        description=_("purgatory-desc"),
+        hybrid=True,
         usage="[channel] [options]",
         extras=dict(
             example=(
@@ -221,17 +207,18 @@ class Admin(commands.Cog, CogMixin):
         ),
     )
     @app_commands.describe(
-        channel="Channel where deleted/edited messages will be sent",
-        disable="Disable purgatory",
+        channel=_("purgatory-arg-channel"),
+        disable=_("purgatory-arg-channel"),
     )
     @commands.guild_only()
     @checks.mod_or_permissions(manage_channels=True)
     async def purgatory(self, ctx, *, arguments: LogFlags):
         await self.handleLogConfig(ctx, arguments, "purgatory")
 
-    @commands.hybrid_group(
-        name="role",
-        brief="Manage guild's role",
+    @cmds.group(
+        name=_("role"),
+        description=_("role-desc"),
+        hybrid=True,
         extras=dict(
             example=(
                 "role set @Server Moderator type: moderator",
@@ -252,11 +239,14 @@ class Admin(commands.Cog, CogMixin):
 
     async def updateMutedRoles(
         self,
-        guild: discord.Guild,
+        ctx: Context,
         role: discord.Role,
-        creator: Optional[discord.Member] = None,
     ) -> None:
         """Just loop through channels and overwriting muted role's perm"""
+        guild: GuildWrapper
+        creator: discord.Member | discord.User
+        guild, creator = ctx.requireGuild(), ctx.author
+
         for channel in guild.channels:
             perms = channel.permissions_for(guild.me)
             if perms.manage_roles:
@@ -267,9 +257,13 @@ class Admin(commands.Cog, CogMixin):
                     send_messages=False,
                 )
 
-                reason = "Mute role set to {}".format(role.name)
+                localeKey = "role-mute-updated"
+                localeData = {"roleName": role.name}
                 if creator:
-                    reason += " by {}".format(creator)
+                    localeKey += "-with-reason"
+                    localeData["creatorName"] = creator.name
+
+                reason = await ctx.translate(_(localeKey, **localeData))
 
                 await channel.set_permissions(
                     target=role,
@@ -281,8 +275,9 @@ class Admin(commands.Cog, CogMixin):
 
     @_role.command(
         name="create",
+        localeName=_("role-create"),
         aliases=("+", "make"),
-        brief="Create new role",
+        description=_("role-create-desc"),
         usage="(role name) [type: role type]",
         extras=dict(
             perms={
@@ -294,45 +289,43 @@ class Admin(commands.Cog, CogMixin):
     @commands.guild_only()
     @commands.bot_has_guild_permissions(manage_roles=True)
     @checks.is_admin()
-    async def roleCreate(self, ctx, *, arguments: RoleCreateFlags):
+    async def roleCreate(self, ctx: Context, *, arguments: RoleCreateFlags):
         name = arguments.name
         if not name:
             return await ctx.error("Name can't be empty!")
 
-        type = arguments.type_ or "regular"
+        type = (arguments.type_ or "regular").lower()
 
-        if (type := type.lower()) in ROLE_TYPES:
-            msg = await ctx.try_reply(
-                embed=ZEmbed.loading(),
-            )
+        if type in ROLE_TYPES:
+            async with ctx.loading():
+                role = await ctx.requireGuild().create_role(name=name)
 
-            role = await ctx.guild.create_role(name=name)
+                if not role:
+                    # TODO: Maybe return a message to tell user that the command fail
+                    return
 
-            if not role:
-                # TODO: Maybe return a message to tell user that the command fail
-                return
+                if type != "regular":
+                    await setGuildRole(self.bot, ctx.requireGuild().id, ROLE_TYPES[type], role.id)
 
-            if type != "regular":
-                await setGuildRole(self.bot, ctx.guild.id, ROLE_TYPES[type], role.id)
+                    if any([type == "mute", type == "muted"]):
+                        await self.updateMutedRoles(ctx, role)
 
-                if any([type == "mute", type == "muted"]):
-                    await self.updateMutedRoles(ctx.guild, role, ctx.author)
-
-            e = ZEmbed.success(
-                title="SUCCESS: Role has been created",
-                description="**Name**: {}\n**Type**: `{}`\n**ID**: `{}`".format(role.name, type, role.id),
-            )
-            return await msg.edit(embed=e)
+                e = ZEmbedBuilder.success(
+                    title=_("role-created"),
+                    description=_("role-properties", roleName=role.name, roleType=type, roleId=str(role.id)),
+                )
+                return await ctx.tryReply(embed=e)
 
         return await ctx.error(
-            "Available role type: {}".format(", ".join([f"`{type}`" for type in ROLE_TYPES])),
-            title="Invalid role type!",
+            await ctx.translate(_("role-types-list", roleTypes=", ".join([f"`{type}`" for type in ROLE_TYPES]))),
+            title=await ctx.translate(_("role-manage-failed-reason")),
         )
 
     @_role.command(
         name="set",
+        localeName=_("role-set"),
         aliases=("&",),
-        brief="Turn regular role into special role",
+        description=_("role-set-desc"),
         usage="(role name) (type: role type)",
         extras=dict(
             perms={
@@ -344,45 +337,46 @@ class Admin(commands.Cog, CogMixin):
     @commands.guild_only()
     @commands.bot_has_guild_permissions(manage_roles=True)
     @checks.is_admin()
-    async def roleSet(self, ctx, *, arguments: RoleSetFlags):
+    async def roleSet(self, ctx: Context, *, arguments: RoleSetFlags):
         role = arguments.role
-        type = arguments.type_
+        type = (arguments.type_ or "regular").lower()
         disallowed = ("regular",)
 
-        if (type := type.lower()) in ROLE_TYPES and type not in disallowed:
-            msg = await ctx.try_reply(
-                embed=ZEmbed.loading(),
-            )
+        if type in ROLE_TYPES and type not in disallowed:
+            async with ctx.loading():
+                if type != "regular":
+                    await setGuildRole(self.bot, ctx.requireGuild().id, ROLE_TYPES[type], role.id)
 
-            if type != "regular":
-                await setGuildRole(self.bot, ctx.guild.id, ROLE_TYPES[type], role.id)
+                    if any([type == "mute", type == "muted"]):
+                        await self.updateMutedRoles(ctx, role)
 
-                if any([type == "mute", type == "muted"]):
-                    await self.updateMutedRoles(ctx.guild, role, ctx.author)
-
-            e = ZEmbed.success(
-                title="SUCCESS: Role has been modified",
-                description="**Name**: {}\n**Type**: `{}`\n**ID**: `{}`".format(role.name, type, role.id),
-            )
-            return await msg.edit(embed=e)
+                e = ZEmbedBuilder.success(
+                    title=_("role-modified"),
+                    description=_("role-properties", roleName=role.name, roleType=type, roleId=str(role.id)),
+                )
+                return await ctx.try_reply(embed=e)
 
         return await ctx.error(
-            "Available role type: {}".format(", ".join([f"`{type}`" for type in ROLE_TYPES if type not in disallowed])),
-            title="Invalid role type!",
+            _("role-types-list", roleTypes=", ".join([f"`{type}`" for type in ROLE_TYPES if type not in disallowed])),
+            title=_("role-manage-failed-reason"),
         )
 
-    @_role.command(name="types", brief="Show all special role types")
-    async def roleTypes(self, ctx):
-        e = ZEmbed.minimal(
-            title="Role Types",
+    @_role.command(
+        name="types",
+        localeName=_("role-types"),
+        description=_("role-types-desc"),
+    )
+    async def roleTypes(self, ctx: Context):
+        e = ZEmbedBuilder(
+            title=_("role-types-title"),
             description="\n".join("- `{}`".format(role) for role in ROLE_TYPES),
         )
-        e.set_footer(text="This list includes aliases (mod -> moderator)")
-        return await ctx.try_reply(embed=e)
+        e.setFooter(text=_("role-types-footer"))
+        return await ctx.tryReply(embed=e)
 
     @commands.command(
-        brief="Set auto role",
-        description=("Set auto role.\n" "A role that will be given to a new member upon joining"),
+        description="Set auto role",
+        help=".\nA role that will be given to a new member upon joining",
         usage="(role name)",
         extras=dict(
             example=("autorole @Member",),
@@ -396,13 +390,16 @@ class Admin(commands.Cog, CogMixin):
     @commands.bot_has_guild_permissions(manage_roles=True)
     @checks.is_admin()
     async def autorole(self, ctx, name: Union[discord.Role, str]):
+        # This is just an alias command, don't need to be added as slash
         await ctx.try_invoke(
             self.roleCreate if isinstance(name, str) else self.roleSet,
             arguments=f"{getattr(name, 'id', name)} type: member",
         )
 
-    @commands.hybrid_command(
-        brief="Set announcement channel",
+    @cmds.command(
+        name=_("announcement"),
+        description=_("announcement-desc"),
+        hybrid=True,
         extras=dict(
             example=("announcement #announcement",),
             perms={
@@ -411,12 +408,12 @@ class Admin(commands.Cog, CogMixin):
             },
         ),
     )
-    @app_commands.describe(channel="Channel where announcements will be sent")
+    @app_commands.describe(channel=_("announcement-arg-channel"))
     @commands.guild_only()
     @checks.is_mod()
     async def announcement(self, ctx, channel: discord.TextChannel):
         await self.bot.setGuildConfig(ctx.guild.id, "announcementCh", channel.id, "GuildChannels")
         return await ctx.success(
-            f"**Channel**: {channel.mention}",
-            title="Announcement channel has been updated",
+            await ctx.translate(_("announcement-updated-channel", channelMention=channel.mention)),
+            title=await ctx.translate(_("announcement-updated")),
         )

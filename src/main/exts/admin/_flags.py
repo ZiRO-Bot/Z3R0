@@ -62,7 +62,14 @@ class RoleCreateFlags(StringAndFlags, case_insensitive=True):
 
     @classmethod
     async def convert(cls, ctx: Context, arguments: str) -> RoleCreateFlags:
-        self: RoleCreateFlags = await super().convert(ctx, arguments)  # type: ignore
+        try:
+            self: RoleCreateFlags = await super().convert(ctx, arguments)  # type: ignore
+        except commands.MissingRequiredFlag as e:
+            if e.flag.name == "name":
+                string, args = separateStringFlags(arguments)
+                args += f" name:{string}"
+                return await super().convert(ctx, args)  # type: ignore
+            raise e
 
         if not self.string:
             return self
@@ -81,7 +88,6 @@ class RoleSetFlags(StringAndFlags, case_insensitive=True):
             self: RoleSetFlags = await super().convert(ctx, arguments)  # type: ignore
         except commands.MissingRequiredFlag as e:
             if e.flag.name == "role":
-                e.flag.name
                 string, args = separateStringFlags(arguments)
                 args += f" role:{string}"
                 return await super().convert(ctx, args)  # type: ignore
@@ -97,8 +103,8 @@ class RoleSetFlags(StringAndFlags, case_insensitive=True):
 
 
 # TODO: Ditch flags for greetings, it breaks TagScript handler
-class GreetingFlags(commands.FlagConverter, case_insensitive=True):
+class GreetingFlags(StringAndFlags, case_insensitive=True):
+    message: str = commands.flag(name="message", aliases=["msg"], default="")
     channel: discord.TextChannel | None = commands.flag(name="channel", aliases=["ch"], default=None)
     raw: bool = False
     disable: bool = False
-    messages: list[str] = commands.flag(name="message", aliases=["msg"], default=[])

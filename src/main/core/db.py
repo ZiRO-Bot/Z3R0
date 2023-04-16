@@ -107,6 +107,7 @@ class GuildConfigs(ContainsGuildId, Model):
     tagMode = fields.IntField(pk=False, generated=False, default=0)  # currently unused
     welcomeMsg = fields.TextField(null=True)
     farewellMsg = fields.TextField(null=True)
+    locale = fields.TextField(null=True)
 
     class Meta:
         table = "guildConfigs"
@@ -153,3 +154,9 @@ class CaseLog(ContainsGuildId, Model):
 
     class Meta:
         table = "caseLog"
+
+
+class Users(Model):
+    id = fields.BigIntField(pk=True, generated=False)
+    locale = fields.TextField(null=True)
+    timeZone = fields.TextField(null=True)

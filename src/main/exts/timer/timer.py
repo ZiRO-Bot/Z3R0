@@ -14,10 +14,13 @@ from typing import TYPE_CHECKING, Optional
 
 import discord
 import pytz
+from discord.app_commands import locale_str as _
 from discord.ext import commands
 
+from ...core import commands as cmds
 from ...core import db
 from ...core.converter import TimeAndArgument
+from ...core.embed import ZEmbedBuilder
 from ...core.mixin import CogMixin
 from ...utils import utcnow
 from ...utils.format import formatDateTime, formatDiscordDT
@@ -99,7 +102,7 @@ class Timer(commands.Cog, CogMixin):
         self.task = self.bot.loop.create_task(self.dispatchTimers())
 
     async def getActiveTimer(self, days: int = 7) -> Optional[TimerData]:
-        data = await db.Timer.filter(expires__lt=utcnow() + dt.timedelta(days=days)).order_by("expires").values()
+        data = await db.Timer.filter(expires__lt=utcnow() + dt.timedelta(days=days)).order_by("expires").values()  # type: ignore
         return TimerData(data[0]) if data else None
 
     async def waitForActiveTimer(self, days: int = 7) -> Optional[TimerData]:
@@ -177,7 +180,7 @@ class Timer(commands.Cog, CogMixin):
 
     @commands.command(
         aliases=["timer", "remind"],
-        brief="Reminds you about something after certain amount of time",
+        description="Reminds you about something after certain amount of time",
     )
     @commands.cooldown(2, 5, commands.BucketType.user)
     async def reminder(self, ctx, *, argument: TimeAndArgument) -> discord.Message:
@@ -204,7 +207,7 @@ class Timer(commands.Cog, CogMixin):
             )
         )
 
-    @commands.hybrid_command(brief="Get current time")
+    @cmds.command(name=_("time"), description=_("time-desc"), hybrid=True)
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def time(self, ctx, timezone: str = None) -> None:
         tz = None
@@ -217,13 +220,13 @@ class Timer(commands.Cog, CogMixin):
             dt = dt.astimezone(tz)
 
         # TODO: Add timezone
-        e = discord.Embed(
-            title="Current Time",
+        e = ZEmbedBuilder(
+            title=_("time-result-title"),
             description=formatDateTime(dt),
             colour=self.bot.colour,
         )
-        e.set_footer(text="Timezone coming soon\u2122!")
-        await ctx.try_reply(embed=e)
+        e.setFooter(text=_("time-result-disclaimer"))
+        await ctx.try_reply(embed=await e.build(ctx))
 
     @commands.Cog.listener("on_reminder_timer_complete")
     async def onReminderTimerComplete(self, timer: TimerData) -> None:

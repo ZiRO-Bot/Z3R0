@@ -189,7 +189,8 @@ changelog
   - Planned:
     - Admin = Full access to bot (except for dev commands ofc)
     - Manage Guild (and Bot Manager role) = Can configure bot
-    - Mod role = Bypass every moderator checks like Ban Member, Kick Member, etc
+    - Mod role = Bypass every moderator checks like Ban Member, Kick Member,
+      etc
 - Rework prefix system  
   Currently `>` is hardcoded as default prefix, this prefix should be added to
   guild's data when that guild invited the bot)
@@ -201,6 +202,9 @@ changelog
   track if the error already reported before. I'll also strip some information
   out of the reported messages to respect my user's privacy since issue report
   is no longer manual.
+- i18n  
+  Implemented, but not yet possible to switch language (other than slash, which
+  tied to the user's client locale settings)
 - Event for ~~member boosting a guild~~ (Just need to implement setup for it)
 - Tags (stripped version of custom command)
 - Unify categories/exts emoji
@@ -213,8 +217,6 @@ changelog
 
 ### Pending Plan
 
-- i18n using gettext  
-  Currently still figuring out how to actually implement gettext
 - Modals  
   Too much limitation at the moment, waiting for model input types
 
