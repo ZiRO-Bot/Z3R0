@@ -19,11 +19,25 @@
 
 ## About
 
-> **Note**
->
-> `dev` branch is used mostly for development and generally considered as unstable, to host the bot it's recommended to use `overhaul` branch or release tags instead!
+<h4 align="center">Development Stages</h4>
 
-**`Z3R0`** (codename **`ziBot`**) is a **free** and **open-source** multi-purpose discord bot, created for fun in the middle of quarantine. Used to be fork of [Steve-Bot](https://github.com/MCBE-Speedrunning/Steve-Bot) by MCBE Speedrunning Moderators.
+<p id="stages" align="center">
+
+<a href="https://github.com/ZiRO-Bot/Z3R0/tree/dev">
+  <kbd> <br> Nightly <br> <br> </kbd>
+</a>
+->
+<a href="https://github.com/ZiRO-Bot/Z3R0/tree/overhaul">
+  <kbd> <br> Canary <br> <br> </kbd>
+</a>
+->
+<a href="https://github.com/ZiRO-Bot/Z3R0/releases">
+  <kbd> <br> Stable <br> <br> </kbd>
+</a>
+
+</p>
+
+**`Z3R0`** (codename **`ziBot`**) is a **free** and **open-source** multi-purpose discord bot, was a fork of [Steve-Bot](https://github.com/MCBE-Speedrunning/Steve-Bot) by MCBE Speedrunning Moderators, created for fun in the middle of quarantine.
 
 ### Features
 
@@ -37,14 +51,15 @@
 - Powerful moderation command.
 - Image manipulation/filters.
 - Useful utility command such as `execute` (execute python/other programming language code), `google`, `calc` / `math`, and more!
+- And more!
 
-More feature coming soon!
+## Usage
 
-## Configuration
+### Quick Setup (Hosted)
 
-### Quick Setup (Invite Hosted Bot)
+Invite the officially hosted bot from this [invite link](https://discord.com/oauth2/authorize?client_id=740122842988937286&scope=bot&permissions=4260883702).
 
-[Click here to invite the bot!](https://discord.com/oauth2/authorize?client_id=740122842988937286&scope=bot&permissions=4260883702)
+For information on how to use the bot, see https://bot.palembani.xyz/docs
 
 ### Self-Hosting
 
