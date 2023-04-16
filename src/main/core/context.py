@@ -13,7 +13,7 @@ from typing import TYPE_CHECKING, Union, overload
 import aiohttp
 import discord
 from discord import Locale, Message
-from discord.app_commands import locale_str
+from discord.app_commands import locale_str as _
 from discord.ext import commands
 from discord.utils import MISSING
 
@@ -23,6 +23,8 @@ from .guild import GuildWrapper
 
 if TYPE_CHECKING:
     from .bot import ziBot
+
+    LocaleStr = _
 
 
 class Context(commands.Context):
@@ -41,42 +43,42 @@ class Context(commands.Context):
         return self.bot.cache
 
     @overload
-    async def maybeTranslate(self, content: locale_str | None, fallback: None = ...) -> None:
+    async def maybeTranslate(self, content: LocaleStr | None, fallback: None = ...) -> None:
         ...
 
     @overload
-    async def maybeTranslate(self, content: locale_str | None, fallback: str = ...) -> str:
+    async def maybeTranslate(self, content: LocaleStr | None, fallback: str = ...) -> str:
         ...
 
     @overload
-    async def maybeTranslate(self, content: locale_str | str) -> str:
+    async def maybeTranslate(self, content: LocaleStr | str) -> str:
         ...
 
     @overload
-    async def maybeTranslate(self, content: locale_str | str | None, fallback: None = ...) -> None:
+    async def maybeTranslate(self, content: LocaleStr | str | None, fallback: None = ...) -> None:
         ...
 
     @overload
-    async def maybeTranslate(self, content: locale_str | str | None, fallback: str = ...) -> str:
+    async def maybeTranslate(self, content: LocaleStr | str | None, fallback: str = ...) -> str:
         ...
 
-    async def maybeTranslate(self, content: locale_str | str | None, fallback: str | None = None) -> str | None:
+    async def maybeTranslate(self, content: LocaleStr | str | None, fallback: str | None = None) -> str | None:
         if not content:
             return content or fallback
 
-        if isinstance(content, locale_str):
+        if isinstance(content, LocaleStr):
             content = await self.translate(content)
         return content
 
-    async def send(self, content: locale_str | str | None = None, **kwargs) -> Message:
+    async def send(self, content: LocaleStr | str | None = None, **kwargs) -> Message:
         return await super().send(await self.maybeTranslate(content), **kwargs)
 
-    async def reply(self, content: locale_str | str | None = None, **kwargs) -> Message:
+    async def reply(self, content: LocaleStr | str | None = None, **kwargs) -> Message:
         return await super().reply(await self.maybeTranslate(content), **kwargs)
 
     async def tryReply(
         self,
-        content: locale_str | str | None = None,
+        content: LocaleStr | str | None = None,
         *,
         mention_author=False,
         embed: discord.Embed | ZEmbedBuilder | None = None,
@@ -145,9 +147,7 @@ class Context(commands.Context):
     async def safeReply(self, content, *, escapeMentions: bool = True, **kwargs):
         return await self.safe_reply(content, escape_mentions=escapeMentions, **kwargs)
 
-    async def error(
-        self, errorMessage: locale_str | str | None = None, title: locale_str | str | None = locale_str("error-generic")
-    ):
+    async def error(self, errorMessage: LocaleStr | str | None = None, title: LocaleStr | str | None = _("error-generic")):
         if isinstance(title, str):
             title = "ERROR: " + title
         else:
@@ -158,9 +158,7 @@ class Context(commands.Context):
             e.description = await self.maybeTranslate(errorMessage, fallback="")
         return await self.try_reply(embed=e)
 
-    async def success(
-        self, success_message: locale_str | str | None = None, title: locale_str | str = locale_str("success")
-    ):
+    async def success(self, success_message: LocaleStr | str | None = None, title: LocaleStr | str = _("success")):
         e = ZEmbed.success(
             title=await self.maybeTranslate(title),
         )
@@ -169,7 +167,7 @@ class Context(commands.Context):
         return await self.try_reply(embed=e)
 
     @asynccontextmanager
-    async def loading(self, title: locale_str | str = locale_str("loading"), *, colour: discord.Colour | int = None):
+    async def loading(self, title: LocaleStr | str = _("loading"), *, colour: discord.Colour | int = None):
         """
         async with ctx.loading(title="This param is optional"):
             await asyncio.sleep(5) # or any long process stuff
@@ -191,11 +189,13 @@ class Context(commands.Context):
     async def try_invoke(self, command: Union[commands.Command, str], *args, **kwargs):  # type: ignore
         """Similar to invoke() except it triggers checks"""
         if isinstance(command, str):
-            command: commands.Command = self.bot.get_command(command)
+            command: commands.Command | None = self.bot.get_command(command)
+            if not command:
+                return
 
         canRun = await command.can_run(self)
         if canRun:
-            await command(self, *args, **kwargs)
+            await command(self, *args, **kwargs)  # type: ignore
 
     @discord.utils.cached_property
     def replied_reference(self):
@@ -222,7 +222,7 @@ class Context(commands.Context):
             raise commands.NoPrivateMessage
         return g
 
-    async def translate(self, string: locale_str, *, locale: Locale | None = None) -> str:
+    async def translate(self, string: LocaleStr, *, locale: Locale | None = None) -> str:
         """|coro|
 
         Mimic Interaction.translate() behaviour

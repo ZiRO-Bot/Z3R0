@@ -10,12 +10,13 @@ from typing import TYPE_CHECKING, Any, Awaitable, Callable, Iterable
 
 import discord
 from discord.app_commands import Group as AppGroup
-from discord.app_commands import locale_str
 from discord.ext import commands
 from discord.utils import MISSING
 
 
 if TYPE_CHECKING:
+    from discord.app_commands import locale_str as LocaleStr
+
     AutocompleteCallbackTypeReturn = Iterable[Any] | Awaitable[Iterable[Any]]
     AutocompleteCallbackType = Callable[..., AutocompleteCallbackTypeReturn] | Callable[..., AutocompleteCallbackTypeReturn]
 
@@ -27,13 +28,13 @@ class ZCommand(commands.Command):
         func: Callable,
         /,
         # I use desc instead of description to avoid the content being casted as String
-        desc: locale_str | str | None = None,
+        desc: LocaleStr | str | None = None,
         **kwargs: Any,
     ) -> None:
         super().__init__(func, **kwargs)
-        self.localeName: locale_str | None = kwargs.get("localeName")
+        self.localeName: LocaleStr | None = kwargs.get("localeName")
         if not self.description and desc is not None:
-            self.description: locale_str | str = desc or ""
+            self.description: LocaleStr | str = desc or ""
 
     def autocomplete(self, name: str) -> Callable[[AutocompleteCallbackType], AutocompleteCallbackType]:
         def decorator(callback: AutocompleteCallbackType) -> AutocompleteCallbackType:
@@ -88,9 +89,9 @@ class ZHybridGroup(commands.HybridGroup, ZGroup):
 
 
 def command(
-    name: locale_str | str = MISSING,
-    localeName: locale_str = MISSING,
-    description: locale_str | str = MISSING,
+    name: LocaleStr | str = MISSING,
+    localeName: LocaleStr = MISSING,
+    description: LocaleStr | str = MISSING,
     help: str = MISSING,
     aliases: Iterable[str] = MISSING,
     hybrid: bool = False,
@@ -129,9 +130,9 @@ def command(
 
 
 def group(
-    name: locale_str | str = MISSING,
-    localeName: locale_str = MISSING,
-    description: locale_str | str = MISSING,
+    name: LocaleStr | str = MISSING,
+    localeName: LocaleStr = MISSING,
+    description: LocaleStr | str = MISSING,
     help: str = MISSING,
     aliases: Iterable[str] = MISSING,
     hybrid: bool = False,
