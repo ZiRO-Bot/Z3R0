@@ -110,7 +110,8 @@ class Info(commands.Cog, CogMixin):
 
         try:
             h = str(hex(int(value, 16)))[2:]
-            h = h.ljust(6, "0")
+            h = h.lstrip("0x")
+            h = "0x" + h.rjust(6, "0")
         except ValueError:
             return await ctx.error("Invalid colour value!")
 
