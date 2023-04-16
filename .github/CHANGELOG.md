@@ -6,6 +6,10 @@
 > previously functions and constants are all over the place that it's starting
 > to get harder to find what I'm looking for.
 
+## 3.6.3 (Docker Hotfix)
+
+- [**Fixed**] `shutil.rmtree` cause OSError in Docker environment
+
 ## 3.6.2 (Project Structure Refactor - Part 2)
 
 > **Note**
