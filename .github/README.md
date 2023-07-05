@@ -117,6 +117,7 @@ For information on how to use the bot, see https://bot.palembani.xyz/docs
 | ZIBOT\_ZMQ\_PUB | zmqPorts | Port for ZeroMQ's Publish |
 | ZIBOT\_ZMQ\_SUB | zmqPorts | Port for ZeroMQ's Subscribe |
 | ZIBOT\_ZMQ\_REP | zmqPorts | Port for ZeroMQ's Reply |
+| ZIBOT\_MIGRATION\_DIR | migrationFolder or migrationDir | Z3R0's DB migration directory |
 
 #### Manual
 

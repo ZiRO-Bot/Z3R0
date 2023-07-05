@@ -98,6 +98,7 @@ def run():
                 getattr(_config, "zmqPorts", None),
                 None,
                 False,
+                getattr(_config, "migrationDir", getattr(_config, "migrationFolder", None)),
             )
         except ImportError as e:
             if e.name == "config":
@@ -134,6 +135,7 @@ def run():
                     zmqPorts,
                     None,
                     False,
+                    os.environ.get("ZIBOT_MIGRATION_DIR"),
                 )
 
         if not config:

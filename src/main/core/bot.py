@@ -235,7 +235,7 @@ class ziBot(commands.Bot):
         self.i18n = await Localization.init()
         await self.tree.set_translator(FluentTranslator(self))
 
-        migrationDir = Path("migrations")
+        migrationDir = self.config.migrationDir
 
         aerichCmd = AerichCommand(
             tortoise_config=self.config.tortoiseConfig,
@@ -258,7 +258,7 @@ class ziBot(commands.Bot):
                     "Unable to retrieve model history from the database! " "Creating model history from scratch..."
                 )
 
-                self._cleanMigrationDir(migrationDir)
+                self._cleanMigrationDir()
 
                 await aerichCmd.init_db(True)
         else:
@@ -268,7 +268,8 @@ class ziBot(commands.Bot):
 
         self.loop.create_task(self.afterReady())
 
-    def _cleanMigrationDir(self, directory: Path):
+    def _cleanMigrationDir(self):
+        directory = self.config.migrationDir
         for filename in os.listdir(directory):
             filePath = directory / filename
             try:

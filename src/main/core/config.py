@@ -6,6 +6,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Any
 
 
@@ -28,6 +29,7 @@ class Config:
         "useAerich",
         "destUrl",
         "isDataMigration",
+        "migrationDir",
     )
 
     def __init__(
@@ -46,6 +48,7 @@ class Config:
         zmqPorts: dict[str, int] | None = None,
         destUrl: str | None = None,
         isDataMigration: bool = False,
+        migrationFolder: str | None = None,
     ):
         self.token = token
         self.defaultPrefix = defaultPrefix or ">"
@@ -61,6 +64,7 @@ class Config:
         self.internalApiHost = internalApiHost or "127.0.0.1:2264"
         self.test = test
         self.zmqPorts = zmqPorts or {}
+        self.migrationDir = Path(migrationFolder or "migrations")
 
     @property
     def tortoiseConfig(self):
