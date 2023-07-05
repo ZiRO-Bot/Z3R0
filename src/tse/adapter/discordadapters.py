@@ -106,6 +106,7 @@ class MemberAdapter(AttributeAdapter):
         additional_attributes = {
             "color": member.colour,
             "colour": member.colour,
+            "display_name": member.global_name,
             "nick": member.display_name,
             "avatar": (member.display_avatar.url, False),
             "discriminator": member.discriminator,
