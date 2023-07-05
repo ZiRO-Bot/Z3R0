@@ -59,7 +59,7 @@
 
 Invite the officially hosted bot from this [invite link](https://discord.com/oauth2/authorize?client_id=740122842988937286&scope=bot&permissions=4260883702).
 
-For information on how to use the bot, see https://bot.palembani.xyz/docs
+For information on how to use the bot, see https://zibot.aap.my.id/docs
 
 ### Self-Hosting
 
