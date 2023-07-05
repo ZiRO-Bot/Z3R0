@@ -8,7 +8,10 @@
 
 ## 3.7.0 (Into the Multilingual Era)
 
-- [**Added**] Implemented i18n using [Project Fluent](https://github.com/projectfluent/python-fluent)
+- [**Added**] Implemented i18n using
+  [Project Fluent](https://github.com/projectfluent/python-fluent)
+- [**Changed**] Updated `discord.py` to 2.3.1, it's now support Discord's
+  latest stupid decision™! (Username)
 
 ### Internal Changes
 - [**Added**] `Users` table model
