@@ -42,7 +42,7 @@ botMasters = ["0000000000000000", "0000000000000001"]
 # Database URL
 # (visit `https://tortoise.github.io/databases.html#db-url` to learn more)
 #
-# Tested: SQLite
+# Tested: SQLite, PostgreSQL, CockroachDB's PostgreSQL
 #
 # URL Examples:
 # sql = sqlite:///data/database.db
@@ -61,3 +61,9 @@ sql = "DB_TYPE://PATH_OR_CREDENTIALS/DB_NAME?PARAM1=value&PARAM2=value"
 #        },
 #    },
 #}
+
+# Where to store TortoiseORM's DB migrations
+#
+# Example:
+# migrationDir = "data/migrations"
+migrationDir = "migrations"
