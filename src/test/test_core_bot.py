@@ -9,7 +9,7 @@ from __future__ import annotations
 import discord.ext.test as dpytest
 import pytest
 
-from zibot.core.bot import ziBot
+from src.zibot.core.bot import ziBot
 
 
 @pytest.mark.asyncio
