@@ -12,25 +12,13 @@ WORKDIR /app
 ENV PATH="/root/.local/bin:${PATH}" \
     VIRTUAL_ENV="/venv"
 
-RUN apt-get update && apt-get upgrade -y \
-    && apt-get install --no-install-recommends -y \
-        bash \
-        brotli \
-        build-essential \
-        curl \
-        gettext \
-        git \
-        libpq-dev \
-        libzmq3-dev \
-    && curl -sSL 'https://install.python-poetry.org' | python - \
-    && poetry --version \
-    && python -m venv /venv
+# install PDM
+RUN pip install -U pip setuptools wheel
+RUN pip install pdm
 
 COPY poetry.lock pyproject.toml ./
 ADD src/ ./src
-RUN poetry run pip install -U pip \
-    && poetry install --without test,dev \
-    --no-root -E postgresql -E mysql -E voice -E speedup
+RUN mkdir __pypackages__ && pdm sync --prod -G "postgresql,mysql,voice,speedup" --no-editable
 
 # ---
 FROM base as final
@@ -40,10 +28,12 @@ WORKDIR /app
 ENV PATH="/venv/bin:${PATH}" \
     VIRTUAL_ENV="/venv"
 
-COPY --from=builder /venv /venv
-COPY --from=builder /app/pyproject.toml /app/
-COPY --from=builder /app/src/ /app/src
-COPY assets/ /app/assets
-COPY __main__.py /app/
 
-CMD ["python", "."]
+# retrieve packages from build stage
+ENV PYTHONPATH=/project/pkgs
+COPY --from=builder /project/__pypackages__/3.8/lib /project/pkgs
+
+# retrieve executables
+COPY --from=builder /project/__pypackages__/3.8/bin/* /bin/
+
+CMD ["python", "-m", "zibot"]

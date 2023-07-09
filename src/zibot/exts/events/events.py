@@ -201,7 +201,6 @@ class EventHandler(commands.Cog, CogMixin):
             entry = await self.getAuditLogs(guild)
 
             if entry.target == member:
-
                 # TODO: Filters bot's action
                 if entry.action == discord.AuditLogAction.kick:
                     self.bot.dispatch("member_kick", member, entry)

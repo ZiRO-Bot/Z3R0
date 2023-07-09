@@ -43,7 +43,6 @@ class Temperature:
 
 
 class Wind:
-
     __slots__ = ("speed", "degree")
 
     def __init__(self, windData):
@@ -59,7 +58,6 @@ class Wind:
 
 
 class Weather:
-
     __slots__ = (
         "rawData",
         "city",

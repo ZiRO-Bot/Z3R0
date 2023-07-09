@@ -76,7 +76,6 @@ __all__ = ("ziBot",)
 
 
 class ziBot(commands.Bot):
-
     if TYPE_CHECKING:
         session: aiohttp.ClientSession
         i18n: Localization
@@ -727,5 +726,4 @@ class ziBot(commands.Bot):
         sys.exit(self.exitCode)
 
     async def run(self) -> None:
-
         await super().start(self.config.token, reconnect=True)

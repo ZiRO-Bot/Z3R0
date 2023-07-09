@@ -1,0 +1,22 @@
+[project]
+name = "zibot-tse"
+version = "2.5.13a"
+description = "An easy drop in user-provided Templating system."
+authors = [
+    {name = "JonSnowbd", email = "vasti009@gmail.com"},
+    {name = "PhenoM4n4n", email = "noumenondiscord@gmail.com"},
+    {name = "null2264", email = "palembani@gmail.com"},
+]
+maintainers = [
+    {name = "null2264", email = "palembani@gmail.com"},
+]
+license = {text = "CC-BY-4.0"}
+requires-python = ">=3.10"
+dependencies = [
+    "discord.py>=2.0",
+    "pyparsing"
+]
+
+[build-system]
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"

@@ -15,10 +15,10 @@ from logging.handlers import RotatingFileHandler
 import aiohttp
 from tortoise import Tortoise, connection
 
-from src.main.core import bot as _bot
-from src.main.core import db
-from src.main.core.config import Config
-from src.main.utils import utcnow
+from .core import bot as _bot
+from .core import db
+from .core.config import Config
+from .utils import utcnow
 
 
 # Create data directory if its not exist

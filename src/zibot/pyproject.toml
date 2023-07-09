@@ -1,0 +1,50 @@
+[project]
+name = "zibot"
+version = "3.7.0"
+description = "A multi-purpose open source discord bot"
+authors = [
+    {name = "null2264", email = "palembani@gmail.com"},
+]
+license = {text = "MPL-2.0"}
+requires-python = ">=3.10"
+dependencies = [
+    "zibot-tse",
+    "discord.py==2.3.1",
+    "discord-ext-menus==1.1",
+    "fuzzywuzzy==0.18.0",
+    "humanize==4.4.0",
+    "jishaku @ git+https://github.com/ZiRO-Bot/jishaku@9174fad",
+    "Pillow==9.3.0",
+    "python-dateutil==2.8.2",
+    "Levenshtein==0.20.3",
+    "pytz==2021.3",
+    "pyparsing==2.4.7",
+    "requests==2.28.1",
+    "typing-extensions==4.4.0",
+    "aiosqlite>=0.16.0, <0.18.0",
+    "tortoise-orm==0.19.3",
+    "single-source==0.3.0",
+    "pyzmq>=25.0.0",
+    "fluent-syntax>=0.19.0",
+    "fluent-runtime>=0.4.0",
+    "aerich==0.7.1",
+]
+
+[project.optional-dependencies]
+speedup = [
+    "uvloop>=0.17.0",
+    "orjson==3.8.3",
+]
+postgresql = ["asyncpg"]
+mysql = ["aiomysql"]
+"mysql+asyncmy" = ["asyncmy"]
+voice = ["PyNaCl"]
+test = [
+    "pytest>=7.2.0",
+    "pytest-asyncio>=0.20.3",
+    "dpytest>=0.6",
+]
+
+[build-system]
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"

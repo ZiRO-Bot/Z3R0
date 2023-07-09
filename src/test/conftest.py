@@ -12,8 +12,8 @@ import discord.ext.test as dpytest
 import pytest_asyncio
 from discord.ext.test import factories
 
-from main.core.bot import ziBot
-from main.core.config import Config
+from zibot.core.bot import ziBot
+from zibot.core.config import Config
 
 
 oldMemberDict = factories.make_member_dict
@@ -31,7 +31,6 @@ factories.make_member_dict = newMakeMemberDict
 
 @pytest_asyncio.fixture  # type: ignore
 async def bot():
-
     testBot = ziBot(Config("totally a token yup...", "sqlite://:memory:", test=True))
     testBot.session = aiohttp.ClientSession(headers={"User-Agent": "Discord/Z3RO (ziBot/3.0 by ZiRO2264)"})
     dpytest.configure(testBot)

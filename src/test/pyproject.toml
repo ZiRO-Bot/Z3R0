@@ -1,0 +1,14 @@
+[project]
+name = "zibot-test"
+version = "2023"
+description = "Unit Test for Z3R0"
+authors = [
+    {name = "null2264", email = "palembani@gmail.com"},
+]
+license = {text = "MPL-2.0"}
+requires-python = ">=3.10"
+dependencies = ["zibot"]
+
+[build-system]
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"

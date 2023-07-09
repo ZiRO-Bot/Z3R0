@@ -239,7 +239,6 @@ class Piglin:
 
 
 class BarterItem:
-
     __slots__ = ("id", "name", "quantity")
 
     def __init__(self, item):

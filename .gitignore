@@ -5,6 +5,7 @@ downloads/
 zibot.egg-info/
 
 .env
+.venv/
 exts/youtube.py
 blacklist.json
 config.*
