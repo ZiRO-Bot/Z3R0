@@ -11,7 +11,6 @@ class SubstringBlock(Block):
 
     def process(self, ctx: Context) -> Optional[str]:
         try:
-
             if "-" in ctx.verb.parameter:
                 spl = ctx.verb.parameter.split("-")
                 start = int(float(spl[0]))

@@ -5,12 +5,12 @@ description = "A multi-purpose open source discord bot"
 authors = ["null2264"]
 license = "MPL-2.0"
 packages = [
-  {include = "main", from = "src"},
+  {include = "zibot", from = "src"},
   {include = "tse", from = "src"}
 ]
 
 [tool.poetry.scripts]
-bot = "main.__main__:run"
+bot = "zibot.__main__:run"
 datamigration = "main.__main__:datamigration"
 
 [tool.poetry.dependencies]
@@ -43,9 +43,9 @@ fluent-runtime = "^0.4.0"
 aerich = "0.7.1"
 
 [tool.poetry.group.dev.dependencies]
-black = "^22.10.0"
+black = "^23.0.0"
 isort = "^5.10.1"
-pre-commit = "^2.13.0"
+pre-commit = "^3.0.0"
 
 [tool.poetry.group.test]
 optional = true
@@ -83,7 +83,6 @@ lines_after_imports = 2
 
 [tool.aerich]
 tortoise_orm = "aerichConfig.t"
-location = "./src/main/migrations"
 src_folder = "./."
 
 [tool.pyright]

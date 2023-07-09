@@ -8,9 +8,8 @@ from __future__ import annotations
 
 import discord.ext.test as dpytest
 import pytest
-from discord.ext.commands.errors import BadFlagArgument
 
-from main.core.bot import ziBot
+from zibot.core.bot import ziBot
 
 
 @pytest.mark.asyncio

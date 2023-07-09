@@ -101,7 +101,7 @@ class Moderation(commands.Cog, CogMixin):
 
         # Do the action
         try:
-            await (actions[action])(
+            await actions[action](
                 ctx,
                 user,
                 reason="[{} (ID: {}) #{}]: {}".format(ctx.author, ctx.author.id, caseNum, reason),

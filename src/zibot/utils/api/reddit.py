@@ -8,7 +8,6 @@ import aiohttp
 
 
 class Post:
-
     __slots__ = (
         "isStickied",
         "title",

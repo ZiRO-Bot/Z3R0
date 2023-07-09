@@ -11,8 +11,8 @@ import asyncio
 import discord.ext.test as dpytest
 import pytest
 
-from main.core.bot import ziBot
-from main.core.embed import ZEmbedBuilder
+from zibot.core.bot import ziBot
+from zibot.core.embed import ZEmbedBuilder
 
 
 @pytest.mark.asyncio

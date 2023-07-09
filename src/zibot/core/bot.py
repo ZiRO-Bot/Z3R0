@@ -17,7 +17,6 @@ import shutil
 import sys
 from collections import Counter
 from contextlib import suppress
-from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 import aiohttp
@@ -50,7 +49,7 @@ from .i18n import FluentTranslator, Localization
 EXTS = []
 EXTS_DIR = "exts"
 EXTS_IGNORED = ("twitch.py", "youtube.py", "slash.py", "music.py")
-FMT = "src/main/{}".format(EXTS_DIR)
+FMT = "src/zibot/{}".format(EXTS_DIR)
 for filename in os.listdir(FMT):
     if os.path.isdir(os.path.join(FMT, filename)):
         if filename in EXTS_IGNORED:
@@ -76,7 +75,6 @@ __all__ = ("ziBot",)
 
 
 class ziBot(commands.Bot):
-
     if TYPE_CHECKING:
         session: aiohttp.ClientSession
         i18n: Localization
@@ -727,5 +725,4 @@ class ziBot(commands.Bot):
         sys.exit(self.exitCode)
 
     async def run(self) -> None:
-
         await super().start(self.config.token, reconnect=True)
