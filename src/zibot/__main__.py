@@ -102,11 +102,11 @@ def run():
             )
         except ImportError as e:
             if e.name == "config":
-                logger.warn("Missing config.py, getting config from environment variables instead...")
+                logger.warning("Missing config.py, getting config from environment variables instead...")
 
             token = os.environ.get("ZIBOT_TOKEN")
             if not token:
-                logger.warn("Missing required environment variables, quitting...")
+                logger.warning("Missing required environment variables, quitting...")
             else:
                 botMasters = os.environ.get("ZIBOT_BOT_MASTERS")
                 PUB = int(os.environ.get("ZIBOT_ZMQ_PUB", 0))
@@ -168,7 +168,7 @@ async def _datamigration(config: Config):
     """
     logger = logging.getLogger("discord")
     await Tortoise.init(config=config.tortoiseConfig)
-    logger.warn("Trying to generate scheme...")
+    logger.warning("Trying to generate scheme...")
     await Tortoise.generate_schemas(True)
 
     models = [
@@ -194,7 +194,7 @@ async def _datamigration(config: Config):
                 data._custom_generated_pk = True
                 newList.append(data)
             current = newList
-        logger.warn(f"Migrating {model.__name__} [{index + 1}/{len(models)}]...")
+        logger.warning(f"Migrating {model.__name__} [{index + 1}/{len(models)}]...")
         await model.bulk_create(current, ignore_conflicts=True, using_db=Tortoise.get_connection("dest"))
 
     logger.warning("Data has been migrated!")

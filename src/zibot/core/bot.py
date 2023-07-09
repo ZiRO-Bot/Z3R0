@@ -17,7 +17,6 @@ import shutil
 import sys
 from collections import Counter
 from contextlib import suppress
-from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 import aiohttp
@@ -50,13 +49,13 @@ from .i18n import FluentTranslator, Localization
 EXTS = []
 EXTS_DIR = "exts"
 EXTS_IGNORED = ("twitch.py", "youtube.py", "slash.py", "music.py")
-FMT = "src/main/{}".format(EXTS_DIR)
+FMT = "src/zibot/{}".format(EXTS_DIR)
 for filename in os.listdir(FMT):
     if os.path.isdir(os.path.join(FMT, filename)):
         if filename in EXTS_IGNORED:
             continue
         if not filename.startswith("_"):
-            EXTS.append("main.{}.{}".format(EXTS_DIR, filename))
+            EXTS.append("zibot.{}.{}".format(EXTS_DIR, filename))
 
 
 EMOJI_REGEX = re.compile(r";(?P<name>[a-zA-Z0-9_]{2,32});")

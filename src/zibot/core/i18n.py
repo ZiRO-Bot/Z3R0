@@ -39,7 +39,7 @@ class Localization:
 
     __initialized: bool = False
 
-    root: Path = Path("src/main/locale")
+    root: Path = Path("src/zibot/locale")
     useIsolating: bool = False
     defaultLocale: Locale = Locale.american_english
     currentLocale: Locale | None = None

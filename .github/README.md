@@ -181,6 +181,7 @@ changelog
 >
 > Listed from highest to lowest priority
 
+- Restructure project into a monorepo
 - Setup Tests using dpytest
   - Add test for every command
 - Rework permissions

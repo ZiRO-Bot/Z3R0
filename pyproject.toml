@@ -34,7 +34,6 @@ lines_after_imports = 2
 
 [tool.aerich]
 tortoise_orm = "aerichConfig.t"
-location = "./src/main/migrations"
 src_folder = "./."
 
 [tool.pyright]

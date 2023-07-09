@@ -9,8 +9,8 @@ from __future__ import annotations
 import discord.ext.test as dpytest
 import pytest
 
-from zibot.core.bot import ziBot
-from zibot.exts.meta._errors import CCommandAlreadyExists, CCommandNotFound
+from src.zibot.core.bot import ziBot
+from src.zibot.exts.meta._errors import CCommandAlreadyExists, CCommandNotFound
 
 
 @pytest.mark.asyncio
