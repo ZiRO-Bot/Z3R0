@@ -46,4 +46,4 @@ COPY --from=builder /app/src/ /app/src
 COPY assets/ /app/assets
 COPY __main__.py /app/
 
-CMD ["python", "."]
+CMD ["python", "-m", "zibot"]
