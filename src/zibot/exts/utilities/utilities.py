@@ -176,6 +176,7 @@ class Utilities(commands.Cog, CogMixin):
         aliases=("google", "g"),
         description=_("search-desc"),
         hybrid=True,
+        enabled=False,
     )
     @app_commands.rename(query="keyword")
     @commands.cooldown(1, 10, commands.BucketType.user)
