@@ -8,7 +8,7 @@ zibot.egg-info/
 exts/youtube.py
 blacklist.json
 config.*
-!src/main/core/config.py
+!src/**/config.py
 news.json
 
 *.log
