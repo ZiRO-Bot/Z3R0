@@ -11,7 +11,7 @@ packages = [
 
 [tool.poetry.scripts]
 bot = "zibot.__main__:run"
-datamigration = "main.__main__:datamigration"
+datamigration = "zibot.__main__:datamigration"
 
 [tool.poetry.dependencies]
 python = "^3.10"
