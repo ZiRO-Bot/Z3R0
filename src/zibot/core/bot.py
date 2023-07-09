@@ -55,7 +55,7 @@ for filename in os.listdir(FMT):
         if filename in EXTS_IGNORED:
             continue
         if not filename.startswith("_"):
-            EXTS.append("main.{}.{}".format(EXTS_DIR, filename))
+            EXTS.append("zibot.{}.{}".format(EXTS_DIR, filename))
 
 
 EMOJI_REGEX = re.compile(r";(?P<name>[a-zA-Z0-9_]{2,32});")
