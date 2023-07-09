@@ -17,6 +17,7 @@ dev = [
     "black>=22.10.0",
     "isort>=5.10.1",
     "pre-commit>=2.13.0",
+    "pdm-mina>=0.2.2",
 ]
 
 [tool.pdm.scripts]
