@@ -113,7 +113,7 @@ For information on how to use the bot, see https://zibot.aap.my.id/docs
 | ZIBOT\_AUTHOR | author | Change the bot's author name (and tag) shown in the info command |
 | **CURRENTLY NOT AVAILABLE** | links | Change the links shown in the info command |
 | **CURRENTLY NOT AVAILABLE** | TORTOISE\_ORM | Advanced TortoiseORM configuration, you shouldn't touch it if you're not familiar with TortoiseORM |
-| ZIBOT\_INTERNAL\_API\_HOST | internalApiHost | The bot's [internal API](https://github.com/ZiRO-Bot/RandomAPI) |
+| ZIBOT\_INTERNAL\_API\_HOST | internalApiHost | The bot's [internal API](https://github.com/ZiRO-Bot/nexus) |
 | ZIBOT\_ZMQ\_PUB | zmqPorts | Port for ZeroMQ's Publish |
 | ZIBOT\_ZMQ\_SUB | zmqPorts | Port for ZeroMQ's Subscribe |
 | ZIBOT\_ZMQ\_REP | zmqPorts | Port for ZeroMQ's Reply |

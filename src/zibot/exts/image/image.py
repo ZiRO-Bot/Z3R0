@@ -23,8 +23,8 @@ class Image(commands.Cog, CogMixin):
 
     def __init__(self, bot):
         super().__init__(bot)
-        # Source: https://github.com/ZiRO-Bot/RandomAPI
-        self.imageManipUrl = f"http://{self.bot.config.internalApiHost}/api/v1/image"
+        # Source: https://github.com/ZiRO-Bot/nexus/tree/2.0
+        self.imageManipUrl = f"http://{self.bot.config.internalApiHost}/v1/image"
 
     # TODO: Slash
     async def doImageFilter(
