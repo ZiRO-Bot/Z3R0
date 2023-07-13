@@ -4,6 +4,9 @@ LABEL org.opencontainers.image.source="https://github.com/ZiRO-Bot/Z3R0"
 LABEL org.opencontainers.image.description="A multi-purpose open-source discord bot"
 LABEL org.opencontainers.image.licenses=MPL-2.0
 
+ENV PATH="/root/.local/bin:${PATH}" \
+    VIRTUAL_ENV="/venv"
+
 RUN apt-get update && apt-get upgrade -y \
     && apt-get install --no-install-recommends -y \
         bash \
@@ -23,9 +26,6 @@ FROM base as builder
 
 WORKDIR /app
 
-ENV PATH="/root/.local/bin:${PATH}" \
-    VIRTUAL_ENV="/venv"
-
 COPY poetry.lock pyproject.toml ./
 RUN poetry install --no-root --no-directory
 ADD src/ ./src
@@ -35,9 +35,6 @@ RUN poetry install --without test,dev -E postgresql -E mysql -E voice -E speedup
 FROM base as final
 
 WORKDIR /app
-
-ENV PATH="/venv/bin:${PATH}" \
-    VIRTUAL_ENV="/venv"
 
 COPY --from=builder /venv /venv
 COPY --from=builder /app/pyproject.toml /app/
