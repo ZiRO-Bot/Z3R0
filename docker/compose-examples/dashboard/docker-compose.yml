@@ -30,10 +30,10 @@ services:
 
   api:
     hostname: api
-    image: ghcr.io/ziro-bot/backend:0.0.1
+    image: ghcr.io/ziro-bot/nexus:2.0.0
     restart: unless-stopped
 
   web:
     hostname: web
-    image: ghcr.io/ziro-bot/frontend:0.0.1
+    image: ghcr.io/ziro-bot/cockpit:0.0.1
     restart: unless-stopped
