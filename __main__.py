@@ -1,4 +1,4 @@
-from src.main import __main__
+from src.zibot import __main__
 
 
 __main__.main()
