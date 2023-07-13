@@ -4,14 +4,6 @@ LABEL org.opencontainers.image.source="https://github.com/ZiRO-Bot/Z3R0"
 LABEL org.opencontainers.image.description="A multi-purpose open-source discord bot"
 LABEL org.opencontainers.image.licenses=MPL-2.0
 
-# ---
-FROM base as builder
-
-WORKDIR /app
-
-ENV PATH="/root/.local/bin:${PATH}" \
-    VIRTUAL_ENV="/venv"
-
 RUN apt-get update && apt-get upgrade -y \
     && apt-get install --no-install-recommends -y \
         bash \
@@ -26,11 +18,18 @@ RUN apt-get update && apt-get upgrade -y \
     && poetry --version \
     && python -m venv /venv
 
+# ---
+FROM base as builder
+
+WORKDIR /app
+
+ENV PATH="/root/.local/bin:${PATH}" \
+    VIRTUAL_ENV="/venv"
+
 COPY poetry.lock pyproject.toml ./
+RUN poetry install --no-root --no-directory
 ADD src/ ./src
-RUN poetry run pip install -U pip \
-    && poetry install --without test,dev \
-    --no-root -E postgresql -E mysql -E voice -E speedup
+RUN poetry install --without test,dev -E postgresql -E mysql -E voice -E speedup
 
 # ---
 FROM base as final
@@ -46,4 +45,4 @@ COPY --from=builder /app/src/ /app/src
 COPY assets/ /app/assets
 COPY __main__.py /app/
 
-CMD ["python", "."]
+CMD ["poetry", "run", "bot"]
