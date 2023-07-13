@@ -69,8 +69,6 @@ class Config:
     @property
     def tortoiseConfig(self):
         mainModel = "zibot.core.db"
-        if not self.test:
-            mainModel = "src." + mainModel
 
         ret = self._tortoiseConfig
         if not ret:
