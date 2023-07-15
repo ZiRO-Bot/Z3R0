@@ -659,6 +659,8 @@ class EventHandler(commands.Cog, CogMixin):
                     "users": len(self.bot.users),
                     "commands": sum(self.bot.commandUsage.values()),
                 }
+            case {"type": "ping"}:
+                data = {"self": "Pong!"}
             case _:
                 data = {"test": str(request)}
 
