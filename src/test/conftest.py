@@ -6,14 +6,21 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from __future__ import annotations
 
+import sys
+from pathlib import Path
+
 import aiohttp
 import discord
 import discord.ext.test as dpytest
 import pytest_asyncio
 from discord.ext.test import factories
 
-from src.zibot.core.bot import ziBot
-from src.zibot.core.config import Config
+
+srcPath = Path(__file__).parent.parent
+sys.path.append(str(srcPath))
+
+from zibot.core.bot import ziBot
+from zibot.core.config import Config
 
 
 oldMemberDict = factories.make_member_dict

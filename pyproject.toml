@@ -6,7 +6,8 @@ authors = ["null2264"]
 license = "MPL-2.0"
 packages = [
   {include = "zibot", from = "src"},
-  {include = "tse", from = "src"}
+  {include = "tse", from = "src"},
+  {include = "test", from = "src"}
 ]
 
 [tool.poetry.scripts]

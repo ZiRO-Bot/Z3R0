@@ -70,8 +70,6 @@ class Config:
     @property
     def tortoiseConfig(self):
         mainModel = "zibot.core.db"
-        if self.test and sys.argv[0] != "poetry":
-            mainModel = "src." + mainModel
 
         ret = self._tortoiseConfig
         if not ret:

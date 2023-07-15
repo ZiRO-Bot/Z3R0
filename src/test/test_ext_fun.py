@@ -12,8 +12,8 @@ import discord.ext.test as dpytest
 import pytest
 from discord.ext.commands.errors import BadFlagArgument
 
-from src.zibot.core.bot import ziBot
-from src.zibot.core.errors import DefaultError
+from zibot.core.bot import ziBot
+from zibot.core.errors import DefaultError
 
 
 @pytest.mark.asyncio
