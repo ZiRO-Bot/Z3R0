@@ -4,12 +4,22 @@ data/
 downloads/
 zibot.egg-info/
 
+build/
+build.sh
+
+migrations/
+.venv/
 .env
-exts/youtube.py
-blacklist.json
+
+src/cache
 config.*
 !src/**/config.py
+
+docker-data/
 news.json
+blacklist.json
+
+exts/youtube.py
 
 *.log
 
