@@ -40,6 +40,5 @@ COPY --from=builder /venv /venv
 COPY --from=builder /app/pyproject.toml /app/
 COPY --from=builder /app/src/ /app/src
 COPY assets/ /app/assets
-COPY __main__.py /app/
 
 CMD ["poetry", "run", "bot"]
