@@ -71,7 +71,7 @@ purgatory-arg-disable = Disable purgatory
 # - Log (Modlog and Purgatory)
 log-updated-title =
     { $type ->
-        [modlog] { -modlog(case: "uppercase" }
+        [modlog] { -modlog(case: "uppercase") }
        *[other] { -purgatory(case: "uppercase") }
     } config has been updated
 log-updated-field-channel = { -channel(case: "uppercase") }
