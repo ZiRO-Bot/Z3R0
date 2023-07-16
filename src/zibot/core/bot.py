@@ -293,7 +293,7 @@ class ziBot(commands.Bot):
             await self.zmqBind()
 
         for extension in EXTS:
-            await self.load_extension(f"src.{extension}" if not self.config.test else extension)
+            await self.load_extension(extension)
 
         for command in self.commands:
             if merge := getattr(command, "__merge_group__", None):
