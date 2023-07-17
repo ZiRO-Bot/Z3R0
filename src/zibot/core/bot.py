@@ -357,6 +357,7 @@ class ziBot(commands.Bot):
                     request = {}
                     print(e)
 
+                self.logger.info("Processing ZMQ request...")
                 self.dispatch("zmq_request", request)
         except Exception as e:
             print(e)
