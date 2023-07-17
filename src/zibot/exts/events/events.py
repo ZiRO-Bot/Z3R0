@@ -22,6 +22,7 @@ from src import tse
 
 from ...core import errors
 from ...core.embed import ZEmbed
+from ...core.guild import GuildWrapper
 from ...core.mixin import CogMixin
 from ...utils import doCaselog, reactsToMessage, utcnow
 from ...utils.format import formatMissingArgError, formatPerms, formatTraceback
@@ -627,8 +628,9 @@ class EventHandler(commands.Cog, CogMixin):
         data = {}
 
         match request:
-            case {"type": "guilds"}:
-                guild = self.bot.get_guild(request["id"])
+            case {"type": "guild"}:
+                _guild = self.bot.get_guild(request["id"])
+                guild = GuildWrapper(_guild, self.bot) if _guild else None
                 if guild:
                     data = {
                         "id": guild.id,
@@ -637,7 +639,20 @@ class EventHandler(commands.Cog, CogMixin):
                         "owner": False,  # TODO
                         "features": [],
                         "permissions": 0,
+                        "prefixes": await guild.getPrefixes(),
                     }
+            case {"type": "prefix-add"}:
+                _guild = self.bot.get_guild(request["guildId"])
+                guild = GuildWrapper(_guild, self.bot) if _guild else None
+                if guild:
+                    await guild.addPrefix(request["prefix"])
+                    data = {"prefixes": await guild.getPrefixes()}
+            case {"type": "prefix-rm"}:
+                _guild = self.bot.get_guild(request["guildId"])
+                guild = GuildWrapper(_guild, self.bot) if _guild else None
+                if guild:
+                    await guild.rmPrefix(request["prefix"])
+                    data = {"prefixes": await guild.getPrefixes()}
             case {"type": "user"}:
                 user = self.bot.get_user(request["id"])
                 data = {}
