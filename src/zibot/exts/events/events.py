@@ -9,6 +9,7 @@ from __future__ import annotations
 import asyncio
 import json
 import re
+import traceback
 from contextlib import suppress
 from typing import TYPE_CHECKING, Any, Dict, Optional, Union, cast
 
@@ -627,56 +628,70 @@ class EventHandler(commands.Cog, CogMixin):
 
         data = {}
 
-        match request:
-            case {"type": "guild"}:
-                _guild = self.bot.get_guild(request["id"])
-                guild = GuildWrapper(_guild, self.bot) if _guild else None
-                if guild:
+        try:
+            match request:
+                case {"type": "guild", "userId": userId}:
+                    _guild = self.bot.get_guild(request["id"])
+                    guild = GuildWrapper(_guild, self.bot) if _guild else None
+                    if not guild:
+                        return data
                     data = {
                         "id": guild.id,
                         "name": guild.name,
                         "icon": getattr(guild.icon, "url", None),
-                        "owner": False,  # TODO
+                        "owner": guild.guild.owner_id == int(userId),
                         "features": [],
                         "permissions": 0,
                         "prefixes": await guild.getPrefixes(),
                     }
-            case {"type": "prefix-add"}:
-                _guild = self.bot.get_guild(request["guildId"])
-                guild = GuildWrapper(_guild, self.bot) if _guild else None
-                if guild:
+                case {"type": "prefix-add", "userId": userId}:
+                    _guild = self.bot.get_guild(request["guildId"])
+                    guild = GuildWrapper(_guild, self.bot) if _guild else None
+                    if not guild:
+                        return data
+                    user = guild.guild.get_member(int(userId))
+                    # TODO: isMod check
+                    if not (await guild.hasPermissions(user, self.bot, manage_guild=True)):
+                        return data
                     await guild.addPrefix(request["prefix"])
                     data = {"prefixes": await guild.getPrefixes()}
-            case {"type": "prefix-rm"}:
-                _guild = self.bot.get_guild(request["guildId"])
-                guild = GuildWrapper(_guild, self.bot) if _guild else None
-                if guild:
+                case {"type": "prefix-rm", "userId": userId}:
+                    _guild = self.bot.get_guild(request["guildId"])
+                    guild = GuildWrapper(_guild, self.bot) if _guild else None
+                    if not guild:
+                        return data
+                    user = guild.guild.get_member(int(userId))
+                    # TODO: isMod check
+                    if not (await guild.hasPermissions(user, self.bot, manage_guild=True)):
+                        return data
                     await guild.rmPrefix(request["prefix"])
                     data = {"prefixes": await guild.getPrefixes()}
-            case {"type": "user"}:
-                user = self.bot.get_user(request["id"])
-                data = {}
-                if user:
+                case {"type": "user"}:
+                    user = self.bot.get_user(request["id"])
+                    data = {}
+                    if user:
+                        data = {
+                            "id": user.id,
+                            "username": user.name,
+                            "avatar": user.display_avatar.url,
+                            "discriminator": user.discriminator,
+                            "mfa_enabled": False,  # TODO
+                            "email": "email@example.org",
+                            "verified": True,
+                        }
+                case {"type": "managed-guilds"}:
+                    data = [guild.id for guild in self.bot.guilds]
+                case {"type": "bot-stats"}:
                     data = {
-                        "id": user.id,
-                        "username": user.name,
-                        "avatar": user.display_avatar.url,
-                        "discriminator": user.discriminator,
-                        "mfa_enabled": False,  # TODO
-                        "email": "email@example.org",
-                        "verified": True,
+                        "guilds": len(self.bot.guilds),
+                        "users": len(self.bot.users),
+                        "commands": sum(self.bot.commandUsage.values()),
                     }
-            case {"type": "managed-guilds"}:
-                data = [guild.id for guild in self.bot.guilds]
-            case {"type": "bot-stats"}:
-                data = {
-                    "guilds": len(self.bot.guilds),
-                    "users": len(self.bot.users),
-                    "commands": sum(self.bot.commandUsage.values()),
-                }
-            case {"type": "ping"}:
-                data = {"self": "Pong!"}
-            case _:
-                data = {"test": str(request)}
+                case {"type": "ping"}:
+                    data = {"self": "Pong!"}
+                case _:
+                    data = {"test": str(request)}
+        except Exception:
+            traceback.print_exc()
 
         await self.bot.repSocket.send_string(json.dumps(data))

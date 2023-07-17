@@ -11,6 +11,7 @@ from typing import TYPE_CHECKING, Any
 
 import discord
 
+from . import checks
 from .prefix import Prefix
 
 
@@ -76,3 +77,6 @@ class GuildWrapper:
 
     async def getCCMode(self) -> CCMode:
         return CCMode(await self.bot.getGuildConfig(self.id, "ccMode") or 0)
+
+    async def hasPermissions(self, member: discord.Member, bot: ziBot, **perms):
+        return await checks.hasGuildPermissionsWithoutContext(**perms)(member, bot)

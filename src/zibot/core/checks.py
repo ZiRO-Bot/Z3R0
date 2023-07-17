@@ -7,7 +7,9 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 from __future__ import annotations
 
 from contextlib import suppress
+from typing import TYPE_CHECKING
 
+from discord import Member
 from discord.ext import commands
 
 from ..utils import getGuildRole, utcnow
@@ -19,16 +21,39 @@ from .errors import (
 )
 
 
+if TYPE_CHECKING:
+    from .bot import ziBot
+
+
 # TODO: Re-organize, also make it hybrid
+
+
+def hasGuildPermissionsWithoutContext(**perms):
+    async def predicate(member: Member, bot: ziBot):
+        isMaster = False
+        with suppress(AttributeError):
+            isMaster = member.id in bot.owner_ids
+
+        if isMaster:
+            return True
+
+        permissions = member.guild_permissions
+        missing = [perm for perm, value in perms.items() if getattr(permissions, perm) != value]
+
+        if not missing:
+            return True
+
+        raise commands.MissingPermissions(missing)
+
+    return predicate
 
 
 def hasGuildPermissions(**perms):
     async def predicate(ctx):
         orig = commands.has_guild_permissions(**perms).predicate
-        try:
+        isMaster = False
+        with suppress(AttributeError):
             isMaster = ctx.author.id in ctx.bot.owner_ids
-        except AttributeError:
-            isMaster = False
         return isMaster or await orig(ctx)
 
     return commands.check(predicate)
