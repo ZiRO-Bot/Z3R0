@@ -328,6 +328,7 @@ class ziBot(commands.Bot):
 
         if repPort:
             self.repSocket = context.socket(zmq.REP)
+            self.repSocket.setsockopt(zmq.IPV6, True)
             self.repSocket.bind(f"tcp://*:{repPort}")
             self.socketTasks.append(asyncio.create_task(self.onZMQReceiveREQMessage()))
 
