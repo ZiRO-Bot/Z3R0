@@ -318,18 +318,18 @@ class ziBot(commands.Bot):
 
         if pubPort:
             self.pubSocket = context.socket(zmq.PUB)
-            self.pubSocket.bind(f"tcp://*:{pubPort}")
+            self.pubSocket.bind(f"tcp://[::]:{pubPort}")
 
         if subPort:
             self.subSocket = context.socket(zmq.SUB)
             self.subSocket.setsockopt(zmq.SUBSCRIBE, b"")
-            self.subSocket.bind(f"tcp://*:{subPort}")
+            self.subSocket.bind(f"tcp://[::]:{subPort}")
             self.socketTasks.append(asyncio.create_task(self.onZMQReceivePUBMessage()))
 
         if repPort:
             self.repSocket = context.socket(zmq.REP)
             self.repSocket.setsockopt(zmq.IPV6, True)
-            self.repSocket.bind(f"tcp://*:{repPort}")
+            self.repSocket.bind(f"tcp://[::]:{repPort}")
             self.socketTasks.append(asyncio.create_task(self.onZMQReceiveREQMessage()))
 
     async def onZMQReceivePUBMessage(self):
