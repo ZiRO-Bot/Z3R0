@@ -16,6 +16,8 @@
 ### Internal Changes
 - [**Added**] `Users` table model
 - [**Added**] Add `locale` column/field to `GuildConfigs` table model
+- [**Changed**] RandomAPI is merged with
+  [Nexus](https://github.com/ZiRO-Bot/nexus)
 
 # v3.6 (Structure Refactor)
 
