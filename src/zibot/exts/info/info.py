@@ -5,6 +5,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 """
 
 import datetime as dt
+import re
 import unicodedata
 from contextlib import suppress
 from typing import Union
@@ -23,6 +24,9 @@ from ...core.mixin import CogMixin
 from ...utils import authorOrReferenced, pillow, utcnow
 from ...utils.api.openweather import CityNotFound, OpenWeatherAPI
 from ...utils.format import formatDiscordDT, renderBar
+
+
+COLOUR_REGEX = re.compile("^(?:0x|#)?([0-9a-fA-F]{1,6})$")
 
 
 class Info(commands.Cog, CogMixin):
@@ -114,16 +118,12 @@ class Info(commands.Cog, CogMixin):
     )
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def colour(self, ctx: Context, value: str):
-        # Pre processing
-        value = value.lstrip("#")[:6]
-        value = value.ljust(6, "0")
-
-        try:
-            h = str(hex(int(value, 16)))[2:]
-            h = h.lstrip("0x")
-            h = "0x" + h.rjust(6, "0")
-        except ValueError:
+        match = COLOUR_REGEX.match(value)
+        if not match:
             return await ctx.error(_("color-error"))
+
+        h = match.group(1)
+        h = h.ljust(6, "0")
 
         # Convert HEX into RGB
         RGB = tuple(int(h[i : i + 2], 16) for i in (0, 2, 4))
