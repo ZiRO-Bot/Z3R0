@@ -17,6 +17,7 @@ from discord.ext import commands
 from ...core import checks
 from ...core import commands as cmds
 from ...core.context import Context
+from ...core.converter import ClampedRange
 from ...core.embed import ZEmbed
 from ...core.errors import ArgumentError
 from ...core.mixin import CogMixin
@@ -405,13 +406,7 @@ class Fun(commands.Cog, CogMixin):
         ),
     )
     @commands.cooldown(5, 25, type=commands.BucketType.user)
-    async def barter(self, ctx, gold: commands.Range[int, 1, 2240] = 64):
-        # limit gold amount up to 2240 (Minecraft inventory limit)
-        if gold > 2240:
-            gold = 2240
-        if gold <= 0:
-            gold = 1
-
+    async def barter(self, ctx, gold: ClampedRange[int, 1, 2240] = 64):
         trade = Piglin(gold)
 
         items = {}

@@ -7,7 +7,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 import datetime as dt
 import re
 from contextlib import suppress
-from typing import Optional, Union
+from typing import TYPE_CHECKING, Optional, Union
 
 import discord
 from dateutil.relativedelta import relativedelta
@@ -125,3 +125,34 @@ class Hierarchy(commands.Converter):
             return converted
 
         raise HierarchyError(errMsg)
+
+
+if TYPE_CHECKING:
+    from typing_extensions import Annotated as ClampedRange  # type: ignore
+else:
+
+    class ClampedRange(commands.Range):
+        """Similar to Range but instead of raising RangeError, it'll return the closest value to threshold"""
+
+        async def convert(self, ctx: Context, value: str) -> int | float:
+            try:
+                converted = await super().convert(ctx, value)
+            except commands.RangeError as e:
+                count: int | float
+                if self.annotation is str:
+                    count = len(e.value)  # type: ignore
+                else:
+                    count = e.value  # type: ignore
+
+                max_: int | float = e.maximum  # type: ignore
+                min_: int | float = e.minimum  # type: ignore
+
+                if count > max_:
+                    return max_
+
+                if count < min_:
+                    return min_
+
+                return count
+
+            return converted
