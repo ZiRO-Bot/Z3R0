@@ -6,6 +6,13 @@
 > drop table `aerich` from your database, delete `migrations` folder, run the
 > bot to initialize aerich, then you can finally update to version 3.7.x.
 
+## 3.7.1 ()
+
+- [**Fixed**] `>colour` command always return incorrect value
+
+### Internal Changes
+- [**Added**] Add `ClampedRange` to revert some command's old range behaviour
+
 ## 3.7.0 (Into the Multilingual Era)
 
 - [**Added**] Implemented i18n using
