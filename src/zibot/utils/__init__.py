@@ -301,7 +301,7 @@ async def doCaselog(
 ) -> Optional[int]:
     # I had to use .values() instead of .first() because of a known Tortoise issue
     # REF: https://github.com/tortoise/tortoise-orm/issues/794
-    q: list[dict[str, Any]] = await db.CaseLog.filter(guild_id=guildId).annotate(caseNum=Max("caseId")).values("caseId")  # type: ignore
+    q: list[dict[str, Any]] = await db.CaseLog.filter(guild_id=guildId).annotate(caseId=Max("caseId")).values("caseId")  # type: ignore
 
     try:
         caseNum = q[0]["caseId"]
