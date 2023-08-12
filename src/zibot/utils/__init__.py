@@ -11,7 +11,7 @@ import math
 import operator
 from decimal import Decimal
 from html.parser import HTMLParser
-from typing import Optional, Tuple
+from typing import Any, Optional, Tuple
 
 import discord
 from pyparsing import (
@@ -299,8 +299,15 @@ async def doCaselog(
     targetId: int,
     reason: str,
 ) -> Optional[int]:
-    q = await db.CaseLog.filter(guild_id=guildId).annotate(caseNum=Max("caseId")).first()
-    caseNum = (q.caseNum or 0) + 1  # type: ignore
+    # I had to use .values() instead of .first() because of a known Tortoise issue
+    # REF: https://github.com/tortoise/tortoise-orm/issues/794
+    q: list[dict[str, Any]] = await db.CaseLog.filter(guild_id=guildId).annotate(caseNum=Max("caseId")).values()  # type: ignore
+
+    try:
+        caseNum = q[0]["caseNum"]
+    except (IndexError, KeyError):
+        caseNum = 0
+    caseNum += 1
 
     if caseNum:
         await db.CaseLog.create(
