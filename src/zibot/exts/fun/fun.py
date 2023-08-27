@@ -408,7 +408,7 @@ class Fun(commands.Cog, CogMixin):
     @app_commands.rename(gold=_("barter-gold"))
     @app_commands.rename(lootTable=_("barter-loot-table"))
     @commands.cooldown(5, 25, type=commands.BucketType.user)
-    async def barter(self, ctx, gold: ClampedRange[int, 1, 2240] = 64, lootTable: str = "nerfed"):
+    async def barter(self, ctx, gold: ClampedRange[int, 1, 2240] = 64, lootTable: str = "before nerf"):
         trade = Piglin(gold, lootTable=1 if lootTable.lower() == "nerfed" else 0)
 
         items = {}
