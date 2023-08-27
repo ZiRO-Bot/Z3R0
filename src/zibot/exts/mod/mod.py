@@ -343,7 +343,7 @@ class Moderation(commands.Cog, CogMixin):
         if not mutedRoleId:
             raise MissingMuteRole(ctx.clean_prefix) from None
 
-        if not member._roles.has(mutedRoleId):
+        if isinstance(member, discord.Member) and not member._roles.has(mutedRoleId):
             return await ctx.error(f"{member.mention} is not muted!")
 
         await self.doModeration(ctx, member, None, action="unmute", reason=reason, mutedRoleId=mutedRoleId)

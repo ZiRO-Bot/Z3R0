@@ -74,15 +74,19 @@ class BannedMember(commands.IDConverter):
             return entity[0]
 
 
-class MemberOrUser(commands.Converter):
-    async def convert(self, ctx: Context, argument):
-        try:
-            return await commands.MemberConverter().convert(ctx, argument)
-        except commands.MemberNotFound:
+if TYPE_CHECKING:
+    MemberOrUser = discord.User | discord.Member
+else:
+
+    class MemberOrUser(commands.Converter):
+        async def convert(self, ctx: Context, argument):
             try:
-                return await commands.UserConverter().convert(ctx, argument)
-            except commands.UserNotFound:
-                return None
+                return await commands.MemberConverter().convert(ctx, argument)
+            except commands.MemberNotFound:
+                try:
+                    return await commands.UserConverter().convert(ctx, argument)
+                except commands.UserNotFound:
+                    return None
 
 
 def checkHierarchy(ctx: Context, user, action: str = None) -> Optional[str]:
