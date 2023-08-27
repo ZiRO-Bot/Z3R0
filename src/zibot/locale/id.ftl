@@ -68,6 +68,8 @@ dadjokes-desc = Dapatkan candaan acak bapak-bapak
 rps-desc = Main Baru Gunting Kertas dengan bot
 flip-desc = Lempar Koin
 barter-desc = Barter dengan Minecraft Piglin
+barter-gold = emas
+barter-loot-table = loot-table
 
 # --- Info
 weather = cuaca

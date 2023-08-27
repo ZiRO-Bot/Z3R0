@@ -202,6 +202,8 @@ barter-result-title = Bartering with { $goldCount ->
 barter-result = You got:
 
     { $barterResult }
+barter-gold = gold
+barter-loot-table = loot-table
 
 # --- Info
 weather = weather

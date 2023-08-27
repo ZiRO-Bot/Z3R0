@@ -276,6 +276,7 @@ class Fun(commands.Cog, CogMixin):
             example=("rps rock",),
         ),
     )
+    @app_commands.rename(choice_="choice")
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def rps(self, ctx, choice_: str):
         choice_ = choice_.lower()
@@ -397,17 +398,18 @@ class Fun(commands.Cog, CogMixin):
     @cmds.command(
         name=_("barter"),
         description=_("barter-desc"),
-        help="\n**Note**: The loot table is based on JE 1.16.1 (before nerf)",
         aliases=("piglin",),
         hybrid=True,
-        usage="[amount of gold]",
+        usage="[amount of gold] [loot table]",
         extras=dict(
-            example=("barter 64", "piglin", "barter 262"),
+            example=("barter 64", "piglin", "barter 262", "barter 64 nerfed"),
         ),
     )
+    @app_commands.rename(gold=_("barter-gold"))
+    @app_commands.rename(lootTable=_("barter-loot-table"))
     @commands.cooldown(5, 25, type=commands.BucketType.user)
-    async def barter(self, ctx, gold: ClampedRange[int, 1, 2240] = 64):
-        trade = Piglin(gold)
+    async def barter(self, ctx, gold: ClampedRange[int, 1, 2240] = 64, lootTable: str = "nerfed"):
+        trade = Piglin(gold, lootTable=1 if lootTable.lower() == "nerfed" else 0)
 
         items = {}
         for item in trade.items:
@@ -435,6 +437,10 @@ class Fun(commands.Cog, CogMixin):
                 "obsidian": "<:obsidian3D:807536509837770762>",
                 "cry-obsidian": "<:cryobsidian3D:807536510152474644>",
                 "soul-sand": "<:soulsand3D:807536744253227049>",
+                "spectral-arrow": "<:spectralarrow:1145171838104768582>",
+                "blackstone": "<:blackstone:1145172970617180203>",
+                "netherite-hoe": "<:netheritehoe:1145173422591180951>",
+                "water-bottle": "<:waterbottle:1145173809276661900>",
             }.get(name, "<:missingtexture:807536928361545729>")
 
         e = ZEmbed(
@@ -446,3 +452,8 @@ class Fun(commands.Cog, CogMixin):
             colour=discord.Colour.gold(),
         )
         await ctx.try_reply(embed=e)
+
+    @barter.autocomplete("lootTable")
+    async def lootTableSuggestion(self, inter, choice):
+        rps = (("Before Nerf", "before"), ("After Nerfed", "nerfed"))
+        return [app_commands.Choice(name=i[0], value=i[1]) for i in rps]
