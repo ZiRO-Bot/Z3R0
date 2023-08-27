@@ -34,7 +34,7 @@ TIME_REGEX = re.compile(
 
 
 class TimeAndArgument(commands.Converter):
-    async def convert(self, ctx: Context, argument: str):
+    async def convert(self, _: Context, argument: str):
         # Default values
         self.arg = argument
         self.when: Optional[dt.datetime] = None
@@ -59,21 +59,19 @@ class TimeAndArgument(commands.Converter):
         return self
 
 
-class BannedMember(commands.ObjectConverter):
+class BannedMember(commands.IDConverter):
     async def convert(self, ctx: Context, argument):
         try:
-            memberId = await super().convert(ctx, argument)
+            memberId: int = await super().convert(ctx, argument)
             try:
-                return await ctx.guild.fetch_ban(discord.Object(id=memberId))
+                return await ctx.requireGuild().fetch_ban(discord.Object(id=memberId))
             except discord.NotFound:
                 raise commands.BadArgument("This member has not been banned before.") from None
         except commands.ObjectNotFound:
-            entity = [u async for u in ctx.guild.bans(limit=None) if str(u.user) == argument]
+            entity = [u async for u in ctx.requireGuild().bans(limit=None) if str(u.user) == argument]
             if len(entity) < 1:
                 raise commands.BadArgument("This member has not been banned before.")
             return entity[0]
-
-        raise commands.BadArgument("Invalid argument")
 
 
 class MemberOrUser(commands.Converter):
@@ -89,26 +87,36 @@ class MemberOrUser(commands.Converter):
 
 def checkHierarchy(ctx: Context, user, action: str = None) -> Optional[str]:
     """Check hierarchy stuff"""
+    guild = ctx.requireGuild()
     errMsg: Optional[str] = None
 
-    if user.id == ctx.bot.user.id:
+    botUser = ctx.bot.user
+    if not botUser:
+        raise DefaultError("Can't get bot user information")
+
+    if user.id == botUser.id:
         errMsg = "Nice try."
-    elif user == ctx.guild.owner:
+    elif user == guild.owner:
         errMsg = "You can't {} guild owner!".format(action or "do this action to")
     else:
         # compare author and bot's top role vs target's top role
         with suppress(AttributeError):
-            if ctx.me.top_role <= user.top_role:
+            botMember: discord.Member = guild.get_member(botUser.id)
+            if botMember.top_role <= user.top_role:
                 errMsg = "{}'s top role is higher or equals " "to **mine** in the hierarchy!".format(user)
 
         with suppress(AttributeError):
-            if ctx.author != ctx.guild.owner and ctx.author.top_role <= user.top_role:  # guild owner doesn't need this check
+            author: discord.Member = ctx.author  # type: ignore - Already handled
+            if isinstance(author, discord.User):
+                author = guild.get_member(author.id)
+
+            if author != guild.owner and author.top_role <= user.top_role:  # guild owner doesn't need this check
                 errMsg = "{}'s top role is higher or equals " "to **yours** in the hierarchy!".format(user)
     return errMsg
 
 
 class Hierarchy(commands.Converter):
-    def __init__(self, converter: commands.Converter = MemberOrUser, *, action: Optional[str] = None):
+    def __init__(self, converter=MemberOrUser, *, action: Optional[str] = None):
         self.converter: commands.Converter = converter()  # type: ignore
         self.action: str = action or "do that to"
 
