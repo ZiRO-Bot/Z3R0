@@ -9,6 +9,7 @@
 ## 3.7.1 ()
 
 - [**Fixed**] `>colour` command always return incorrect value
+- [**Added**] Add loot table choice to `>barter` command
 
 ### Internal Changes
 - [**Added**] Add `ClampedRange` to revert some command's old range behaviour
