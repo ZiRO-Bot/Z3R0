@@ -63,8 +63,7 @@ For information on how to use the bot, see https://zibot.aap.my.id/docs
 
 ### Self-Hosting
 
-> **Note**
->
+> [!WARNING]
 > If you're planning to self-host the bot, I'll assume you already have a
 > decent knowledge of Python, discord.py and hosting bot in general. I will
 > **NOT** give support for basic issue such as "Where do I get bot token", "How
@@ -121,8 +120,7 @@ For information on how to use the bot, see https://zibot.aap.my.id/docs
 
 #### Manual
 
-> **Warning**
->
+> [!IMPORTANT]
 > Python 3.10+ (3.10.9 is recommended) is required to host this bot!
 
 - Download this repository by executing `git clone https://github.com/ZiRO-Bot/Z3R0.git`
@@ -177,8 +175,7 @@ changelog
 
 ## Plans
 
-> **Note**
->
+> [!NOTE]
 > Listed from highest to lowest priority
 
 - Restructure project into a monorepo
@@ -223,8 +220,7 @@ changelog
 
 ### Scrapped Plan
 
-> **Note**
->
+> [!NOTE]
 > Some of these plans are not completely scrapped, some simply scrapped since
 > it's not yet possible for me to do but I don't know whether or not it'll
 > eventually be possible to be added
