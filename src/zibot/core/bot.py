@@ -289,7 +289,7 @@ class ziBot(commands.Bot):
 
             await self.manageGuildDeletion()
 
-            self.changingPresence.start()
+            await self.change_presence(activity=discord.Activity(name="RETIRING...", type=discord.ActivityType.watching))
             await self.zmqBind()
 
         for extension in EXTS:
@@ -425,28 +425,6 @@ class ziBot(commands.Bot):
         cached.set(guildId, newData)
 
         return cached.get(guildId, {}).get(configType, None)
-
-    @tasks.loop(seconds=15)
-    async def changingPresence(self) -> None:
-        """A loop that change bot's status every 15 seconds."""
-        await self.waitUntilReady()
-        activities: tuple = (
-            discord.Activity(
-                name=f"over {len(self.guilds)} servers",
-                type=discord.ActivityType.watching,
-            ),
-            discord.Activity(name=f"over {len(self.users)} users", type=discord.ActivityType.watching),
-            discord.Activity(
-                name="commands | Ping me to get prefix list!",
-                type=discord.ActivityType.listening,
-            ),
-            discord.Activity(name="bot war", type=discord.ActivityType.competing),
-        )
-        self.activityIndex += 1
-        if self.activityIndex >= len(activities):
-            self.activityIndex = 0
-
-        await self.change_presence(activity=activities[self.activityIndex])
 
     async def manageGuildDeletion(self) -> None:
         """Manages guild deletion from database on boot"""

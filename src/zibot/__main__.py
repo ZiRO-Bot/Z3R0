@@ -55,10 +55,10 @@ def setup_logging():
 
         yield
     finally:
-        handlers = logger.handlers[:]  # type: ignore
+        handlers = logger.handlers[:]
         for handler in handlers:
             handler.close()
-            logger.removeHandler(handler)  # type: ignore
+            logger.removeHandler(handler)
 
 
 async def _run(config: Config):

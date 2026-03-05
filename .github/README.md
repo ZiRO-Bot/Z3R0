@@ -1,3 +1,7 @@
+> [!WARNING]
+>
+> This project has been archived due to lack of interest. The bot itself will be retired soon.
+
 <p align="center">
     <a href="https://github.com/ZiRO-Bot/ziBot"><img src="/assets/img/banner.png" alt="Z3R0" width="540"/></a>
 </p>
