@@ -160,3 +160,12 @@ class Users(Model):
     id = fields.BigIntField(pk=True, generated=False)
     locale = fields.TextField(null=True)
     timeZone = fields.TextField(null=True)
+
+
+class Highlight(ContainsGuildId, Model):
+    text = fields.TextField()
+    ownerId = fields.BigIntField(pk=False, generated=False)
+
+    class Meta:
+        table = "highlight"
+        unique_together = (("text", "ownerId"),)

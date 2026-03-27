@@ -6,6 +6,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from __future__ import annotations
 
+import datetime as dt
 import time
 from typing import TYPE_CHECKING
 
@@ -16,12 +17,14 @@ from discord.ext import commands
 
 from ...core import checks
 from ...core import commands as cmds
+from ...core.data import ExpiringDict
 from ...core.context import Context
 from ...core.embed import ZEmbed, ZEmbedBuilder
 from ...core.errors import DefaultError
 from ...core.menus import ZMenuPagesView
 from ...utils import utcnow
-from ...utils.format import cleanifyPrefix
+from ...utils.format import cleanifyPrefix, formatDiscordDT
+from ..timer._views import LinkView
 from ._help import CustomHelp
 from ._pages import PrefixesPageSource
 from .subcogs import MetaCustomCommands
@@ -73,6 +76,11 @@ class Meta(MetaCustomCommands):
         # Replace default help menu with custom one
         self.bot.help_command = CustomHelp(command_attrs=attributes)
         self.bot.help_command.cog = self
+
+        # TODO: Retrieve from DB
+        self.highlights = {
+            807260318270619748: {"ziro": [186713080841895936, 740089661703192709]}
+        }
 
     @cmds.command(name=_("source"), description=_("source-desc"), hybrid=True)
     @commands.cooldown(1, 5, commands.BucketType.user)
@@ -273,3 +281,74 @@ class Meta(MetaCustomCommands):
             ),
         )
         await ctx.try_reply(embed=await e.build(ctx))
+
+    @commands.group(aliases=("hl",))
+    async def highlight(self, ctx):
+        """Manage your highlight words
+
+        When a highlight word/phrase is found, the bot will send you a private
+        message with the message that triggered it along with contexts."""
+        pass
+
+    @highlight.command()
+    async def add(self, ctx, *, text: str):
+        """Add a new highlight word/phrase
+
+        Note, highlight words/phrases are NOT case-sensitive!"""
+        text = text.lower()
+
+        # TODO: Actually add the text to highlights db
+        await ctx.try_reply(text)
+
+    @commands.Cog.listener("on_message")
+    async def onHighlight(self, message: discord.Message):
+        guild = message.guild
+        if message.author.bot or not message.content or not guild:
+            return
+
+        channelId = message.channel.id
+        authorId = message.author.id
+        msgId = message.id
+        if not self.lastSeen.get(channelId):
+            self.lastSeen[channelId] = ExpiringDict(maxAgeSeconds=1800)
+        self.lastSeen[channelId][authorId] = msgId
+
+        guildHighlight = self.highlights.get(guild.id)
+        if not guildHighlight:
+            return
+
+        for hl, owners in guildHighlight.items():
+            if hl not in message.content.lower():
+                continue
+
+            # Getting context
+            msgs: list[discord.Message] = [message]
+            async for history in message.channel.history(limit=4, before=message.created_at):
+                msgs.append(history)
+
+            context = []
+            for msg in msgs:
+                tmp = f"[{formatDiscordDT(msg.created_at, 'T')}] {msg.author}: {msg.clean_content or '_Only contains embed(s)_'}"
+                if msg == message:
+                    tmp = f"** {tmp} **"
+                context.append(tmp)
+            context.reverse()
+
+            view = LinkView(links=[("Jump to Source", message.jump_url)])
+            e = ZEmbed(
+                title=f"Keyword: `{hl}`",
+                description="\n".join(context),
+            )
+
+            for owner in owners:
+                # Prevent "self-highlight"
+                if owner == message.author.id:
+                    continue
+
+                user = guild.get_member(owner) or await guild.fetch_member(owner)
+                if user and self.lastSeen.get(channelId, {}).get(user.id):
+                    await user.send(
+                        "In {0.channel.mention} ({0.guild})".format(message),
+                        embed=e,
+                        view=view,
+                    )
